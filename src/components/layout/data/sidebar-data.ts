@@ -4,6 +4,7 @@ import {
   IconBug,
   IconChecklist,
   IconError404,
+  IconFileAnalytics,
   IconHelp,
   IconLayoutDashboard,
   IconLock,
@@ -75,6 +76,16 @@ export const sidebarData: SidebarData = {
           title: 'Users',
           url: '/users',
           icon: IconUsers,
+        },
+        {
+          title: '面试分析报告',
+          url: '/interview-reports',
+          icon: IconFileAnalytics,
+        },
+        {
+          title: '试标报告',
+          url: '/annotate-report',
+          icon: IconFileAnalytics,
         },
         {
           title: 'Secured by Clerk',
