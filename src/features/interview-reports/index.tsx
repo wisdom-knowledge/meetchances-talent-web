@@ -3,7 +3,6 @@ import { Main } from '@/components/layout/main'
 import { TopNav } from '@/components/layout/top-nav'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
-import { ThemeSwitch } from '@/components/theme-switch'
 
 import { Separator } from '@/components/ui/separator'
 import CandidateInfoSection from './components/candidate-info-section'
@@ -24,7 +23,6 @@ export default function InterviewReports() {
         <TopNav links={topNav} />
         <div className='ml-auto flex items-center space-x-4'>
           <Search />
-          <ThemeSwitch />
           <ProfileDropdown />
         </div>
       </Header>

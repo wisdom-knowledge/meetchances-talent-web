@@ -1,58 +1,53 @@
-import { useEffect } from 'react'
-import { IconCheck, IconMoon, IconSun } from '@tabler/icons-react'
+import { useEffect, type ReactNode } from 'react'
+import { IconMoon, IconSun } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-context'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
-export function ThemeSwitch() {
-  const { theme, setTheme } = useTheme()
+interface ThemeSwitchProps {
+  children?: ReactNode
+}
+
+export function ThemeSwitch({ children }: ThemeSwitchProps) {
+  // Keep hook call to ensure provider existence; ignore value since theme is locked
+  useTheme()
 
   /* Update theme-color meta tag
    * when theme is updated */
+  // Theme is locked to light globally; keep meta tag consistent
   useEffect(() => {
-    const themeColor = theme === 'dark' ? '#020817' : '#fff'
     const metaThemeColor = document.querySelector("meta[name='theme-color']")
-    if (metaThemeColor) metaThemeColor.setAttribute('content', themeColor)
-  }, [theme])
+    if (metaThemeColor) metaThemeColor.setAttribute('content', '#fff')
+  }, [])
+
+  const hasLabel = Boolean(children)
 
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant='ghost' size='icon' className='scale-95 rounded-full'>
-          <IconSun className='size-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90' />
-          <IconMoon className='absolute size-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0' />
-          <span className='sr-only'>Toggle theme</span>
+        <Button
+          variant='ghost'
+          size={hasLabel ? 'sm' : 'icon'}
+          className={cn(
+            hasLabel ? 'gap-2 h-8 rounded-md px-2' : 'scale-95 rounded-full',
+            'cursor-not-allowed opacity-60'
+          )}
+          disabled
+        >
+          <span className='relative'>
+            <IconSun className='size-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90' />
+            <IconMoon className='absolute size-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0' />
+          </span>
+          {hasLabel ? (
+            <span className='text-sm font-normal'>{children}</span>
+          ) : (
+            <span className='sr-only'>Toggle theme</span>
+          )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align='end'>
-        <DropdownMenuItem onClick={() => setTheme('light')}>
-          Light{' '}
-          <IconCheck
-            size={14}
-            className={cn('ml-auto', theme !== 'light' && 'hidden')}
-          />
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>
-          Dark
-          <IconCheck
-            size={14}
-            className={cn('ml-auto', theme !== 'dark' && 'hidden')}
-          />
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>
-          System
-          <IconCheck
-            size={14}
-            className={cn('ml-auto', theme !== 'system' && 'hidden')}
-          />
-        </DropdownMenuItem>
-      </DropdownMenuContent>
+      {/* Menu disabled: theme is locked to light */}
+      <DropdownMenuContent align='end' className='hidden' />
     </DropdownMenu>
   )
 }

@@ -6,7 +6,6 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
 import { Main } from '@/components/layout/main'
-import { ThemeSwitch } from '@/components/theme-switch'
 
 export const Route = createFileRoute('/clerk')({
   component: RouteComponent,
@@ -41,7 +40,6 @@ function MissingClerkPubKey() {
     <AuthenticatedLayout>
       <div className='bg-background flex h-16 justify-between p-4'>
         <SidebarTrigger variant='outline' className='scale-125 sm:scale-100' />
-        <ThemeSwitch />
       </div>
       <Main className='flex flex-col items-center justify-start'>
         <div className='max-w-2xl'>
@@ -64,6 +62,7 @@ function MissingClerkPubKey() {
                 <a
                   href='https://go.clerk.com/GttUAaK'
                   target='_blank'
+                  rel='noopener noreferrer'
                   className='underline decoration-dashed underline-offset-4 hover:decoration-solid'
                 >
                   Clerk
