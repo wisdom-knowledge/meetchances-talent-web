@@ -239,10 +239,10 @@ const proctoringData: ProctoringResultData = {
 
 // 关于候选人数据
 const aboutCandidateData: AboutCandidateData = {
-  name: '王小明',
+  name: '李宽野',
   description: '一位机器学习爱好者，拥有扎实的学术记录和丰富的行业以及研究经验，专业领域涵盖数据科学、自然语言处理和计算机视觉。该候选人在生成式AI、向量数据库和深度推荐系统等前沿项目中发挥了引领作用，同时保持着稳健的CI/CD实践。凭借横跨硕士研究、多个研究助理职位和实际行业实施的背景，这位专业人士善于应对跨职能挑战并交付创新的AI解决方案。',
   resumeUrl: '/files/resume.pdf',
-  resumeFilename: '王小明_简历.pdf'
+  resumeFilename: '李宽野_简历.pdf'
 }
 
 // 候选人技能数据

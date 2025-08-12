@@ -43,6 +43,17 @@ export default function TaskDetailsSection({ data }: TaskDetailsSectionProps) {
         cell: ({ row }) => <div className='w-[100px]'>{row.getValue('id')}</div>,
         enableHiding: false,
       },
+      {
+        accessorKey: 'title',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title='任务标题' />
+        ),
+        cell: ({ row }) => (
+          <span className='max-w-72 truncate font-medium sm:max-w-[28rem]'>
+            {row.getValue('title')}
+          </span>
+        ),
+      },
       // 删除 标题列 和 状态列
       {
         accessorKey: 'aiScore',
@@ -68,9 +79,24 @@ export default function TaskDetailsSection({ data }: TaskDetailsSectionProps) {
       {
         id: 'actions',
         header: '操作',
-        cell: () => (
-          <Button variant='link' size='sm' className='px-0'>查看详情</Button>
-        ),
+        cell: ({ row }) => {
+          const idx = row.index
+          const base = 'https://studio.xpertiise.com/projects/260/batch/617/tasks?labeling=1&status=annotation&tab=150'
+          const token = idx === 0 ? '32jq0wn7' : idx === 1 ? 'q6t5zxad' : '230uq6ja'
+          const url = `${base}&_tk=${token}`
+          return (
+            <Button
+              variant='link'
+              size='sm'
+              className='px-0'
+              onClick={() => {
+                window.location.assign(url)
+              }}
+            >
+              查看详情
+            </Button>
+          )
+        },
         enableSorting: false,
       },
     ],
@@ -151,7 +177,18 @@ function SimpleDataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table as unknown as import('@tanstack/react-table').Table<TData>} />
+      <DataTablePagination
+        table={table as unknown as import('@tanstack/react-table').Table<TData>}
+        labels={{
+          rowsPerPage: '每页行数',
+          selectedText: (selected, total) => `${selected} / ${total} 行已选择`,
+          pageOf: (page, total) => `第 ${page} 页 / 共 ${total} 页`,
+          goFirst: '跳到第一页',
+          goPrev: '上一页',
+          goNext: '下一页',
+          goLast: '跳到最后一页',
+        }}
+      />
     </div>
   )
 }

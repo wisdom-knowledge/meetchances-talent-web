@@ -177,6 +177,39 @@
   }
 }
 
+/* Logo Loader 单一“波纹”从左至右 */
+.logo-loader path { opacity: 0.25; transition: opacity 200ms ease }
+.logo-loader.wave path { opacity: 0.15 }
+.logo-loader.wave g { --activeIndex: 0 }
+.logo-loader.wave g path { opacity: 0.2 }
+.logo-loader.wave g path:nth-child(n + 1) { opacity: 0.25 }
+.logo-loader.wave g path {
+  animation: logoWave 2.2s linear infinite;
+  animation-delay: calc(var(--i, 0) * 120ms);
+}
+.logo-loader.wave g path:nth-child(1) { --i: 0 }
+.logo-loader.wave g path:nth-child(2) { --i: 1 }
+.logo-loader.wave g path:nth-child(3) { --i: 2 }
+.logo-loader.wave g path:nth-child(4) { --i: 3 }
+.logo-loader.wave g path:nth-child(5) { --i: 4 }
+.logo-loader.wave g path:nth-child(6) { --i: 5 }
+.logo-loader.wave g path:nth-child(7) { --i: 6 }
+.logo-loader.wave g path:nth-child(8) { --i: 7 }
+.logo-loader.wave g path:nth-child(9) { --i: 8 }
+.logo-loader.wave g path:nth-child(10) { --i: 9 }
+.logo-loader.wave g path:nth-child(11) { --i: 10 }
+.logo-loader.wave g path:nth-child(12) { --i: 11 }
+.logo-loader.wave g path:nth-child(13) { --i: 12 }
+
+@keyframes logoWave {
+  0%, 100% { opacity: 0.2 }
+  45% { opacity: 0.2 }
+  50% { opacity: 1 }
+  55% { opacity: 0.2 }
+}
+.logo-loader.slow path { animation-duration: 3s }
+.logo-loader.fast path { animation-duration: 1.4s }
+
 @keyframes slideUp {
   from {
     height: var(--radix-collapsible-content-height);

@@ -16,23 +16,48 @@ import {
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>
+  labels?: {
+    rowsPerPage?: string
+    selectedText?: (selected: number, total: number) => string
+    pageOf?: (page: number, totalPages: number) => string
+    goFirst?: string
+    goPrev?: string
+    goNext?: string
+    goLast?: string
+  }
 }
 
 export function DataTablePagination<TData>({
   table,
+  labels,
 }: DataTablePaginationProps<TData>) {
+  const l = {
+    rowsPerPage: labels?.rowsPerPage ?? 'Rows per page',
+    selectedText:
+      labels?.selectedText ??
+      ((selected: number, total: number) => `${selected} of ${total} row(s) selected.`),
+    pageOf:
+      labels?.pageOf ??
+      ((page: number, totalPages: number) => `Page ${page} of ${totalPages}`),
+    goFirst: labels?.goFirst ?? 'Go to first page',
+    goPrev: labels?.goPrev ?? 'Go to previous page',
+    goNext: labels?.goNext ?? 'Go to next page',
+    goLast: labels?.goLast ?? 'Go to last page',
+  }
   return (
     <div
       className='flex items-center justify-between overflow-clip px-2'
       style={{ overflowClipMargin: 1 }}
     >
       <div className='text-muted-foreground hidden flex-1 text-sm sm:block'>
-        {table.getFilteredSelectedRowModel().rows.length} of{' '}
-        {table.getFilteredRowModel().rows.length} row(s) selected.
+        {l.selectedText(
+          table.getFilteredSelectedRowModel().rows.length,
+          table.getFilteredRowModel().rows.length
+        )}
       </div>
       <div className='flex items-center sm:space-x-6 lg:space-x-8'>
         <div className='flex items-center space-x-2'>
-          <p className='hidden text-sm font-medium sm:block'>Rows per page</p>
+          <p className='hidden text-sm font-medium sm:block'>{l.rowsPerPage}</p>
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
@@ -51,9 +76,8 @@ export function DataTablePagination<TData>({
             </SelectContent>
           </Select>
         </div>
-        <div className='flex w-[100px] items-center justify-center text-sm font-medium'>
-          Page {table.getState().pagination.pageIndex + 1} of{' '}
-          {table.getPageCount()}
+        <div className='flex w-[140px] items-center justify-center text-sm font-medium'>
+          {l.pageOf(table.getState().pagination.pageIndex + 1, table.getPageCount())}
         </div>
         <div className='flex items-center space-x-2'>
           <Button
@@ -62,7 +86,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
-            <span className='sr-only'>Go to first page</span>
+            <span className='sr-only'>{l.goFirst}</span>
             <DoubleArrowLeftIcon className='h-4 w-4' />
           </Button>
           <Button
@@ -71,7 +95,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            <span className='sr-only'>Go to previous page</span>
+            <span className='sr-only'>{l.goPrev}</span>
             <ChevronLeftIcon className='h-4 w-4' />
           </Button>
           <Button
@@ -80,7 +104,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            <span className='sr-only'>Go to next page</span>
+            <span className='sr-only'>{l.goNext}</span>
             <ChevronRightIcon className='h-4 w-4' />
           </Button>
           <Button
@@ -89,7 +113,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
           >
-            <span className='sr-only'>Go to last page</span>
+            <span className='sr-only'>{l.goLast}</span>
             <DoubleArrowRightIcon className='h-4 w-4' />
           </Button>
         </div>

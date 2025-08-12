@@ -51,68 +51,57 @@ function formatSecondsToMmSs(totalSeconds: number): string {
   return `${minutes}m${seconds.toString().padStart(2, '0')}s`
 }
 
-// 生成带随机偏移的均值与当前值
-const avgAiScore = roundTo1Decimal(randBetween(3.8, 4.6))
-const curAiScore = roundTo1Decimal(avgAiScore + randBetween(-0.4, 0.4))
-
-const avgHumanScore = roundTo1Decimal(randBetween(3.7, 4.5))
-const curHumanScore = roundTo1Decimal(avgHumanScore + randBetween(-0.4, 0.4))
-
-const avgMedianSec = Math.round(randBetween(120, 180)) // 2-3 分钟
-const curMedianSec = Math.round(avgMedianSec + randBetween(-30, 30))
-
-const avgZ = 0
-const curZ = roundTo1Decimal(randBetween(-1.2, 1.2))
+// 说明：AI推荐分的 mock 数据按需保持静态，避免每次刷新变化
 
 export const annotateReportData: AnnotateReportData = {
   candidate: {
-    name: '王小明',
-    avatar: 'https://dnu-cdn.xpertiise.com/common/105f2ec8-ce22-402e-bf73-6df175d98187.jpg',
+    name: '李宽野',
+    avatar: 'https://dnu-cdn.xpertiise.com/common/d3bd497e-cc23-42b3-a755-fea4545717bc.jpeg',
     school: '上海交通大学',
     degree: '计算机科学硕士',
-    position: '前端工程师',
+    position: '大数据工程师',
     workYears: 5,
     experiences: ['美团', '阿里巴巴'],
-    skills: ['React', 'TypeScript', 'Node.js', 'CSS', 'TailwindCSS', 'Vite', 'Zod'],
+    skills: ['Python', 'Java', 'SQL', 'Docker', 'Kubernetes', '深度学习', '推荐系统', '向量数据库', '数据科学', '机器学习'],
   },
   aiRecommendation: {
-    score: Math.round(randBetween(70, 95)),
+    score: 85,
     metrics: [
-      { category: '产量', title: '标注任务数', value: Math.round(randBetween(6, 14)), icon: 'tasks' },
+      { category: '产量', title: '标注任务数', value: 9, icon: 'tasks' },
       {
         category: '质量',
         title: 'AI 审核平均得分',
-        value: curAiScore,
-        numericValue: curAiScore,
-        averageValue: avgAiScore,
+        value: 4.5,
+        numericValue: 4.5,
+        averageValue: 4.2,
         betterDirection: 'higher',
         icon: 'aiScore',
       },
       {
         category: '质量',
         title: '人工审核平均得分',
-        value: curHumanScore,
-        numericValue: curHumanScore,
-        averageValue: avgHumanScore,
+        value: 4.3,
+        numericValue: 4.3,
+        averageValue: 4.1,
         betterDirection: 'higher',
         icon: 'humanScore',
       },
       {
         category: '效率',
         title: '单任务耗时中位数',
-        value: formatSecondsToMmSs(curMedianSec),
-        numericValue: curMedianSec,
-        averageValue: avgMedianSec,
+        value: formatSecondsToMmSs(135),
+        numericValue: 135,
+        averageValue: 150,
         betterDirection: 'lower',
         icon: 'medianDuration',
       },
       {
         category: '效率',
         title: '耗时 Z-Score',
-        value: curZ,
-        numericValue: curZ,
-        averageValue: avgZ,
-        betterDirection: 'lower',
+        value: -0.7,
+        numericValue: -0.7,
+        averageValue: 0,
+        betterDirection: 'higher',
         icon: 'zScore',
       },
     ],
@@ -120,9 +109,29 @@ export const annotateReportData: AnnotateReportData = {
   },
   taskDetails: Array.from({ length: 18 }).map((_, i) => {
     const base = 120 + i
+    const presetTitles = [
+      '终端数据处理与 jq',
+      '进程监控与问题排查',
+      '日志切分与关键字抽取',
+      '接口响应时间统计',
+      '异常堆栈快速定位',
+      'Nginx 访问日志解析',
+      '容器资源用量采样',
+      'API 状态码聚合',
+      '系统负载曲线拟合',
+      '磁盘 IO 峰值诊断',
+      '数据库慢查询分析',
+      '任务队列积压预警',
+      '前端报错聚合与去重',
+      'CDN 命中率评估',
+      '安全告警事件清洗',
+      '配置变更影响排查',
+      '数据抽样与可视校验',
+      '埋点质量核查'
+    ]
     return {
       id: `TASK-${1000 + i}`,
-      title: `试标样本 ${i + 1}`,
+      title: presetTitles[i] ?? `试标样本 ${i + 1}`,
       status: (['todo', 'in-progress', 'done', 'rejected'] as const)[
         Math.floor(Math.random() * 4)
       ],
