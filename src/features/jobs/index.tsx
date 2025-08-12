@@ -12,7 +12,7 @@ import { ExploreJobs } from './mockData.ts'
 import { JobType } from '@/constants/explore'
 import type { Job } from '@/types/solutions'
 import { cn } from '@/lib/utils'
-import { IconArrowLeft } from '@tabler/icons-react'
+import { IconArrowLeft, IconUserPlus, IconBriefcase, IconWorldPin } from '@tabler/icons-react'
 
 export default function JobsListPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
@@ -48,10 +48,11 @@ export default function JobsListPage() {
         <div className='relative flex h-[calc(100vh-4rem)] flex-col gap-6 lg:flex-row -mb-8'>
           {/* 左侧：职位列表 */}
           <div className={cn('h-full lg:h-auto flex-1')}>
-            <ScrollArea className='h-full pr-1 p-2'>
+            <ScrollArea className='h-full pr-1'>
               <ul className='space-y-2'>
-                {ExploreJobs.map((job: Job) => {
+                {ExploreJobs.map((job: Job, index: number) => {
                   const isActive = selectedJob?.id === job.id
+                  const openingsCount = (index % 6) + 1
                   return (
                     <li key={job.id}>
                       <div
@@ -72,11 +73,14 @@ export default function JobsListPage() {
                             <p className='text-xs text-muted-foreground'>{job.company}</p>
                           </div>
                           <div className='flex items-center gap-2'>
-                            <Badge variant='secondary'>￥{job.salaryRange[0]}</Badge>
+                            <Badge variant='emphasis'>
+                              <IconUserPlus className='h-3.5 w-3.5' />
+                              {openingsCount} 人
+                            </Badge>
                             <Badge variant='outline'>
                               ￥{job.salaryRange[0]} - ￥{job.salaryRange[1]} / 小时
                             </Badge>
-                            <Badge variant='secondary'>
+                            <Badge variant='emphasis'>
                               {job.jobType === JobType.PART_TIME ? '兼职' : '全职'}
                             </Badge>
                           </div>
@@ -94,55 +98,78 @@ export default function JobsListPage() {
             <div className='relative h-full flex-1'>
               <div
                 className={
-                  'absolute left-0 right-0 -top-16 bottom-0 -mt-6 z-50 bg-background border-l shadow-xl transition-transform duration-300 ' +
-                  (isDetailVisible ? 'translate-x-0 p-6' : 'translate-x-full p-0 pointer-events-none')
+                  'absolute left-0 right-0 -top-16 bottom-0 z-50 -mt-6 mx-auto px-4 md:px-5 bg-white flex flex-col overflow-hidden transition-transform duration-300 border-l ' +
+                  (isDetailVisible ? 'translate-x-0' : 'translate-x-full pointer-events-none')
                 }
               >
                 {selectedJob && (
-                  <div className='h-full flex flex-col'>
-                    <div className='flex items-center justify-between pb-4'>
-                      <div className='flex items-center gap-2'>
-                        <Button size='icon' variant='ghost' onClick={handleCollapse} aria-label='收起'>
-                          <IconArrowLeft className='h-4 w-4' />
-                        </Button>
-                        <div>
-                          <h3 className='text-lg font-semibold leading-none'>{selectedJob.title}</h3>
-                          <p className='text-xs text-muted-foreground'>
-                            ￥{selectedJob.salaryRange[0]}-{selectedJob.salaryRange[1]} / 小时
-                          </p>
+                  <>
+                    {/* 顶部返回 */}
+                    <div className='flex pt-4 pb-4'>
+                      <button
+                        type='button'
+                        onClick={handleCollapse}
+                        aria-label='返回'
+                        className='cursor-pointer'
+                      >
+                        <IconArrowLeft className='h-6 w-6 text-muted-foreground' />
+                      </button>
+                    </div>
+
+                    {/* 可滚动内容 */}
+                    <div className='flex-1 overflow-y-auto'>
+                      {/* 标题与薪资区 */}
+                      <div className='flex pt-5 pb-5 items-start justify-between border-b border-border'>
+                        <div className='flex-1 min-w-0'>
+                          <div className='text-2xl font-bold mb-2 leading-tight truncate text-foreground'>
+                            {selectedJob.title}
+                          </div>
+                          <div className='flex items-center gap-4 text-primary mb-2'>
+                            <div className='flex items-center'>
+                              <IconBriefcase className='h-4 w-4 mr-1' />
+                              <span className='text-[14px]'>时薪制</span>
+                            </div>
+                            <div className='flex items-center'>
+                              <IconWorldPin className='h-4 w-4 mr-1' />
+                              <span className='text-[14px]'>远程</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className='hidden md:flex flex-col items-end min-w-[140px]'>
+                          <div className='text-xl font-semibold text-foreground mb-1'>
+                            ¥{selectedJob.salaryRange[0]}~¥{selectedJob.salaryRange[1]}
+                          </div>
+                          <div className='text-xs text-muted-foreground mb-3'>每小时</div>
+                          <Button disabled className='px-6 py-2 text-base'>岗位将于8月30日开放</Button>
                         </div>
                       </div>
-                      <Button>立即申请</Button>
-                    </div>
-                    <div className='flex-1 overflow-auto pr-2 -mb-6'>
-                      <div className='prose prose-sm dark:prose-invert max-w-none'>
-                        <p>{selectedJob.description}</p>
-                        {selectedJob.requirements?.length ? (
-                          <>
-                            <h4>基础要求</h4>
-                            <ul>
-                              {selectedJob.requirements.map((r) => (
-                                <li key={r}>{r}</li>
-                              ))}
-                            </ul>
-                          </>
-                        ) : null}
-                        {selectedJob.details?.length ? (
-                          <>
-                            <h4>职位细节</h4>
-                            <ul>
-                              {selectedJob.details.map((d) => (
-                                <li key={d}>{d}</li>
-                              ))}
-                            </ul>
-                          </>
-                        ) : null}
+
+                      {/* 发布者信息 */}
+                      <div className='flex items-center gap-3 py-4 border-b border-border'>
+                        <div className='w-9 h-9 border-2 border-gray-200 rounded-full flex items-center justify-center'>
+                          <span className='text-sm font-bold'>MC</span>
+                        </div>
+                        <div className='flex flex-col'>
+                          <span className='text-sm font-medium text-foreground'>由一面千识发布</span>
+                          <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
+                        </div>
                       </div>
-                      <div className='mt-4 flex flex-wrap gap-2'>
-                        <Badge variant='outline'>推荐奖励 ￥{selectedJob.referralBonus}</Badge>
+
+                      {/* 详情描述（富文本 HTML 片段） */}
+                      <div className='py-8'>
+                        <div
+                          className='text-foreground/90 text-base leading-relaxed mb-8'
+                          dangerouslySetInnerHTML={{ __html: selectedJob.description }}
+                        />
+
+                        <div className='mt-6 md:hidden relative mx-auto w-full max-w-[320px] bg-primary/5 rounded-lg shadow-sm px-6 py-5'>
+                          <div className='text-[18px] font-bold text-foreground mb-3'>准备好加入我们的专家群体了吗?</div>
+                          <div className='text-sm mb-[12px]'>备好简历,开始申请吧！</div>
+                          <Button disabled className='h-[44px] w-full'>岗位将于8月30日开放</Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             </div>

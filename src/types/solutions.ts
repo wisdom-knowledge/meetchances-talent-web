@@ -4,16 +4,11 @@ export interface Job {
   id: string
   title: string
   company: string
-  description: string
-  requirements: string[]
-  details: string[]
-  process: string[]
-  benefitsAndSalary: string[]
+  description: string // 富文本 HTML 片段
   jobType: JobType
   salaryType: string
   salaryRange: [number, number]
   referralBonus: number
-  companyDescription: string
 }
 
 
