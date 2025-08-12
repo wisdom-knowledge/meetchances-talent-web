@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { Header } from '@/components/layout/header'
+// import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { TopNav } from '@/components/layout/top-nav'
+// import { TopNav } from '@/components/layout/top-nav'
 // import { ProfileDropdown } from '@/components/profile-dropdown'
 // import { Search } from '@/components/search'
-import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 // import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
@@ -36,21 +35,20 @@ export default function JobsListPage() {
 
   return (
     <>
-      <Header fixed>
-        <TopNav links={topNav} />
-      </Header>
+
 
       <Main fixed>
         <div className='mb-2 flex items-center justify-between'>
           <div>
+            <h1 className='text-2xl font-bold tracking-tight'>职位列表</h1>
             <p className='text-muted-foreground'>寻找与你匹配的远程/合约职位</p>
           </div>
         </div>
 
-        <div className='flex flex-col gap-6 lg:flex-row'>
+        <div className='relative flex h-[calc(100vh-4rem)] flex-col gap-6 lg:flex-row -mb-8'>
           {/* 左侧：职位列表 */}
-          <Card className={cn('p-2 h-full lg:h-auto', isDetailMounted ? 'lg:w-1/2' : 'lg:w-full')}>
-            <ScrollArea className='h-full pr-1'>
+          <div className={cn('h-full lg:h-auto flex-1')}>
+            <ScrollArea className='h-full pr-1 p-2'>
               <ul className='space-y-2'>
                 {ExploreJobs.map((job: Job) => {
                   const isActive = selectedJob?.id === job.id
@@ -89,62 +87,64 @@ export default function JobsListPage() {
                 })}
               </ul>
             </ScrollArea>
-          </Card>
+          </div>
 
-          {/* 右侧：职位详情（覆盖层，纵向铺满浏览器） */}
+          {/* 右侧：职位详情（外层相对，内层绝对，-top 盖住 Header，实现纵向全屏） */}
           {isDetailMounted && (
-            <div
-              className={
-                'fixed inset-y-0 right-0 z-50 w-full bg-background shadow-xl border-l transition-transform duration-300 lg:w-1/2 ' +
-                (isDetailVisible ? 'translate-x-0' : 'translate-x-full')
-              }
-            >
-              {selectedJob && (
-                <div className='h-full flex flex-col'>
-                  <div className='flex items-center justify-between px-4 py-3 border-b'>
-                    <div className='flex items-center gap-2'>
-                      <Button size='icon' variant='ghost' onClick={handleCollapse} aria-label='收起'>
-                        <IconArrowLeft className='h-4 w-4' />
-                      </Button>
-                      <div>
-                        <h3 className='text-lg font-semibold leading-none'>{selectedJob.title}</h3>
-                        <p className='text-xs text-muted-foreground'>
-                          ￥{selectedJob.salaryRange[0]}-{selectedJob.salaryRange[1]} / 小时
-                        </p>
+            <div className='relative h-full flex-1'>
+              <div
+                className={
+                  'absolute left-0 right-0 -top-16 bottom-0 -mt-6 z-50 bg-background border-l shadow-xl transition-transform duration-300 ' +
+                  (isDetailVisible ? 'translate-x-0 p-6' : 'translate-x-full p-0 pointer-events-none')
+                }
+              >
+                {selectedJob && (
+                  <div className='h-full flex flex-col'>
+                    <div className='flex items-center justify-between pb-4'>
+                      <div className='flex items-center gap-2'>
+                        <Button size='icon' variant='ghost' onClick={handleCollapse} aria-label='收起'>
+                          <IconArrowLeft className='h-4 w-4' />
+                        </Button>
+                        <div>
+                          <h3 className='text-lg font-semibold leading-none'>{selectedJob.title}</h3>
+                          <p className='text-xs text-muted-foreground'>
+                            ￥{selectedJob.salaryRange[0]}-{selectedJob.salaryRange[1]} / 小时
+                          </p>
+                        </div>
+                      </div>
+                      <Button>立即申请</Button>
+                    </div>
+                    <div className='flex-1 overflow-auto pr-2 -mb-6'>
+                      <div className='prose prose-sm dark:prose-invert max-w-none'>
+                        <p>{selectedJob.description}</p>
+                        {selectedJob.requirements?.length ? (
+                          <>
+                            <h4>基础要求</h4>
+                            <ul>
+                              {selectedJob.requirements.map((r) => (
+                                <li key={r}>{r}</li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : null}
+                        {selectedJob.details?.length ? (
+                          <>
+                            <h4>职位细节</h4>
+                            <ul>
+                              {selectedJob.details.map((d) => (
+                                <li key={d}>{d}</li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : null}
+                      </div>
+                      <div className='mt-4 flex flex-wrap gap-2'>
+                        <Badge variant='outline'>推荐奖励 ￥{selectedJob.referralBonus}</Badge>
                       </div>
                     </div>
-                    <Button>立即申请</Button>
                   </div>
-                  <div className='flex-1 overflow-auto p-6'>
-                    <div className='prose prose-sm dark:prose-invert max-w-none'>
-                      <p>{selectedJob.description}</p>
-                      {selectedJob.requirements?.length ? (
-                        <>
-                          <h4>基础要求</h4>
-                          <ul>
-                            {selectedJob.requirements.map((r) => (
-                              <li key={r}>{r}</li>
-                            ))}
-                          </ul>
-                        </>
-                      ) : null}
-                      {selectedJob.details?.length ? (
-                        <>
-                          <h4>职位细节</h4>
-                          <ul>
-                            {selectedJob.details.map((d) => (
-                              <li key={d}>{d}</li>
-                            ))}
-                          </ul>
-                        </>
-                      ) : null}
-                    </div>
-                    <div className='mt-4 flex flex-wrap gap-2'>
-                      <Badge variant='outline'>推荐奖励 ￥{selectedJob.referralBonus}</Badge>
-                    </div>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -153,13 +153,13 @@ export default function JobsListPage() {
   )
 }
 
-const topNav = [
-  {
-    title: '职位列表',
-    href: '/jobs',
-    isActive: true,
-    disabled: false,
-  },
-]
+// const topNav = [
+//   {
+//     title: '职位列表',
+//     href: '/jobs',
+//     isActive: true,
+//     disabled: false,
+//   },
+// ]
 
 
