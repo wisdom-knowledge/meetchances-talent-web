@@ -1,8 +1,8 @@
 import { useState } from 'react'
-// import { Header } from '@/components/layout/header'
+import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 // import { TopNav } from '@/components/layout/top-nav'
-// import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ProfileDropdown } from '@/components/profile-dropdown'
 // import { Search } from '@/components/search'
 import { Button } from '@/components/ui/button'
 // import { Separator } from '@/components/ui/separator'
@@ -14,6 +14,7 @@ import { JobType } from '@/constants/explore'
 import type { Job } from '@/types/solutions'
 import { cn } from '@/lib/utils'
 import { IconArrowLeft, IconUserPlus, IconBriefcase, IconWorldPin } from '@tabler/icons-react'
+import { Separator } from '@/components/ui/separator'
 
 export default function JobsListPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
@@ -43,15 +44,18 @@ export default function JobsListPage() {
 
   return (
     <>
-
+      <Header fixed>
+        <div className='ml-auto flex items-center space-x-4'>
+          <ProfileDropdown />
+        </div>
+      </Header>
 
       <Main fixed>
-        <div className='mb-2 flex items-center justify-between'>
-          <div>
-            <h1 className='text-2xl font-bold tracking-tight'>职位列表</h1>
-            <p className='text-muted-foreground'>寻找与你匹配的远程/合约职位</p>
-          </div>
+        <div className='space-y-0.5'>
+          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>职位列表</h1>
+          <p className='text-muted-foreground'>寻找与你匹配的远程/合约职位</p>
         </div>
+        <Separator className='my-4 lg:my-6' />
 
         <div className='relative flex h-[calc(100vh-4rem)] flex-col gap-6 lg:flex-row -mb-8'>
           {/* 左侧：职位列表 */}
