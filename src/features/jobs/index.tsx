@@ -15,31 +15,29 @@ import type { Job } from '@/types/solutions'
 import { cn } from '@/lib/utils'
 import { IconArrowLeft, IconUserPlus, IconBriefcase, IconWorldPin } from '@tabler/icons-react'
 import { Separator } from '@/components/ui/separator'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function JobsListPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
-  const [isDetailVisible, setIsDetailVisible] = useState(false)
-  const [isDetailMounted, setIsDetailMounted] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   const { data: jobsData, isLoading } = useJobsQuery({ skip: 0, limit: 20 })
   const jobs = jobsData?.data ?? []
 
   // 当只拿到列表的精简数据时，点击后再拉详情
-  const { data: detailData } = useJobDetailQuery(selectedJob?.id ?? null, isDetailMounted)
+  const { data: detailData } = useJobDetailQuery(selectedJob?.id ?? null, isDrawerOpen)
   const selectedJobData = detailData ?? selectedJob
 
   const handleSelectJob = (job: Job) => {
     setSelectedJob(job)
-    setIsDetailMounted(true)
-    setIsDetailVisible(true)
+    setIsDrawerOpen(true)
   }
 
-  const handleCollapse = () => {
-    setIsDetailVisible(false)
-    window.setTimeout(() => {
-      setIsDetailMounted(false)
-      setSelectedJob(null)
-    }, 300)
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false)
+    // 关闭后清理当前选中数据
+    setSelectedJob(null)
   }
 
   return (
@@ -62,7 +60,25 @@ export default function JobsListPage() {
           <div className={cn('h-full lg:h-auto flex-1')}>
             <ScrollArea className='h-full pr-1'>
               <ul className='space-y-2'>
-                {(isLoading ? [] : jobs).map((job: Job, index: number) => {
+                {isLoading
+                  ? Array.from({ length: 8 }).map((_, index: number) => (
+                      <li key={`skeleton-${index}`}>
+                        <div className='w-full rounded-md border p-4'>
+                          <div className='flex items-center justify-between gap-4'>
+                            <div className='min-w-0'>
+                              <Skeleton className='mb-2 h-5 w-40' />
+                              <Skeleton className='h-3 w-24' />
+                            </div>
+                            <div className='flex items-center gap-2'>
+                              <Skeleton className='h-6 w-16' />
+                              <Skeleton className='h-6 w-28' />
+                              <Skeleton className='h-6 w-12' />
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))
+                  : jobs.map((job: Job, index: number) => {
                    const isActive = selectedJob?.id === job.id
                   const openingsCount = (index % 6) + 1
                   return (
@@ -100,92 +116,84 @@ export default function JobsListPage() {
                       </div>
                     </li>
                   )
-                })}
+                  })}
               </ul>
             </ScrollArea>
           </div>
+          {/* 职位详情：Drawer 展示 */}
+          <Sheet open={isDrawerOpen} onOpenChange={(open) => (open ? setIsDrawerOpen(true) : handleCloseDrawer())}>
+            <SheetContent className='flex flex-col px-4 md:px-5 w-full sm:max-w-none md:w-[85vw] lg:w-[60vw] xl:w-[50vw]'>
+              {selectedJobData && (
+                <>
+                  {/* 顶部返回 */}
+                  <div className='flex pt-2 pb-2'>
+                    <button
+                      type='button'
+                      onClick={handleCloseDrawer}
+                      aria-label='返回'
+                      className='cursor-pointer'
+                    >
+                      <IconArrowLeft className='h-6 w-6 text-muted-foreground' />
+                    </button>
+                  </div>
 
-          {/* 右侧：职位详情（外层相对，内层绝对，-top 盖住 Header，实现纵向全屏） */}
-          {isDetailMounted && (
-            <div className='relative h-full flex-1'>
-              <div
-                className={
-                  'absolute left-0 right-0 -top-16 bottom-0 z-50 -mt-6 mx-auto px-4 md:px-5 bg-white flex flex-col overflow-hidden transition-transform duration-300 border-l ' +
-                  (isDetailVisible ? 'translate-x-0' : 'translate-x-full pointer-events-none')
-                }
-              >
-                {selectedJobData && (
-                  <>
-                    {/* 顶部返回 */}
-                    <div className='flex pt-4 pb-4'>
-                      <button
-                        type='button'
-                        onClick={handleCollapse}
-                        aria-label='返回'
-                        className='cursor-pointer'
-                      >
-                        <IconArrowLeft className='h-6 w-6 text-muted-foreground' />
-                      </button>
-                    </div>
-
-                    {/* 可滚动内容 */}
-                    <div className='flex-1 overflow-y-auto'>
-                      {/* 标题与薪资区 */}
-                      <div className='flex pt-5 pb-5 items-start justify-between border-b border-border'>
-                        <div className='flex-1 min-w-0'>
-                          <div className='text-2xl font-bold mb-2 leading-tight truncate text-foreground'>
-                            {selectedJobData.title}
-                          </div>
-                          <div className='flex items-center gap-4 text-primary mb-2'>
-                            <div className='flex items-center'>
-                              <IconBriefcase className='h-4 w-4 mr-1' />
-                              <span className='text-[14px]'>时薪制</span>
-                            </div>
-                            <div className='flex items-center'>
-                              <IconWorldPin className='h-4 w-4 mr-1' />
-                              <span className='text-[14px]'>远程</span>
-                            </div>
-                          </div>
+                  {/* 可滚动内容 */}
+                  <div className='flex-1 overflow-y-auto'>
+                    {/* 标题与薪资区 */}
+                    <div className='flex pt-5 pb-5 items-start justify-between border-b border-border'>
+                      <div className='flex-1 min-w-0'>
+                        <div className='text-2xl font-bold mb-2 leading-tight truncate text-foreground'>
+                          {selectedJobData.title}
                         </div>
-                        <div className='hidden md:flex flex-col items-end min-w-[140px]'>
-                          <div className='text-xl font-semibold text-foreground mb-1'>
-                            ¥{selectedJobData.salaryRange?.[0] ?? 0}~¥{selectedJobData.salaryRange?.[1] ?? 0}
+                        <div className='flex items-center gap-4 text-primary mb-2'>
+                          <div className='flex items-center'>
+                            <IconBriefcase className='h-4 w-4 mr-1' />
+                            <span className='text-[14px]'>时薪制</span>
                           </div>
-                          <div className='text-xs text-muted-foreground mb-3'>每小时</div>
-                          <Button disabled className='px-6 py-2 text-base'>岗位将于8月30日开放</Button>
+                          <div className='flex items-center'>
+                            <IconWorldPin className='h-4 w-4 mr-1' />
+                            <span className='text-[14px]'>远程</span>
+                          </div>
                         </div>
                       </div>
-
-                      {/* 发布者信息 */}
-                      <div className='flex items-center gap-3 py-4 border-b border-border'>
-                        <div className='w-9 h-9 border-2 border-gray-200 rounded-full flex items-center justify-center'>
-                          <span className='text-sm font-bold'>MC</span>
+                      <div className='hidden md:flex flex-col items-end min-w-[140px]'>
+                        <div className='text-xl font-semibold text-foreground mb-1'>
+                          ¥{selectedJobData.salaryRange?.[0] ?? 0}~¥{selectedJobData.salaryRange?.[1] ?? 0}
                         </div>
-                        <div className='flex flex-col'>
-                          <span className='text-sm font-medium text-foreground'>由一面千识发布</span>
-                          <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
-                        </div>
-                      </div>
-
-                      {/* 详情描述（富文本 HTML 片段） */}
-                      <div className='py-8'>
-                        <div
-                          className='text-foreground/90 text-base leading-relaxed mb-8'
-                          dangerouslySetInnerHTML={{ __html: selectedJobData.description }}
-                        />
-
-                        <div className='mt-6 md:hidden relative mx-auto w-full max-w-[320px] bg-primary/5 rounded-lg shadow-sm px-6 py-5'>
-                          <div className='text-[18px] font-bold text-foreground mb-3'>准备好加入我们的专家群体了吗?</div>
-                          <div className='text-sm mb-[12px]'>备好简历,开始申请吧！</div>
-                          <Button disabled className='h-[44px] w-full'>岗位将于8月30日开放</Button>
-                        </div>
+                        <div className='text-xs text-muted-foreground mb-3'>每小时</div>
+                        <Button disabled>岗位将于8月30日开放</Button>
                       </div>
                     </div>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
+
+                    {/* 发布者信息 */}
+                    <div className='flex items-center gap-3 py-4 border-b border-border'>
+                      <div className='w-9 h-9 border-2 border-gray-200 rounded-full flex items-center justify-center'>
+                        <span className='text-sm font-bold'>MC</span>
+                      </div>
+                      <div className='flex flex-col'>
+                        <span className='text-sm font-medium text-foreground'>由一面千识发布</span>
+                        <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
+                      </div>
+                    </div>
+
+                    {/* 详情描述（富文本 HTML 片段） */}
+                    <div className='py-8'>
+                      <div
+                        className='text-foreground/90 text-base leading-relaxed mb-8'
+                        dangerouslySetInnerHTML={{ __html: selectedJobData.description }}
+                      />
+
+                      <div className='mt-6 md:hidden relative mx-auto w-full max-w-[320px] bg-primary/5 rounded-lg shadow-sm px-6 py-5'>
+                        <div className='text-[18px] font-bold text-foreground mb-3'>准备好加入我们的专家群体了吗?</div>
+                        <div className='text-sm mb-[12px]'>备好简历,开始申请吧！</div>
+                        <Button disabled className='h-[44px] w-full'>岗位将于8月30日开放</Button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </SheetContent>
+          </Sheet>
         </div>
       </Main>
     </>
