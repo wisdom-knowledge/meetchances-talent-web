@@ -1,6 +1,5 @@
 import { IconBriefcase } from '@tabler/icons-react'
-import { AudioWaveform, GalleryVerticalEnd } from 'lucide-react'
-import AppLogo from '@/assets/app-logo'
+// removed team switching assets
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
@@ -9,23 +8,7 @@ export const sidebarData: SidebarData = {
     email: 'satnaingdev@gmail.com',
     avatar: '/avatars/shadcn.jpg',
   },
-  teams: [
-    {
-      name: 'Meetchances Talent',
-      logo: AppLogo,
-      plan: 'interview & apply job',
-    },
-    {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
-  ],
+  teams: [],
   navGroups: [
     {
       title: '通用',
