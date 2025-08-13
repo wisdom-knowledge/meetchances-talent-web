@@ -1,11 +1,11 @@
 import { useRef } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { IconListDetails, IconPlus, IconStar, IconUser, IconWand, IconUpload } from '@tabler/icons-react'
+import { IconListDetails, IconPlus, IconStar, IconUser, IconWand, IconUpload, IconTrash } from '@tabler/icons-react'
 
 import { showSubmittedData } from '@/utils/show-submitted-data'
 import { Button } from '@/components/ui/button'
@@ -54,9 +54,47 @@ export default function ResumePage() {
       workSkillLevel: undefined,
       softSkills: (resumeMockData.structured_resume.self_assessment.soft_skills ?? []).join('、'),
       selfEvaluation: resumeMockData.structured_resume.self_assessment.summary ?? '',
+      workExperience:
+        resumeMockData.structured_resume.experience.work_experience?.map((w) => ({
+          organization: w.organization ?? '',
+          title: w.title ?? '',
+          startDate: w.start_date ?? '',
+          endDate: w.end_date ?? '',
+          city: (w.city as string | null) ?? '',
+          employmentType: (w.employment_type as string | null) ?? '',
+          achievements: (w.achievements ?? []).join('\n'),
+        })) ?? [],
+      projectExperience:
+        resumeMockData.structured_resume.experience.project_experience?.map((p) => ({
+          organization: p.organization ?? '',
+          role: p.role ?? '',
+          startDate: p.start_date ?? '',
+          endDate: p.end_date ?? '',
+          achievements: (p.achievements ?? []).join('\n'),
+        })) ?? [],
+      education:
+        resumeMockData.structured_resume.experience.education?.map((e) => ({
+          institution: e.institution ?? '',
+          major: e.major ?? '',
+          degreeType: e.degree_type ?? '',
+          degreeStatus: (e.degree_status as string | null) ?? '',
+          city: (e.city as string | null) ?? '',
+          startDate: e.start_date ?? '',
+          endDate: e.end_date ?? '',
+          achievements: (e.achievements ?? [])
+            ? Array.isArray(e.achievements)
+              ? e.achievements.join('\n')
+              : String(e.achievements)
+            : '',
+        })) ?? [],
     },
     mode: 'onChange',
   })
+
+  // field arrays
+  const workExpArray = useFieldArray({ control: form.control, name: 'workExperience' })
+  const projectExpArray = useFieldArray({ control: form.control, name: 'projectExperience' })
+  const educationArray = useFieldArray({ control: form.control, name: 'education' })
 
   function onSubmit(values: ResumeFormValues) {
     showSubmittedData(values)
@@ -272,22 +310,150 @@ export default function ResumePage() {
 
                 {/* 经历 */}
                 <ResumeSection variant='plain' id='section-experience' title='经历'>
+                  <Form {...form}>
                   {/* 工作经历 */}
                   <div className='mb-10'>
                     <div className='mb-6 flex items-center justify-between'>
                       <h3 className='text-lg leading-none'>工作经历</h3>
-                      <Button variant='outline' className='h-9 rounded-md px-3'>
+                      <Button
+                        variant='outline'
+                        className='h-9 rounded-md px-3'
+                        type='button'
+                        onClick={() =>
+                          workExpArray.append({
+                            organization: '',
+                            title: '',
+                            startDate: '',
+                            endDate: '',
+                            city: '',
+                            employmentType: '',
+                            achievements: '',
+                          })
+                        }
+                      >
                         <IconPlus className='h-4 w-4' /> 添加工作经历
                       </Button>
                     </div>
                     <div className='space-y-6'>
-                      <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                        <div className='text-center py-10 text-gray-500'>
-                          <span className='text-xs text-muted-foreground leading-none'>
-                            暂无工作经历，点击上方按钮添加
-                          </span>
+                      {workExpArray.fields.length === 0 ? (
+                        <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
+                          <div className='text-center py-10 text-gray-500'>
+                            <span className='text-xs text-muted-foreground leading-none'>
+                              暂无工作经历，点击上方按钮添加
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        workExpArray.fields.map((field, index) => (
+                          <div key={field.id} className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
+                            <div className='mb-4 flex items-center justify-between'>
+                              <div className='text-sm text-muted-foreground'>工作经历 {index + 1}</div>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                type='button'
+                                onClick={() => workExpArray.remove(index)}
+                                className='h-8 px-2 text-destructive'
+                              >
+                                <IconTrash className='h-4 w-4' /> 删除
+                              </Button>
+                            </div>
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                              <FormField
+                                control={form.control}
+                                name={`workExperience.${index}.organization`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>公司/组织</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：某某科技有限公司' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`workExperience.${index}.title`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>职位</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：前端工程师' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`workExperience.${index}.startDate`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>开始时间</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：2021/07' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`workExperience.${index}.endDate`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>结束时间</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：2022/06 或 至今' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`workExperience.${index}.city`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>城市</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：上海' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`workExperience.${index}.employmentType`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>雇佣形式</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：全职/兼职/实习/合同工' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`workExperience.${index}.achievements`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2 md:col-span-2'>
+                                    <FormLabel>工作内容/业绩</FormLabel>
+                                    <FormControl>
+                                      <Textarea rows={4} placeholder='每行一条，支持换行' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
 
@@ -295,18 +461,117 @@ export default function ResumePage() {
                   <div className='mb-10'>
                     <div className='mb-6 flex items-center justify-between'>
                       <h3 className='text-lg leading-none'>项目经历</h3>
-                      <Button variant='outline' className='h-9 rounded-md px-3'>
+                      <Button
+                        variant='outline'
+                        className='h-9 rounded-md px-3'
+                        type='button'
+                        onClick={() =>
+                          projectExpArray.append({
+                            organization: '',
+                            role: '',
+                            startDate: '',
+                            endDate: '',
+                            achievements: '',
+                          })
+                        }
+                      >
                         <IconPlus className='h-4 w-4' /> 添加项目经历
                       </Button>
                     </div>
                     <div className='space-y-6'>
-                      <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                        <div className='text-center py-10 text-gray-500'>
-                          <span className='text-xs text-muted-foreground leading-none'>
-                            暂无项目经历，点击上方按钮添加
-                          </span>
+                      {projectExpArray.fields.length === 0 ? (
+                        <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
+                          <div className='text-center py-10 text-gray-500'>
+                            <span className='text-xs text-muted-foreground leading-none'>
+                              暂无项目经历，点击上方按钮添加
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        projectExpArray.fields.map((field, index) => (
+                          <div key={field.id} className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
+                            <div className='mb-4 flex items-center justify-between'>
+                              <div className='text-sm text-muted-foreground'>项目经历 {index + 1}</div>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                type='button'
+                                onClick={() => projectExpArray.remove(index)}
+                                className='h-8 px-2 text-destructive'
+                              >
+                                <IconTrash className='h-4 w-4' /> 删除
+                              </Button>
+                            </div>
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                              <FormField
+                                control={form.control}
+                                name={`projectExperience.${index}.organization`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>组织/项目方</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：外包项目' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`projectExperience.${index}.role`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>角色</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：场景概念设计师' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`projectExperience.${index}.startDate`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>开始时间</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：2022/01' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`projectExperience.${index}.endDate`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>结束时间</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：2023/12' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`projectExperience.${index}.achievements`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2 md:col-span-2'>
+                                    <FormLabel>项目内容/业绩</FormLabel>
+                                    <FormControl>
+                                      <Textarea rows={4} placeholder='每行一条，支持换行' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
 
@@ -314,20 +579,163 @@ export default function ResumePage() {
                   <div className='mb-10'>
                     <div className='mb-6 flex items-center justify-between'>
                       <h3 className='text-lg leading-none'>教育经历</h3>
-                      <Button variant='outline' className='h-9 rounded-md px-3'>
+                      <Button
+                        variant='outline'
+                        className='h-9 rounded-md px-3'
+                        type='button'
+                        onClick={() =>
+                          educationArray.append({
+                            institution: '',
+                            major: '',
+                            degreeType: '',
+                            degreeStatus: '',
+                            city: '',
+                            startDate: '',
+                            endDate: '',
+                            achievements: '',
+                          })
+                        }
+                      >
                         <IconPlus className='h-4 w-4' /> 添加教育经历
                       </Button>
                     </div>
                     <div className='space-y-6'>
-                      <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                        <div className='text-center py-10 text-gray-500'>
-                          <span className='text-xs text-muted-foreground leading-none'>
-                            暂无教育经历，点击上方按钮添加
-                          </span>
+                      {educationArray.fields.length === 0 ? (
+                        <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
+                          <div className='text-center py-10 text-gray-500'>
+                            <span className='text-xs text-muted-foreground leading-none'>
+                              暂无教育经历，点击上方按钮添加
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        educationArray.fields.map((field, index) => (
+                          <div key={field.id} className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
+                            <div className='mb-4 flex items-center justify-between'>
+                              <div className='text-sm text-muted-foreground'>教育经历 {index + 1}</div>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                type='button'
+                                onClick={() => educationArray.remove(index)}
+                                className='h-8 px-2 text-destructive'
+                              >
+                                <IconTrash className='h-4 w-4' /> 删除
+                              </Button>
+                            </div>
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                              <FormField
+                                control={form.control}
+                                name={`education.${index}.institution`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>学校/机构</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：某某大学' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`education.${index}.major`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>专业</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：计算机科学' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`education.${index}.degreeType`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>学历/学位</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：本科/硕士/博士' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`education.${index}.degreeStatus`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>获取状态</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：在读/已毕业/结业' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name={`education.${index}.startDate`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>开始时间</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：2018/09' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`education.${index}.endDate`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>结束时间</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：2021/08' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`education.${index}.city`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2'>
+                                    <FormLabel>城市</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder='例如：北京' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`education.${index}.achievements`}
+                                render={({ field }) => (
+                                  <FormItem className='space-y-2 md:col-span-2'>
+                                    <FormLabel>备注/成就</FormLabel>
+                                    <FormControl>
+                                      <Textarea rows={3} placeholder='每行一条，支持换行' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
+                  </Form>
                 </ResumeSection>
 
                 {/* 附加资质 */}

@@ -23,4 +23,16 @@ export default defineConfig({
       '@tabler/icons-react': '@tabler/icons-react/dist/esm/icons/index.mjs',
     },
   },
+  server: {
+    proxy: {
+      // 将本地 /api 代理到后端，避免跨域并支持 cookie
+      '/api': {
+        target: 'https://service-dev.meetchances.com',
+        changeOrigin: true,
+        secure: false,
+        // 由于后端实际前缀为 /api/v1，这里重写路径
+        rewrite: (p) => p.replace(/^\/api/, '/api/v1'),
+      },
+    },
+  },
 })

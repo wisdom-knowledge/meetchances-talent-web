@@ -14,6 +14,44 @@ export const resumeSchema = z.object({
   workSkillLevel: z.enum(['初级', '中级', '高级', '专家']).optional(),
   softSkills: z.string().optional(),
   selfEvaluation: z.string().optional(),
+  workExperience: z
+    .array(
+      z.object({
+        organization: z.string().optional(),
+        title: z.string().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        city: z.string().optional(),
+        employmentType: z.string().optional(),
+        achievements: z.string().optional(),
+      })
+    )
+    .optional(),
+  projectExperience: z
+    .array(
+      z.object({
+        organization: z.string().optional(),
+        role: z.string().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        achievements: z.string().optional(),
+      })
+    )
+    .optional(),
+  education: z
+    .array(
+      z.object({
+        institution: z.string().optional(),
+        major: z.string().optional(),
+        degreeType: z.string().optional(),
+        degreeStatus: z.string().optional(),
+        city: z.string().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        achievements: z.string().optional(),
+      })
+    )
+    .optional(),
 })
 
 export type ResumeFormValues = z.infer<typeof resumeSchema>
