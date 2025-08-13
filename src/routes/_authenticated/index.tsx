@@ -3,6 +3,6 @@ import { redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/')({
   beforeLoad: () => {
-    throw redirect({ to: '/_authenticated/jobs/' })
+    throw redirect({ to: '/jobs' })
   },
 })
