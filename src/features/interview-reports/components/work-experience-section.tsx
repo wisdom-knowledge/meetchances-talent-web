@@ -28,8 +28,8 @@ export default function WorkExperienceSection({ data }: WorkExperienceSectionPro
   const [expandedItems, setExpandedItems] = useState<string[]>([])
 
   const toggleExpanded = (id: string) => {
-    setExpandedItems(prev => 
-      prev.includes(id) 
+    setExpandedItems(prev =>
+      prev.includes(id)
         ? prev.filter(item => item !== id)
         : [...prev, id]
     )
@@ -38,43 +38,43 @@ export default function WorkExperienceSection({ data }: WorkExperienceSectionPro
   return (
     <div className='mb-8'>
       <Separator className='my-4 lg:my-6' />
-      
+
       <div className='space-y-6'>
         {/* 标题 */}
         <h2 className='text-xl font-semibold text-gray-900'>
           工作经历
         </h2>
-        
+
         {/* 工作经历时间轴 */}
         <div className='relative'>
           {/* 时间轴线 */}
           <div className='absolute left-4 top-6 bottom-0 w-0.5 bg-blue-200'></div>
-          
+
           <div className='space-y-8'>
-            {data.experiences.map((experience, index) => {
+            {data.experiences.map((experience) => {
               const isExpanded = expandedItems.includes(experience.id)
-              const displayedResponsibilities = isExpanded || !experience.showReadMore 
-                ? experience.responsibilities 
+              const displayedResponsibilities = isExpanded || !experience.showReadMore
+                ? experience.responsibilities
                 : experience.responsibilities.slice(0, 2)
 
               return (
                 <div key={experience.id} className='relative'>
                   {/* 时间轴圆点 */}
                   <div className='absolute left-2 w-4 h-4 bg-blue-500 rounded-full border-4 border-white shadow-sm'></div>
-                  
+
                   {/* 工作经历卡片 */}
                   <div className='ml-12 bg-white border border-gray-200 rounded-xl p-6 shadow-sm'>
                     <div className='flex items-start justify-between mb-4'>
                       <div className='flex items-center gap-4'>
                         {/* 公司图标 */}
                         <div className='w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0'>
-                          <img 
-                            src={experience.companyIcon} 
+                          <img
+                            src={experience.companyIcon}
                             alt={`${experience.company} logo`}
                             className='w-8 h-8 object-contain'
                           />
                         </div>
-                        
+
                         {/* 职位和公司信息 */}
                         <div>
                           <h3 className='text-lg font-semibold text-gray-900 mb-1'>
@@ -82,7 +82,7 @@ export default function WorkExperienceSection({ data }: WorkExperienceSectionPro
                           </h3>
                         </div>
                       </div>
-                      
+
                       {/* 时间信息 */}
                       <div className='text-right text-sm text-gray-600 flex-shrink-0'>
                         <div className='font-medium'>
@@ -93,7 +93,7 @@ export default function WorkExperienceSection({ data }: WorkExperienceSectionPro
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* 工作职责 */}
                     <div className='mb-4'>
                       <h4 className='text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wider'>
@@ -107,7 +107,7 @@ export default function WorkExperienceSection({ data }: WorkExperienceSectionPro
                           </li>
                         ))}
                       </ul>
-                      
+
                       {/* 展开/收起按钮 */}
                       {experience.showReadMore && (
                         <Button
@@ -120,7 +120,7 @@ export default function WorkExperienceSection({ data }: WorkExperienceSectionPro
                         </Button>
                       )}
                     </div>
-                    
+
                     {/* 技术栈 */}
                     <div>
                       <h4 className='text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider'>
@@ -128,7 +128,7 @@ export default function WorkExperienceSection({ data }: WorkExperienceSectionPro
                       </h4>
                       <div className='flex flex-wrap gap-2'>
                         {experience.techStacks.map((tech, idx) => (
-                          <Badge 
+                          <Badge
                             key={idx}
                             variant='outline'
                             className='bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 px-3 py-1 text-sm'

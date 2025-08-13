@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
@@ -34,14 +33,14 @@ export default function ProctoringResultSection({ data }: ProctoringResultSectio
   return (
     <div className='mb-8'>
       <Separator className='my-4 lg:my-6' />
-      
+
       <div className='space-y-6'>
         {/* 标题 */}
         <div>
           <h2 className='text-xl font-semibold text-gray-900 mb-4'>
             AI面试监考结果
           </h2>
-          
+
           {/* 描述 */}
           <p className='text-sm text-gray-600 leading-relaxed mb-6'>
             {data.description}
