@@ -1,5 +1,6 @@
 import { IconBriefcase } from '@tabler/icons-react'
-import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react'
+import { AudioWaveform, GalleryVerticalEnd } from 'lucide-react'
+import AppLogo from '@/assets/app-logo'
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
@@ -11,7 +12,7 @@ export const sidebarData: SidebarData = {
   teams: [
     {
       name: 'Meetchances Talent',
-      logo: Command,
+      logo: AppLogo,
       plan: 'interview & apply job',
     },
     {

@@ -1,7 +1,7 @@
 import { JobType } from '@/constants/explore'
 
 export interface Job {
-  id: string
+  id: string | number
   title: string
   company: string
   description: string // 富文本 HTML 片段

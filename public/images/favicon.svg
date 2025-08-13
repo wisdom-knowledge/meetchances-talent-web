@@ -1,4 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" width="24" height="24"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokewidth="2" strokelinecap="round" strokelinejoin="round">
-  <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"></path>
-</svg><style>@media (prefers-color-scheme: light) { :root { filter: contrast(1) brightness(0.8); } }
-</style></svg>
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <path d="M507.904 391.168q-72.704 0-129.024-16.896t-86.016-33.28q-1.024-1.024-1.024-5.12v-8.192q0-2.048 0.512-0.512t0.512 13.824v523.264H177.152v-614.4q0-20.48 7.168-43.52t34.816-34.304q14.336-6.144 28.16-4.608t24.576 6.144 18.432 10.24 10.752  7.68q19.456 15.36 39.936 28.672t44.544 24.064 53.76 16.896 67.584 6.144H516.096q37.888 0 67.584-6.144t54.272-16.896 45.056-24.064 38.912-28.672q3.072-2.048 10.752-7.68t18.944-10.24 25.088-6.144 28.16 4.608q26.624 11.264 34.304 34.304t7.68 43.52v614.4H730.112V340.992q0-12.288 1.024-13.312 1.024 3.072 0.512 7.68t-1.536 5.632q-14.336 8.192-36.864 16.896t-50.688 16.384-60.928 12.288-66.56 4.608h-7.168z" fill="currentColor"/>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      :root { color: #fff; }
+    }
+    @media (prefers-color-scheme: light) {
+      :root { color: #000; }
+    }
+  </style>
+</svg>

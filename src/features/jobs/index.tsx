@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button'
 // import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ExploreJobs } from './mockData.ts'
+// import { ExploreJobs } from './mockData.ts'
+import { useJobsQuery, useJobDetailQuery } from './api'
 import { JobType } from '@/constants/explore'
 import type { Job } from '@/types/solutions'
 import { cn } from '@/lib/utils'
@@ -18,6 +19,13 @@ export default function JobsListPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [isDetailVisible, setIsDetailVisible] = useState(false)
   const [isDetailMounted, setIsDetailMounted] = useState(false)
+
+  const { data: jobsData, isLoading } = useJobsQuery({ skip: 0, limit: 20 })
+  const jobs = jobsData?.data ?? []
+
+  // 当只拿到列表的精简数据时，点击后再拉详情
+  const { data: detailData } = useJobDetailQuery(selectedJob?.id ?? null, isDetailMounted)
+  const selectedJobData = detailData ?? selectedJob
 
   const handleSelectJob = (job: Job) => {
     setSelectedJob(job)
@@ -50,8 +58,8 @@ export default function JobsListPage() {
           <div className={cn('h-full lg:h-auto flex-1')}>
             <ScrollArea className='h-full pr-1'>
               <ul className='space-y-2'>
-                {ExploreJobs.map((job: Job, index: number) => {
-                  const isActive = selectedJob?.id === job.id
+                {(isLoading ? [] : jobs).map((job: Job, index: number) => {
+                   const isActive = selectedJob?.id === job.id
                   const openingsCount = (index % 6) + 1
                   return (
                     <li key={job.id}>
@@ -70,15 +78,15 @@ export default function JobsListPage() {
                         <div className='flex items-center justify-between gap-4'>
                           <div>
                             <h3 className='font-medium'>{job.title}</h3>
-                            <p className='text-xs text-muted-foreground'>{job.company}</p>
+                             <p className='text-xs text-muted-foreground'>{job.company}</p>
                           </div>
                           <div className='flex items-center gap-2'>
                             <Badge variant='emphasis'>
                               <IconUserPlus className='h-3.5 w-3.5' />
-                              {openingsCount} 人
+                               {openingsCount.toLocaleString('zh-CN', { style: 'currency', currency: 'CNY', maximumFractionDigits: 2 })}
                             </Badge>
                             <Badge variant='outline'>
-                              ￥{job.salaryRange[0]} - ￥{job.salaryRange[1]} / 小时
+                              ￥{job.salaryRange?.[0] ?? 0} - ￥{job.salaryRange?.[1] ?? 0} / 小时
                             </Badge>
                             <Badge variant='emphasis'>
                               {job.jobType === JobType.PART_TIME ? '兼职' : '全职'}
@@ -102,7 +110,7 @@ export default function JobsListPage() {
                   (isDetailVisible ? 'translate-x-0' : 'translate-x-full pointer-events-none')
                 }
               >
-                {selectedJob && (
+                {selectedJobData && (
                   <>
                     {/* 顶部返回 */}
                     <div className='flex pt-4 pb-4'>
@@ -122,7 +130,7 @@ export default function JobsListPage() {
                       <div className='flex pt-5 pb-5 items-start justify-between border-b border-border'>
                         <div className='flex-1 min-w-0'>
                           <div className='text-2xl font-bold mb-2 leading-tight truncate text-foreground'>
-                            {selectedJob.title}
+                            {selectedJobData.title}
                           </div>
                           <div className='flex items-center gap-4 text-primary mb-2'>
                             <div className='flex items-center'>
@@ -137,7 +145,7 @@ export default function JobsListPage() {
                         </div>
                         <div className='hidden md:flex flex-col items-end min-w-[140px]'>
                           <div className='text-xl font-semibold text-foreground mb-1'>
-                            ¥{selectedJob.salaryRange[0]}~¥{selectedJob.salaryRange[1]}
+                            ¥{selectedJobData.salaryRange?.[0] ?? 0}~¥{selectedJobData.salaryRange?.[1] ?? 0}
                           </div>
                           <div className='text-xs text-muted-foreground mb-3'>每小时</div>
                           <Button disabled className='px-6 py-2 text-base'>岗位将于8月30日开放</Button>
@@ -159,7 +167,7 @@ export default function JobsListPage() {
                       <div className='py-8'>
                         <div
                           className='text-foreground/90 text-base leading-relaxed mb-8'
-                          dangerouslySetInnerHTML={{ __html: selectedJob.description }}
+                          dangerouslySetInnerHTML={{ __html: selectedJobData.description }}
                         />
 
                         <div className='mt-6 md:hidden relative mx-auto w-full max-w-[320px] bg-primary/5 rounded-lg shadow-sm px-6 py-5'>
