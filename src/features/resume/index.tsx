@@ -24,6 +24,7 @@ import { resumeSchema, type ResumeFormValues } from './data/schema'
 import { resumeMockData } from './data/mock'
 import { options } from './data/config'
 import SectionNav, { type SectionNavItem } from './components/section-nav'
+import ResumeSection from './components/resume-section'
 
 const CITY_OPTIONS = options.city
 
@@ -126,13 +127,9 @@ export default function ResumePage() {
 
               <div className='space-y-10 faded-bottom h-full w-full overflow-y-auto scroll-smooth pr-4 pb-12'>
                 {/* 基本信息 */}
-                <section id='section-basic'>
-                  <div className='mb-6'>
-                    <h2 className='text-xl font-medium leading-none'>基本信息</h2>
-                  </div>
-                  <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                    <Form {...form}>
-                      <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
+                <ResumeSection id='section-basic' title='基本信息'>
+                  <Form {...form}>
+                    <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
                         <div className='grid grid-cols-1 md:grid-cols-2 gap-4 items-start'>
                           <FormField
                             control={form.control}
@@ -271,15 +268,10 @@ export default function ResumePage() {
                         </div>
                       </form>
                     </Form>
-                  </div>
-                </section>
+                </ResumeSection>
 
                 {/* 经历 */}
-                <section id='section-experience'>
-                  <div className='mb-6'>
-                    <h2 className='text-xl font-medium leading-none'>经历</h2>
-                  </div>
-
+                <ResumeSection variant='plain' id='section-experience' title='经历'>
                   {/* 工作经历 */}
                   <div className='mb-10'>
                     <div className='mb-6 flex items-center justify-between'>
@@ -336,14 +328,10 @@ export default function ResumePage() {
                       </div>
                     </div>
                   </div>
-                </section>
+                </ResumeSection>
 
                 {/* 附加资质 */}
-                <section id='section-qualifications'>
-                  <div className='mb-6'>
-                    <h2 className='text-xl font-medium leading-none'>附加资质</h2>
-                  </div>
-                  <div className='space-y-10'>
+                <ResumeSection variant='plain' id='section-qualifications' title='附加资质' className='space-y-10'>
                     {/* 奖励 */}
                     <div className='mb-10'>
                       <div className='mb-6 flex items-center justify-between'>
@@ -438,17 +426,12 @@ export default function ResumePage() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                </section>
+                </ResumeSection>
 
                 {/* 兴趣与技能 */}
-                <section id='section-interests'>
-                  <div className='mb-6'>
-                    <h2 className='text-xl font-medium leading-none'>兴趣与技能</h2>
-                  </div>
-                  <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                    <Form {...form}>
-                      <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
+                <ResumeSection id='section-interests' title='兴趣与技能'>
+                  <Form {...form}>
+                    <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
                         <div className='grid grid-cols-1 gap-6'>
                           <FormField
                             control={form.control}
@@ -491,17 +474,12 @@ export default function ResumePage() {
                         </div>
                       </form>
                     </Form>
-                  </div>
-                </section>
+                </ResumeSection>
 
                 {/* 工作技能 */}
-                <section id='section-self'>
-                  <div className='mb-6'>
-                    <h2 className='text-xl font-medium leading-none'>工作技能</h2>
-                  </div>
-                  <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                    <Form {...form}>
-                      <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
+                <ResumeSection id='section-self' title='工作技能'>
+                  <Form {...form}>
+                    <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
                         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                           <FormField
                             control={form.control}
@@ -564,17 +542,12 @@ export default function ResumePage() {
                         </div>
                       </form>
                     </Form>
-                  </div>
-                </section>
+                </ResumeSection>
 
                 {/* 自我评价 */}
-                <section>
-                  <div className='mb-6'>
-                    <h2 className='text-xl font-medium leading-none'>自我评价</h2>
-                  </div>
-                  <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                    <Form {...form}>
-                      <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
+                <ResumeSection variant='plain' title='自我评价'>
+                  <Form {...form}>
+                    <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
                         <FormField
                           control={form.control}
                           name='selfEvaluation'
@@ -589,8 +562,7 @@ export default function ResumePage() {
                         />
                       </form>
                     </Form>
-                  </div>
-                </section>
+                </ResumeSection>
               </div>
             </div>
           </div>
