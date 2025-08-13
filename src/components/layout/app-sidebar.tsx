@@ -2,7 +2,6 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from '@/component
 import { NavGroup } from '@/components/layout/nav-group'
 import { NavUser } from '@/components/layout/nav-user'
 import { sidebarData } from './data/sidebar-data'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import AppLogo from '@/assets/app-logo'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -25,9 +24,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <div className='px-2 pb-1'>
-          <SidebarTrigger className='w-full justify-start' />
-        </div>
         <NavUser user={sidebarData.user} />
       </SidebarFooter>
       <SidebarRail />
