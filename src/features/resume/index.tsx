@@ -19,14 +19,12 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { resumeSchema, type ResumeFormValues } from './data/schema'
 import { resumeMockData } from './data/mock'
 import { options } from './data/config'
 import SectionNav, { type SectionNavItem } from './components/section-nav'
+import DynamicBasicForm from './components/dynamic-basic-form'
 import ResumeSection from './components/resume-section'
-
-const CITY_OPTIONS = options.city
 
 export default function ResumePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -168,144 +166,9 @@ export default function ResumePage() {
                 <ResumeSection id='section-basic' title='基本信息'>
                   <Form {...form}>
                     <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 items-start'>
-                          <FormField
-                            control={form.control}
-                            name='name'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>姓名</FormLabel>
-                                <FormControl>
-                                  <Input placeholder='请输入姓名' disabled value={field.value ?? ''} readOnly />
-                                </FormControl>
-                                <div className='flex items-center gap-1'>
-                                  <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' className='h-3 w-3 text-muted-foreground'>
-                                    <path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'></path>
-                                    <path d='m9 11 3 3L22 4'></path>
-                                  </svg>
-                                  <span className='text-xs text-muted-foreground'>已实名认证，不可修改</span>
-                                </div>
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name='gender'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>性别</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger className='w-full h-9'>
-                                      <SelectValue placeholder='请选择性别' />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value='男'>男</SelectItem>
-                                    <SelectItem value='女'>女</SelectItem>
-                                    <SelectItem value='其他'>其他</SelectItem>
-                                    <SelectItem value='不愿透露'>不愿透露</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 items-start'>
-                          <FormField
-                            control={form.control}
-                            name='phone'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>电话</FormLabel>
-                                <FormControl>
-                                  <Input placeholder='请输入电话号码' disabled value={field.value ?? ''} readOnly />
-                                </FormControl>
-                                <div className='flex items-center gap-1'>
-                                  <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' className='h-3 w-3 text-muted-foreground'>
-                                    <path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'></path>
-                                    <path d='m9 11 3 3L22 4'></path>
-                                  </svg>
-                                  <span className='text-xs text-muted-foreground'>已验证，不可修改</span>
-                                </div>
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name='email'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>邮箱</FormLabel>
-                                <FormControl>
-                                  <Input type='email' placeholder='请输入邮箱地址' {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 items-start'>
-                          <FormField
-                            control={form.control}
-                            name='city'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>所在城市</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger className='w-full h-9'>
-                                      <SelectValue placeholder='请选择所在城市' />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {CITY_OPTIONS.map((c) => (
-                                      <SelectItem key={c} value={c}>
-                                        {c}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name='origin'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>籍贯</FormLabel>
-                                <FormControl>
-                                  <Input placeholder='请输入籍贯' {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 items-start'>
-                          <FormField
-                            control={form.control}
-                            name='expectedSalary'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>期望薪资/月</FormLabel>
-                                <FormControl>
-                                  <Input placeholder='例如：30000; 3万; 20k-40k' {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <div className='w-full space-y-2'></div>
-                        </div>
-                      </form>
-                    </Form>
+                      <DynamicBasicForm />
+                    </form>
+                  </Form>
                 </ResumeSection>
 
                 {/* 经历 */}
@@ -902,29 +765,6 @@ export default function ResumePage() {
                               </FormItem>
                             )}
                           />
-                        {/* <FormField
-                            control={form.control}
-                            name='workSkillLevel'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>熟练程度</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger className='w-full h-9'>
-                                      <SelectValue placeholder='请选择熟练程度' />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value='初级'>初级</SelectItem>
-                                    <SelectItem value='中级'>中级</SelectItem>
-                                    <SelectItem value='高级'>高级</SelectItem>
-                                    <SelectItem value='专家'>专家</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          /> */}
                         </div>
 
                         <div className='grid grid-cols-1 gap-4'>
