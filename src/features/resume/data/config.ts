@@ -24,8 +24,25 @@ export const options = {
 
 // for array item key typing
 export type WorkExperienceItemKey = keyof NonNullable<ResumeFormValues['workExperience']>[number]
+export type ProjectExperienceItemKey = keyof NonNullable<ResumeFormValues['projectExperience']>[number]
+export type EducationItemKey = keyof NonNullable<ResumeFormValues['education']>[number]
 
 // 表单渲染配置（展示、文案、组件类型、占位符等）
+type ArraySectionConfig = {
+  name: 'workExperience' | 'projectExperience' | 'education'
+  addButtonText: string
+  emptyText: string
+  itemTitlePrefix?: string
+  itemFields: Array<{
+    key: string
+    label: string
+    component: 'input' | 'select' | 'textarea'
+    placeholder?: string
+    optionsKey?: keyof typeof options
+    colSpan?: 1 | 2
+  }>
+}
+
 export const resumeFormConfig: {
   sections: Array<{
     key: string
@@ -38,22 +55,13 @@ export const resumeFormConfig: {
       optionsKey?: keyof typeof options
       disabled?: boolean
       hint?: string
+      colSpan?: 1 | 2
+      hideLabel?: boolean
     }>
-    // 针对可增删的列表型表单（如工作经历）
-    array?: {
-      name: 'workExperience'
-      addButtonText: string
-      emptyText: string
-      itemTitlePrefix?: string
-      itemFields: Array<{
-        key: WorkExperienceItemKey
-        label: string
-        component: 'input' | 'select' | 'textarea'
-        placeholder?: string
-        optionsKey?: keyof typeof options
-        colSpan?: 1 | 2
-      }>
-    }
+    // 针对可增删的列表型表单（如工作/项目/教育经历）
+    array?: ArraySectionConfig
+    // 可选：控制该区块的栅格列数（默认 2 列）
+    gridCols?: 1 | 2
   }>
 } = {
   sections: [
@@ -90,6 +98,43 @@ export const resumeFormConfig: {
       },
     },
     {
+      key: 'projectExperience',
+      title: '项目经历',
+      array: {
+        name: 'projectExperience',
+        addButtonText: '添加项目经历',
+        emptyText: '暂无项目经历，点击上方按钮添加',
+        itemTitlePrefix: '项目经历',
+        itemFields: [
+          { key: 'organization', label: '组织/项目方', component: 'input', placeholder: '例如：外包项目' },
+          { key: 'role', label: '角色', component: 'input', placeholder: '例如：场景概念设计师' },
+          { key: 'startDate', label: '开始时间', component: 'input', placeholder: '例如：2022/01' },
+          { key: 'endDate', label: '结束时间', component: 'input', placeholder: '例如：2023/12' },
+          { key: 'achievements', label: '项目内容/业绩', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
+        ],
+      },
+    },
+    {
+      key: 'education',
+      title: '教育经历',
+      array: {
+        name: 'education',
+        addButtonText: '添加教育经历',
+        emptyText: '暂无教育经历，点击上方按钮添加',
+        itemTitlePrefix: '教育经历',
+        itemFields: [
+          { key: 'institution', label: '学校/机构', component: 'input', placeholder: '例如：某某大学' },
+          { key: 'major', label: '专业', component: 'input', placeholder: '例如：计算机科学' },
+          { key: 'degreeType', label: '学历/学位', component: 'input', placeholder: '例如：本科/硕士/博士' },
+          { key: 'degreeStatus', label: '获取状态', component: 'input', placeholder: '例如：在读/已毕业/结业' },
+          { key: 'startDate', label: '开始时间', component: 'input', placeholder: '例如：2018/09' },
+          { key: 'endDate', label: '结束时间', component: 'input', placeholder: '例如：2021/08' },
+          { key: 'city', label: '城市', component: 'select', optionsKey: 'city', placeholder: '请选择城市' },
+          { key: 'achievements', label: '备注/成就', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
+        ],
+      },
+    },
+    {
       key: 'interests',
       title: '兴趣与技能',
       fields: [
@@ -115,7 +160,17 @@ export const resumeFormConfig: {
     {
       key: 'self',
       title: '自我评价',
-      fields: [{ key: 'selfEvaluation', label: '自我评价', component: 'textarea', placeholder: '请输入自我评价...' }],
+      gridCols: 1,
+      fields: [
+        {
+          key: 'selfEvaluation',
+          label: '自我评价',
+          component: 'textarea',
+          placeholder: '请输入自我评价...',
+          hideLabel: true,
+          colSpan: 2,
+        },
+      ],
     },
   ],
 }

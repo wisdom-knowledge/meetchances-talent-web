@@ -1,24 +1,15 @@
 import { useRef } from 'react'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { IconListDetails, IconPlus, IconStar, IconUser, IconWand, IconUpload, IconTrash } from '@tabler/icons-react'
+import { IconListDetails, IconPlus, IconStar, IconUser, IconWand, IconUpload } from '@tabler/icons-react'
 
 import { showSubmittedData } from '@/utils/show-submitted-data'
 import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { Form } from '@/components/ui/form'
 import { resumeSchema, type ResumeFormValues } from './data/schema'
 import { resumeMockData } from './data/mock'
 import { options } from './data/config'
@@ -114,9 +105,7 @@ export default function ResumePage() {
     }
   }
 
-  // field arrays
-  const projectExpArray = useFieldArray({ control: form.control, name: 'projectExperience' })
-  const educationArray = useFieldArray({ control: form.control, name: 'education' })
+  // experiences 由动态组件内部管理；此处不需要声明
 
   function onSubmit(values: ResumeFormValues) {
     showSubmittedData(values)
@@ -212,286 +201,13 @@ export default function ResumePage() {
                 <ResumeSection variant='plain' id='section-experience' title='经历'>
                   <Form {...form}>
                   {/* 工作经历（配置驱动） */}
-                  <DynamicWorkExperience />
+                  <DynamicWorkExperience sectionKey='workExperience' />
 
-                  {/* 项目经历 */}
-                  <div className='mb-10'>
-                    <div className='mb-6 flex items-center justify-between'>
-                      <h3 className='text-lg leading-none'>项目经历</h3>
-                      <Button
-                        variant='outline'
-                        className='h-9 rounded-md px-3'
-                        type='button'
-                        onClick={() =>
-                          projectExpArray.append({
-                            organization: '',
-                            role: '',
-                            startDate: '',
-                            endDate: '',
-                            achievements: '',
-                          })
-                        }
-                      >
-                        <IconPlus className='h-4 w-4' /> 添加项目经历
-                      </Button>
-                    </div>
-                    <div className='space-y-6'>
-                      {projectExpArray.fields.length === 0 ? (
-                        <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                          <div className='text-center py-10 text-gray-500'>
-                            <span className='text-xs text-muted-foreground leading-none'>
-                              暂无项目经历，点击上方按钮添加
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        projectExpArray.fields.map((field, index) => (
-                          <div key={field.id} className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                            <div className='mb-4 flex items-center justify-between'>
-                              <div className='text-sm text-muted-foreground'>项目经历 {index + 1}</div>
-                              <Button
-                                variant='ghost'
-                                size='sm'
-                                type='button'
-                                onClick={() => projectExpArray.remove(index)}
-                                className='h-8 px-2 text-destructive'
-                              >
-                                <IconTrash className='h-4 w-4' /> 删除
-                              </Button>
-                            </div>
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                              <FormField
-                                control={form.control}
-                                name={`projectExperience.${index}.organization`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2'>
-                                    <FormLabel>组织/项目方</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder='例如：外包项目' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`projectExperience.${index}.role`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2'>
-                                    <FormLabel>角色</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder='例如：场景概念设计师' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`projectExperience.${index}.startDate`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2'>
-                                    <FormLabel>开始时间</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder='例如：2022/01' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`projectExperience.${index}.endDate`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2'>
-                                    <FormLabel>结束时间</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder='例如：2023/12' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`projectExperience.${index}.achievements`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2 md:col-span-2'>
-                                    <FormLabel>项目内容/业绩</FormLabel>
-                                    <FormControl>
-                                      <Textarea rows={4} placeholder='每行一条，支持换行' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
+                  {/* 项目经历（配置驱动） */}
+                  <DynamicWorkExperience sectionKey='projectExperience' />
 
-                  {/* 教育经历 */}
-                  <div className='mb-10'>
-                    <div className='mb-6 flex items-center justify-between'>
-                      <h3 className='text-lg leading-none'>教育经历</h3>
-                      <Button
-                        variant='outline'
-                        className='h-9 rounded-md px-3'
-                        type='button'
-                        onClick={() =>
-                          educationArray.append({
-                            institution: '',
-                            major: '',
-                            degreeType: '',
-                            degreeStatus: '',
-                            city: '',
-                            startDate: '',
-                            endDate: '',
-                            achievements: '',
-                          })
-                        }
-                      >
-                        <IconPlus className='h-4 w-4' /> 添加教育经历
-                      </Button>
-                    </div>
-                    <div className='space-y-6'>
-                      {educationArray.fields.length === 0 ? (
-                        <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                          <div className='text-center py-10 text-gray-500'>
-                            <span className='text-xs text-muted-foreground leading-none'>
-                              暂无教育经历，点击上方按钮添加
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        educationArray.fields.map((field, index) => (
-                          <div key={field.id} className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                            <div className='mb-4 flex items-center justify-between'>
-                              <div className='text-sm text-muted-foreground'>教育经历 {index + 1}</div>
-                              <Button
-                                variant='ghost'
-                                size='sm'
-                                type='button'
-                                onClick={() => educationArray.remove(index)}
-                                className='h-8 px-2 text-destructive'
-                              >
-                                <IconTrash className='h-4 w-4' /> 删除
-                              </Button>
-                            </div>
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                              <FormField
-                                control={form.control}
-                                name={`education.${index}.institution`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2'>
-                                    <FormLabel>学校/机构</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder='例如：某某大学' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`education.${index}.major`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2'>
-                                    <FormLabel>专业</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder='例如：计算机科学' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`education.${index}.degreeType`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2'>
-                                    <FormLabel>学历/学位</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder='例如：本科/硕士/博士' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`education.${index}.degreeStatus`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2'>
-                                    <FormLabel>获取状态</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder='例如：在读/已毕业/结业' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={form.control}
-                                name={`education.${index}.startDate`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2'>
-                                    <FormLabel>开始时间</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder='例如：2018/09' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`education.${index}.endDate`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2'>
-                                    <FormLabel>结束时间</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder='例如：2021/08' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`education.${index}.city`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2'>
-                                    <FormLabel>城市</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder='例如：北京' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`education.${index}.achievements`}
-                                render={({ field }) => (
-                                  <FormItem className='space-y-2 md:col-span-2'>
-                                    <FormLabel>备注/成就</FormLabel>
-                                    <FormControl>
-                                      <Textarea rows={3} placeholder='每行一条，支持换行' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
+                  {/* 教育经历（配置驱动） */}
+                  <DynamicWorkExperience sectionKey='education' />
                   </Form>
                 </ResumeSection>
 
@@ -593,115 +309,29 @@ export default function ResumePage() {
                     </div>
                 </ResumeSection>
 
-                {/* 兴趣与技能 */}
+                {/* 兴趣与技能（配置驱动） */}
                 <ResumeSection id='section-interests' title='兴趣与技能'>
                   <Form {...form}>
                     <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
-                        <div className='grid grid-cols-1 gap-6'>
-                          <FormField
-                            control={form.control}
-                            name='hobbies'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>兴趣爱好</FormLabel>
-                                <div className='flex min-h-9 w-full flex-wrap gap-1 rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors placeholder:text-muted-foreground focus-within:ring-1 focus-within:ring-ring'>
-                                  <input
-                                    type='text'
-                                    placeholder='例如：阅读、旅行、摄影、编程...'
-                                    className='flex-1 min-w-0 border-0 bg-transparent outline-none placeholder:text-muted-foreground'
-                                    value={field.value ?? ''}
-                                    onChange={field.onChange}
-                                  />
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name='skills'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>技能</FormLabel>
-                                <div className='flex min-h-9 w-full flex-wrap gap-1 rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors placeholder:text-muted-foreground focus-within:ring-1 focus-within:ring-ring'>
-                                  <input
-                                    type='text'
-                                    placeholder='例如：JavaScript、Python、UI设计...'
-                                    className='flex-1 min-w-0 border-0 bg-transparent outline-none placeholder:text-muted-foreground'
-                                    value={field.value ?? ''}
-                                    onChange={field.onChange}
-                                  />
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                      <DynamicBasicForm sectionKey='interests' />
                       </form>
                     </Form>
                 </ResumeSection>
 
-                {/* 工作技能 */}
+                {/* 工作技能（配置驱动） */}
                 <ResumeSection id='section-self' title='工作技能'>
                   <Form {...form}>
                     <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                          <FormField
-                            control={form.control}
-                            name='workSkillName'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>技能名称</FormLabel>
-                                <FormControl>
-                                  <Input placeholder='例如：前端开发' {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className='grid grid-cols-1 gap-4'>
-                          <FormField
-                            control={form.control}
-                            name='softSkills'
-                            render={({ field }) => (
-                              <FormItem className='w-full space-y-2'>
-                                <FormLabel>软技能</FormLabel>
-                                <div className='flex min-h-9 w-full flex-wrap gap-1 rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors placeholder:text-muted-foreground focus-within:ring-1 focus-within:ring-ring'>
-                                  <input
-                                    type='text'
-                                    placeholder='例如：团队协作、沟通能力、项目管理...'
-                                    className='flex-1 min-w-0 border-0 bg-transparent outline-none placeholder:text-muted-foreground'
-                                    value={field.value ?? ''}
-                                    onChange={field.onChange}
-                                  />
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                      <DynamicBasicForm sectionKey='workSkills' />
                       </form>
                     </Form>
                 </ResumeSection>
 
-                {/* 自我评价 */}
+                {/* 自我评价（配置驱动） */}
                 <ResumeSection variant='plain' title='自我评价'>
                   <Form {...form}>
                     <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
-                        <FormField
-                          control={form.control}
-                          name='selfEvaluation'
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Textarea rows={6} placeholder='请输入自我评价...' {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <DynamicBasicForm sectionKey='self' />
                       </form>
                     </Form>
                 </ResumeSection>

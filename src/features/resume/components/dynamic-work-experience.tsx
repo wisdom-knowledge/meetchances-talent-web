@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { useFormContext, useFieldArray } from 'react-hook-form'
+import { useFormContext, useFieldArray, type FieldArrayPath, type FieldPath } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import {
   FormField,
@@ -15,11 +15,13 @@ import type { ResumeFormValues } from '../data/schema'
 import { resumeFormConfig, options } from '../data/config'
 import { IconPlus, IconTrash } from '@tabler/icons-react'
 
-export default function DynamicWorkExperience() {
-  const form = useFormContext<ResumeFormValues>()
-  const arraySection = resumeFormConfig.sections.find((s) => s.key === 'workExperience' && s.array)?.array
+type SectionKey = 'workExperience' | 'projectExperience' | 'education'
 
-  const workExpArray = useFieldArray({ control: form.control, name: 'workExperience' })
+export default function DynamicWorkExperience({ sectionKey = 'workExperience' as SectionKey }: { sectionKey?: SectionKey }) {
+  const form = useFormContext<ResumeFormValues>()
+  const arraySection = resumeFormConfig.sections.find((s) => s.key === sectionKey && s.array)?.array
+  const name: FieldArrayPath<ResumeFormValues> = (arraySection?.name ?? 'workExperience') as FieldArrayPath<ResumeFormValues>
+  const fieldArray = useFieldArray<ResumeFormValues, FieldArrayPath<ResumeFormValues>>({ control: form.control, name })
 
   if (!arraySection) return null
 
@@ -31,24 +33,20 @@ export default function DynamicWorkExperience() {
           variant='outline'
           className='h-9 rounded-md px-3'
           type='button'
-          onClick={() =>
-            workExpArray.append({
-              organization: '',
-              title: '',
-              startDate: '',
-              endDate: '',
-              city: '',
-              employmentType: '',
-              achievements: '',
-            })
-          }
+          onClick={() => {
+            const emptyItem = arraySection.itemFields.reduce<Record<string, string | undefined>>((acc, f) => {
+              acc[String(f.key)] = f.component === 'select' ? undefined : ''
+              return acc
+            }, {})
+            fieldArray.append(emptyItem as unknown as Parameters<typeof fieldArray.append>[0])
+          }}
         >
           <IconPlus className='h-4 w-4' /> {arraySection.addButtonText}
         </Button>
       </div>
 
       <div className='space-y-6'>
-        {workExpArray.fields.length === 0 ? (
+        {fieldArray.fields.length === 0 ? (
           <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
             <div className='text-center py-10 text-gray-500'>
               <span className='text-xs text-muted-foreground leading-none'>
@@ -57,7 +55,7 @@ export default function DynamicWorkExperience() {
             </div>
           </div>
         ) : (
-          workExpArray.fields.map((fieldItem, index) => (
+          fieldArray.fields.map((fieldItem, index) => (
             <div key={fieldItem.id} className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
               <div className='mb-4 flex items-center justify-between'>
                 <div className='text-sm text-muted-foreground'>{(arraySection.itemTitlePrefix ?? '工作经历') + ' ' + (index + 1)}</div>
@@ -65,7 +63,7 @@ export default function DynamicWorkExperience() {
                   variant='ghost'
                   size='sm'
                   type='button'
-                  onClick={() => workExpArray.remove(index)}
+                  onClick={() => fieldArray.remove(index)}
                   className='h-8 px-2 text-destructive'
                 >
                   <IconTrash className='h-4 w-4' /> 删除
@@ -77,18 +75,33 @@ export default function DynamicWorkExperience() {
                   <Fragment key={String(f.key)}>
                     <FormField
                       control={form.control}
-                      name={`workExperience.${index}.${f.key}` as const}
+                      name={`${arraySection.name}.${index}.${String(f.key)}` as FieldPath<ResumeFormValues>}
                       render={({ field }) => (
                         <FormItem className={`space-y-2 ${f.colSpan === 2 ? 'md:col-span-2' : ''}`}>
                           <FormLabel>{f.label}</FormLabel>
                           {f.component === 'input' && (
                             <FormControl>
-                              <Input placeholder={f.placeholder} {...field} />
+                              <Input
+                                placeholder={f.placeholder}
+                                value={typeof field.value === 'string' ? field.value : ''}
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                name={field.name}
+                                ref={field.ref}
+                              />
                             </FormControl>
                           )}
                           {f.component === 'textarea' && (
                             <FormControl>
-                              <Textarea rows={4} placeholder={f.placeholder} {...field} />
+                              <Textarea
+                                rows={4}
+                                placeholder={f.placeholder}
+                                value={typeof field.value === 'string' ? field.value : ''}
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                name={field.name}
+                                ref={field.ref}
+                              />
                             </FormControl>
                           )}
                           {f.component === 'select' && (

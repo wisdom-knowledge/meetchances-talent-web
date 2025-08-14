@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { useFormContext } from 'react-hook-form'
+import { useFormContext, type FieldPath } from 'react-hook-form'
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -8,26 +8,27 @@ import type { ResumeFormValues } from '../data/schema'
 import { resumeFormConfig, options } from '../data/config'
 
 type Props = {
-  sectionKey?: 'basic'
+  sectionKey?: 'basic' | 'interests' | 'workSkills' | 'self'
 }
 
-export default function DynamicBasicForm(_props: Props) {
+export default function DynamicBasicForm({ sectionKey = 'basic' }: Props) {
   const form = useFormContext<ResumeFormValues>()
-  const section = resumeFormConfig.sections.find((s) => s.key === 'basic')
+  const section = resumeFormConfig.sections.find((s) => s.key === sectionKey)
   if (!section || !section.fields) return null
 
-  type BasicFieldKey = 'name' | 'gender' | 'phone' | 'email' | 'city' | 'origin' | 'expectedSalary'
+  const gridCols = section.gridCols ?? 2
+  const gridClass = gridCols === 1 ? 'grid grid-cols-1 md:grid-cols-1' : 'grid grid-cols-1 md:grid-cols-2'
 
   return (
-    <div className='grid grid-cols-1 md:grid-cols-2 gap-4 items-start'>
+    <div className={gridClass + ' gap-4 items-start'}>
       {section.fields.map((field) => (
         <Fragment key={field.key as string}>
-          <FormField<ResumeFormValues, BasicFieldKey>
+          <FormField<ResumeFormValues, FieldPath<ResumeFormValues>>
             control={form.control}
-            name={field.key as BasicFieldKey}
+            name={field.key as FieldPath<ResumeFormValues>}
             render={({ field: rhfField }) => (
-              <FormItem className='w-full space-y-2'>
-                <FormLabel>{field.label}</FormLabel>
+              <FormItem className={'w-full space-y-2 ' + (field.colSpan === 2 ? 'md:col-span-2' : '')}>
+                {!field.hideLabel ? <FormLabel>{field.label}</FormLabel> : null}
                 {field.component === 'input' && (
                   <FormControl>
                     <Input placeholder={field.placeholder} disabled={field.disabled} value={(rhfField.value as string) ?? ''} onChange={rhfField.onChange} onBlur={rhfField.onBlur} name={rhfField.name} ref={rhfField.ref} />
@@ -53,6 +54,17 @@ export default function DynamicBasicForm(_props: Props) {
                       ))}
                     </SelectContent>
                   </Select>
+                )}
+                {field.component === 'tags' && (
+                  <div className='flex min-h-9 w-full flex-wrap gap-1 rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors placeholder:text-muted-foreground focus-within:ring-1 focus-within:ring-ring'>
+                    <input
+                      type='text'
+                      placeholder={field.placeholder}
+                      className='flex-1 min-w-0 border-0 bg-transparent outline-none placeholder:text-muted-foreground'
+                      value={(rhfField.value as string) ?? ''}
+                      onChange={rhfField.onChange}
+                    />
+                  </div>
                 )}
                 {field.hint ? (
                   <div className='flex items-center gap-1'>

@@ -11,7 +11,7 @@ export const resumeSchema = z.object({
   hobbies: z.string().optional(),
   skills: z.string().optional(),
   workSkillName: z.string().optional(),
-  workSkillLevel: z.enum(['初级', '中级', '高级', '专家']).optional(),
+  workSkillLevel: z.enum(['初级', '中级', '高级', '专家', '熟悉', '精通']).optional(),
   softSkills: z.string().optional(),
   selfEvaluation: z.string().optional(),
   workExperience: z
