@@ -1,4 +1,5 @@
 import { Fragment } from 'react'
+import type React from 'react'
 import { useFormContext, useFieldArray, type FieldArrayPath, type FieldPath } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,14 +11,16 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { SelectDropdown } from '@/components/select-dropdown'
 import type { ResumeFormValues } from '../data/schema'
 import { resumeFormConfig, options } from '../data/config'
 import { IconPlus, IconTrash } from '@tabler/icons-react'
 
-type SectionKey = 'workExperience' | 'projectExperience' | 'education'
+type SectionKey = 'workExperience' | 'projectExperience' | 'education' | 'workSkills'
 
-export default function DynamicWorkExperience({ sectionKey = 'workExperience' as SectionKey }: { sectionKey?: SectionKey }) {
+type Props = { sectionKey?: SectionKey; scrollContainerRef?: React.RefObject<HTMLElement | null> }
+
+export default function DynamicWorkExperience({ sectionKey = 'workExperience' as SectionKey, scrollContainerRef: _scrollContainerRef }: Props) {
   const form = useFormContext<ResumeFormValues>()
   const arraySection = resumeFormConfig.sections.find((s) => s.key === sectionKey && s.array)?.array
   const name: FieldArrayPath<ResumeFormValues> = (arraySection?.name ?? 'workExperience') as FieldArrayPath<ResumeFormValues>
@@ -105,20 +108,14 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                             </FormControl>
                           )}
                           {f.component === 'select' && (
-                            <Select onValueChange={field.onChange} value={(field.value as string) ?? undefined}>
-                              <FormControl>
-                                <SelectTrigger className='w-full h-9'>
-                                  <SelectValue placeholder={f.placeholder} />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {(f.optionsKey ? options[f.optionsKey] : []).map((opt) => (
-                                  <SelectItem key={opt} value={opt}>
-                                    {opt}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <SelectDropdown
+                              isControlled
+                              value={(field.value as string) ?? undefined}
+                              onValueChange={field.onChange}
+                              placeholder={f.placeholder}
+                              className='w-full h-9'
+                              items={(f.optionsKey ? options[f.optionsKey] : []).map((opt) => ({ label: opt, value: opt }))}
+                            />
                           )}
                           <FormMessage />
                         </FormItem>

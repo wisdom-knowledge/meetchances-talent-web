@@ -29,7 +29,7 @@ export type EducationItemKey = keyof NonNullable<ResumeFormValues['education']>[
 
 // 表单渲染配置（展示、文案、组件类型、占位符等）
 type ArraySectionConfig = {
-  name: 'workExperience' | 'projectExperience' | 'education'
+  name: 'workExperience' | 'projectExperience' | 'education' | 'workSkills'
   addButtonText: string
   emptyText: string
   itemTitlePrefix?: string
@@ -145,16 +145,18 @@ export const resumeFormConfig: {
     {
       key: 'workSkills',
       title: '工作技能',
+      array: {
+        name: 'workSkills',
+        addButtonText: '添加技能',
+        emptyText: '暂无技能，点击上方按钮添加',
+        itemTitlePrefix: '技能',
+        itemFields: [
+          { key: 'name', label: '技能名称', component: 'input', placeholder: '例如：前端开发' },
+          { key: 'level', label: '熟练程度', component: 'select', optionsKey: 'proficiency', placeholder: '请选择熟练程度' },
+        ],
+      },
       fields: [
-        { key: 'workSkillName', label: '技能名称', component: 'input', placeholder: '例如：前端开发' },
-        {
-          key: 'workSkillLevel',
-          label: '熟练程度',
-          component: 'select',
-          optionsKey: 'proficiency',
-          placeholder: '请选择熟练程度',
-        },
-        { key: 'softSkills', label: '软技能', component: 'tags', placeholder: '例如：团队协作、沟通能力、项目管理...' },
+        { key: 'softSkills', label: '软技能', component: 'tags', placeholder: '例如：团队协作、沟通能力、项目管理...', colSpan: 2 },
       ],
     },
     {

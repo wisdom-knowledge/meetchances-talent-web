@@ -4,20 +4,53 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 function Select({
+  onOpenChange,
+  scrollContainerRef,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot='select' {...props} />
+}: React.ComponentProps<typeof SelectPrimitive.Root> & {
+  scrollContainerRef?: React.RefObject<HTMLElement | null>
+}) {
+  const previousScrollTopRef = React.useRef(0)
+
+  const handleOpenChange = React.useCallback(
+    (open: boolean) => {
+      const container = scrollContainerRef?.current
+      if (open) {
+        previousScrollTopRef.current = container
+          ? container.scrollTop
+          : window.scrollY ?? 0
+      } else {
+        if (container) {
+          container.scrollTo({
+            top: previousScrollTopRef.current,
+            behavior: 'auto',
+          })
+        } else {
+          window.scrollTo({
+            top: previousScrollTopRef.current,
+            behavior: 'auto',
+          })
+        }
+      }
+      onOpenChange?.(open)
+    },
+    [onOpenChange, scrollContainerRef]
+  )
+
+  return (
+    <SelectPrimitive.Root
+      data-slot='select'
+      onOpenChange={handleOpenChange}
+      {...props}
+    />
+  )
 }
 
-function SelectGroup({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Group>) {
+function SelectGroup(props: React.ComponentProps<typeof SelectPrimitive.Group>) {
   return <SelectPrimitive.Group data-slot='select-group' {...props} />
 }
 
-function SelectValue({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Value>) {
+function SelectValue(props: React.ComponentProps<typeof SelectPrimitive.Value>) {
   return <SelectPrimitive.Value data-slot='select-value' {...props} />
 }
 
@@ -29,10 +62,22 @@ function SelectTrigger({
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: 'sm' | 'default'
 }) {
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null)
+
+  React.useEffect(() => {
+    const el = triggerRef.current
+    if (el) {
+      // 阻止初始化时滚动跳动
+      el.focus({ preventScroll: true })
+      el.blur()
+    }
+  }, [])
+
   return (
     <SelectPrimitive.Trigger
       data-slot='select-trigger'
       data-size={size}
+      ref={triggerRef}
       className={cn(
         "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
@@ -51,19 +96,28 @@ function SelectContent({
   className,
   children,
   position = 'popper',
+  avoidCollisions = false,
+  sideOffset = 4,
+  container,
+  style,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
+}: React.ComponentProps<typeof SelectPrimitive.Content> & {
+  container?: HTMLElement | null
+}) {
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={container ?? undefined}>
       <SelectPrimitive.Content
         data-slot='select-content'
         className={cn(
-          'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md',
+          'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-[var(--radix-select-content-available-height)] min-w-[8rem] origin-[var(--radix-select-content-transform-origin)] overflow-x-hidden overflow-y-auto rounded-md border shadow-md',
           position === 'popper' &&
             'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
           className
         )}
         position={position}
+        avoidCollisions={avoidCollisions}
+        sideOffset={sideOffset}
+        style={style}
         {...props}
       >
         <SelectScrollUpButton />

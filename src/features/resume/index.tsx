@@ -21,6 +21,7 @@ import ResumeSection from './components/resume-section'
 
 export default function ResumePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
   // 性别默认值为空，由用户选择或后端数据填充
   const defaultGender = undefined
@@ -187,12 +188,12 @@ export default function ResumePage() {
                 </div>
               </div>
 
-              <div className='space-y-10 faded-bottom h-full w-full overflow-y-auto scroll-smooth pr-4 pb-12'>
+              <div ref={scrollContainerRef} className='space-y-10 faded-bottom h-full w-full overflow-y-auto scroll-smooth pr-4 pb-12 [overflow-anchor:none]'>
                 {/* 基本信息 */}
                 <ResumeSection id='section-basic' title='基本信息'>
                   <Form {...form}>
                     <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
-                      <DynamicBasicForm />
+                      <DynamicBasicForm scrollContainerRef={scrollContainerRef} />
                     </form>
                   </Form>
                 </ResumeSection>
@@ -201,13 +202,13 @@ export default function ResumePage() {
                 <ResumeSection variant='plain' id='section-experience' title='经历'>
                   <Form {...form}>
                   {/* 工作经历（配置驱动） */}
-                  <DynamicWorkExperience sectionKey='workExperience' />
+                  <DynamicWorkExperience sectionKey='workExperience' scrollContainerRef={scrollContainerRef} />
 
                   {/* 项目经历（配置驱动） */}
-                  <DynamicWorkExperience sectionKey='projectExperience' />
+                  <DynamicWorkExperience sectionKey='projectExperience' scrollContainerRef={scrollContainerRef} />
 
                   {/* 教育经历（配置驱动） */}
-                  <DynamicWorkExperience sectionKey='education' />
+                  <DynamicWorkExperience sectionKey='education' scrollContainerRef={scrollContainerRef} />
                   </Form>
                 </ResumeSection>
 
@@ -313,16 +314,18 @@ export default function ResumePage() {
                 <ResumeSection id='section-interests' title='兴趣与技能'>
                   <Form {...form}>
                     <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
-                      <DynamicBasicForm sectionKey='interests' />
+                      <DynamicBasicForm sectionKey='interests' scrollContainerRef={scrollContainerRef} />
                       </form>
                     </Form>
                 </ResumeSection>
 
-                {/* 工作技能（配置驱动） */}
-                <ResumeSection id='section-self' title='工作技能'>
+                {/* 工作技能（配置驱动，可手动添加） */}
+                <ResumeSection variant='plain' id='section-self' title='工作技能'>
                   <Form {...form}>
                     <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
-                      <DynamicBasicForm sectionKey='workSkills' />
+                      <DynamicWorkExperience sectionKey='workSkills' scrollContainerRef={scrollContainerRef} />
+                      {/* 软技能标签（仍然配置化） */}
+                      <DynamicBasicForm sectionKey='workSkills' scrollContainerRef={scrollContainerRef} />
                       </form>
                     </Form>
                 </ResumeSection>
