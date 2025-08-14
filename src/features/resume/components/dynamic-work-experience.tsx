@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { SelectDropdown } from '@/components/select-dropdown'
+import { MonthPicker } from '@/components/month-picker'
 import type { ResumeFormValues } from '../data/schema'
 import { resumeFormConfig, options } from '../data/config'
 import { IconPlus, IconTrash } from '@tabler/icons-react'
@@ -82,7 +83,15 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                       render={({ field }) => (
                         <FormItem className={`space-y-2 ${f.colSpan === 2 ? 'md:col-span-2' : ''}`}>
                           <FormLabel>{f.label}</FormLabel>
-                          {f.component === 'input' && (
+                          {f.component === 'input' && (f.key === 'startDate' || f.key === 'endDate') ? (
+                            <FormControl>
+                              <MonthPicker
+                                value={typeof field.value === 'string' ? field.value : undefined}
+                                onChange={field.onChange}
+                                placeholder={f.placeholder ?? '选择月份'}
+                              />
+                            </FormControl>
+                          ) : f.component === 'input' ? (
                             <FormControl>
                               <Input
                                 placeholder={f.placeholder}
@@ -93,7 +102,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                                 ref={field.ref}
                               />
                             </FormControl>
-                          )}
+                          ) : null}
                           {f.component === 'textarea' && (
                             <FormControl>
                               <Textarea
