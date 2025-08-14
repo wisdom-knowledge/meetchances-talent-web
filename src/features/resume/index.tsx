@@ -22,6 +22,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { resumeSchema, type ResumeFormValues } from './data/schema'
 import { resumeMockData } from './data/mock'
 import { options } from './data/config'
+// import { options } from './data/config'
 import SectionNav, { type SectionNavItem } from './components/section-nav'
 import DynamicBasicForm from './components/dynamic-basic-form'
 import ResumeSection from './components/resume-section'
@@ -29,20 +30,44 @@ import ResumeSection from './components/resume-section'
 export default function ResumePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const rawGender = resumeMockData.structured_resume.basic_info.gender
-  const defaultGender = options.gender.includes(
-    rawGender as (typeof options.gender)[number]
-  )
-    ? (rawGender as (typeof options.gender)[number])
-    : undefined
+  // 性别默认值为空，由用户选择或后端数据填充
+  const defaultGender = undefined
 
   const form = useForm<ResumeFormValues>({
     resolver: zodResolver(resumeSchema),
     defaultValues: {
+      name: '',
+      phone: '',
+      city: undefined,
+      gender: defaultGender,
+      email: '',
+      origin: '',
+      expectedSalary: '',
+      hobbies: '',
+      skills: '',
+      workSkillName: '',
+      workSkillLevel: undefined,
+      softSkills: '',
+      selfEvaluation: '',
+      workExperience: [],
+      projectExperience: [],
+      education: [],
+    },
+    mode: 'onChange',
+  })
+
+  // 开发调试：将 mock 数据映射为表单值
+  function mapMockToFormValues(): ResumeFormValues {
+    const rawGender = resumeMockData.structured_resume.basic_info.gender as (typeof options.gender)[number] | null
+    const gender = options.gender.includes(rawGender as (typeof options.gender)[number])
+      ? (rawGender as (typeof options.gender)[number])
+      : undefined
+
+    return {
       name: resumeMockData.structured_resume.basic_info.name ?? '',
       phone: resumeMockData.structured_resume.basic_info.phone ?? '',
-      city: resumeMockData.structured_resume.basic_info.city ?? undefined,
-      gender: defaultGender,
+      city: (resumeMockData.structured_resume.basic_info.city as string | null) ?? undefined,
+      gender,
       email: resumeMockData.structured_resume.basic_info.email ?? '',
       origin: '',
       expectedSalary: '',
@@ -53,7 +78,7 @@ export default function ResumePage() {
       softSkills: (resumeMockData.structured_resume.self_assessment.soft_skills ?? []).join('、'),
       selfEvaluation: resumeMockData.structured_resume.self_assessment.summary ?? '',
       workExperience:
-        resumeMockData.structured_resume.experience.work_experience?.map((w) => ({
+        (resumeMockData.structured_resume.experience.work_experience ?? []).map((w) => ({
           organization: w.organization ?? '',
           title: w.title ?? '',
           startDate: w.start_date ?? '',
@@ -61,17 +86,17 @@ export default function ResumePage() {
           city: (w.city as string | null) ?? '',
           employmentType: (w.employment_type as string | null) ?? '',
           achievements: (w.achievements ?? []).join('\n'),
-        })) ?? [],
+        })),
       projectExperience:
-        resumeMockData.structured_resume.experience.project_experience?.map((p) => ({
+        (resumeMockData.structured_resume.experience.project_experience ?? []).map((p) => ({
           organization: p.organization ?? '',
           role: p.role ?? '',
           startDate: p.start_date ?? '',
           endDate: p.end_date ?? '',
           achievements: (p.achievements ?? []).join('\n'),
-        })) ?? [],
+        })),
       education:
-        resumeMockData.structured_resume.experience.education?.map((e) => ({
+        (resumeMockData.structured_resume.experience.education ?? []).map((e) => ({
           institution: e.institution ?? '',
           major: e.major ?? '',
           degreeType: e.degree_type ?? '',
@@ -79,15 +104,14 @@ export default function ResumePage() {
           city: (e.city as string | null) ?? '',
           startDate: e.start_date ?? '',
           endDate: e.end_date ?? '',
-          achievements: (e.achievements ?? [])
+          achievements: e.achievements
             ? Array.isArray(e.achievements)
               ? e.achievements.join('\n')
               : String(e.achievements)
             : '',
-        })) ?? [],
-    },
-    mode: 'onChange',
-  })
+        })),
+    }
+  }
 
   // field arrays
   const workExpArray = useFieldArray({ control: form.control, name: 'workExperience' })
@@ -96,6 +120,14 @@ export default function ResumePage() {
 
   function onSubmit(values: ResumeFormValues) {
     showSubmittedData(values)
+  }
+
+  // 仅开发环境暴露：一键填充 mock 数据，便于调试
+  const isDev = import.meta.env.DEV
+  function fillWithMock() {
+    if (!isDev) return
+    const mockValues = mapMockToFormValues()
+    form.reset(mockValues)
   }
 
   return (
@@ -153,6 +185,11 @@ export default function ResumePage() {
                         <IconUpload className='h-4 w-4' />
                         上传新简历
                       </Button>
+                      {isDev && (
+                        <Button variant='outline' className='h-10 px-4 py-2' onClick={fillWithMock}>
+                          用 Mock 数据填充
+                        </Button>
+                      )}
                       <Button className='h-10 px-4 py-2' onClick={form.handleSubmit(onSubmit)}>
                         保存
                       </Button>
