@@ -17,10 +17,13 @@ export const resumeFieldMap = {
 
 // 选项配置
 export const options = {
-  gender: ['男', '女', '其他', '不愿透露'],
+  gender: ['男', '女', '不愿透露'],
   city: ['北京', '上海', '广州', '深圳', '杭州', '成都', '其他'],
   proficiency: ['初级', '中级', '高级', '专家', '熟悉', '精通'],
 } as const
+
+// for array item key typing
+export type WorkExperienceItemKey = keyof NonNullable<ResumeFormValues['workExperience']>[number]
 
 // 表单渲染配置（展示、文案、组件类型、占位符等）
 export const resumeFormConfig: {
@@ -36,6 +39,21 @@ export const resumeFormConfig: {
       disabled?: boolean
       hint?: string
     }>
+    // 针对可增删的列表型表单（如工作经历）
+    array?: {
+      name: 'workExperience'
+      addButtonText: string
+      emptyText: string
+      itemTitlePrefix?: string
+      itemFields: Array<{
+        key: WorkExperienceItemKey
+        label: string
+        component: 'input' | 'select' | 'textarea'
+        placeholder?: string
+        optionsKey?: keyof typeof options
+        colSpan?: 1 | 2
+      }>
+    }
   }>
 } = {
   sections: [
@@ -51,6 +69,25 @@ export const resumeFormConfig: {
         { key: 'origin', label: '籍贯', component: 'input', placeholder: '请输入籍贯' },
         { key: 'expectedSalary', label: '期望薪资/月', component: 'input', placeholder: '例如：30000; 3万; 20k-40k' },
       ],
+    },
+    {
+      key: 'workExperience',
+      title: '工作经历',
+      array: {
+        name: 'workExperience',
+        addButtonText: '添加工作经历',
+        emptyText: '暂无工作经历，点击上方按钮添加',
+        itemTitlePrefix: '工作经历',
+        itemFields: [
+          { key: 'organization', label: '公司/组织', component: 'input', placeholder: '例如：某某科技有限公司' },
+          { key: 'title', label: '职位', component: 'input', placeholder: '例如：前端工程师' },
+          { key: 'startDate', label: '开始时间', component: 'input', placeholder: '例如：2021/07' },
+          { key: 'endDate', label: '结束时间', component: 'input', placeholder: '例如：2022/06 或 至今' },
+          { key: 'city', label: '城市', component: 'select', optionsKey: 'city', placeholder: '请选择城市' },
+          { key: 'employmentType', label: '雇佣形式', component: 'input', placeholder: '例如：全职/兼职/实习/合同工' },
+          { key: 'achievements', label: '工作内容/业绩', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
+        ],
+      },
     },
     {
       key: 'interests',

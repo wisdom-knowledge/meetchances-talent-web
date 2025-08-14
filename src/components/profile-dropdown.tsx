@@ -14,8 +14,8 @@ import {
 
 export function ProfileDropdown() {
   const handleLogout = () => {
-    const redirectUri = location.href
-    location.replace(`https://service-dev.meetchances.com/api/v1/logout?redirect_uri=${encodeURIComponent(redirectUri)}`)
+    const baseLogoutUrl = import.meta.env.VITE_AUTH_LOGOUT_URL
+    location.replace(baseLogoutUrl)
   }
 
   return (
