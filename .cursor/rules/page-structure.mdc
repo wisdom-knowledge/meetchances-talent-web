@@ -1,0 +1,62 @@
+---
+alwaysApply: true
+---
+
+# 页面结构起手规范（Header + Main + 标题区 + Separator）
+
+所有新建页面（feature 页面与路由组件）必须遵循统一的页面骨架，以保持与现有页面如“职位列表”“我的简历”等一致的布局与视觉。涉及组件：
+
+- Header 组件：[header.tsx](mdc:src/components/layout/header.tsx)
+- Main 容器：[main.tsx](mdc:src/components/layout/main.tsx)
+- 分隔线组件：[separator.tsx](mdc:src/components/ui/separator.tsx)
+- 用户菜单（可选）：[profile-dropdown.tsx](mdc:src/components/profile-dropdown.tsx)
+
+结构要求：
+
+1) 页面顶部必须使用 `Header fixed`，右侧通常放 `ProfileDropdown`。
+2) 主体使用 `Main fixed` 包裹全部内容。
+3) `Main` 顶部需要一个“标题区”，包含：
+   - 主标题：`h1.text-2xl.font-bold.tracking-tight.md:text-3xl`
+   - 可选的副标题：`p.text-muted-foreground`
+4) 标题区与正文之间放置 `Separator`（间距：`my-4 lg:my-6`）。
+5) 正文内容放在 `Separator` 之后。
+
+参考起手模板（直接复制使用）：
+
+```tsx
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+import { Separator } from '@/components/ui/separator'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+
+export default function PageTemplate() {
+  return (
+    <>
+      <Header fixed>
+        <div className='ml-auto flex items-center space-x-4'>
+          <ProfileDropdown />
+        </div>
+      </Header>
+
+      <Main fixed>
+        <div className='space-y-0.5'>
+          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>页面标题</h1>
+          <p className='text-muted-foreground'>页面副标题/说明文案</p>
+        </div>
+        <Separator className='my-4 lg:my-6' />
+
+        {/* 页面主体内容从这里开始 */}
+        <div className='space-y-6'>
+          {/* content */}
+        </div>
+      </Main>
+    </>
+  )
+}
+```
+
+注意：
+- 路由页面应位于 `src/routes/_authenticated/...`（受保护）或 `src/routes/(auth)/...` 等目录，根据访问控制选择。
+- feature 页面文件位于 `src/features/<feature-name>/index.tsx`，路由组件只负责挂载对应 feature 组件。
+- Tailwind 类名需保持与现有页面一致，以确保布局、间距统一。
+

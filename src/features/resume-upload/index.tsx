@@ -1,0 +1,118 @@
+import React, { useMemo, useState } from 'react'
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+import { Separator } from '@/components/ui/separator'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import UploadCard from './components/upload-card'
+import { UploadArea, type UploadResult } from '@/features/resume-upload/upload-area'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { BackendStatus, UploadCardStatusCode } from './types'
+
+export interface FileItem {
+  id: string
+  name: string
+  ext: string
+  status_code: `${UploadCardStatusCode}`
+  progress?: number
+  numericStatus?: 0 | 10 | 20
+}
+
+export default function ResumeUploadPage() {
+  const [items, setItems] = useState<FileItem[]>([])
+
+  const mapErrorToStatus = (error?: string): `${UploadCardStatusCode}` => {
+    switch (error) {
+      case '文件格式不支持':
+        return UploadCardStatusCode.FormatUnsupported
+      case '文件损坏':
+        return UploadCardStatusCode.FileCorrupted
+      case '解析失败':
+        return UploadCardStatusCode.ParseFailed
+      case '解析内容异常':
+        return UploadCardStatusCode.ParseAbnormal
+      case '录入失败':
+        return UploadCardStatusCode.ImportFailed
+      case '录入中缺失信息':
+        return UploadCardStatusCode.ImportMissingInfo
+      case '简历超出上传限制':
+        return UploadCardStatusCode.ExceedLimit
+      default:
+        return UploadCardStatusCode.UploadFailed
+    }
+  }
+
+  const groups = useMemo(() => {
+    // 优先使用接口返回的数字状态分组：0-进行中 10-成功 20-失败
+    const running = items.filter((i) => i.numericStatus === BackendStatus.InProgress)
+    const success = items.filter((i) => i.numericStatus === BackendStatus.Success)
+    const failed = items.filter((i) => i.numericStatus === BackendStatus.Failed)
+    return { running, failed, success }
+  }, [items])
+
+  return (
+    <>
+      <Header fixed>
+        <div className='ml-auto flex items-center space-x-4'>
+          <ProfileDropdown />
+        </div>
+      </Header>
+
+      <Main fixed>
+        <div className='space-y-0.5'>
+          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>批量上传简历</h1>
+          <p className='text-muted-foreground'>每个简历解析大概会花费1分钟</p>
+        </div>
+        <Separator className='my-4 lg:my-6' />
+
+        <div className='space-y-6'>
+          <UploadArea
+            onUploadComplete={(results: UploadResult[]) => {
+              const mapped: FileItem[] = results.map((r: UploadResult, idx: number) => ({
+                id: `${Date.now()}-${idx}`,
+                name: r.data?.originalName || r.fileName || `文件_${idx + 1}`,
+                ext: r.data?.ext || 'pdf',
+                status_code: r.success ? UploadCardStatusCode.Success : mapErrorToStatus(r.error),
+                // 保存接口枚举，便于分组：0-进行中 10-成功 20-失败
+                numericStatus: (r.status as 0 | 10 | 20) ?? BackendStatus.InProgress,
+                progress: 100,
+              }))
+              setItems((prev) => [...mapped, ...prev])
+            }}
+          />
+
+          <Tabs defaultValue="running" className="w-full">
+            <TabsList>
+              <TabsTrigger value="running">进行中({groups.running.length})</TabsTrigger>
+              <TabsTrigger value="failed">失败({groups.failed.length})</TabsTrigger>
+              <TabsTrigger value="success">成功({groups.success.length})</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="running">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {groups.running.map((f) => (
+                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} progress={f.progress} />
+                ))}
+              </div>
+            </TabsContent>
+            <TabsContent value="failed">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {groups.failed.map((f) => (
+                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} />
+                ))}
+              </div>
+            </TabsContent>
+            <TabsContent value="success">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {groups.success.map((f) => (
+                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} />
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </Main>
+    </>
+  )
+}
+
+
