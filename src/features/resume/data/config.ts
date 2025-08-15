@@ -19,7 +19,6 @@ export const resumeFieldMap = {
 export const options = {
   gender: ['男', '女', '不愿透露'],
   city: ['北京', '上海', '广州', '深圳', '杭州', '成都', '其他'],
-  proficiency: ['初级', '中级', '高级', '专家', '熟悉', '精通'],
   employmentType: ['全职', '实习', '兼职'],
   degreeType: ['本科', '硕士', '博士'],
   degreeStatus: ['毕业', '在读', '肄业', '结业'],
@@ -156,7 +155,7 @@ export const resumeFormConfig: {
         itemTitlePrefix: '技能',
         itemFields: [
           { key: 'name', label: '技能名称', component: 'input', placeholder: '例如：前端开发' },
-          { key: 'level', label: '熟练程度', component: 'select', optionsKey: 'proficiency', placeholder: '请选择熟练程度' },
+          { key: 'level', label: '熟练程度', component: 'input', placeholder: '请填写熟练程度' },
         ],
       },
       fields: [
