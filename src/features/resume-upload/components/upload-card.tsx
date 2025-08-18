@@ -17,7 +17,7 @@ export interface UploadCardProps {
 
 const statusTextMap: Record<UploadStatusCode, string> = {
   [UploadCardStatusCode.Queued]: '正在上传中',
-  [UploadCardStatusCode.Uploading]: '正在解析中',
+  [UploadCardStatusCode.Uploading]: '正在解析中，预计需要5分钟',
   [UploadCardStatusCode.Uploaded]: '上传完成',
   [UploadCardStatusCode.Parsing]: '正在解析中',
   [UploadCardStatusCode.Parsed]: '解析完成',
