@@ -26,10 +26,14 @@ export function DataTablePagination<TData>({
       className='flex items-center justify-between overflow-clip px-2'
       style={{ overflowClipMargin: 1 }}
     >
-      <div className='text-muted-foreground hidden flex-1 text-sm sm:block'>
-        已选 {table.getFilteredSelectedRowModel().rows.length} /
-        {table.getFilteredRowModel().rows.length}
-      </div>
+      {table.options.enableRowSelection ? (
+        <div className='text-muted-foreground hidden flex-1 text-sm sm:block'>
+          已选 {table.getFilteredSelectedRowModel().rows.length} /
+          {table.getFilteredRowModel().rows.length}
+        </div>
+      ) : (
+        <div className='hidden flex-1 sm:block' />
+      )}
       <div className='flex items-center sm:space-x-6 lg:space-x-8'>
         <div className='flex items-center space-x-2'>
           <p className='hidden text-sm font-medium sm:block'>每页条数</p>
