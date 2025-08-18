@@ -26,6 +26,10 @@ export default function ResumeUploadPage() {
   const [items, setItems] = useState<FileItem[]>([])
 
   const mapErrorToStatus = (error?: string, backendStatus?: BackendStatus): `${UploadCardStatusCode}` => {
+    // 优先按后端数值状态映射
+    if (backendStatus === BackendStatus.InProgress) return UploadCardStatusCode.Uploading
+    if (backendStatus === BackendStatus.Success) return UploadCardStatusCode.Success
+    if (backendStatus === BackendStatus.Failed) return UploadCardStatusCode.UploadFailed
     if (backendStatus === BackendStatus.ParseFailed) return UploadCardStatusCode.ParseFailed
     if (backendStatus === BackendStatus.ImportMissingInfo) return UploadCardStatusCode.ImportMissingInfo
     switch (error) {
@@ -109,8 +113,12 @@ export default function ResumeUploadPage() {
                 id: r.backend.id.toString(),
                 name: r.data?.originalName || r.fileName || `文件_${idx + 1}`,
                 ext: r.data?.ext || 'pdf',
-                status_code: r.success ? UploadCardStatusCode.Success : mapErrorToStatus(r.error, r.status as BackendStatus),
-                // 保存接口枚举：0-进行中 10-成功 20/30/31-失败
+                status_code:
+                  r.status === BackendStatus.InProgress
+                    ? UploadCardStatusCode.Uploading
+                    : r.success
+                      ? UploadCardStatusCode.Success
+                      : mapErrorToStatus(r.error, r.status as BackendStatus),
                 numericStatus: (r.status as BackendStatus) ?? BackendStatus.InProgress,
                 progress: 100,
                 backend: { id: r.backend.id },
@@ -136,7 +144,32 @@ export default function ResumeUploadPage() {
             <TabsContent value="failed">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groups.failed.map((f) => (
-                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} />
+                  <UploadCard
+                    key={f.id}
+                    fileName={f.name}
+                    fileExt={f.ext}
+                    status_code={f.status_code}
+                    onRetryUpload={async () => {
+                      // 重传失败文件：调用刷新接口拿到后端记录（此处假定需要重新选文件，若后端支持后端直连重试，可替换为对应接口）
+                      const res = await fetchResumesByIds([Number(f.backend?.id)])
+                      if (!res.success) return
+                      // 仅刷新该条状态
+                      const r = res.data[0]
+                      setItems((prev) =>
+                        prev.map((it) =>
+                          it.id === f.id
+                            ? {
+                                ...it,
+                                status_code: r.success ? UploadCardStatusCode.Success : mapErrorToStatus(undefined, r.status),
+                                numericStatus: r.status,
+                                progress: 100,
+                                backend: { id: r.backend.id },
+                              }
+                            : it
+                        )
+                      )
+                    }}
+                  />
                 ))}
               </div>
             </TabsContent>

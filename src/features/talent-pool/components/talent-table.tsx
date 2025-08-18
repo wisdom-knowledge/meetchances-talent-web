@@ -22,6 +22,7 @@ import { DataTableToolbar } from '@/features/users/components/data-table-toolbar
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { mockResumeByTalentId } from '../data/mock-resume'
 import TalentResumePreview from './talent-resume-preview'
+import { useMemo } from 'react'
 import type { ResumeFormValues } from '@/features/resume/data/schema'
 
 export interface TalentItem {
@@ -44,6 +45,7 @@ export interface TalentTableProps {
 export default function TalentTable({ data }: TalentTableProps) {
   const [resumeOpen, setResumeOpen] = useState(false)
   const [current, setCurrent] = useState<TalentItem | null>(null)
+  const inviteContext = useMemo(() => ({ link: 'https://talent.meetchances.com/' }), [])
 
   const handlePreview = (item: TalentItem) => {
     setCurrent(item)
@@ -200,7 +202,7 @@ export default function TalentTable({ data }: TalentTableProps) {
                 achievements: '',
               })),
             }
-            return <TalentResumePreview values={values} />
+            return <TalentResumePreview values={values} inviteContext={inviteContext} />
           })()}
         </SheetContent>
       </Sheet>

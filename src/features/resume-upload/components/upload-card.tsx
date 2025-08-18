@@ -19,7 +19,7 @@ export interface UploadCardProps {
 
 const statusTextMap: Record<UploadStatusCode, string> = {
   [UploadCardStatusCode.Queued]: '正在上传中',
-  [UploadCardStatusCode.Uploading]: '正在上传中',
+  [UploadCardStatusCode.Uploading]: '正在解析中',
   [UploadCardStatusCode.Uploaded]: '上传完成',
   [UploadCardStatusCode.Parsing]: '正在解析中',
   [UploadCardStatusCode.Parsed]: '解析完成',
@@ -88,7 +88,7 @@ export default function UploadCard({
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                   <span className="text-destructive">{statusTextMap[status_code]}</span>
                 </>
-              ) : status_code === UploadCardStatusCode.Success || status_code === UploadCardStatusCode.Uploaded || status_code === UploadCardStatusCode.Parsed ? (
+              ) : status_code === UploadCardStatusCode.Success ? (
                 <>
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                   <span>{statusTextMap[status_code]}</span>
@@ -101,11 +101,6 @@ export default function UploadCard({
               )}
             </div>
 
-            {showProgress && (
-              <div className="mt-3">
-                <Progress value={progress} />
-              </div>
-            )}
           </div>
 
           {showRetry && (

@@ -28,6 +28,8 @@ export interface UploadResultItem {
   fileName?: string
   error?: string
   backend: UploadBackendSubset
+  // 本地增强：便于“重新上传”时复用原始文件
+  originalFile?: File
 }
 
 type BackendItem = {
@@ -50,7 +52,7 @@ function mapBackendItems(items: BackendItem[]): UploadResultItem[] {
     const fileName = item.file_name || '文件'
     const ext = fileName.includes('.') ? fileName.split('.').pop() || '' : ''
     const numericStatus = Number(item.status) as BackendStatus
-    const isSuccess = numericStatus !== BackendStatus.Failed
+    const isSuccess = numericStatus === BackendStatus.Success
     return {
       success: isSuccess,
       status: numericStatus,

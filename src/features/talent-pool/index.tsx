@@ -3,18 +3,14 @@ import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Button } from '@/components/ui/button'
-import TalentTable, { type TalentItem } from './components/talent-table'
-
-const mockData: TalentItem[] = [
-  { id: 1, name: '刘先', isRegistered: true, talentStatus: '可邀请' },
-  { id: 2, name: '王冲', isRegistered: true, talentStatus: '锁定中' },
-  { id: 3, name: '曾资文', isRegistered: false, talentStatus: '可邀请' },
-  { id: 4, name: '耿盟', isRegistered: false, talentStatus: '可邀请' },
-]
+import TalentTable from './components/talent-table'
+import { useTalentPoolQuery } from './api'
 
 export default function TalentPoolPage() {
-  const total = mockData.length
-  const invitable = mockData.filter((i) => i.talentStatus === '可邀请').length
+  const { data } = useTalentPoolQuery()
+  const list = data?.data ?? []
+  const total = data?.total ?? list.length
+  const invitable = list.filter((i) => i.talentStatus === '可邀请').length
 
   return (
     <>
@@ -34,7 +30,7 @@ export default function TalentPoolPage() {
         </div>
         <Separator className='my-4 lg:my-6' />
 
-        <TalentTable data={mockData} />
+        <TalentTable data={list} />
       </Main>
     </>
   )

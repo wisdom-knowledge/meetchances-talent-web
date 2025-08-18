@@ -1,0 +1,110 @@
+# API 调用与 Swagger 契约规则（补充）
+
+本规则在现有“Swagger 接口规范”基础上补充更严格的前端类型定义与复用约定，确保与后端开放接口契约对齐。
+
+## 数据源与契约
+- 以后端 Swagger 文档为单一事实来源：`https://service-dev.meetchances.com/api/v1/openapi.json`。
+- 新增/调整 API 时，需验证请求与响应结构与 Swagger 一致；若不一致，先与后端同步更新文档与实现。
+
+## 类型定义与复用
+- 永远不要将返回值定义为 `any`。若形状不确定，使用 `unknown` 并在边界处做显式校验（推荐 Zod）。
+- 尽可能对接口返回值进行 TypeScript 类型定义，并做到可复用与抽象：
+  - 定义通用响应与分页类型并在各处复用：
+    - `ApiResponse<T>`：后端统一响应包装（按实际字段命名约定调整）。
+    - `PageParams`、`PageResult<T>`：分页入参与分页响应。
+  - 定义领域模型并跨接口复用：例如 `Job` 用于“职位列表每一项”和“获取单个职位详情”的返回结构保持一致。
+  - 使用 `enum` 表示后端返回的枚举类字段（如状态、类型、来源等），避免魔法字符串。
+  - 跨 feature 复用的类型放在 `src/types/`；仅在单一模块内使用的类型放在该模块 `features/<feature>/data/` 下。
+
+### 推荐放置位置
+- 通用/跨域类型：`src/types/`（如：`ApiResponse.ts`、`pagination.ts`、`job.ts`）。
+- Feature 内部：`src/features/<feature>/data/schema.ts`（Zod Schema）与 `src/features/<feature>/data/types.ts`（TS 接口/enum）。
+
+## 枚举与字面量
+- 优先使用 TypeScript `enum` 来表达接口返回的有限集合字段，确保跨文件复用与清晰的引用语义。
+- 如仅在局部使用且不需要运行时引用，也可用字符串字面量联合类型；但跨文件/跨模块时应使用 `enum`。
+
+## Zod 校验（边界防御）
+- 在 API 调用边界对后端响应进行最小必要校验：
+  - Zod Schema 与 TypeScript 类型并存：类型用于开发体验，Schema 用于运行时校验。
+  - 对枚举字段使用 `z.nativeEnum(YourEnum)` 进行约束。
+
+## Axios 使用规范
+- 统一使用 `lib/api.ts` 中配置的 Axios 实例；基地址来源于 `import.meta.env.VITE_API_BASE_URL`。
+- 为响应结果提供泛型参数，并在必要时配合 Zod 进行解析：
+
+```ts
+// src/types/api.ts
+export interface ApiResponse<T> {
+  code: number
+  data: T
+  message: string
+}
+
+export interface PageParams {
+  page: number
+  size: number
+}
+
+export interface PageResult<T> {
+  items: T[]
+  total: number
+}
+```
+
+```ts
+// src/types/job.ts
+export enum JobStatus {
+  OPEN = 'OPEN',
+  PAUSED = 'PAUSED',
+  CLOSED = 'CLOSED',
+}
+
+export interface Job {
+  id: string
+  title: string
+  companyName: string
+  status: JobStatus
+  // ... 依据 Swagger 持续补全字段
+}
+```
+
+```ts
+// 示例：列表与详情复用同一 Job 结构
+import api from '@/lib/api'
+import type { ApiResponse, PageParams, PageResult } from '@/types/api'
+import type { Job } from '@/types/job'
+
+export async function fetchJobs(params: PageParams) {
+  const resp = await api.get<ApiResponse<PageResult<Job>>>('/jobs', { params })
+  return resp.data.data
+}
+
+export async function fetchJobById(jobId: string) {
+  const resp = await api.get<ApiResponse<Job>>(`/jobs/${jobId}`)
+  return resp.data.data
+}
+```
+
+```ts
+// 可选：边界使用 Zod 做运行时校验
+import { z } from 'zod'
+import { JobStatus } from '@/types/job'
+
+export const JobSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  companyName: z.string(),
+  status: z.nativeEnum(JobStatus),
+})
+```
+
+## 错误处理
+- 统一使用 `utils/handle-server-error.ts` 进行错误处理与消息提示，不在业务组件内散落 try/catch。
+
+## 代码评审清单
+- 是否与 Swagger 契约对齐（字段、枚举、分页语义）。
+- 是否为响应结果与领域模型补充了 TS 类型，且无 `any`。
+- 是否尽可能复用/抽象（如：列表项与详情共用同一 `Job` 类型）。
+- 枚举字段是否使用 `enum` 或 `z.nativeEnum` 收敛。
+- 是否在边界提供 Zod 校验（至少对关键字段）。
