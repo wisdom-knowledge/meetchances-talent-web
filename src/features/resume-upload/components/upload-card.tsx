@@ -1,7 +1,6 @@
 import { FileIcon, Upload, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import Progress from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import { UploadCardStatusCode } from '@/features/resume-upload/types'
 
@@ -10,7 +9,6 @@ export type UploadStatusCode = `${UploadCardStatusCode}`
 export interface UploadCardProps {
   fileName: string
   fileExt?: string
-  progress?: number
   status_code: UploadStatusCode
   onRetryUpload?: () => void
   onRetryParse?: () => void
@@ -38,7 +36,6 @@ const statusTextMap: Record<UploadStatusCode, string> = {
 
 export default function UploadCard({
   fileName,
-  progress = 0,
   status_code,
   onRetryUpload,
   onRetryParse,
@@ -49,9 +46,6 @@ export default function UploadCard({
     status_code === UploadCardStatusCode.FileCorrupted ||
     status_code === UploadCardStatusCode.ExceedLimit ||
     status_code === UploadCardStatusCode.ParseAbnormal
-
-  const showProgress =
-    status_code === UploadCardStatusCode.Uploading || status_code === UploadCardStatusCode.Parsing || status_code === UploadCardStatusCode.Importing
 
   const retryAction = () => {
     if (status_code === UploadCardStatusCode.UploadFailed || status_code === UploadCardStatusCode.FormatUnsupported || status_code === UploadCardStatusCode.FileCorrupted) {

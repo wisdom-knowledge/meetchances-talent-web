@@ -137,7 +137,7 @@ export default function ResumeUploadPage() {
             <TabsContent value="running">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groups.running.map((f) => (
-                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} progress={f.progress} />
+                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} />
                 ))}
               </div>
             </TabsContent>

@@ -61,7 +61,7 @@ function mapToTalentItem(item: z.infer<typeof ResumeListItemSchema>, index: numb
   }
 }
 
-export async function fetchTalentPool(params: TalentPoolQueryParams = {}): Promise<TalentPoolQueryResult> {
+export async function fetchTalentPool(_params: TalentPoolQueryParams = {}): Promise<TalentPoolQueryResult> {
   // 若后端支持分页，按需传参（例如 { skip, limit } 或 { page, size }）
   const raw = await api.get('/headhunter/resume_list')
   const parsed = ResumeListResponseSchema.safeParse(raw)
