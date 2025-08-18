@@ -161,7 +161,7 @@ export default function JobsListPage() {
                           ¥{selectedJobData.salaryRange?.[0] ?? 0}~¥{selectedJobData.salaryRange?.[1] ?? 0}
                         </div>
                         <div className='text-xs text-muted-foreground mb-3'>每小时</div>
-                        <Button disabled>岗位将于8月30日开放</Button>
+                        <Button onClick={() => window.location.assign('/job-recommend')}>推荐候选人</Button>
                       </div>
                     </div>
 

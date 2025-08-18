@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
@@ -7,6 +7,8 @@ import UploadCard from './components/upload-card'
 import { UploadArea, type UploadResult } from '@/features/resume-upload/upload-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BackendStatus, UploadCardStatusCode } from './types'
+import { Button } from '@/components/ui/button'
+import { fetchResumesByIds, type UploadResultItem } from './utils/api'
 
 export interface FileItem {
   id: string
@@ -14,13 +16,18 @@ export interface FileItem {
   ext: string
   status_code: `${UploadCardStatusCode}`
   progress?: number
-  numericStatus?: 0 | 10 | 20
+  numericStatus?: BackendStatus
+  backend?: {
+    id: number
+  }
 }
 
 export default function ResumeUploadPage() {
   const [items, setItems] = useState<FileItem[]>([])
 
-  const mapErrorToStatus = (error?: string): `${UploadCardStatusCode}` => {
+  const mapErrorToStatus = (error?: string, backendStatus?: BackendStatus): `${UploadCardStatusCode}` => {
+    if (backendStatus === BackendStatus.ParseFailed) return UploadCardStatusCode.ParseFailed
+    if (backendStatus === BackendStatus.ImportMissingInfo) return UploadCardStatusCode.ImportMissingInfo
     switch (error) {
       case '文件格式不支持':
         return UploadCardStatusCode.FormatUnsupported
@@ -42,12 +49,36 @@ export default function ResumeUploadPage() {
   }
 
   const groups = useMemo(() => {
-    // 优先使用接口返回的数字状态分组：0-进行中 10-成功 20-失败
+    // 优先使用接口返回的数字状态分组：0-进行中 10-成功 20/30/31-失败
     const running = items.filter((i) => i.numericStatus === BackendStatus.InProgress)
     const success = items.filter((i) => i.numericStatus === BackendStatus.Success)
-    const failed = items.filter((i) => i.numericStatus === BackendStatus.Failed)
+    const failed = items.filter(
+      (i) =>
+        i.numericStatus === BackendStatus.Failed ||
+        i.numericStatus === BackendStatus.ParseFailed ||
+        i.numericStatus === BackendStatus.ImportMissingInfo
+    )
     return { running, failed, success }
   }, [items])
+
+  async function handleRefresh() {
+    const ids = items
+      .map((i) => Number(i.backend?.id ?? NaN))
+      .filter((n): n is number => Number.isFinite(n))
+    if (ids.length === 0) return
+    const res = await fetchResumesByIds(ids)
+    if (!res.success) return
+    const refreshed: FileItem[] = res.data.map((r: UploadResultItem, idx: number) => ({
+      id: `${Date.now()}-${idx}`,
+      name: r.data?.originalName || r.fileName || `文件_${idx + 1}`,
+      ext: r.data?.ext || 'pdf',
+      status_code: r.success ? UploadCardStatusCode.Success : mapErrorToStatus(undefined, r.status),
+      numericStatus: r.status,
+      progress: 100,
+      backend: { id: r.backend.id },
+    }))
+    setItems(refreshed)
+  }
 
   return (
     <>
@@ -59,8 +90,15 @@ export default function ResumeUploadPage() {
 
       <Main fixed>
         <div className='space-y-0.5'>
-          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>批量上传简历</h1>
-          <p className='text-muted-foreground'>每个简历解析大概会花费1分钟</p>
+          <div className='flex items-start justify-between'>
+            <div>
+              <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>批量上传简历</h1>
+              <p className='text-muted-foreground'>每个简历解析大概会花费1分钟</p>
+            </div>
+            {items.length > 0 && (
+              <Button variant='outline' onClick={handleRefresh}>刷新</Button>
+            )}
+          </div>
         </div>
         <Separator className='my-4 lg:my-6' />
 
@@ -68,13 +106,14 @@ export default function ResumeUploadPage() {
           <UploadArea
             onUploadComplete={(results: UploadResult[]) => {
               const mapped: FileItem[] = results.map((r: UploadResult, idx: number) => ({
-                id: `${Date.now()}-${idx}`,
+                id: r.backend.id.toString(),
                 name: r.data?.originalName || r.fileName || `文件_${idx + 1}`,
                 ext: r.data?.ext || 'pdf',
-                status_code: r.success ? UploadCardStatusCode.Success : mapErrorToStatus(r.error),
-                // 保存接口枚举，便于分组：0-进行中 10-成功 20-失败
-                numericStatus: (r.status as 0 | 10 | 20) ?? BackendStatus.InProgress,
+                status_code: r.success ? UploadCardStatusCode.Success : mapErrorToStatus(r.error, r.status as BackendStatus),
+                // 保存接口枚举：0-进行中 10-成功 20/30/31-失败
+                numericStatus: (r.status as BackendStatus) ?? BackendStatus.InProgress,
                 progress: 100,
+                backend: { id: r.backend.id },
               }))
               setItems((prev) => [...mapped, ...prev])
             }}

@@ -2,6 +2,8 @@ export enum BackendStatus {
   InProgress = 0,
   Success = 10,
   Failed = 20,
+  ParseFailed = 30,
+  ImportMissingInfo = 31,
 }
 
 export enum UploadCardStatusCode {

@@ -3,25 +3,10 @@ import { Upload, FileIcon, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
-import { uploadFiles } from './utils/api'
+import { uploadFiles, type UploadResultItem } from './utils/api'
 import { toast } from 'sonner'
 
-export interface UploadResult {
-  success: boolean
-  status?: number
-  data?: {
-    fileName: string
-    originalName: string
-    url: string
-    size: number
-    ext: string
-    compressed?: boolean
-    originalSize?: number
-    compressionRatio?: number
-  }
-  fileName?: string
-  error?: string
-}
+export type UploadResult = UploadResultItem
 
 interface UploadAreaProps {
   onUploadComplete?: (results: UploadResult[]) => void
@@ -60,11 +45,9 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
 
       clearInterval(progressInterval)
       setProgress(100)
-      console.log('response >>>>', response)
       if (response.success) {
         // 后端已经返回了正确格式的 UploadResult[]
         const results: UploadResult[] = response.data
-        console.log('results >>>>', results)
 
         const successCount = results.filter((r) => r.success).length
         toast.success(`成功上传 ${successCount} 个文件`)

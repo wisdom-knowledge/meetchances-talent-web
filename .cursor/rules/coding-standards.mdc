@@ -87,6 +87,11 @@ src/
 - API 调用使用 axios，配置在 `lib/` 目录下
 - 错误处理统一使用 `utils/handle-server-error.ts`
 
+#### API 文档（Swagger/OpenAPI）
+- 如需查询接口的请求/响应结构，请优先使用后端 Swagger 文档：
+  - `https://service-dev.meetchances.com/api/v1/openapi.json`
+- 可以结合 MCP 工具或脚本读取该地址以保持前后端契约一致。
+
 ### 图标使用规范
 - 优先使用 Tabler Icons (`@tabler/icons-react`)
 - 次选 Lucide React 图标库

@@ -12,10 +12,11 @@ import { SelectDropdown } from '@/components/select-dropdown'
 type Props = {
   sectionKey?: 'basic' | 'interests' | 'workSkills' | 'self'
   scrollContainerRef?: React.RefObject<HTMLElement | null>
+  readOnly?: boolean
 }
 
 export default function DynamicBasicForm(props: Props) {
-  const { sectionKey = 'basic' } = props
+  const { sectionKey = 'basic', readOnly = false } = props
   const form = useFormContext<ResumeFormValues>()
   const section = resumeFormConfig.sections.find((s) => s.key === sectionKey)
   const [activeTagIndex, setActiveTagIndex] = useState<number | null>(null)
@@ -49,12 +50,12 @@ export default function DynamicBasicForm(props: Props) {
                 {!field.hideLabel ? <FormLabel>{field.label}</FormLabel> : null}
                 {field.component === 'input' && (
                   <FormControl>
-                    <Input placeholder={field.placeholder} disabled={field.disabled} value={(rhfField.value as string) ?? ''} onChange={rhfField.onChange} onBlur={rhfField.onBlur} name={rhfField.name} ref={rhfField.ref} />
+                    <Input placeholder={field.placeholder} disabled={readOnly || field.disabled} value={(rhfField.value as string) ?? ''} onChange={rhfField.onChange} onBlur={rhfField.onBlur} name={rhfField.name} ref={rhfField.ref} />
                   </FormControl>
                 )}
                 {field.component === 'textarea' && (
                   <FormControl>
-                    <Textarea rows={4} placeholder={field.placeholder} disabled={field.disabled} value={(rhfField.value as string) ?? ''} onChange={rhfField.onChange} onBlur={rhfField.onBlur} name={rhfField.name} ref={rhfField.ref} />
+                    <Textarea rows={4} placeholder={field.placeholder} disabled={readOnly || field.disabled} value={(rhfField.value as string) ?? ''} onChange={rhfField.onChange} onBlur={rhfField.onBlur} name={rhfField.name} ref={rhfField.ref} />
                   </FormControl>
                 )}
                 {field.component === 'select' && (
@@ -63,7 +64,7 @@ export default function DynamicBasicForm(props: Props) {
                     value={(rhfField.value as string) ?? undefined}
                     onValueChange={rhfField.onChange}
                     placeholder={field.placeholder}
-                    disabled={field.disabled}
+                    disabled={readOnly || field.disabled}
                     className='w-full h-9'
                     items={(field.optionsKey ? options[field.optionsKey] : []).map((opt) => ({ label: opt, value: opt }))}
                   />
@@ -76,6 +77,7 @@ export default function DynamicBasicForm(props: Props) {
                         placeholder={field.placeholder ?? ''}
                         tags={parseTags(rhfField.value).map((text, idx) => ({ id: `${idx}`, text })) as Tag[]}
                         setTags={(updater) => {
+                          if (readOnly) return
                           const nextTags = typeof updater === 'function' ? (updater as (prev: Tag[]) => Tag[])(parseTags(rhfField.value).map((t, i) => ({ id: `${i}`, text: t }))) : (updater as Tag[])
                           const nextTexts = nextTags.map((t) => t.text).filter(Boolean)
                           rhfField.onChange(nextTexts.join('、'))

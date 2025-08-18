@@ -2,16 +2,19 @@ import { Cross2Icon } from '@radix-ui/react-icons'
 import { Table } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { userTypes } from '../data/data'
 import { DataTableFacetedFilter } from './data-table-faceted-filter'
 import { DataTableViewOptions } from './data-table-view-options'
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
+  searchColumnId?: string
+  searchPlaceholder?: string
 }
 
 export function DataTableToolbar<TData>({
   table,
+  searchColumnId = 'username',
+  searchPlaceholder = '搜索姓名...',
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
 
@@ -19,12 +22,10 @@ export function DataTableToolbar<TData>({
     <div className='flex items-center justify-between'>
       <div className='flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2'>
         <Input
-          placeholder='Filter users...'
-          value={
-            (table.getColumn('username')?.getFilterValue() as string) ?? ''
-          }
+          placeholder={searchPlaceholder}
+          value={(table.getColumn(searchColumnId)?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
-            table.getColumn('username')?.setFilterValue(event.target.value)
+            table.getColumn(searchColumnId)?.setFilterValue(event.target.value)
           }
           className='h-8 w-[150px] lg:w-[250px]'
         />
@@ -32,20 +33,21 @@ export function DataTableToolbar<TData>({
           {table.getColumn('status') && (
             <DataTableFacetedFilter
               column={table.getColumn('status')}
-              title='Status'
+              title='注册状态'
               options={[
-                { label: 'Active', value: 'active' },
-                { label: 'Inactive', value: 'inactive' },
-                { label: 'Invited', value: 'invited' },
-                { label: 'Suspended', value: 'suspended' },
+                { label: '已注册', value: 'registered' },
+                { label: '未注册', value: 'unregistered' },
               ]}
             />
           )}
           {table.getColumn('role') && (
             <DataTableFacetedFilter
               column={table.getColumn('role')}
-              title='Role'
-              options={userTypes.map((t) => ({ ...t }))}
+              title='人才状态'
+              options={[
+                { label: '可邀请', value: 'invitable' },
+                { label: '锁定中', value: 'locked' },
+              ]}
             />
           )}
         </div>
@@ -55,7 +57,7 @@ export function DataTableToolbar<TData>({
             onClick={() => table.resetColumnFilters()}
             className='h-8 px-2 lg:px-3'
           >
-            Reset
+            清除筛选
             <Cross2Icon className='ml-2 h-4 w-4' />
           </Button>
         )}

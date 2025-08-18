@@ -27,10 +27,12 @@ import { Route as ClerkauthRouteRouteImport } from './routes/clerk/(auth)/route'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
+import { Route as AuthenticatedTalentPoolIndexRouteImport } from './routes/_authenticated/talent-pool/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedResumeIndexRouteImport } from './routes/_authenticated/resume/index'
 import { Route as AuthenticatedResumeUploadIndexRouteImport } from './routes/_authenticated/resume-upload/index'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs/index'
+import { Route as AuthenticatedJobRecommendIndexRouteImport } from './routes/_authenticated/job-recommend/index'
 import { Route as AuthenticatedInterviewReportsIndexRouteImport } from './routes/_authenticated/interview-reports/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
@@ -132,6 +134,12 @@ const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
   path: '/tasks/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTalentPoolIndexRoute =
+  AuthenticatedTalentPoolIndexRouteImport.update({
+    id: '/talent-pool/',
+    path: '/talent-pool/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
@@ -155,6 +163,12 @@ const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
   path: '/jobs/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedJobRecommendIndexRoute =
+  AuthenticatedJobRecommendIndexRouteImport.update({
+    id: '/job-recommend/',
+    path: '/job-recommend/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInterviewReportsIndexRoute =
   AuthenticatedInterviewReportsIndexRouteImport.update({
     id: '/interview-reports/',
@@ -251,10 +265,12 @@ export interface FileRoutesByFullPath {
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/interview-reports': typeof AuthenticatedInterviewReportsIndexRoute
+  '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
   '/resume': typeof AuthenticatedResumeIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/talent-pool': typeof AuthenticatedTalentPoolIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
 }
@@ -283,10 +299,12 @@ export interface FileRoutesByTo {
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/interview-reports': typeof AuthenticatedInterviewReportsIndexRoute
+  '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
   '/resume': typeof AuthenticatedResumeIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/talent-pool': typeof AuthenticatedTalentPoolIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
 }
@@ -320,10 +338,12 @@ export interface FileRoutesById {
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/interview-reports/': typeof AuthenticatedInterviewReportsIndexRoute
+  '/_authenticated/job-recommend/': typeof AuthenticatedJobRecommendIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
   '/_authenticated/resume-upload/': typeof AuthenticatedResumeUploadIndexRoute
   '/_authenticated/resume/': typeof AuthenticatedResumeIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/_authenticated/talent-pool/': typeof AuthenticatedTalentPoolIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
 }
@@ -356,10 +376,12 @@ export interface FileRouteTypes {
     | '/chats'
     | '/help-center'
     | '/interview-reports'
+    | '/job-recommend'
     | '/jobs'
     | '/resume-upload'
     | '/resume'
     | '/settings/'
+    | '/talent-pool'
     | '/tasks'
     | '/users'
   fileRoutesByTo: FileRoutesByTo
@@ -388,10 +410,12 @@ export interface FileRouteTypes {
     | '/chats'
     | '/help-center'
     | '/interview-reports'
+    | '/job-recommend'
     | '/jobs'
     | '/resume-upload'
     | '/resume'
     | '/settings'
+    | '/talent-pool'
     | '/tasks'
     | '/users'
   id:
@@ -424,10 +448,12 @@ export interface FileRouteTypes {
     | '/_authenticated/chats/'
     | '/_authenticated/help-center/'
     | '/_authenticated/interview-reports/'
+    | '/_authenticated/job-recommend/'
     | '/_authenticated/jobs/'
     | '/_authenticated/resume-upload/'
     | '/_authenticated/resume/'
     | '/_authenticated/settings/'
+    | '/_authenticated/talent-pool/'
     | '/_authenticated/tasks/'
     | '/_authenticated/users/'
   fileRoutesById: FileRoutesById
@@ -575,6 +601,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTasksIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/talent-pool/': {
+      id: '/_authenticated/talent-pool/'
+      path: '/talent-pool'
+      fullPath: '/talent-pool'
+      preLoaderRoute: typeof AuthenticatedTalentPoolIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings/': {
       id: '/_authenticated/settings/'
       path: '/'
@@ -601,6 +634,13 @@ declare module '@tanstack/react-router' {
       path: '/jobs'
       fullPath: '/jobs'
       preLoaderRoute: typeof AuthenticatedJobsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/job-recommend/': {
+      id: '/_authenticated/job-recommend/'
+      path: '/job-recommend'
+      fullPath: '/job-recommend'
+      preLoaderRoute: typeof AuthenticatedJobRecommendIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/interview-reports/': {
@@ -721,9 +761,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedInterviewReportsIndexRoute: typeof AuthenticatedInterviewReportsIndexRoute
+  AuthenticatedJobRecommendIndexRoute: typeof AuthenticatedJobRecommendIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
   AuthenticatedResumeUploadIndexRoute: typeof AuthenticatedResumeUploadIndexRoute
   AuthenticatedResumeIndexRoute: typeof AuthenticatedResumeIndexRoute
+  AuthenticatedTalentPoolIndexRoute: typeof AuthenticatedTalentPoolIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
 }
@@ -737,9 +779,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedInterviewReportsIndexRoute:
     AuthenticatedInterviewReportsIndexRoute,
+  AuthenticatedJobRecommendIndexRoute: AuthenticatedJobRecommendIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
   AuthenticatedResumeUploadIndexRoute: AuthenticatedResumeUploadIndexRoute,
   AuthenticatedResumeIndexRoute: AuthenticatedResumeIndexRoute,
+  AuthenticatedTalentPoolIndexRoute: AuthenticatedTalentPoolIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
 }
