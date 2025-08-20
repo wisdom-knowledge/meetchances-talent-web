@@ -17,7 +17,7 @@ export default function TalentPoolPage() {
   const { data } = useTalentPoolQuery(queryParams)
   const list = data?.data ?? []
   const total = data?.total ?? list.length
-  const invitable = list.filter((i) => i.talentStatus === '可邀请').length
+  const invitable = list.filter((i) => i.talentStatus === '可聘请').length
 
   const handleFilterChange = useCallback((filters: { name?: string; registration_status?: number[]; talent_status?: number[] }) => {
     setServerFilters(filters)
@@ -35,7 +35,7 @@ export default function TalentPoolPage() {
         <div className='flex items-start justify-between'>
           <div className='space-y-0.5'>
             <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>我的人才库</h1>
-            <p className='text-muted-foreground'>{total}人在库，{invitable}人可邀请</p>
+            <p className='text-muted-foreground'>{total}人在库，{invitable}人可聘请</p>
           </div>
           <Button onClick={() => window.location.assign('/resume-upload')}>批量上传</Button>
         </div>

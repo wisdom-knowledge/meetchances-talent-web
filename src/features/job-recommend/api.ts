@@ -13,11 +13,19 @@ export enum TalentStatusCode {
   LOCKED = 10,
 }
 
+export enum InterviewStatusCode {
+  NOT_INTERVIEWED = 0,
+  INTERVIEWED = 10,
+}
+
 const JobApplyListItemSchema = z.object({
   name: z.string().min(1),
   resume_id: z.number(),
   registration_status: z.nativeEnum(RegistrationStatus).optional(),
   talent_status: z.nativeEnum(TalentStatusCode),
+  interview_status: z.nativeEnum(InterviewStatusCode),
+  match_score: z.number().optional(),
+  match_score_status: z.number().optional(),
 })
 
 const JobApplyListResponseSchema = z.object({
@@ -35,18 +43,20 @@ export interface JobApplyListParams {
 }
 
 export interface JobApplyListResult {
-  data: TalentItem[]
+  data: (TalentItem & { matchScore?: number | '-' ; interviewStatus: InterviewStatusCode })[]
   total?: number
 }
 
-function mapToTalentItem(item: z.infer<typeof JobApplyListItemSchema>): TalentItem {
+function mapToTalentItem(item: z.infer<typeof JobApplyListItemSchema>): JobApplyListResult['data'][number] {
   const isRegistered = item.registration_status === RegistrationStatus.REGISTERED
-  const talentStatus = item.talent_status === TalentStatusCode.LOCKED ? '锁定中' : '可邀请'
+  const talentStatus = item.talent_status === TalentStatusCode.LOCKED ? '锁定中' : '可聘请'
   return {
     resume_id: item.resume_id,
     name: item.name,
     isRegistered: Boolean(isRegistered),
     talentStatus,
+    matchScore: typeof item.match_score === 'number' && item.match_score >= 0 ? item.match_score : '-',
+    interviewStatus: item.interview_status,
   }
 }
 

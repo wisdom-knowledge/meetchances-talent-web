@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -21,13 +21,15 @@ import { DataTableToolbar } from '@/features/users/components/data-table-toolbar
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import TalentResumePreview from './talent-resume-preview'
 import type { ResumeFormValues } from '@/features/resume/data/schema'
-import { fetchResumesByIds, type UploadResultItem } from '@/features/resume-upload/utils/api'
+import { fetchResumeDetail } from '@/features/resume-upload/utils/api'
 
 export interface TalentItem {
   resume_id?: number
   name: string
   isRegistered: boolean
-  talentStatus: '可邀请' | '锁定中'
+  talentStatus: '可聘请' | '锁定中'
+  matchScore?: number | '-'
+  interviewStatus?: number
 }
 
 declare module '@tanstack/react-table' {
@@ -41,93 +43,30 @@ export interface ServerFilterParams {
   name?: string
   registration_status?: number[]
   talent_status?: number[]
+  interview_status?: number[]
+}
+
+export interface InviteContextLike {
+  headhunterName?: string
+  jobTitle?: string
+  salaryMin?: number
+  salaryMax?: number
+  link?: string
 }
 
 export interface TalentTableProps {
   data: TalentItem[]
   onFilterChange?: (filters: ServerFilterParams) => void
+  mode?: 'talentPool' | 'jobRecommend'
+  inviteContext?: InviteContextLike
 }
-export default function TalentTable({ data, onFilterChange }: TalentTableProps) {
+export default function TalentTable({ data, onFilterChange, mode = 'talentPool', inviteContext }: TalentTableProps) {
   const [resumeOpen, setResumeOpen] = useState(false)
   const [current, setCurrent] = useState<TalentItem | null>(null)
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
-  const inviteContext = useMemo(() => ({ link: 'https://talent.meetchances.com/' }), [])
+  const mergedInviteContext = useMemo(() => ({ link: 'https://talent.meetchances.com/', ...(inviteContext ?? {}) }), [inviteContext])
 
-  const handlePreview = async (item: TalentItem) => {
-    setCurrent(item)
-    setResumeOpen(true)
-    if (!item.resume_id) {
-      setResumeValues({
-        name: item.name,
-        phone: '',
-        city: '',
-        gender: undefined,
-        email: '',
-        origin: '',
-        expectedSalary: '',
-        hobbies: '',
-        skills: '',
-        workSkillName: '',
-        workSkillLevel: undefined,
-        softSkills: '',
-        selfEvaluation: '',
-        workExperience: [],
-        projectExperience: [],
-        education: [],
-      })
-      return
-    }
-    const res = await fetchResumesByIds([item.resume_id])
-    const first: UploadResultItem | undefined = res.success ? res.data[0] : undefined
-    const struct = first?.backend?.struct_info as StructInfo | undefined
-    const values: ResumeFormValues = mapStructInfoToResumeValues(struct, item.name)
-    setResumeValues(values)
-  }
-
-  interface StructInfo {
-    basic_info?: {
-      city?: string | null
-      name?: string | null
-      email?: string | null
-      phone?: string | null
-      gender?: '男' | '女' | string | null
-    }
-    experience?: {
-      education?: Array<{
-        city?: string | null
-        major?: string | null
-        end_date?: string | null
-        start_date?: string | null
-        degree_type?: string | null
-        institution?: string | null
-        achievements?: string[] | null
-        degree_status?: string | null
-      }>
-      work_experience?: Array<{
-        city?: string | null
-        title?: string | null
-        end_date?: string | null
-        start_date?: string | null
-        achievements?: string[] | null
-        organization?: string | null
-        employment_type?: string | null
-      }>
-      project_experience?: Array<{
-        role?: string | null
-        end_date?: string | null
-        start_date?: string | null
-        achievements?: string[] | null
-        organization?: string | null
-      }>
-    }
-    self_assessment?: {
-      summary?: string | null
-      hard_skills?: Array<{ skill_name?: string | null; proficiency?: string | null }>
-      soft_skills?: unknown[]
-    } | null
-  }
-
-  function mapStructInfoToResumeValues(struct: StructInfo | undefined, fallbackName?: string): ResumeFormValues {
+  const mapStructInfoToResumeValues = useCallback((struct: StructInfo | undefined, fallbackName?: string): ResumeFormValues => {
     const basic = struct?.basic_info ?? {}
     const exp = struct?.experience ?? {}
     const self = struct?.self_assessment ?? {}
@@ -196,49 +135,171 @@ export default function TalentTable({ data, onFilterChange }: TalentTableProps) 
       education,
     }
     return values
+  }, [])
+
+  const handlePreview = useCallback(async (item: TalentItem) => {
+    setCurrent(item)
+    setResumeOpen(true)
+    if (!item.resume_id) {
+      setResumeValues({
+        name: item.name,
+        phone: '',
+        city: '',
+        gender: undefined,
+        email: '',
+        origin: '',
+        expectedSalary: '',
+        hobbies: '',
+        skills: '',
+        workSkillName: '',
+        workSkillLevel: undefined,
+        softSkills: '',
+        selfEvaluation: '',
+        workExperience: [],
+        projectExperience: [],
+        education: [],
+      })
+      return
+    }
+    const res = await fetchResumeDetail(item.resume_id)
+    const struct = res.success ? (res.item?.backend?.struct_info as StructInfo | undefined) : undefined
+    const values: ResumeFormValues = mapStructInfoToResumeValues(struct, item.name)
+    setResumeValues(values)
+  }, [mapStructInfoToResumeValues])
+
+  interface StructInfo {
+    basic_info?: {
+      city?: string | null
+      name?: string | null
+      email?: string | null
+      phone?: string | null
+      gender?: '男' | '女' | string | null
+    }
+    experience?: {
+      education?: Array<{
+        city?: string | null
+        major?: string | null
+        end_date?: string | null
+        start_date?: string | null
+        degree_type?: string | null
+        institution?: string | null
+        achievements?: string[] | null
+        degree_status?: string | null
+      }>
+      work_experience?: Array<{
+        city?: string | null
+        title?: string | null
+        end_date?: string | null
+        start_date?: string | null
+        achievements?: string[] | null
+        organization?: string | null
+        employment_type?: string | null
+      }>
+      project_experience?: Array<{
+        role?: string | null
+        end_date?: string | null
+        start_date?: string | null
+        achievements?: string[] | null
+        organization?: string | null
+      }>
+    }
+    self_assessment?: {
+      summary?: string | null
+      hard_skills?: Array<{ skill_name?: string | null; proficiency?: string | null }>
+      soft_skills?: unknown[]
+    } | null
   }
-  const baseColumns: ColumnDef<TalentItem>[] = [
-    {
+
+  const columns: ColumnDef<TalentItem>[] = useMemo(() => {
+    const nameCol: ColumnDef<TalentItem> = {
       accessorKey: 'name',
       header: '姓名',
       meta: { className: 'w-[25%]' },
-    },
-    {
-      accessorKey: 'status',
-      header: '注册状态',
-      cell: ({ row }) => (
-        <Badge variant={row.original.isRegistered ? 'default' : 'outline'}>
-          {row.original.isRegistered ? '已注册' : '未注册'}
-        </Badge>
-      ),
-      meta: { className: 'w-[25%]' },
-    },
-    {
-      accessorKey: 'role',
-      header: '人才状态',
-      cell: ({ row }) => (
-        <Badge variant={row.original.talentStatus === '可邀请' ? 'emphasis' : 'secondary'}>
-          {row.original.talentStatus}
-        </Badge>
-      ),
-      meta: { className: 'w-[25%]' },
-    },
-    {
-      id: 'actions',
-      header: () => <div className='text-right'>操作</div>,
-      cell: ({ row }) => {
-        const item = row.original
-        return (
-          <div className='text-right'>
-            <Button variant='link' className='px-0' onClick={() => handlePreview(item)}>查看简历</Button>
-          </div>
-        )
-      },
-      meta: { className: 'w-[25%]' },
-    },
-  ]
+    }
 
-  const columns: ColumnDef<TalentItem>[] = baseColumns
+    if (mode === 'jobRecommend') {
+      return [
+        nameCol,
+        {
+          accessorKey: 'matchScore',
+          header: '人岗匹配分',
+          cell: ({ row }) => <span>{row.original.matchScore ?? '-'}</span>,
+          meta: { className: 'w-[20%]' },
+        },
+        {
+          accessorKey: 'interviewStatus',
+          header: '面试状态',
+          cell: ({ row }) => {
+            const v = row.original.interviewStatus
+            const text = v === 10 ? '已面试' : v === 0 ? '未面试' : '-'
+            return <Badge variant={v === 10 ? 'default' : 'outline'}>{text}</Badge>
+          },
+          meta: { className: 'w-[20%]' },
+        },
+        {
+          accessorKey: 'role',
+          header: '人才状态',
+          cell: ({ row }) => (
+            <Badge variant={row.original.talentStatus === '可聘请' ? 'emphasis' : 'secondary'}>
+              {row.original.talentStatus}
+            </Badge>
+          ),
+          meta: { className: 'w-[20%]' },
+        },
+        {
+          id: 'actions',
+          header: () => <div className='text-right'>操作</div>,
+          cell: ({ row }) => {
+            const item = row.original
+            return (
+              <div className='text-right'>
+                <Button variant='link' className='px-0' onClick={() => handlePreview(item)}>查看简历</Button>
+              </div>
+            )
+          },
+          meta: { className: 'w-[15%]' },
+        },
+      ]
+    }
+
+    // talentPool 模式
+    return [
+      nameCol,
+      {
+        accessorKey: 'status',
+        header: '注册状态',
+        cell: ({ row }) => (
+          <Badge variant={row.original.isRegistered ? 'default' : 'outline'}>
+            {row.original.isRegistered ? '已注册' : '未注册'}
+          </Badge>
+        ),
+        meta: { className: 'w-[25%]' },
+      },
+      {
+        accessorKey: 'role',
+        header: '人才状态',
+        cell: ({ row }) => (
+          <Badge variant={row.original.talentStatus === '可聘请' ? 'emphasis' : 'secondary'}>
+            {row.original.talentStatus}
+          </Badge>
+        ),
+        meta: { className: 'w-[25%]' },
+      },
+      {
+        id: 'actions',
+        header: () => <div className='text-right'>操作</div>,
+        cell: ({ row }) => {
+          const item = row.original
+          return (
+            <div className='text-right'>
+              <Button variant='link' className='px-0' onClick={() => handlePreview(item)}>查看简历</Button>
+            </div>
+          )
+        },
+        meta: { className: 'w-[25%]' },
+      },
+    ]
+  }, [mode, handlePreview])
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -267,6 +328,7 @@ export default function TalentTable({ data, onFilterChange }: TalentTableProps) 
     const nameFilterRaw = findFilter('name') as string | undefined
     const statusFilterRaw = findFilter('status') as string[] | undefined
     const roleFilterRaw = findFilter('role') as string[] | undefined
+    const interviewFilterRaw = findFilter('interviewStatus') as string[] | undefined
 
     const registrationMap: Record<string, number> = { registered: 10, unregistered: 0 }
     const talentMap: Record<string, number> = { invitable: 0, locked: 10 }
@@ -278,8 +340,12 @@ export default function TalentTable({ data, onFilterChange }: TalentTableProps) 
     const talent_status = Array.isArray(roleFilterRaw)
       ? roleFilterRaw.map((v) => talentMap[v]).filter((v) => v !== undefined)
       : undefined
+    const interviewMap: Record<string, number> = { not_interviewed: 0, interviewed: 10 }
+    const interview_status = Array.isArray(interviewFilterRaw)
+      ? interviewFilterRaw.map((v) => interviewMap[v]).filter((v) => v !== undefined)
+      : undefined
 
-    onFilterChange({ name, registration_status, talent_status })
+    onFilterChange({ name, registration_status, talent_status, interview_status })
   }, [columnFilters, onFilterChange])
 
   return (
@@ -327,7 +393,7 @@ export default function TalentTable({ data, onFilterChange }: TalentTableProps) 
           <div className='flex pt-2 pb-2'>
             <div className='text-2xl font-semibold'>{current?.name ?? '简历预览'}</div>
           </div>
-          {resumeValues && <TalentResumePreview values={resumeValues} inviteContext={inviteContext} />}
+          {resumeValues && <TalentResumePreview values={resumeValues} inviteContext={mergedInviteContext} />}
         </SheetContent>
       </Sheet>
     </div>

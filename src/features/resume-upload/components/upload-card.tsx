@@ -13,6 +13,7 @@ export interface UploadCardProps {
   onRetryUpload?: () => void
   onRetryParse?: () => void
   onRetryImport?: () => void
+  errorMsg?: string
 }
 
 const statusTextMap: Record<UploadStatusCode, string> = {
@@ -40,6 +41,7 @@ export default function UploadCard({
   onRetryUpload,
   onRetryParse,
   onRetryImport,
+  errorMsg,
 }: UploadCardProps) {
   const isError = status_code.includes('failed') ||
     status_code === UploadCardStatusCode.FormatUnsupported ||
@@ -80,7 +82,7 @@ export default function UploadCard({
               {isError ? (
                 <>
                   <AlertTriangle className="h-4 w-4 text-destructive" />
-                  <span className="text-destructive">{statusTextMap[status_code]}</span>
+                  <span className="text-destructive">{errorMsg || statusTextMap[status_code]}</span>
                 </>
               ) : status_code === UploadCardStatusCode.Success ? (
                 <>

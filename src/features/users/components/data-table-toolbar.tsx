@@ -17,6 +17,9 @@ export function DataTableToolbar<TData>({
   searchPlaceholder = '搜索姓名...',
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
+  const hasStatus = table.getAllLeafColumns().some((c) => c.id === 'status')
+  const hasRole = table.getAllLeafColumns().some((c) => c.id === 'role')
+  const hasInterview = table.getAllLeafColumns().some((c) => c.id === 'interviewStatus')
 
   return (
     <div className='flex items-center justify-between'>
@@ -30,7 +33,7 @@ export function DataTableToolbar<TData>({
           className='h-8 w-[150px] lg:w-[250px]'
         />
         <div className='flex gap-x-2'>
-          {table.getColumn('status') && (
+          {hasStatus && table.getColumn('status') && (
             <DataTableFacetedFilter
               column={table.getColumn('status')}
               title='注册状态'
@@ -40,12 +43,22 @@ export function DataTableToolbar<TData>({
               ]}
             />
           )}
-          {table.getColumn('role') && (
+          {hasInterview && table.getColumn('interviewStatus') && (
+            <DataTableFacetedFilter
+              column={table.getColumn('interviewStatus')}
+              title='面试状态'
+              options={[
+                { label: '未面试', value: 'not_interviewed' },
+                { label: '已面试', value: 'interviewed' },
+              ]}
+            />
+          )}
+          {hasRole && table.getColumn('role') && (
             <DataTableFacetedFilter
               column={table.getColumn('role')}
               title='人才状态'
               options={[
-                { label: '可邀请', value: 'invitable' },
+                { label: '可聘请', value: 'invitable' },
                 { label: '锁定中', value: 'locked' },
               ]}
             />

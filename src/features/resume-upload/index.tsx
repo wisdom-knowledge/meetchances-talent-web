@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
@@ -8,7 +8,7 @@ import { UploadArea, type UploadResult } from '@/features/resume-upload/upload-a
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BackendStatus, UploadCardStatusCode } from './types'
 import { Button } from '@/components/ui/button'
-import { fetchResumesByIds, type UploadResultItem } from './utils/api'
+import { fetchResumes, type UploadResultItem } from './utils/api'
 
 export interface FileItem {
   id: string
@@ -17,6 +17,7 @@ export interface FileItem {
   status_code: `${UploadCardStatusCode}`
   progress?: number
   numericStatus?: BackendStatus
+  errorMsg?: string
   backend?: {
     id: number
   }
@@ -24,6 +25,10 @@ export interface FileItem {
 
 export default function ResumeUploadPage() {
   const [items, setItems] = useState<FileItem[]>([])
+  const [tab, setTab] = useState<'running' | 'failed' | 'success'>('running')
+  const [pageSize, setPageSize] = useState(10)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
   const mapErrorToStatus = (error?: string, backendStatus?: BackendStatus): `${UploadCardStatusCode}` => {
     // 优先按后端数值状态映射
@@ -66,23 +71,30 @@ export default function ResumeUploadPage() {
   }, [items])
 
   async function handleRefresh() {
-    const ids = items
-      .map((i) => Number(i.backend?.id ?? NaN))
-      .filter((n): n is number => Number.isFinite(n))
-    if (ids.length === 0) return
-    const res = await fetchResumesByIds(ids)
+    // 改为调用 headhunter/resumes 接口（枚举值）
+    const statusParam = tab === 'running' ? BackendStatus.InProgress : tab === 'success' ? BackendStatus.Success : BackendStatus.Failed
+    const skip = (page - 1) * pageSize
+    const res = await fetchResumes({ skip, limit: pageSize, status: statusParam })
     if (!res.success) return
     const refreshed: FileItem[] = res.data.map((r: UploadResultItem, idx: number) => ({
-      id: `${Date.now()}-${idx}`,
+      id: `${r.backend.id}-${idx}`,
       name: r.data?.originalName || r.fileName || `文件_${idx + 1}`,
       ext: r.data?.ext || 'pdf',
       status_code: r.success ? UploadCardStatusCode.Success : mapErrorToStatus(undefined, r.status),
       numericStatus: r.status,
+      errorMsg: r.error,
       progress: 100,
       backend: { id: r.backend.id },
     }))
     setItems(refreshed)
+    setTotal(res.count)
   }
+
+  // 首次加载与依赖变更时拉取当前 tab 列表
+  useEffect(() => {
+    void handleRefresh()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, page, pageSize])
 
   return (
     <>
@@ -108,30 +120,17 @@ export default function ResumeUploadPage() {
 
         <div className='space-y-6'>
           <UploadArea
-            onUploadComplete={(results: UploadResult[]) => {
-              const mapped: FileItem[] = results.map((r: UploadResult, idx: number) => ({
-                id: r.backend.id.toString(),
-                name: r.data?.originalName || r.fileName || `文件_${idx + 1}`,
-                ext: r.data?.ext || 'pdf',
-                status_code:
-                  r.status === BackendStatus.InProgress
-                    ? UploadCardStatusCode.Uploading
-                    : r.success
-                      ? UploadCardStatusCode.Success
-                      : mapErrorToStatus(r.error, r.status as BackendStatus),
-                numericStatus: (r.status as BackendStatus) ?? BackendStatus.InProgress,
-                progress: 100,
-                backend: { id: r.backend.id },
-              }))
-              setItems((prev) => [...mapped, ...prev])
+            onUploadComplete={(_results: UploadResult[]) => {
+              // 上传完成后，不再直接使用 upload 接口返回渲染，改为调用 headhunter/resumes 拉取
+              void handleRefresh()
             }}
           />
 
-          <Tabs defaultValue="running" className="w-full">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
             <TabsList>
-              <TabsTrigger value="running">进行中({groups.running.length})</TabsTrigger>
-              <TabsTrigger value="failed">失败({groups.failed.length})</TabsTrigger>
-              <TabsTrigger value="success">成功({groups.success.length})</TabsTrigger>
+              <TabsTrigger value="running">进行中</TabsTrigger>
+              <TabsTrigger value="failed">失败</TabsTrigger>
+              <TabsTrigger value="success">成功</TabsTrigger>
             </TabsList>
 
             <TabsContent value="running">
@@ -149,25 +148,10 @@ export default function ResumeUploadPage() {
                     fileName={f.name}
                     fileExt={f.ext}
                     status_code={f.status_code}
+                    errorMsg={f.errorMsg}
                     onRetryUpload={async () => {
-                      // 重传失败文件：调用刷新接口拿到后端记录（此处假定需要重新选文件，若后端支持后端直连重试，可替换为对应接口）
-                      const res = await fetchResumesByIds([Number(f.backend?.id)])
-                      if (!res.success) return
-                      // 仅刷新该条状态
-                      const r = res.data[0]
-                      setItems((prev) =>
-                        prev.map((it) =>
-                          it.id === f.id
-                            ? {
-                                ...it,
-                                status_code: r.success ? UploadCardStatusCode.Success : mapErrorToStatus(undefined, r.status),
-                                numericStatus: r.status,
-                                progress: 100,
-                                backend: { id: r.backend.id },
-                              }
-                            : it
-                        )
-                      )
+                      // 失败项重试：重拉当前列表
+                      await handleRefresh()
                     }}
                   />
                 ))}
@@ -181,6 +165,38 @@ export default function ResumeUploadPage() {
               </div>
             </TabsContent>
           </Tabs>
+
+          {/* 简单分页器（与 users 的分页组件风格保持一致性可后续复用） */}
+          <div className="flex items-center justify-between pt-2">
+            <div className="text-sm text-muted-foreground">共 {total} 条</div>
+            <div className="flex items-center gap-2">
+              <select
+                className="h-8 rounded-md border px-2"
+                value={pageSize}
+                onChange={(e) => {
+                  setPage(1)
+                  setPageSize(Number(e.target.value))
+                }}
+                aria-label="每页条数"
+              >
+                <option value={10}>10/页</option>
+                <option value={20}>20/页</option>
+                <option value={30}>30/页</option>
+              </select>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>{'<'}</Button>
+                <div className="text-sm">第 {page} 页</div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page * pageSize >= total}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  {'>'}
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </Main>
     </>

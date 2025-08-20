@@ -57,7 +57,7 @@ export interface TalentPoolQueryResult {
 
 function mapToTalentItem(item: z.infer<typeof ResumeListItemSchema>): TalentItem {
   const isRegistered = item.registration_status === RegistrationStatus.REGISTERED
-  const talentStatus = item.talent_status === TalentStatusCode.LOCKED ? '锁定中' : '可邀请'
+  const talentStatus = item.talent_status === TalentStatusCode.LOCKED ? '锁定中' : '可聘请'
   return {
     resume_id: item.resume_id,
     name: item.name,

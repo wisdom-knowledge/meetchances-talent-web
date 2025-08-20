@@ -169,8 +169,8 @@ export default function JobsListPage() {
 
                     {/* 发布者信息 */}
                     <div className='flex items-center gap-3 py-4 border-b border-border'>
-                      <div className='w-9 h-9 border-2 border-gray-200 rounded-full flex items-center justify-center'>
-                        <span className='text-sm font-bold'>MC</span>
+                      <div className='w-9 h-9 border-2 border-gray-200 rounded-full flex items-center justify-center overflow-hidden bg-white'>
+                        <img src={'https://dnu-cdn.xpertiise.com/design-assets/logo-no-padding.svg'} alt='meetchances' className='h-7 w-7 object-contain' />
                       </div>
                       <div className='flex flex-col'>
                         <span className='text-sm font-medium text-foreground'>由一面千识发布</span>

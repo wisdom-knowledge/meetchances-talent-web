@@ -40,6 +40,7 @@ type BackendItem = {
   content_hash?: string
   source: number
   status: number
+  status_msg?: string
   struct_info: unknown
   is_in_pool: boolean
   is_del: boolean
@@ -56,6 +57,7 @@ function mapBackendItems(items: BackendItem[]): UploadResultItem[] {
     return {
       success: isSuccess,
       status: numericStatus,
+      error: item.status_msg,
       data: {
         fileName,
         originalName: fileName,
@@ -106,6 +108,55 @@ export async function fetchResumesByIds(resumeIds: number[]): Promise<{ success:
     return { success: true, data: mapBackendItems(items) }
   } catch (_e) {
     return { success: false, data: [] }
+  }
+}
+
+// 新增：分页+状态筛选获取上传记录
+export interface FetchResumesParams {
+  skip?: number
+  limit?: number
+  status?: number | number[] | string
+}
+
+export async function fetchResumes(params: FetchResumesParams): Promise<{ success: boolean; data: UploadResultItem[]; count: number }> {
+  const toCommaParam = (v?: number | number[] | string) => {
+    if (v === undefined || v === null) return undefined
+    if (Array.isArray(v)) return v.join(',')
+    return String(v)
+  }
+  try {
+    const res = (await api.get('/headhunter/resumes', {
+      params: {
+        skip: params.skip,
+        limit: params.limit,
+        status: toCommaParam(params.status),
+      },
+    })) as {
+      data?: BackendItem[]
+      count?: number
+    }
+    const items = Array.isArray(res?.data) ? res.data : []
+    const count = typeof res?.count === 'number' ? res.count : items.length
+    return { success: true, data: mapBackendItems(items), count }
+  } catch (_e) {
+    return { success: false, data: [], count: 0 }
+  }
+}
+
+// 简历详情（用于人才表查看简历）
+export async function fetchResumeDetail(resumeId: number): Promise<{ success: boolean; item?: UploadResultItem }> {
+  try {
+    const res = (await api.get(`/headhunter/resume_detail/${resumeId}`)) as
+      | { data?: BackendItem }
+      | BackendItem
+
+    const rawItem: BackendItem | undefined = (res as { data?: BackendItem })?.data ?? (res as BackendItem)
+    if (!rawItem) return { success: false }
+
+    const mapped = mapBackendItems([rawItem])
+    return { success: true, item: mapped[0] }
+  } catch (_e) {
+    return { success: false }
   }
 }
 
