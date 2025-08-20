@@ -109,7 +109,6 @@ export default function ResumeUploadPage() {
           <div className='flex items-start justify-between'>
             <div>
               <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>批量上传简历</h1>
-              <p className='text-muted-foreground'>每个简历解析大概会花费1分钟</p>
             </div>
             {items.length > 0 && (
               <Button variant='outline' onClick={handleRefresh}>刷新</Button>
