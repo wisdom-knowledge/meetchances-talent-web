@@ -118,7 +118,7 @@ export default function ResumeUploadPage() {
         </div>
         <Separator className='my-4 lg:my-6' />
 
-        <div className='space-y-6'>
+        <div className='space-y-6 overflow-y-auto'>
           <UploadArea
             onUploadComplete={(_results: UploadResult[]) => {
               // 上传完成后，不再直接使用 upload 接口返回渲染，改为调用 headhunter/resumes 拉取
