@@ -31,7 +31,7 @@ export default function TalentPoolPage() {
         </div>
       </Header>
 
-      <Main fixed>
+      <Main>
         <div className='flex items-start justify-between'>
           <div className='space-y-0.5'>
             <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>我的人才库</h1>
