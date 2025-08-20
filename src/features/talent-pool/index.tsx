@@ -4,13 +4,24 @@ import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Button } from '@/components/ui/button'
 import TalentTable from './components/talent-table'
-import { useTalentPoolQuery } from './api'
+import { useTalentPoolQuery, type TalentPoolQueryParams } from './api'
+import { useState, useCallback } from 'react'
 
 export default function TalentPoolPage() {
-  const { data } = useTalentPoolQuery()
+  const [serverFilters, setServerFilters] = useState<{ name?: string; registration_status?: number[]; talent_status?: number[] }>({})
+  const queryParams: TalentPoolQueryParams = {
+    name: serverFilters.name,
+    registration_status: serverFilters.registration_status,
+    talent_status: serverFilters.talent_status,
+  }
+  const { data } = useTalentPoolQuery(queryParams)
   const list = data?.data ?? []
   const total = data?.total ?? list.length
   const invitable = list.filter((i) => i.talentStatus === '可邀请').length
+
+  const handleFilterChange = useCallback((filters: { name?: string; registration_status?: number[]; talent_status?: number[] }) => {
+    setServerFilters(filters)
+  }, [])
 
   return (
     <>
@@ -30,7 +41,7 @@ export default function TalentPoolPage() {
         </div>
         <Separator className='my-4 lg:my-6' />
 
-        <TalentTable data={list} />
+        <TalentTable data={list} onFilterChange={handleFilterChange} />
       </Main>
     </>
   )

@@ -2,16 +2,25 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Button } from '@/components/ui/button'
-import TalentTable, { type TalentItem } from '@/features/talent-pool/components/talent-table'
+import TalentTable from '@/features/talent-pool/components/talent-table'
 import { IconBriefcase, IconWorldPin } from '@tabler/icons-react'
-
-const mockTalents: TalentItem[] = [
-  { id: 1, name: '刘先', isRegistered: true, talentStatus: '可邀请' },
-  { id: 2, name: '王冲', isRegistered: true, talentStatus: '锁定中' },
-  { id: 3, name: '曾资文', isRegistered: false, talentStatus: '可邀请' },
-]
+import { useNavigate, useRouterState } from '@tanstack/react-router'
+import { useMemo } from 'react'
+import { useJobApplyListQuery } from './api'
 
 export default function JobRecommendPage() {
+  const navigate = useNavigate()
+  const { location } = useRouterState()
+  const search = location.search as Record<string, unknown>
+  const jobId = useMemo(() => {
+    const v = search?.job_id
+    if (typeof v === 'string') return Number(v)
+    if (typeof v === 'number') return v
+    return null
+  }, [search])
+
+  const { data } = useJobApplyListQuery({ job_id: jobId })
+  const list = data?.data ?? []
   return (
     <>
       <Header fixed>
@@ -41,14 +50,13 @@ export default function JobRecommendPage() {
             <div className='mb-1 text-xl font-semibold text-foreground'>¥160~¥400</div>
             <div className='mb-3 text-xs text-muted-foreground'>每小时</div>
             <div className='flex gap-2'>
-            <Button variant='default'>推荐人才</Button>
-            <Button variant='outline' onClick={() => window.location.assign('/resume-upload')}>添加简历</Button>
+            <Button variant='default' onClick={() => navigate({ to: '/resume-upload' })}>上传新简历</Button>
           </div>
           </div>
         </div>
 
         <div className='mt-6'>
-          <TalentTable data={mockTalents} />
+          <TalentTable data={list} />
         </div>
       </Main>
     </>

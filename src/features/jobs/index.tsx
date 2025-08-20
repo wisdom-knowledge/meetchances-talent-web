@@ -15,10 +15,12 @@ import type { Job } from '@/types/solutions'
 import { cn } from '@/lib/utils'
 import { IconArrowLeft, IconUserPlus, IconBriefcase, IconWorldPin } from '@tabler/icons-react'
 import { Separator } from '@/components/ui/separator'
+import { useNavigate } from '@tanstack/react-router'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function JobsListPage() {
+  const navigate = useNavigate()
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
@@ -161,7 +163,7 @@ export default function JobsListPage() {
                           ¥{selectedJobData.salaryRange?.[0] ?? 0}~¥{selectedJobData.salaryRange?.[1] ?? 0}
                         </div>
                         <div className='text-xs text-muted-foreground mb-3'>每小时</div>
-                        <Button onClick={() => window.location.assign('/job-recommend')}>推荐候选人</Button>
+                        <Button onClick={() => navigate({ to: '/job-recommend', search: { job_id: selectedJobData.id } })}>推荐候选人</Button>
                       </div>
                     </div>
 

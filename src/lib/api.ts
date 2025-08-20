@@ -62,4 +62,17 @@ api.interceptors.response.use(
   }
 )
 
+export interface CurrentUserResponse {
+  email: string
+  is_active: boolean
+  is_superuser: boolean
+  full_name: string
+  id: number
+}
+
+export async function fetchCurrentUser(): Promise<CurrentUserResponse> {
+  // 该接口直接返回用户对象（无通用外层包装）。拦截器已将响应解包为数据对象。
+  return api.get('/users/me') as unknown as Promise<CurrentUserResponse>
+}
+
 

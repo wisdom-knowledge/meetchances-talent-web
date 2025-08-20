@@ -1,5 +1,9 @@
 import Cookies from 'js-cookie'
+import { useEffect } from 'react'
 import { Outlet } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import { fetchCurrentUser } from '@/lib/api'
+import { useAuthStore } from '@/stores/authStore'
 import { cn } from '@/lib/utils'
 import { SearchProvider } from '@/context/search-context'
 import { SidebarProvider } from '@/components/ui/sidebar'
@@ -12,6 +16,33 @@ interface Props {
 
 export function AuthenticatedLayout({ children }: Props) {
   const defaultOpen = Cookies.get('sidebar_state') !== 'false'
+  const setUser = useAuthStore((s) => s.auth.setUser)
+
+  const { data, error } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: fetchCurrentUser,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: false,
+    select: (d) => d,
+  })
+
+  useEffect(() => {
+    if (!data) return
+    setUser({
+      id: data.id,
+      email: data.email,
+      full_name: data.full_name,
+      is_active: data.is_active,
+      is_superuser: data.is_superuser,
+      accountNo: data.full_name || data.email.split('@')[0],
+    })
+  }, [data, setUser])
+
+  useEffect(() => {
+    if (!error) return
+    setUser(null)
+  }, [error, setUser])
   return (
     <SearchProvider>
       <SidebarProvider defaultOpen={defaultOpen}>

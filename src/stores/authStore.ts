@@ -4,10 +4,17 @@ import { create } from 'zustand'
 const ACCESS_TOKEN = 'thisisjustarandomstring'
 
 interface AuthUser {
-  accountNo: string
+  // 后端 /users/me 返回字段
+  id: number
   email: string
-  role: string[]
-  exp: number
+  full_name: string
+  is_active: boolean
+  is_superuser: boolean
+
+  // 兼容历史字段（仅在少量地方使用）
+  accountNo?: string
+  role?: string[]
+  exp?: number
 }
 
 interface AuthState {

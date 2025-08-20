@@ -29,6 +29,7 @@ export enum MatchScoreStatus {
 // 运行时校验 Schema（基于你提供的示例返回）
 const ResumeListItemSchema = z.object({
   name: z.string().min(1),
+  resume_id: z.number(),
   registration_status: z.nativeEnum(RegistrationStatus),
   talent_status: z.nativeEnum(TalentStatusCode),
   job_match_status: z.nativeEnum(JobMatchStatus).optional(),
@@ -43,6 +44,10 @@ const ResumeListResponseSchema = z.object({
 export interface TalentPoolQueryParams {
   skip?: number
   limit?: number
+  registration_status?: number | number[] | string
+  interview_status?: number | number[] | string
+  talent_status?: number | number[] | string
+  name?: string
 }
 
 export interface TalentPoolQueryResult {
@@ -50,11 +55,11 @@ export interface TalentPoolQueryResult {
   total?: number
 }
 
-function mapToTalentItem(item: z.infer<typeof ResumeListItemSchema>, index: number): TalentItem {
+function mapToTalentItem(item: z.infer<typeof ResumeListItemSchema>): TalentItem {
   const isRegistered = item.registration_status === RegistrationStatus.REGISTERED
   const talentStatus = item.talent_status === TalentStatusCode.LOCKED ? '锁定中' : '可邀请'
   return {
-    id: index + 1, // 后端暂未提供唯一 id，这里使用索引占位
+    resume_id: item.resume_id,
     name: item.name,
     isRegistered,
     talentStatus,
@@ -62,8 +67,24 @@ function mapToTalentItem(item: z.infer<typeof ResumeListItemSchema>, index: numb
 }
 
 export async function fetchTalentPool(_params: TalentPoolQueryParams = {}): Promise<TalentPoolQueryResult> {
-  // 若后端支持分页，按需传参（例如 { skip, limit } 或 { page, size }）
-  const raw = await api.get('/headhunter/resume_list')
+  // 参数组装：将数组参数转为逗号分隔字符串
+  const toCommaParam = (v?: number | number[] | string) => {
+    if (v === undefined || v === null) return undefined
+    if (Array.isArray(v)) return v.join(',')
+    return String(v)
+  }
+
+  const { skip, limit, registration_status, interview_status, talent_status, name } = _params
+  const query = {
+    skip,
+    limit,
+    registration_status: toCommaParam(registration_status),
+    interview_status: toCommaParam(interview_status),
+    talent_status: toCommaParam(talent_status),
+    name,
+  }
+
+  const raw = await api.get('/headhunter/talent_pool', { params: query })
   const parsed = ResumeListResponseSchema.safeParse(raw)
 
   if (!parsed.success) {
@@ -84,6 +105,7 @@ export function useTalentPoolQuery(
   return useQuery({
     queryKey: ['talent-pool', params],
     queryFn: () => fetchTalentPool(params),
+    // 当筛选参数变化时，TanStack Query 会根据 queryKey 触发重新请求
     ...options,
   })
 }
