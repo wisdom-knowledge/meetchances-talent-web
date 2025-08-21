@@ -23,8 +23,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <AppLogo className='size-4 text-white' />
           </div>
           <div className='grid text-left text-sm leading-tight'>
-            <span className='truncate font-semibold'>Meetchances Partner</span>
-            <span className='truncate text-xs'>发布职位、管理候选人</span>
+            <span className='truncate font-semibold'>Meetchances Talent</span>
+            <span className='truncate text-xs'>寻找职位、维护个人简历</span>
           </div>
         </div>
 

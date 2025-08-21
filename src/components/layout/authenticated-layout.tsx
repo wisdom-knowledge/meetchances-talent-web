@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie'
 import { useEffect } from 'react'
-import { Outlet } from '@tanstack/react-router'
+import { Outlet, useMatches } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { fetchCurrentUser } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
@@ -17,6 +17,8 @@ interface Props {
 export function AuthenticatedLayout({ children }: Props) {
   const defaultOpen = Cookies.get('sidebar_state') !== 'false'
   const setUser = useAuthStore((s) => s.auth.setUser)
+  const matches = useMatches()
+  const hideSidebar = matches.some((m) => (m.staticData as { hideSidebar?: boolean } | undefined)?.hideSidebar)
 
   const { data, error } = useQuery({
     queryKey: ['current-user'],
@@ -47,13 +49,13 @@ export function AuthenticatedLayout({ children }: Props) {
     <SearchProvider>
       <SidebarProvider defaultOpen={defaultOpen}>
         <SkipToMain />
-        <AppSidebar />
+        {!hideSidebar && <AppSidebar />}
         <div
           id='content'
           className={cn(
             'ml-auto w-full max-w-full',
-            'peer-data-[state=collapsed]:w-[calc(100%-var(--sidebar-width-icon)-1rem)]',
-            'peer-data-[state=expanded]:w-[calc(100%-var(--sidebar-width))]',
+            !hideSidebar && 'peer-data-[state=collapsed]:w-[calc(100%-var(--sidebar-width-icon)-1rem)]',
+            !hideSidebar && 'peer-data-[state=expanded]:w-[calc(100%-var(--sidebar-width))]',
             'sm:transition-[width] sm:duration-200 sm:ease-linear',
             'flex h-svh flex-col',
             'group-data-[scroll-locked=1]/body:h-full',

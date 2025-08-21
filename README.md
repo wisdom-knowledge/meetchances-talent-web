@@ -80,6 +80,7 @@ src/
 - `VITE_AUTH_LOGIN_URL`：统一登录地址（用于未授权时跳转）。
 - `VITE_AUTH_LOGOUT_URL`：统一登出地址（用于退出登录跳转）。
 - `VITE_CLERK_PUBLISHABLE_KEY`：Clerk 的 Publishable Key（前端可见）。
+.- `VITE_LIVEKIT_URL`：LiveKit 服务器地址（wss 协议，示例：`wss://your-livekit-host`）。
 
 示例（本地 `.env.local`）：
 
@@ -93,6 +94,9 @@ VITE_AUTH_LOGOUT_URL=https://accounts.example.com/logout
 
 # Clerk
 VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxx
+
+# LiveKit（用于在线面试）
+VITE_LIVEKIT_URL=wss://your-livekit-host
 ```
 
 建议：在 CI 中使用 GitHub Environments 的 Secrets 注入上述 `VITE_` 变量（仅限需要在前端使用的公开配置），而不在仓库提交 `.env.*` 文件。

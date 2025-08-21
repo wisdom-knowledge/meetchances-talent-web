@@ -33,6 +33,7 @@ import { Route as AuthenticatedResumeIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedResumeUploadIndexRouteImport } from './routes/_authenticated/resume-upload/index'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs/index'
 import { Route as AuthenticatedJobRecommendIndexRouteImport } from './routes/_authenticated/job-recommend/index'
+import { Route as AuthenticatedInterviewIndexRouteImport } from './routes/_authenticated/interview/index'
 import { Route as AuthenticatedInterviewReportsIndexRouteImport } from './routes/_authenticated/interview-reports/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
@@ -169,6 +170,12 @@ const AuthenticatedJobRecommendIndexRoute =
     path: '/job-recommend/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedInterviewIndexRoute =
+  AuthenticatedInterviewIndexRouteImport.update({
+    id: '/interview/',
+    path: '/interview/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInterviewReportsIndexRoute =
   AuthenticatedInterviewReportsIndexRouteImport.update({
     id: '/interview-reports/',
@@ -265,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/interview-reports': typeof AuthenticatedInterviewReportsIndexRoute
+  '/interview': typeof AuthenticatedInterviewIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
@@ -299,6 +307,7 @@ export interface FileRoutesByTo {
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/interview-reports': typeof AuthenticatedInterviewReportsIndexRoute
+  '/interview': typeof AuthenticatedInterviewIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
@@ -338,6 +347,7 @@ export interface FileRoutesById {
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/interview-reports/': typeof AuthenticatedInterviewReportsIndexRoute
+  '/_authenticated/interview/': typeof AuthenticatedInterviewIndexRoute
   '/_authenticated/job-recommend/': typeof AuthenticatedJobRecommendIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
   '/_authenticated/resume-upload/': typeof AuthenticatedResumeUploadIndexRoute
@@ -376,6 +386,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/help-center'
     | '/interview-reports'
+    | '/interview'
     | '/job-recommend'
     | '/jobs'
     | '/resume-upload'
@@ -410,6 +421,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/help-center'
     | '/interview-reports'
+    | '/interview'
     | '/job-recommend'
     | '/jobs'
     | '/resume-upload'
@@ -448,6 +460,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chats/'
     | '/_authenticated/help-center/'
     | '/_authenticated/interview-reports/'
+    | '/_authenticated/interview/'
     | '/_authenticated/job-recommend/'
     | '/_authenticated/jobs/'
     | '/_authenticated/resume-upload/'
@@ -643,6 +656,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJobRecommendIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/interview/': {
+      id: '/_authenticated/interview/'
+      path: '/interview'
+      fullPath: '/interview'
+      preLoaderRoute: typeof AuthenticatedInterviewIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/interview-reports/': {
       id: '/_authenticated/interview-reports/'
       path: '/interview-reports'
@@ -761,6 +781,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedInterviewReportsIndexRoute: typeof AuthenticatedInterviewReportsIndexRoute
+  AuthenticatedInterviewIndexRoute: typeof AuthenticatedInterviewIndexRoute
   AuthenticatedJobRecommendIndexRoute: typeof AuthenticatedJobRecommendIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
   AuthenticatedResumeUploadIndexRoute: typeof AuthenticatedResumeUploadIndexRoute
@@ -779,6 +800,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedInterviewReportsIndexRoute:
     AuthenticatedInterviewReportsIndexRoute,
+  AuthenticatedInterviewIndexRoute: AuthenticatedInterviewIndexRoute,
   AuthenticatedJobRecommendIndexRoute: AuthenticatedJobRecommendIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
   AuthenticatedResumeUploadIndexRoute: AuthenticatedResumeUploadIndexRoute,
