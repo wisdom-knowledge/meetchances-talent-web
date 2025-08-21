@@ -25,6 +25,7 @@ api.interceptors.response.use(
     if (status === 401) {
       const loginUrl = LOGIN_URL
       if (typeof window !== 'undefined') {
+        debugger
         window.location.href = loginUrl!
       }
       return Promise.reject({ status_code: 401, status_msg: 'Unauthorized' })
@@ -56,6 +57,7 @@ api.interceptors.response.use(
     // TODO 这里需要改成401时才能跳转到登录页面，目前是所有错误都跳转到了登录页面
     const loginUrl = LOGIN_URL
     if (typeof window !== 'undefined') {
+      debugger
       window.location.href = loginUrl!
     }
     return Promise.reject(error)

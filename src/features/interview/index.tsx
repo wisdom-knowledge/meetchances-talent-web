@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { LiveKitRoom, VideoConference, useConnectionState, useRoomContext } from '@livekit/components-react'
+import { LiveKitRoom, RoomAudioRenderer, StartAudio, useConnectionState, useRoomContext } from '@livekit/components-react'
 import { LogLevel, RoomEvent, setLogLevel } from 'livekit-client'
+import { AgentControlBar } from '@/components/livekit/agent-control-bar'
+import { ConnectionStatus } from '@/components/interview/connection-status'
+import { InterviewTimer } from '@/components/interview/interview-timer'
+import { RecordingIndicator } from '@/components/interview/recording-indicator'
 import '@livekit/components-styles'
 
 export default function InterviewPage() {
@@ -44,12 +46,6 @@ export default function InterviewPage() {
 
   return (
     <>
-      <Header fixed>
-        <div className='ml-auto flex items-center space-x-4'>
-          <ProfileDropdown />
-        </div>
-      </Header>
-
       <Main>
         <div className='space-y-0.5'>
           <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>在线面试</h1>
@@ -75,7 +71,27 @@ export default function InterviewPage() {
                 data-lk-theme='default'
                 style={{ height: '100%' }}
               >
-                <VideoConference />
+                <RoomAudioRenderer />
+                <StartAudio label='开启音频' />
+                {/* 顶部状态与计时器 */}
+                <div className='pointer-events-none fixed top-20 left-6 z-50'>
+                  <ConnectionStatus />
+                </div>
+                <div className='pointer-events-none fixed top-20 right-6 z-50'>
+                  <InterviewTimer active />
+                </div>
+
+                {/* 底部控制条 */}
+                <div className='pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
+                  <div className='pointer-events-auto'>
+                    <AgentControlBar />
+                  </div>
+                </div>
+
+                {/* 录音指示器 */}
+                <div className='pointer-events-none fixed bottom-6 right-6 z-50'>
+                  <RecordingIndicator micTrackRef={undefined} />
+                </div>
                 {isDev && (
                   <DebugLiveKitStatus roomName={roomName} identity={identity} token={token} />
                 )}
