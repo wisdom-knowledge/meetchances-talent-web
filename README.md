@@ -1,11 +1,12 @@
-## 千识猎头端前端项目
 
-基于 Shadcn Admin 的 fork 并深度定制，面向千识合作方（猎头端）的管理后台前端。
+## 千识专家端前端项目
+
+基于 Shadcn Admin 的 fork 并深度定制，面向千识招聘C端用户的操作平台。
 
 ### 访问地址
 
-- 线上环境: [partner.meetchances.com](https://partner.meetchances.com/)
-- 测试环境: [partner-boe.meetchances.com](https://partner-boe.meetchances.com)
+- 线上环境: [talent.meetchances.com](https://talent.meetchances.com/)
+- 测试环境: [talent-boe.meetchances.com](https://talent-boe.meetchances.com)
 
 ### 快速开始（本地开发）
 
@@ -122,8 +123,9 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxx
 - 新增路由：在 `src/routes/` 创建路由文件，受保护页面置于 `_authenticated/`；如需侧边栏菜单，更新 `src/components/layout/data/sidebar-data.ts`。
 - 图标优先使用 Tabler Icons；颜色与间距保持与现有组件一致。
 - 线上地址与测试地址：
-  - 线上：[partner.meetchances.com](https://partner.meetchances.com/)
-  - 测试：[partner-boe.meetchances.com](https://partner-boe.meetchances.com)
+
+- 线上：[talent.meetchances.com](https://talent.meetchances.com/)
+- 测试：[talent-boe.meetchances.com](https://talent-boe.meetchances.com)
 
 ---
 

@@ -1,27 +1,27 @@
-## Description
+## 描述
 
-<!-- A clear and concise description of what the pull request does. Include any relevant motivation and background. -->
+<!-- 请清晰、简洁地描述此 PR 的变更内容，并说明相关的动机与背景。 -->
 
-## Types of changes
+## 变更类型
 
-<!-- What types of changes does your code introduce to AstroPaper? Put an `x` in the boxes that apply -->
+<!-- 你的代码为本项目引入了哪些类型的变更？在适用的选项中用 `x` 标注 -->
 
-- [ ] Bug Fix (non-breaking change which fixes an issue)
-- [ ] New Feature (non-breaking change which adds functionality)
-- [ ] Others (any other types not listed above)
+- [ ] Bug 修复（非破坏性更改，用于修复问题）
+- [ ] 新功能（非破坏性更改，增加新功能）
+- [ ] 其他（未在以上列出的更改）
 
-## Checklist
+## 清单
 
-<!-- Please follow this checklist and put an x in each of the boxes, like this: [x]. You can also fill these out after creating the PR. This is simply a reminder of what we are going to look for before merging your code. -->
+<!-- 提交 PR 前请遵循以下清单，并在完成项目前加上 [x]。也可以在创建 PR 后补充。此清单用于帮助我们在合并前进行检查。 -->
 
-- [ ] I have read the [Contributing Guide](https://github.com/satnaing/shadcn-admin/blob/main/.github/CONTRIBUTING.md)
+- [ ] 我已阅读 [贡献指南](https://github.com/satnaing/shadcn-admin/blob/main/.github/CONTRIBUTING.md)
 
-## Further comments
+## 进一步说明
 
-<!-- If this is a relatively large or complex change, kick off the discussion by explaining why you chose the solution you did and what alternatives you considered, etc... -->
+<!-- 如果这是较大或复杂的变更，请解释你为何选择该方案，以及你考虑过的替代方案等。 -->
 
-## Related Issue
+## 关联的 Issue
 
-<!-- If this PR is related to an existing issue, link to it here. -->
+<!-- 如果此 PR 与现有 Issue 相关，请在此处进行链接。 -->
 
-Closes: #<!-- Issue number, if applicable -->
+关闭：#<!-- 相关 Issue 编号（如适用） -->
