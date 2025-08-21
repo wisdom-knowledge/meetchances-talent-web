@@ -2,7 +2,7 @@ import * as React from 'react'
 
 export function AppLogo(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg {...props} viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5276" width="200" height="200"><path d="M192 192c0-70.6 57.4-128 128-128h192c176.8 0 320 143.2 320 320s-143.2 320-320 320H320v192c0 35.4-28.6 64-64 64S192 931.4 192 896V192z m128 384h192c106 0 192-86 192-192s-86-192-192-192H320v384z" p-id="5277" fill="#ffffff"></path></svg>
+    <svg {...props} viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="7532" width="200" height="200"><path d="M192 64C156.6 64 128 92.6 128 128s28.6 64 64 64h256v704c0 35.4 28.6 64 64 64s64-28.6 64-64V192h256c35.4 0 64-28.6 64-64s-28.6-64-64-64H192z" p-id="7533" fill="#ffffff"></path></svg>
   )
 }
 
