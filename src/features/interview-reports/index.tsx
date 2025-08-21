@@ -31,7 +31,7 @@ export default function InterviewReports() {
       <Main fixed>
         
         <div className='space-y-0.5'>
-          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
+          <h1 className='text-2xl font-bold tracking-tight md:text-3xl mb-2'>
             面试分析报告
           </h1>
 

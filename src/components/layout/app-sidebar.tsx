@@ -3,8 +3,17 @@ import { NavGroup } from '@/components/layout/nav-group'
 import { NavUser } from '@/components/layout/nav-user'
 import { sidebarData } from './data/sidebar-data'
 import AppLogo from '@/assets/app-logo'
+import { useAuthStore } from '@/stores/authStore'
+import { useMemo } from 'react'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const authUser = useAuthStore((s) => s.auth.user)
+  const userForSidebar = useMemo(() => {
+    const name = authUser?.full_name || authUser?.accountNo || (authUser?.email ? authUser.email.split('@')[0] : '用户')
+    const email = authUser?.email || ''
+    const avatar = '/avatars/shadcn.jpg'
+    return { name, email, avatar }
+  }, [authUser])
   return (
     <Sidebar collapsible='icon' variant='floating' {...props}>
       <SidebarContent>
@@ -14,8 +23,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <AppLogo className='size-4 text-white' />
           </div>
           <div className='grid text-left text-sm leading-tight'>
-            <span className='truncate font-semibold'>Meetchances Talent</span>
-            <span className='truncate text-xs'>interview & apply job</span>
+            <span className='truncate font-semibold'>Meetchances Partner</span>
+            <span className='truncate text-xs'>发布职位、管理候选人</span>
           </div>
         </div>
 
@@ -24,7 +33,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={sidebarData.user} />
+        <NavUser user={userForSidebar} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -19,9 +19,9 @@ import { IconPlus, IconTrash } from '@tabler/icons-react'
 
 type SectionKey = 'workExperience' | 'projectExperience' | 'education' | 'workSkills'
 
-type Props = { sectionKey?: SectionKey; scrollContainerRef?: React.RefObject<HTMLElement | null> }
+type Props = { sectionKey?: SectionKey; scrollContainerRef?: React.RefObject<HTMLElement | null>; readOnly?: boolean }
 
-export default function DynamicWorkExperience({ sectionKey = 'workExperience' as SectionKey, scrollContainerRef: _scrollContainerRef }: Props) {
+export default function DynamicWorkExperience({ sectionKey = 'workExperience' as SectionKey, scrollContainerRef: _scrollContainerRef, readOnly = false }: Props) {
   const form = useFormContext<ResumeFormValues>()
   const arraySection = resumeFormConfig.sections.find((s) => s.key === sectionKey && s.array)?.array
   const name: FieldArrayPath<ResumeFormValues> = (arraySection?.name ?? 'workExperience') as FieldArrayPath<ResumeFormValues>
@@ -33,20 +33,22 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
     <div className='mb-10'>
       <div className='mb-6 flex items-center justify-between'>
         <h3 className='text-lg leading-none'>{arraySection.itemTitlePrefix ?? '工作经历'}</h3>
-        <Button
-          variant='outline'
-          className='h-9 rounded-md px-3'
-          type='button'
-          onClick={() => {
-            const emptyItem = arraySection.itemFields.reduce<Record<string, string | undefined>>((acc, f) => {
-              acc[String(f.key)] = f.component === 'select' ? undefined : ''
-              return acc
-            }, {})
-            fieldArray.append(emptyItem as unknown as Parameters<typeof fieldArray.append>[0])
-          }}
-        >
-          <IconPlus className='h-4 w-4' /> {arraySection.addButtonText}
-        </Button>
+        {!readOnly && (
+          <Button
+            variant='outline'
+            className='h-9 rounded-md px-3'
+            type='button'
+            onClick={() => {
+              const emptyItem = arraySection.itemFields.reduce<Record<string, string | undefined>>((acc, f) => {
+                acc[String(f.key)] = f.component === 'select' ? undefined : ''
+                return acc
+              }, {})
+              fieldArray.append(emptyItem as unknown as Parameters<typeof fieldArray.append>[0])
+            }}
+          >
+            <IconPlus className='h-4 w-4' /> {arraySection.addButtonText}
+          </Button>
+        )}
       </div>
 
       <div className='space-y-6'>
@@ -63,15 +65,17 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
             <div key={fieldItem.id} className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
               <div className='mb-4 flex items-center justify-between'>
                 <div className='text-sm text-muted-foreground'>{(arraySection.itemTitlePrefix ?? '工作经历') + ' ' + (index + 1)}</div>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  type='button'
-                  onClick={() => fieldArray.remove(index)}
-                  className='h-8 px-2 text-destructive'
-                >
-                  <IconTrash className='h-4 w-4' /> 删除
-                </Button>
+                {!readOnly && (
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    type='button'
+                    onClick={() => fieldArray.remove(index)}
+                    className='h-8 px-2 text-destructive'
+                  >
+                    <IconTrash className='h-4 w-4' /> 删除
+                  </Button>
+                )}
               </div>
 
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -89,6 +93,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                                 value={typeof field.value === 'string' ? field.value : undefined}
                                 onChange={field.onChange}
                                 placeholder={f.placeholder ?? '选择月份'}
+                                disabled={readOnly}
                               />
                             </FormControl>
                           ) : f.component === 'input' ? (
@@ -100,6 +105,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                                 onBlur={field.onBlur}
                                 name={field.name}
                                 ref={field.ref}
+                                disabled={readOnly}
                               />
                             </FormControl>
                           ) : null}
@@ -113,6 +119,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                                 onBlur={field.onBlur}
                                 name={field.name}
                                 ref={field.ref}
+                                disabled={readOnly}
                               />
                             </FormControl>
                           )}
@@ -123,6 +130,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                               onValueChange={field.onChange}
                               placeholder={f.placeholder}
                               className='w-full h-9'
+                              disabled={readOnly}
                               items={(f.optionsKey ? options[f.optionsKey] : []).map((opt) => ({ label: opt, value: opt }))}
                             />
                           )}
