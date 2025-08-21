@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@/components/ui/form'
 import { resumeSchema, type ResumeFormValues } from '@/features/resume/data/schema'
@@ -22,6 +22,11 @@ type Props = { values: ResumeFormValues; inviteContext?: InviteContext }
 export default function TalentResumePreview({ values, inviteContext }: Props) {
   const form = useForm<ResumeFormValues>({ resolver: zodResolver(resumeSchema), defaultValues: values, mode: 'onChange' })
   const user = useAuthStore((s) => s.auth.user)
+
+  // 当外部传入的简历值变化时，重置表单，避免保留上一次的内容
+  useEffect(() => {
+    form.reset(values)
+  }, [values, form])
 
   const headhunterName = useMemo(() => {
     if (inviteContext?.headhunterName) return inviteContext.headhunterName

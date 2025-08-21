@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DataTablePagination } from '@/features/users/components/data-table-pagination'
 import { DataTableToolbar } from '@/features/users/components/data-table-toolbar'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import TalentResumePreview from './talent-resume-preview'
 import type { ResumeFormValues } from '@/features/resume/data/schema'
 import { fetchResumeDetail } from '@/features/resume-upload/utils/api'
@@ -390,6 +390,7 @@ export default function TalentTable({ data, onFilterChange, mode = 'talentPool',
       {/* Drawer: 简历预览 */}
       <Sheet open={resumeOpen} onOpenChange={setResumeOpen}>
         <SheetContent className='flex w-full sm:max-w-none md:w-[85vw] lg:w-[60vw] xl:w-[50vw] flex-col px-4 md:px-5'>
+          <SheetTitle className='sr-only'>简历预览</SheetTitle>
           <div className='flex pt-2 pb-2'>
             <div className='text-2xl font-semibold'>{current?.name ?? '简历预览'}</div>
           </div>

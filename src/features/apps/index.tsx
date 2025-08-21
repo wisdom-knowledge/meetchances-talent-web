@@ -59,7 +59,7 @@ export default function Apps() {
       {/* ===== Content ===== */}
       <Main fixed>
         <div>
-          <h1 className='text-2xl font-bold tracking-tight'>
+          <h1 className='text-2xl font-bold tracking-tight mb-2'>
             App Integrations
           </h1>
           <p className='text-muted-foreground'>

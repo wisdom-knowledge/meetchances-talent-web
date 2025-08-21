@@ -108,7 +108,7 @@ export default function ResumeUploadPage() {
         <div className='space-y-0.5'>
           <div className='flex items-start justify-between'>
             <div>
-              <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>批量上传简历</h1>
+              <h1 className='text-2xl font-bold tracking-tight md:text-3xl mb-2'>批量上传简历</h1>
             </div>
             {items.length > 0 && (
               <Button variant='outline' onClick={handleRefresh}>刷新</Button>

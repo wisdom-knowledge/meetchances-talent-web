@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils'
 import { IconArrowLeft, IconUserPlus, IconBriefcase, IconWorldPin } from '@tabler/icons-react'
 import { Separator } from '@/components/ui/separator'
 import { useNavigate } from '@tanstack/react-router'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function JobsListPage() {
@@ -52,7 +52,7 @@ export default function JobsListPage() {
 
       <Main fixed>
         <div className='space-y-0.5'>
-          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>职位列表</h1>
+          <h1 className='text-2xl font-bold tracking-tight md:text-3xl mb-2'>职位列表</h1>
           <p className='text-muted-foreground'>寻找与你匹配的远程/合约职位</p>
         </div>
         <Separator className='my-4 lg:my-6' />
@@ -125,6 +125,7 @@ export default function JobsListPage() {
           {/* 职位详情：Drawer 展示 */}
           <Sheet open={isDrawerOpen} onOpenChange={(open) => (open ? setIsDrawerOpen(true) : handleCloseDrawer())}>
             <SheetContent className='flex flex-col px-4 md:px-5 w-full sm:max-w-none md:w-[85vw] lg:w-[60vw] xl:w-[50vw]'>
+              <SheetTitle className='sr-only'>职位详情</SheetTitle>
               {selectedJobData && (
                 <>
                   {/* 顶部返回 */}

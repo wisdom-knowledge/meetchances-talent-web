@@ -34,7 +34,7 @@ export default function TalentPoolPage() {
       <Main>
         <div className='flex items-start justify-between'>
           <div className='space-y-0.5'>
-            <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>我的人才库</h1>
+            <h1 className='text-2xl font-bold tracking-tight md:text-3xl mb-2'>我的人才库</h1>
             <p className='text-muted-foreground'>{total}人在库，{invitable}人可聘请</p>
           </div>
           <Button onClick={() => window.location.assign('/resume-upload')}>批量上传</Button>

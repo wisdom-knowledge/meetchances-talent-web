@@ -25,7 +25,7 @@ export default function AnnotateReport() {
       {/* ===== Main ===== */}
       <Main fixed>
         <div className='space-y-0.5'>
-          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
+          <h1 className='text-2xl font-bold tracking-tight md:text-3xl mb-2'>
             试标报告
           </h1>
           <Separator className='mt-6 shadow-sm' />
