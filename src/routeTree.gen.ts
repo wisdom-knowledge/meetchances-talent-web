@@ -47,6 +47,7 @@ import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedInterviewSessionRouteImport } from './routes/_authenticated/interview/session'
+import { Route as AuthenticatedInterviewPrepareRouteImport } from './routes/_authenticated/interview/prepare'
 
 const ClerkRouteRoute = ClerkRouteRouteImport.update({
   id: '/clerk',
@@ -251,6 +252,12 @@ const AuthenticatedInterviewSessionRoute =
     path: '/interview/session',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedInterviewPrepareRoute =
+  AuthenticatedInterviewPrepareRouteImport.update({
+    id: '/interview/prepare',
+    path: '/interview/prepare',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
@@ -267,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
@@ -303,6 +311,7 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
@@ -344,6 +353,7 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/_authenticated/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
@@ -384,6 +394,7 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/interview/prepare'
     | '/interview/session'
     | '/settings/account'
     | '/settings/appearance'
@@ -420,6 +431,7 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/interview/prepare'
     | '/interview/session'
     | '/settings/account'
     | '/settings/appearance'
@@ -460,6 +472,7 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
+    | '/_authenticated/interview/prepare'
     | '/_authenticated/interview/session'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
@@ -767,6 +780,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInterviewSessionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/interview/prepare': {
+      id: '/_authenticated/interview/prepare'
+      path: '/interview/prepare'
+      fullPath: '/interview/prepare'
+      preLoaderRoute: typeof AuthenticatedInterviewPrepareRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -796,6 +816,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedInterviewPrepareRoute: typeof AuthenticatedInterviewPrepareRoute
   AuthenticatedInterviewSessionRoute: typeof AuthenticatedInterviewSessionRoute
   AuthenticatedAnnotateReportIndexRoute: typeof AuthenticatedAnnotateReportIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
@@ -815,6 +836,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedInterviewPrepareRoute: AuthenticatedInterviewPrepareRoute,
   AuthenticatedInterviewSessionRoute: AuthenticatedInterviewSessionRoute,
   AuthenticatedAnnotateReportIndexRoute: AuthenticatedAnnotateReportIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,

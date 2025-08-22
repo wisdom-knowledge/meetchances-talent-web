@@ -47,13 +47,7 @@ export default function InterviewPage() {
   return (
     <>
       <Main>
-        <div className='space-y-0.5'>
-          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>在线面试</h1>
-          <p className='text-muted-foreground'>加入 LiveKit 面试房间，开始实时视频面试。</p>
-        </div>
-        <Separator className='my-4 lg:my-6' />
-
-        <div className='space-y-6'>
+        <div>
           {!token && !error && <div>正在连接面试房间…</div>}
           {error && (
             <div className='text-red-600 text-sm'>

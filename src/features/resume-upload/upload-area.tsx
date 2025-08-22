@@ -5,14 +5,16 @@ import { Card, CardContent } from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
 import { uploadFiles, type UploadResultItem } from './utils/api'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 export type UploadResult = UploadResultItem
 
-interface UploadAreaProps {
+interface   UploadAreaProps {
   onUploadComplete?: (results: UploadResult[]) => void
+  className?: string
 }
 
-export function UploadArea({ onUploadComplete }: UploadAreaProps) {
+export function UploadArea({ onUploadComplete, className }: UploadAreaProps) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [dragOver, setDragOver] = useState(false)
@@ -95,7 +97,7 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={cn('space-y-6', className)}>
       {/* Upload Area */}
       <Card
         className={`transition-all duration-300 cursor-pointer rounded-[12px] border-2 border-dashed ${
@@ -115,13 +117,9 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-xl font-semibold">{dragOver ? '释放鼠标以上传' : '批量上传简历'}</h3>
-              <p className="text-sm text-muted-foreground">支持拖拽或点击选择多个文件</p>
+              <h3 className="text-xl font-semibold">{dragOver ? '释放鼠标以上传' : '上传简历'}</h3>
+              <p className="text-sm text-muted-foreground">支持拖拽或点击选择文件</p>
             </div>
-
-            <Button size="lg" className="pointer-events-none" disabled={uploading}>
-              选择文件
-            </Button>
           </div>
 
           <input
