@@ -5,6 +5,8 @@ import { UploadArea } from '@/features/resume-upload/upload-area'
 import { useNavigate } from '@tanstack/react-router'
 import { useJobDetailQuery } from '@/features/jobs/api'
 import { IconArrowLeft, IconBriefcase, IconWorldPin } from '@tabler/icons-react'
+import { useState } from 'react'
+import { SupportDialog } from '@/features/interview/components/support-dialog'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -12,6 +14,7 @@ interface InterviewPreparePageProps {
 
 export default function InterviewPreparePage({ jobId }: InterviewPreparePageProps) {
   const navigate = useNavigate()
+  const [supportOpen, setSupportOpen] = useState(false)
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
 
@@ -81,7 +84,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
           <div className='lg:col-span-5'>
             <div className='p-6 sticky'>
               <div className='mb-4 text-right'>
-                <Button variant='link' className='text-primary'>寻求支持</Button>
+                <Button variant='link' className='text-primary' onClick={() => setSupportOpen(true)}>寻求支持</Button>
               </div>
               <UploadArea className='my-4' onUploadComplete={(_results) => { /* 上传完成后保留页面即可 */ }} />
               <div className='my-4'>
@@ -110,6 +113,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
           </div>
         </div>
       </Main>
+      <SupportDialog open={supportOpen} onOpenChange={setSupportOpen} />
     </>
   )
 }
