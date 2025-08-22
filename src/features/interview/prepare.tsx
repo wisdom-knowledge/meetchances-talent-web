@@ -7,6 +7,8 @@ import { useJobDetailQuery } from '@/features/jobs/api'
 import { IconArrowLeft, IconBriefcase, IconWorldPin } from '@tabler/icons-react'
 import { useState } from 'react'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -15,28 +17,31 @@ interface InterviewPreparePageProps {
 export default function InterviewPreparePage({ jobId }: InterviewPreparePageProps) {
   const navigate = useNavigate()
   const [supportOpen, setSupportOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
 
   return (
     <>
-      <Main>
+      <Main fixed>
 
         {/* 主体两栏：左职位详情，右上传控件 */}
-        <div className='grid grid-cols-1 gap-8 lg:grid-cols-12'>
+        <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12'>
           {/* 左：职位信息 */}
           <div className='lg:col-span-7 space-y-6'>
-            <div className='p-6'>
+            <div className='p-6 h-full flex-col'>
               {/* 顶部返回 */}
               <div className='flex pt-2 pb-2'>
-                <button
+                <Button
                   type='button'
-                  onClick={() => navigate({ to: '/jobs' })}
+                  variant='ghost'
+                  onClick={() => window.history.back()}
                   aria-label='返回'
                   className='cursor-pointer flex items-center gap-2 mb-4'
                 >
                   <IconArrowLeft className='h-6 w-6 text-muted-foreground' />返回
-                </button>
+                </Button>
               </div>
               <div className='flex items-start justify-between gap-4'>
                 <div className='min-w-0'>
@@ -70,12 +75,22 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                   <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
                 </div>
               </div>
-              <div className='text-foreground/90 leading-relaxed text-sm md:text-base py-4'>
-                {job?.description ? (
-                  <div dangerouslySetInnerHTML={{ __html: job.description }} />
-                ) : (
-                  <div className='text-muted-foreground'>{isLoading ? '正在加载职位详情…' : '暂无职位描述'}</div>
-                )}
+              <div className='flex-1 text-foreground/90 leading-relaxed text-sm md:text-base py-4'>
+                {/* 限高 + 渐隐遮罩 */}
+                <div className='relative'>
+                  <div className='overflow-hidden'>
+                    {job?.description ? (
+                      <div dangerouslySetInnerHTML={{ __html: job.description }} />
+                    ) : (
+                      <div className='text-muted-foreground'>{isLoading ? '正在加载职位详情…' : '暂无职位描述'}</div>
+                    )}
+                  </div>
+                  {/* 渐隐遮罩 */}
+                  <div className='pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent' />
+                </div>
+                <div className='mt-4'>
+                  <Button variant='outline' onClick={() => setDrawerOpen(true)}>查看更多</Button>
+                </div>
               </div>
             </div>
           </div>
@@ -88,7 +103,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
               </div>
               <UploadArea className='my-4' onUploadComplete={(_results) => { /* 上传完成后保留页面即可 */ }} />
               <div className='my-4'>
-                <Button disabled className='w-full' onClick={() => navigate({ to: '/interview/session', search: { job_id: jobId } })}>
+                <Button className='w-full' onClick={() => setConfirmOpen(true)}>
                   确认简历，下一步
                 </Button>
               </div>
@@ -114,6 +129,72 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
         </div>
       </Main>
       <SupportDialog open={supportOpen} onOpenChange={setSupportOpen} />
+      {/* 确认弹窗 */}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader className='text-left'>
+            <DialogTitle>确认继续</DialogTitle>
+            <DialogDescription>更新简历之后将覆盖您的旧简历，是否继续？</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className='gap-2 sm:gap-0'>
+            <Button variant='outline' className='mr-4' onClick={() => setConfirmOpen(false)}>放弃</Button>
+            <Button onClick={() => navigate({ to: '/interview/session', search: { job_id: jobId } })}>继续</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* 右侧抽屉：职位详情 */}
+      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <SheetContent className='flex flex-col px-4 md:px-5 w-full sm:max-w-none md:w-[85vw] lg:w-[60vw] xl:w-[50vw]'>
+          <SheetTitle className='sr-only'>职位详情</SheetTitle>
+          {job && (
+            <>
+              {/* 可滚动内容 */}
+              <div className='flex-1 overflow-y-auto'>
+                {/* 标题与薪资区 */}
+                <div className='flex pt-5 pb-5 items-start justify-between border-b border-border'>
+                  <div className='flex-1 min-w-0'>
+                    <div className='text-2xl font-bold mb-2 leading-tight truncate text-foreground'>
+                      {job.title}
+                    </div>
+                    <div className='flex items-center gap-4 text-primary mb-2'>
+                      <div className='flex items-center'>
+                        <IconBriefcase className='h-4 w-4 mr-1' />
+                        <span className='text-[14px]'>时薪制</span>
+                      </div>
+                      <div className='flex items-center'>
+                        <IconWorldPin className='h-4 w-4 mr-1' />
+                        <span className='text-[14px]'>远程</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className='hidden md:flex flex-col items-end min-w-[140px]'>
+                    <div className='text-xl font-semibold text-foreground mb-1'>
+                      ¥{job.salaryRange?.[0] ?? 0}~¥{job.salaryRange?.[1] ?? 0}
+                    </div>
+                    <div className='text-xs text-muted-foreground mb-3'>每小时</div>
+                  </div>
+                </div>
+
+                {/* 发布者信息 */}
+                <div className='flex items-center gap-3 py-4 border-b border-border'>
+                  <div className='w-9 h-9 border-2 border-gray-200 rounded-full flex items-center justify-center overflow-hidden bg-white'>
+                    <img src={'https://dnu-cdn.xpertiise.com/design-assets/logo-no-padding.svg'} alt='meetchances' className='h-7 w-7 object-contain' />
+                  </div>
+                  <div className='flex flex-col'>
+                    <span className='text-sm font-medium text-foreground'>由一面千识发布</span>
+                    <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
+                  </div>
+                </div>
+
+                {/* 详情描述 */}
+                <div className='py-6 text-foreground/90 text-base leading-relaxed'>
+                  <div dangerouslySetInnerHTML={{ __html: job.description }} />
+                </div>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   )
 }
