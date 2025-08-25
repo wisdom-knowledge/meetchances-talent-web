@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
@@ -214,6 +214,27 @@ export default function ResumeUploadPage() {
     void handleRefresh({ refreshCounts: false })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize])
+
+  // 当“进行中”列表存在数据时，启动5s自动刷新
+  const isPollingRef = useRef(false)
+  useEffect(() => {
+    if (tab !== 'running' || groups.running.length === 0) return
+
+    const intervalId = setInterval(async () => {
+      if (isPollingRef.current) return
+      isPollingRef.current = true
+      try {
+        await handleRefresh()
+      } finally {
+        isPollingRef.current = false
+      }
+    }, 5000)
+
+    return () => {
+      clearInterval(intervalId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, groups.running.length])
 
   return (
     <>
