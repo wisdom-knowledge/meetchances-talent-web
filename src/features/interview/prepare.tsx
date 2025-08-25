@@ -245,7 +245,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                 <p>职位描述，这里的字段需要再明确</p>
               </div>
               {/* 用户摄像头展示区域 */}
-              <LocalCameraPreview heightClass='h-[360px]' onStatusChange={setCameraStatus} deviceId={cam.activeDeviceId} />
+              <LocalCameraPreview onStatusChange={setCameraStatus} deviceId={cam.activeDeviceId} />
 
               {/* 三个设备选择 + 状态 */}
               <DeviceSelectorsRow
