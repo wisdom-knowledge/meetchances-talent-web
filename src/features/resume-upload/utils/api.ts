@@ -118,7 +118,12 @@ export interface FetchResumesParams {
   status?: BackendStatus
 }
 
-export async function fetchResumes(params: FetchResumesParams): Promise<{ success: boolean; data: UploadResultItem[]; count: number }> {
+export async function fetchResumes(params: FetchResumesParams): Promise<{
+  success: boolean;
+  data: UploadResultItem[];
+  count: number;
+  average_parse_time: number;
+}> {
   const toCommaParam = (v?: number | number[] | string) => {
     if (v === undefined || v === null) return undefined
     if (Array.isArray(v)) return v.join(',')
@@ -134,12 +139,14 @@ export async function fetchResumes(params: FetchResumesParams): Promise<{ succes
     })) as {
       data?: BackendItem[]
       count?: number
+      average_parse_time?: number
     }
     const items = Array.isArray(res?.data) ? res.data : []
     const count = typeof res?.count === 'number' ? res.count : items.length
-    return { success: true, data: mapBackendItems(items), count }
+    const average_parse_time = typeof res?.average_parse_time === 'number' ? res.average_parse_time : 0
+    return { success: true, data: mapBackendItems(items), count, average_parse_time }
   } catch (_e) {
-    return { success: false, data: [], count: 0 }
+    return { success: false, data: [], count: 0, average_parse_time: 0 }
   }
 }
 

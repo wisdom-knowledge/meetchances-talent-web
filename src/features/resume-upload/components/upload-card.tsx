@@ -18,6 +18,7 @@ export interface UploadCardProps {
   onRetryImport?: () => void
   onManualEdit?: () => void
   errorMsg?: string
+  parseMinutes?: number
 }
 
 const statusTextMap: Record<UploadStatusCode, string> = {
@@ -69,6 +70,7 @@ export default function UploadCard({
   onRetryImport,
   onManualEdit,
   errorMsg,
+  parseMinutes = 5,
 }: UploadCardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const isError = status_code.includes('failed') ||
@@ -143,7 +145,7 @@ export default function UploadCard({
                   <span>{statusTextMap[status_code]}</span>
                 </>
               ) : status_code === UploadCardStatusCode.Uploading ? (
-                <UploadingTicker />
+                <UploadingTicker minutes={parseMinutes} />
               ) : (
                 <>
                   <Upload className="h-4 w-4 text-primary" />
@@ -175,7 +177,7 @@ export default function UploadCard({
 }
 
 
-function UploadingTicker() {
+function UploadingTicker({ minutes = 5 }: { minutes?: number }) {
   const controls = useAnimation()
 
   useEffect(() => {
@@ -206,7 +208,7 @@ function UploadingTicker() {
       <div className="relative h-5 overflow-hidden">
         <motion.div className="flex flex-col" animate={controls}>
           <span className="leading-5">正在解析中</span>
-          <span className="leading-5">预计需要5分钟</span>
+          <span className="leading-5">预计需要{minutes}分钟</span>
           {/* 复制一份第一行，便于始终向上滚动 */}
           <span className="leading-5">正在解析中</span>
         </motion.div>

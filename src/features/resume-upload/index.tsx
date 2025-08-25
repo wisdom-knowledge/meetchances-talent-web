@@ -38,6 +38,7 @@ export default function ResumeUploadPage() {
     failed: 0,
     success: 0,
   })
+  const [avgParseMinutes, setAvgParseMinutes] = useState<number>(5)
   const [resumeOpen, setResumeOpen] = useState(false)
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
   const [currentName, setCurrentName] = useState<string>('简历预览')
@@ -155,6 +156,9 @@ export default function ResumeUploadPage() {
     }))
     setItems(refreshed)
     setTotal(res.count)
+    // 解析耗时：后端单位为秒，前端显示分钟，向上取整
+    const minutes = Math.max(1, Math.ceil((res.average_parse_time ?? 0) / 60))
+    setAvgParseMinutes(minutes)
 
     // 仅在需要时刷新计数，尽量避免重复请求
     if (refreshCounts) {
@@ -250,7 +254,7 @@ export default function ResumeUploadPage() {
             <TabsContent value="running">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groups.running.map((f) => (
-                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} errorMsg={f.errorMsg} onManualEdit={() => { void handleManualEdit(f) }} />
+                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} errorMsg={f.errorMsg} parseMinutes={avgParseMinutes} onManualEdit={() => { void handleManualEdit(f) }} />
                 ))}
               </div>
             </TabsContent>
@@ -263,6 +267,7 @@ export default function ResumeUploadPage() {
                     fileExt={f.ext}
                     status_code={f.status_code}
                     errorMsg={f.errorMsg}
+                    parseMinutes={avgParseMinutes}
                     onManualEdit={() => { void handleManualEdit(f) }}
                     onRetryUpload={async () => {
                       // 失败项重试：重拉当前列表并刷新计数
@@ -275,7 +280,7 @@ export default function ResumeUploadPage() {
             <TabsContent value="success">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groups.success.map((f) => (
-                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} errorMsg={f.errorMsg} onManualEdit={() => { void handleManualEdit(f) }} />
+                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} errorMsg={f.errorMsg} parseMinutes={avgParseMinutes} onManualEdit={() => { void handleManualEdit(f) }} />
                 ))}
               </div>
             </TabsContent>
