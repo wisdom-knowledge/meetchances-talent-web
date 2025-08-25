@@ -115,7 +115,7 @@ export async function fetchResumesByIds(resumeIds: number[]): Promise<{ success:
 export interface FetchResumesParams {
   skip?: number
   limit?: number
-  status?: number | number[] | string
+  status?: BackendStatus
 }
 
 export async function fetchResumes(params: FetchResumesParams): Promise<{ success: boolean; data: UploadResultItem[]; count: number }> {
