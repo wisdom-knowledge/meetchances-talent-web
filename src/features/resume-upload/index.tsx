@@ -8,7 +8,11 @@ import { UploadArea, type UploadResult } from '@/features/resume-upload/upload-a
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BackendStatus, UploadCardStatusCode } from './types'
 import { Button } from '@/components/ui/button'
-import { fetchResumes, type UploadResultItem } from './utils/api'
+import { fetchResumes, fetchResumeDetail, type UploadResultItem } from './utils/api'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+import TalentResumePreview from '@/features/talent-pool/components/talent-resume-preview'
+import type { ResumeFormValues } from '@/features/resume/data/schema'
+import type { StructInfo } from '@/types/struct-info'
 
 export interface FileItem {
   id: string
@@ -34,6 +38,10 @@ export default function ResumeUploadPage() {
     failed: 0,
     success: 0,
   })
+  const [resumeOpen, setResumeOpen] = useState(false)
+  const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
+  const [currentName, setCurrentName] = useState<string>('简历预览')
+  const [resumeStruct, setResumeStruct] = useState<StructInfo | null>(null)
 
   const mapErrorToStatus = (error?: string, backendStatus?: BackendStatus): `${UploadCardStatusCode}` => {
     // 优先按后端数值状态映射
@@ -74,6 +82,59 @@ export default function ResumeUploadPage() {
     )
     return { running, failed, success }
   }, [items])
+
+  async function handleManualEdit(file: FileItem) {
+    setCurrentName(file.name)
+    setResumeOpen(true)
+    setResumeStruct(null)
+    const resumeId = file.backend?.id
+    if (!resumeId) {
+      setResumeValues({
+        name: file.name,
+        phone: '',
+        city: '',
+        gender: undefined,
+        email: '',
+        origin: '',
+        expectedSalary: '',
+        hobbies: '',
+        skills: '',
+        workSkillName: '',
+        workSkillLevel: undefined,
+        softSkills: '',
+        selfEvaluation: '',
+        workExperience: [],
+        projectExperience: [],
+        education: [],
+      })
+      return
+    }
+    const res = await fetchResumeDetail(resumeId)
+    const struct = res.success ? (res.item?.backend?.struct_info as StructInfo | undefined) : undefined
+    if (struct) {
+      setResumeValues(null)
+      setResumeStruct(struct)
+    } else {
+      setResumeValues({
+        name: file.name,
+        phone: '',
+        city: '',
+        gender: undefined,
+        email: '',
+        origin: '',
+        expectedSalary: '',
+        hobbies: '',
+        skills: '',
+        workSkillName: '',
+        workSkillLevel: undefined,
+        softSkills: '',
+        selfEvaluation: '',
+        workExperience: [],
+        projectExperience: [],
+        education: [],
+      })
+    }
+  }
 
   async function handleRefresh(options?: { refreshCounts?: boolean }) {
     const refreshCounts = options?.refreshCounts ?? false
@@ -189,7 +250,7 @@ export default function ResumeUploadPage() {
             <TabsContent value="running">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groups.running.map((f) => (
-                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} />
+                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} errorMsg={f.errorMsg} onManualEdit={() => { void handleManualEdit(f) }} />
                 ))}
               </div>
             </TabsContent>
@@ -202,6 +263,7 @@ export default function ResumeUploadPage() {
                     fileExt={f.ext}
                     status_code={f.status_code}
                     errorMsg={f.errorMsg}
+                    onManualEdit={() => { void handleManualEdit(f) }}
                     onRetryUpload={async () => {
                       // 失败项重试：重拉当前列表并刷新计数
                       await handleRefresh({ refreshCounts: true })
@@ -213,7 +275,7 @@ export default function ResumeUploadPage() {
             <TabsContent value="success">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groups.success.map((f) => (
-                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} />
+                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} errorMsg={f.errorMsg} onManualEdit={() => { void handleManualEdit(f) }} />
                 ))}
               </div>
             </TabsContent>
@@ -252,6 +314,21 @@ export default function ResumeUploadPage() {
           </div>
         </div>
       </Main>
+
+      {/* Drawer: 简历预览（复用人才库预览样式） */}
+      <Sheet open={resumeOpen} onOpenChange={setResumeOpen}>
+        <SheetContent className='flex w-full sm:max-w-none md:w-[85vw] lg:w-[60vw] xl:w-[50vw] flex-col px-4 md:px-5'>
+          <SheetTitle className='sr-only'>简历预览</SheetTitle>
+          <div className='flex pt-2 pb-2'>
+            <div className='text-2xl font-semibold'>{resumeStruct?.basic_info?.name ?? currentName}</div>
+          </div>
+          {resumeStruct ? (
+            <TalentResumePreview struct={resumeStruct} fallbackName={currentName} variant='withFooter' />
+          ) : (
+            resumeValues && <TalentResumePreview values={resumeValues} variant='withFooter' />
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   )
 }

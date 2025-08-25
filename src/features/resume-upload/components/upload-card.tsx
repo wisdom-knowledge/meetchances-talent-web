@@ -1,10 +1,11 @@
 import { FileIcon, Upload, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { motion, useAnimation } from 'framer-motion'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { UploadCardStatusCode } from '@/features/resume-upload/types'
+import { uploadFiles } from '@/features/resume-upload/utils/api'
 
 export type UploadStatusCode = `${UploadCardStatusCode}`
 
@@ -15,6 +16,7 @@ export interface UploadCardProps {
   onRetryUpload?: () => void
   onRetryParse?: () => void
   onRetryImport?: () => void
+  onManualEdit?: () => void
   errorMsg?: string
 }
 
@@ -37,28 +39,77 @@ const statusTextMap: Record<UploadStatusCode, string> = {
   [UploadCardStatusCode.DuplicateExists]: '已在系统中存在',
 }
 
+function getRetryButtonLabel(status: UploadStatusCode, errorMsg?: string): string {
+  const needUpdateInfoMessages = [
+    '解析结果中缺少有效的手机号',
+    '解析结果中缺少有效的邮箱',
+    '解析结果中缺少有效的姓名',
+    '解析结果中缺少有效的性别',
+  ]
+  if (needUpdateInfoMessages.includes(errorMsg || '')) {
+    return '更新信息'
+  }
+  if (
+    status === UploadCardStatusCode.ParseFailed ||
+    status === UploadCardStatusCode.ParseAbnormal
+  ) {
+    return '重新解析'
+  }
+  if (status.startsWith('import_')) {
+    return '重新录入'
+  }
+  return '重新上传'
+}
+
 export default function UploadCard({
   fileName,
   status_code,
   onRetryUpload,
   onRetryParse,
   onRetryImport,
+  onManualEdit,
   errorMsg,
 }: UploadCardProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const isError = status_code.includes('failed') ||
     status_code === UploadCardStatusCode.FormatUnsupported ||
     status_code === UploadCardStatusCode.FileCorrupted ||
     status_code === UploadCardStatusCode.ExceedLimit ||
     status_code === UploadCardStatusCode.ParseAbnormal
 
-  const retryAction = () => {
-    if (status_code === UploadCardStatusCode.UploadFailed || status_code === UploadCardStatusCode.FormatUnsupported || status_code === UploadCardStatusCode.FileCorrupted) {
-      onRetryUpload?.()
-    } else if (status_code === UploadCardStatusCode.ParseFailed || status_code === UploadCardStatusCode.ParseAbnormal) {
-      onRetryParse?.()
-    } else if (status_code === UploadCardStatusCode.ImportFailed || status_code === UploadCardStatusCode.ImportMissingInfo) {
-      onRetryImport?.()
+  const handleFilesSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || [])
+    if (files.length === 0) return
+    const formData = new FormData()
+    files.forEach((file) => formData.append('files', file))
+    try {
+      const res = await uploadFiles(formData)
+      if (res.success) {
+        onRetryUpload?.()
+      }
+    } catch {
+      // ignore, 页面其他地方会有统一错误提示
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
+  }
+
+  function 异常处理() {
+    const label = getRetryButtonLabel(status_code, errorMsg)
+    if (label === '重新上传') {
+      fileInputRef.current?.click()
+      return
+    }
+    if (label === '重新解析') {
+      onRetryParse?.()
+      return
+    }
+    // 手动编辑 / 更新信息 / 重新录入 等等
+    if (onManualEdit) {
+      onManualEdit()
+      return
+    }
+    onRetryImport?.()
   }
 
   const showRetry =
@@ -104,9 +155,18 @@ export default function UploadCard({
           </div>
 
           {showRetry && (
-            <Button size="sm" variant="secondary" onClick={retryAction}>
-              {status_code === UploadCardStatusCode.ParseFailed || status_code === UploadCardStatusCode.ParseAbnormal ? '重新解析' : status_code.startsWith('import_') ? '重新录入' : '重新上传'}
-            </Button>
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFilesSelected}
+                aria-label="重新上传文件"
+              />
+              <Button size="sm" variant="secondary" onClick={异常处理}>
+                {getRetryButtonLabel(status_code, errorMsg)}
+              </Button>
+            </>
           )}
         </div>
       </CardContent>
@@ -122,16 +182,16 @@ function UploadingTicker() {
     let isActive = true
     async function loop() {
       while (isActive) {
+        // 先设置初始位置，避免在挂载前调用 start
+        controls.set({ y: 0 })
         // 显示第1行 3s
-        await controls.start({ y: 0, transition: { duration: 0 } })
         await new Promise((r) => setTimeout(r, 3000))
         // 向上翻到第2行（0.5s）并停留 3s
         await controls.start({ y: -20, transition: { duration: 0.5, ease: 'easeInOut' } })
         await new Promise((r) => setTimeout(r, 3000))
-        // 向上翻到第3行（复制的第1行）
+        // 向上翻到第3行（复制的第1行），并复位
         await controls.start({ y: -40, transition: { duration: 0.5, ease: 'easeInOut' } })
-        // 立即复位到初始位置，形成“始终向上”的循环
-        await controls.start({ y: 0, transition: { duration: 0 } })
+        controls.set({ y: 0 })
       }
     }
     void loop()

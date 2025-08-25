@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@/components/ui/form'
 import { resumeSchema, type ResumeFormValues } from '@/features/resume/data/schema'
+import type { StructInfo } from '@/types/struct-info'
 import DynamicBasicForm from '@/features/resume/components/dynamic-basic-form'
 import DynamicWorkExperience from '@/features/resume/components/dynamic-work-experience'
 import ResumeSection from '@/features/resume/components/resume-section'
@@ -19,19 +20,116 @@ interface InviteContext {
 }
 
 interface TalentResumePreviewProps {
-  values: ResumeFormValues
+  values?: ResumeFormValues
+  struct?: StructInfo
+  fallbackName?: string
   inviteContext?: InviteContext
   variant?: 'withFooter' | 'noFooter'
 }
 
-export default function TalentResumePreview({ values, inviteContext, variant = 'withFooter' }: TalentResumePreviewProps) {
-  const form = useForm<ResumeFormValues>({ resolver: zodResolver(resumeSchema), defaultValues: values, mode: 'onChange' })
+function mapStructInfoToResumeValues(struct: StructInfo | undefined, fallbackName?: string): ResumeFormValues {
+  const basic = struct?.basic_info ?? {}
+  const exp = struct?.experience ?? {}
+  const self = struct?.self_assessment ?? {}
+
+  const work = Array.isArray(exp?.work_experience)
+    ? exp.work_experience.map((w) => ({
+        organization: w?.organization ?? '',
+        title: w?.title ?? '',
+        startDate: w?.start_date ?? '',
+        endDate: w?.end_date ?? '',
+        city: w?.city ?? '',
+        employmentType: w?.employment_type ?? '',
+        achievements: Array.isArray(w?.achievements) ? w.achievements.join('\n') : '',
+      }))
+    : []
+
+  const projects = Array.isArray(exp?.project_experience)
+    ? exp.project_experience.map((p) => ({
+        organization: p?.organization ?? '',
+        role: p?.role ?? '',
+        startDate: p?.start_date ?? '',
+        endDate: p?.end_date ?? '',
+        achievements: Array.isArray(p?.achievements) ? p.achievements.join('\n') : '',
+      }))
+    : []
+
+  const education = Array.isArray(exp?.education)
+    ? exp.education.map((e) => ({
+        institution: e?.institution ?? '',
+        major: e?.major ?? '',
+        degreeType: e?.degree_type ?? '',
+        degreeStatus: e?.degree_status ?? '',
+        city: e?.city ?? '',
+        startDate: e?.start_date ?? '',
+        endDate: e?.end_date ?? '',
+        achievements: Array.isArray(e?.achievements) ? e.achievements.join('\n') : '',
+      }))
+    : []
+
+  const hardSkills = Array.isArray(self?.hard_skills)
+    ? self.hard_skills.map((s) => s?.skill_name).filter(Boolean).join('、')
+    : ''
+
+  const gender = ((): '男' | '女' | '其他' | '不愿透露' | undefined => {
+    const g = basic?.gender ?? undefined
+    if (g === '男' || g === '女' || g === '其他' || g === '不愿透露') return g
+    return undefined
+  })()
+
+  const values: ResumeFormValues = {
+    name: basic?.name ?? fallbackName ?? '',
+    phone: basic?.phone ?? '',
+    city: basic?.city ?? '',
+    gender,
+    email: basic?.email ?? '',
+    origin: '',
+    expectedSalary: '',
+    hobbies: '',
+    skills: hardSkills,
+    workSkillName: '',
+    workSkillLevel: undefined,
+    softSkills: '',
+    selfEvaluation: self?.summary ?? '',
+    workExperience: work,
+    projectExperience: projects,
+    education,
+  }
+  return values
+}
+
+export default function TalentResumePreview({ values, struct, fallbackName, inviteContext, variant = 'withFooter' }: TalentResumePreviewProps) {
+  const computedValues: ResumeFormValues = useMemo(() => {
+    if (struct) return mapStructInfoToResumeValues(struct, fallbackName)
+    return (
+      values ?? {
+        name: fallbackName ?? '',
+        phone: '',
+        city: '',
+        gender: undefined,
+        email: '',
+        origin: '',
+        expectedSalary: '',
+        hobbies: '',
+        skills: '',
+        workSkillName: '',
+        workSkillLevel: undefined,
+        softSkills: '',
+        selfEvaluation: '',
+        workExperience: [],
+        projectExperience: [],
+        education: [],
+      }
+    )
+  }, [struct, values, fallbackName])
+
+  const form = useForm<ResumeFormValues>({ resolver: zodResolver(resumeSchema), defaultValues: computedValues, mode: 'onChange' })
   const user = useAuthStore((s) => s.auth.user)
 
-  // 当外部传入的简历值变化时，重置表单，避免保留上一次的内容
+  // 当外部传入内容变化时，重置表单，避免保留上一次的内容
   useEffect(() => {
-    form.reset(values)
-  }, [values, form])
+    form.reset(computedValues)
+  }, [computedValues, form])
 
   const headhunterName = useMemo(() => {
     if (inviteContext?.headhunterName) return inviteContext.headhunterName
