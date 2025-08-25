@@ -16,6 +16,8 @@ interface SelectDropdownProps {
   disabled?: boolean
   className?: string
   isControlled?: boolean
+  useFormControl?: boolean
+  prefix?: React.ReactNode
 }
 
 export function SelectDropdown({
@@ -28,6 +30,8 @@ export function SelectDropdown({
   disabled,
   className = '',
   isControlled = false,
+  useFormControl = true,
+  prefix,
 }: SelectDropdownProps) {
   const [open, setOpen] = useState(false)
   const [uncontrolledValue, setUncontrolledValue] = useState<string | undefined>(defaultValue)
@@ -51,18 +55,37 @@ export function SelectDropdown({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <FormControl>
+        {useFormControl ? (
+          <FormControl>
+            <Button
+              type='button'
+              variant='outline'
+              role='combobox'
+              disabled={disabled}
+              className={cn('justify-between gap-2 overflow-hidden', className)}
+            >
+              {prefix ? <span className='shrink-0 inline-flex items-center'>{prefix}</span> : null}
+              <span className='flex-1 min-w-0 truncate text-left'>
+                {selectedLabel ?? placeholder ?? 'Select'}
+              </span>
+              <CaretSortIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+            </Button>
+          </FormControl>
+        ) : (
           <Button
             type='button'
             variant='outline'
             role='combobox'
             disabled={disabled}
-            className={cn('justify-between', className)}
+            className={cn('justify-between gap-2 overflow-hidden', className)}
           >
-            {selectedLabel ?? placeholder ?? 'Select'}
+            {prefix ? <span className='shrink-0 inline-flex items-center'>{prefix}</span> : null}
+            <span className='flex-1 min-w-0 truncate text-left'>
+              {selectedLabel ?? placeholder ?? 'Select'}
+            </span>
             <CaretSortIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
           </Button>
-        </FormControl>
+        )}
       </PopoverTrigger>
       <PopoverContent className='min-w-56 p-0'>
         {isPending ? (

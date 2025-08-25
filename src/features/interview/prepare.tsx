@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button'
 import { UploadArea } from '@/features/resume-upload/upload-area'
 // import { useNavigate } from '@tanstack/react-router'
 import { useJobDetailQuery } from '@/features/jobs/api'
-import { IconArrowLeft, IconBriefcase, IconWorldPin } from '@tabler/icons-react'
+import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone } from '@tabler/icons-react'
 import { useState } from 'react'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+import { LocalCameraPreview } from '@/features/interview/components/local-camera-preview'
+import { SelectDropdown } from '@/components/select-dropdown'
+import { useMediaDeviceSelect } from '@livekit/components-react'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -44,8 +47,101 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.InterviewPrepare)
+  const [cameraStatus, setCameraStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle')
+  const [micStatus, setMicStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle')
+  const [spkStatus, setSpkStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle')
+  const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: true })
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
+
+  function DeviceSelectorsRow({
+    camActiveDeviceId,
+    camDevices,
+    onCamChange,
+    cameraStatus,
+    micStatus,
+    spkStatus,
+    onMicStatusChange,
+    onSpkStatusChange,
+  }: {
+    camActiveDeviceId?: string
+    camDevices: Array<{ deviceId: string; label: string }>
+    onCamChange: (id: string) => void
+    cameraStatus: 'idle' | 'testing' | 'success' | 'failed'
+    micStatus: 'idle' | 'testing' | 'success' | 'failed'
+    spkStatus: 'idle' | 'testing' | 'success' | 'failed'
+    onMicStatusChange: (s: 'idle' | 'testing' | 'success' | 'failed') => void
+    onSpkStatusChange: (s: 'idle' | 'testing' | 'success' | 'failed') => void
+  }) {
+    const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
+    const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
+
+    const statusText = (s: typeof cameraStatus) =>
+      s === 'success' ? '测试完成' : s === 'testing' ? '测试中' : s === 'failed' ? '测试失败' : '未测试'
+
+    return (
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+        {/* 摄像头选择 */}
+        <div className='flex flex-col gap-2 '>
+          <div className="flex items-center gap-2">
+            <IconVideo className='h-4 w-4' />
+            <SelectDropdown
+              isControlled
+              value={camActiveDeviceId}
+              onValueChange={(id: string) => onCamChange(id)}
+              placeholder='选择摄像头'
+              className='h-9 flex-1'
+              useFormControl={false}
+              items={camDevices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
+            />
+          </div>
+          <div className='text-xs text-muted-foreground'>{statusText(cameraStatus)}</div>
+        </div>
+
+        {/* 麦克风 */}
+        <div className='flex flex-col gap-2 '>
+          <div className='flex items-center gap-2'>
+            <IconMicrophone className='h-4 w-4' />
+            <SelectDropdown
+              isControlled
+              value={mic.activeDeviceId}
+              onValueChange={(v) => {
+                mic.setActiveMediaDevice(v)
+                onMicStatusChange('testing')
+                setTimeout(() => onMicStatusChange('success'), 500)
+              }}
+              placeholder='选择麦克风'
+              className='h-9 flex-1 overflow-x-hidden truncate'
+              useFormControl={false}
+              items={mic.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
+            />
+          </div>
+          <div className='text-xs text-muted-foreground'>{statusText(micStatus)}</div>
+        </div>
+
+        {/* 耳机/扬声器 */}
+        <div className='flex flex-col gap-2 '>
+          <div className='flex items-center gap-2'>
+            <IconVolume className='h-4 w-4' />
+            <SelectDropdown
+                isControlled
+                value={spk.activeDeviceId}
+                onValueChange={(v) => {
+                  spk.setActiveMediaDevice(v)
+                  onSpkStatusChange('testing')
+                  setTimeout(() => onSpkStatusChange('success'), 500)
+                }}
+                placeholder='选择输出设备（耳机/扬声器）'
+                className='h-9 flex-1 overflow-x-hidden truncate'
+                useFormControl={false}
+                items={spk.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
+              />
+          </div>
+          <div className='text-xs text-muted-foreground'>{statusText(spkStatus)}</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -149,9 +245,23 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                 <p>职位描述，这里的字段需要再明确</p>
               </div>
               {/* 用户摄像头展示区域 */}
-              <div>
+              <LocalCameraPreview heightClass='h-[360px]' onStatusChange={setCameraStatus} deviceId={cam.activeDeviceId} />
 
-              </div>
+              {/* 三个设备选择 + 状态 */}
+              <DeviceSelectorsRow
+                camActiveDeviceId={cam.activeDeviceId}
+                camDevices={cam.devices}
+                onCamChange={(v) => {
+                  cam.setActiveMediaDevice(v)
+                  setCameraStatus('testing')
+                  setTimeout(() => setCameraStatus('success'), 500)
+                }}
+                cameraStatus={cameraStatus}
+                micStatus={micStatus}
+                spkStatus={spkStatus}
+                onMicStatusChange={setMicStatus}
+                onSpkStatusChange={setSpkStatus}
+              />
             </div>
 
           {/* 右：操作区域 */}
