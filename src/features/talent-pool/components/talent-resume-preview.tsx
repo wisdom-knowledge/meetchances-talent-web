@@ -8,8 +8,9 @@ import DynamicWorkExperience from '@/features/resume/components/dynamic-work-exp
 import ResumeSection from '@/features/resume/components/resume-section'
 import { useAuthStore } from '@/stores/authStore'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
-type InviteContext = {
+interface InviteContext {
   headhunterName?: string
   jobTitle?: string
   salaryMin?: number
@@ -17,9 +18,13 @@ type InviteContext = {
   link?: string
 }
 
-type Props = { values: ResumeFormValues; inviteContext?: InviteContext }
+interface TalentResumePreviewProps {
+  values: ResumeFormValues
+  inviteContext?: InviteContext
+  variant?: 'withFooter' | 'noFooter'
+}
 
-export default function TalentResumePreview({ values, inviteContext }: Props) {
+export default function TalentResumePreview({ values, inviteContext, variant = 'withFooter' }: TalentResumePreviewProps) {
   const form = useForm<ResumeFormValues>({ resolver: zodResolver(resumeSchema), defaultValues: values, mode: 'onChange' })
   const user = useAuthStore((s) => s.auth.user)
 
@@ -66,7 +71,12 @@ export default function TalentResumePreview({ values, inviteContext }: Props) {
 
   return (
     <>
-      <div className='space-y-10 faded-bottom h-full w-full overflow-y-auto scroll-smooth pr-4 pb-28 [overflow-anchor:none]'>
+      <div
+        className={cn(
+          'space-y-10 faded-bottom h-full w-full overflow-y-auto scroll-smooth pr-4 [overflow-anchor:none]',
+          variant === 'withFooter' ? 'pb-28' : 'pb-6'
+        )}
+      >
         <ResumeSection id='section-basic' title='基本信息'>
           <Form {...form}>
             <form className='w-full space-y-6'>
@@ -100,17 +110,19 @@ export default function TalentResumePreview({ values, inviteContext }: Props) {
         </ResumeSection>
       </div>
       {/* 吸底操作区 */}
-      <div className='sticky bottom-0 left-0 right-0 z-10 -mb-10 pt-3 pb-3 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-        <div className='flex justify-start'>
-          <button
-            type='button'
-            onClick={handleCopyInvite}
-            className='inline-flex items-center rounded-md bg-primary px-4 py-2 text-primary-foreground text-sm font-medium shadow hover:opacity-90 disabled:opacity-60'
-          >
-            复制邀请文案
-          </button>
+      {variant === 'withFooter' && (
+        <div className='sticky bottom-0 left-0 right-0 z-10 -mb-10 pt-3 pb-3 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+          <div className='flex justify-start'>
+            <button
+              type='button'
+              onClick={handleCopyInvite}
+              className='inline-flex items-center rounded-md bg-primary px-4 py-2 text-primary-foreground text-sm font-medium shadow hover:opacity-90 disabled:opacity-60'
+            >
+              复制邀请文案
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </>
   )
 }

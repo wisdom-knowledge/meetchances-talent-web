@@ -394,7 +394,7 @@ export default function TalentTable({ data, onFilterChange, mode = 'talentPool',
           <div className='flex pt-2 pb-2'>
             <div className='text-2xl font-semibold'>{current?.name ?? '简历预览'}</div>
           </div>
-          {resumeValues && <TalentResumePreview values={resumeValues} inviteContext={mergedInviteContext} />}
+          {resumeValues && <TalentResumePreview values={resumeValues} inviteContext={mergedInviteContext} variant='withFooter' />}
         </SheetContent>
       </Sheet>
     </div>

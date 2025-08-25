@@ -25,7 +25,7 @@ export interface FileItem {
 
 export default function ResumeUploadPage() {
   const [items, setItems] = useState<FileItem[]>([])
-  const [tab, setTab] = useState<'running' | 'failed' | 'success'>('running')
+  const [tab, setTab] = useState<'running' | 'failed' | 'success'>('success')
   const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
