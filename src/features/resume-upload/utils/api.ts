@@ -1,11 +1,12 @@
 import { api } from '@/lib/api'
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query'
 import { BackendStatus } from '@/features/resume-upload/types'
+import type { StructInfo } from '@/types/struct-info'
 
 export interface UploadBackendSubset {
   source: number
   status: BackendStatus
-  struct_info: unknown
+  struct_info: StructInfo | null
   is_in_pool: boolean
   is_del: boolean
   id: number
@@ -41,7 +42,7 @@ type BackendItem = {
   source: number
   status: number
   status_msg?: string
-  struct_info: unknown
+  struct_info: StructInfo | null
   is_in_pool: boolean
   is_del: boolean
   id: number
@@ -178,6 +179,17 @@ export function useUploadResumesMutation(
   options?: UseMutationOptions<{ success: boolean; data: UploadResultItem[] }, unknown, FormData>
 ) {
   return useMutation({ mutationFn: (fd: FormData) => uploadFiles(fd), ...options })
+}
+
+
+// 更新简历详情：PATCH /api/v1/headhunter/resume_detail/{resume_id}
+export async function updateResumeDetail(resumeId: number, structInfo: StructInfo | Record<string, never>): Promise<{ success: boolean }> {
+  try {
+    await api.patch(`/headhunter/resume_detail/${resumeId}`, { struct_info: structInfo })
+    return { success: true }
+  } catch (_e) {
+    return { success: false }
+  }
 }
 
 

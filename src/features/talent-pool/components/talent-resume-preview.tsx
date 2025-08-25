@@ -20,6 +20,7 @@ interface TalentResumePreviewProps {
   editable?: boolean
   footer?: ReactNode
   className?: string
+  onStructChange?: (struct: StructInfo) => void
 }
 
 function mapStructInfoToResumeValues(struct: StructInfo | undefined, fallbackName?: string): ResumeFormValues {
@@ -93,7 +94,7 @@ function mapStructInfoToResumeValues(struct: StructInfo | undefined, fallbackNam
   return values
 }
 
-export default function TalentResumePreview({ values, struct, fallbackName, editable = true, footer, className }: TalentResumePreviewProps) {
+export default function TalentResumePreview({ values, struct, fallbackName, editable = true, footer, className, onStructChange }: TalentResumePreviewProps) {
   const computedValues: ResumeFormValues = useMemo(() => {
     if (struct) return mapStructInfoToResumeValues(struct, fallbackName)
     return (
@@ -124,6 +125,85 @@ export default function TalentResumePreview({ values, struct, fallbackName, edit
   useEffect(() => {
     form.reset(computedValues)
   }, [computedValues, form])
+
+  function mapFormValuesToStructInfo(v: ResumeFormValues): StructInfo {
+    const hardSkills = (v.skills || '')
+      .split(/[,，、\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((skill) => ({ skill_name: skill, proficiency: null }))
+
+    return {
+      basic_info: {
+        name: v.name || '',
+        phone: v.phone || '',
+        city: v.city || '',
+        gender: v.gender ?? null,
+        email: v.email || '',
+      },
+      experience: {
+        work_experience: (v.workExperience || []).map((w) => ({
+          organization: w.organization || '',
+          title: w.title || '',
+          start_date: w.startDate || '',
+          end_date: w.endDate || '',
+          city: w.city || '',
+          employment_type: w.employmentType || '',
+          achievements: (w.achievements || '')
+            ? String(w.achievements)
+                .split(/\n/)
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [],
+        })),
+        project_experience: (v.projectExperience || []).map((p) => ({
+          organization: p.organization || '',
+          role: p.role || '',
+          start_date: p.startDate || '',
+          end_date: p.endDate || '',
+          achievements: (p.achievements || '')
+            ? String(p.achievements)
+                .split(/\n/)
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [],
+        })),
+        education: (v.education || []).map((e) => ({
+          institution: e.institution || '',
+          major: e.major || '',
+          degree_type: e.degreeType || '',
+          degree_status: e.degreeStatus || '',
+          city: e.city || '',
+          start_date: e.startDate || '',
+          end_date: e.endDate || '',
+          achievements: (e.achievements || '')
+            ? String(e.achievements)
+                .split(/\n/)
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [],
+        })),
+      },
+      self_assessment: {
+        summary: v.selfEvaluation || '',
+        hard_skills: hardSkills,
+        soft_skills: [],
+      },
+    }
+  }
+
+  // 将表单实时变更映射为 StructInfo 上抛
+  useEffect(() => {
+    const subscription = form.watch((val) => {
+      try {
+        const structInfo = mapFormValuesToStructInfo(val as ResumeFormValues)
+        onStructChange?.(structInfo)
+      } catch {
+        // ignore mapping errors
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form, onStructChange])
 
   // Footer 内容由外部传入
 

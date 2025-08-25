@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
@@ -8,7 +8,7 @@ import { UploadArea, type UploadResult } from '@/features/resume-upload/upload-a
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BackendStatus, UploadCardStatusCode } from './types'
 import { Button } from '@/components/ui/button'
-import { fetchResumes, fetchResumeDetail, type UploadResultItem } from './utils/api'
+import { fetchResumes, fetchResumeDetail, updateResumeDetail, type UploadResultItem } from './utils/api'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import TalentResumePreview from '@/features/talent-pool/components/talent-resume-preview'
 import type { ResumeFormValues } from '@/features/resume/data/schema'
@@ -43,6 +43,12 @@ export default function ResumeUploadPage() {
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
   const [currentName, setCurrentName] = useState<string>('简历预览')
   const [resumeStruct, setResumeStruct] = useState<StructInfo | null>(null)
+  const [editedStruct, setEditedStruct] = useState<StructInfo | null>(null)
+  const [currentResumeId, setCurrentResumeId] = useState<number | null>(null)
+
+  const handleStructChange = useCallback((s: StructInfo) => {
+    setEditedStruct(s)
+  }, [])
 
   const mapErrorToStatus = (error?: string, backendStatus?: BackendStatus): `${UploadCardStatusCode}` => {
     // 优先按后端数值状态映射
@@ -88,6 +94,7 @@ export default function ResumeUploadPage() {
     setCurrentName(file.name)
     setResumeOpen(true)
     setResumeStruct(null)
+    setCurrentResumeId(null)
     const resumeId = file.backend?.id
     if (!resumeId) {
       setResumeValues({
@@ -110,6 +117,7 @@ export default function ResumeUploadPage() {
       })
       return
     }
+    setCurrentResumeId(resumeId)
     const res = await fetchResumeDetail(resumeId)
     const struct = res.success ? (res.item?.backend?.struct_info as StructInfo | undefined) : undefined
     if (struct) {
@@ -352,10 +360,22 @@ export default function ResumeUploadPage() {
             <TalentResumePreview
               struct={resumeStruct}
               fallbackName={currentName}
+              onStructChange={handleStructChange}
               footer={
                 <div className='flex gap-2 justify-end'>
                   <Button variant='outline' onClick={() => setResumeOpen(false)}>关闭</Button>
-                  <Button onClick={() => {
+                  <Button onClick={async () => {
+                    if (!currentResumeId) {
+                      setResumeOpen(false)
+                      setResumeValues(null)
+                      setResumeStruct(null)
+                      return
+                    }
+                    const payload = editedStruct ?? resumeStruct ?? ({} as StructInfo)
+                    const ok = await updateResumeDetail(currentResumeId, payload)
+                    if (ok.success) {
+                      await handleRefresh({ refreshCounts: true })
+                    }
                     setResumeOpen(false)
                     setResumeValues(null)
                     setResumeStruct(null)
@@ -367,6 +387,7 @@ export default function ResumeUploadPage() {
             resumeValues && (
               <TalentResumePreview
                 values={resumeValues}
+                onStructChange={handleStructChange}
                 footer={<Button onClick={() => setResumeOpen(false)}>关闭</Button>}
               />
             )
