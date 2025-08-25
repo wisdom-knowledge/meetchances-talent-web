@@ -1,11 +1,12 @@
 import { api } from '@/lib/api'
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query'
 import { BackendStatus } from '@/features/resume-upload/types'
+import type { StructInfo } from '@/types/struct-info'
 
 export interface UploadBackendSubset {
   source: number
   status: BackendStatus
-  struct_info: unknown
+  struct_info: StructInfo | null
   is_in_pool: boolean
   is_del: boolean
   id: number
@@ -41,7 +42,7 @@ type BackendItem = {
   source: number
   status: number
   status_msg?: string
-  struct_info: unknown
+  struct_info: StructInfo | null
   is_in_pool: boolean
   is_del: boolean
   id: number
@@ -115,10 +116,15 @@ export async function fetchResumesByIds(resumeIds: number[]): Promise<{ success:
 export interface FetchResumesParams {
   skip?: number
   limit?: number
-  status?: number | number[] | string
+  status?: BackendStatus
 }
 
-export async function fetchResumes(params: FetchResumesParams): Promise<{ success: boolean; data: UploadResultItem[]; count: number }> {
+export async function fetchResumes(params: FetchResumesParams): Promise<{
+  success: boolean;
+  data: UploadResultItem[];
+  count: number;
+  average_parse_time: number;
+}> {
   const toCommaParam = (v?: number | number[] | string) => {
     if (v === undefined || v === null) return undefined
     if (Array.isArray(v)) return v.join(',')
@@ -134,12 +140,14 @@ export async function fetchResumes(params: FetchResumesParams): Promise<{ succes
     })) as {
       data?: BackendItem[]
       count?: number
+      average_parse_time?: number
     }
     const items = Array.isArray(res?.data) ? res.data : []
     const count = typeof res?.count === 'number' ? res.count : items.length
-    return { success: true, data: mapBackendItems(items), count }
+    const average_parse_time = typeof res?.average_parse_time === 'number' ? res.average_parse_time : 0
+    return { success: true, data: mapBackendItems(items), count, average_parse_time }
   } catch (_e) {
-    return { success: false, data: [], count: 0 }
+    return { success: false, data: [], count: 0, average_parse_time: 0 }
   }
 }
 
@@ -171,6 +179,17 @@ export function useUploadResumesMutation(
   options?: UseMutationOptions<{ success: boolean; data: UploadResultItem[] }, unknown, FormData>
 ) {
   return useMutation({ mutationFn: (fd: FormData) => uploadFiles(fd), ...options })
+}
+
+
+// 更新简历详情：PATCH /api/v1/headhunter/resume_detail/{resume_id}
+export async function updateResumeDetail(resumeId: number, structInfo: StructInfo | Record<string, never>): Promise<{ success: boolean }> {
+  try {
+    await api.patch(`/headhunter/resume_detail/${resumeId}`, { struct_info: structInfo })
+    return { success: true }
+  } catch (_e) {
+    return { success: false }
+  }
 }
 
 

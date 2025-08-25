@@ -20,6 +20,7 @@ import { DataTablePagination } from '@/features/users/components/data-table-pagi
 import { DataTableToolbar } from '@/features/users/components/data-table-toolbar'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import TalentResumePreview from './talent-resume-preview'
+import type { StructInfo } from '@/types/struct-info'
 import type { ResumeFormValues } from '@/features/resume/data/schema'
 import { fetchResumeDetail } from '@/features/resume-upload/utils/api'
 
@@ -60,11 +61,11 @@ export interface TalentTableProps {
   mode?: 'talentPool' | 'jobRecommend'
   inviteContext?: InviteContextLike
 }
-export default function TalentTable({ data, onFilterChange, mode = 'talentPool', inviteContext }: TalentTableProps) {
+export default function TalentTable({ data, onFilterChange, mode = 'talentPool', inviteContext: _inviteContext }: TalentTableProps) {
   const [resumeOpen, setResumeOpen] = useState(false)
   const [current, setCurrent] = useState<TalentItem | null>(null)
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
-  const mergedInviteContext = useMemo(() => ({ link: 'https://talent.meetchances.com/', ...(inviteContext ?? {}) }), [inviteContext])
+  // const mergedInviteContext = useMemo(() => ({ link: 'https://talent.meetchances.com/', ...(inviteContext ?? {}) }), [inviteContext])
 
   const mapStructInfoToResumeValues = useCallback((struct: StructInfo | undefined, fallbackName?: string): ResumeFormValues => {
     const basic = struct?.basic_info ?? {}
@@ -167,48 +168,7 @@ export default function TalentTable({ data, onFilterChange, mode = 'talentPool',
     setResumeValues(values)
   }, [mapStructInfoToResumeValues])
 
-  interface StructInfo {
-    basic_info?: {
-      city?: string | null
-      name?: string | null
-      email?: string | null
-      phone?: string | null
-      gender?: '男' | '女' | string | null
-    }
-    experience?: {
-      education?: Array<{
-        city?: string | null
-        major?: string | null
-        end_date?: string | null
-        start_date?: string | null
-        degree_type?: string | null
-        institution?: string | null
-        achievements?: string[] | null
-        degree_status?: string | null
-      }>
-      work_experience?: Array<{
-        city?: string | null
-        title?: string | null
-        end_date?: string | null
-        start_date?: string | null
-        achievements?: string[] | null
-        organization?: string | null
-        employment_type?: string | null
-      }>
-      project_experience?: Array<{
-        role?: string | null
-        end_date?: string | null
-        start_date?: string | null
-        achievements?: string[] | null
-        organization?: string | null
-      }>
-    }
-    self_assessment?: {
-      summary?: string | null
-      hard_skills?: Array<{ skill_name?: string | null; proficiency?: string | null }>
-      soft_skills?: unknown[]
-    } | null
-  }
+  
 
   const columns: ColumnDef<TalentItem>[] = useMemo(() => {
     const nameCol: ColumnDef<TalentItem> = {
@@ -394,7 +354,12 @@ export default function TalentTable({ data, onFilterChange, mode = 'talentPool',
           <div className='flex pt-2 pb-2'>
             <div className='text-2xl font-semibold'>{current?.name ?? '简历预览'}</div>
           </div>
-          {resumeValues && <TalentResumePreview values={resumeValues} inviteContext={mergedInviteContext} />}
+          {resumeValues && (
+            <TalentResumePreview
+              values={resumeValues}
+              footer={<Button onClick={() => setResumeOpen(false)}>关闭</Button>}
+            />
+          )}
         </SheetContent>
       </Sheet>
     </div>

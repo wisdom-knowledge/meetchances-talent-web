@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
@@ -8,7 +8,11 @@ import { UploadArea, type UploadResult } from '@/features/resume-upload/upload-a
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BackendStatus, UploadCardStatusCode } from './types'
 import { Button } from '@/components/ui/button'
-import { fetchResumes, type UploadResultItem } from './utils/api'
+import { fetchResumes, fetchResumeDetail, updateResumeDetail, type UploadResultItem } from './utils/api'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+import TalentResumePreview from '@/features/talent-pool/components/talent-resume-preview'
+import type { ResumeFormValues } from '@/features/resume/data/schema'
+import type { StructInfo } from '@/types/struct-info'
 
 export interface FileItem {
   id: string
@@ -25,10 +29,26 @@ export interface FileItem {
 
 export default function ResumeUploadPage() {
   const [items, setItems] = useState<FileItem[]>([])
-  const [tab, setTab] = useState<'running' | 'failed' | 'success'>('running')
+  const [tab, setTab] = useState<'running' | 'failed' | 'success'>('success')
   const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const [counts, setCounts] = useState<{ running: number; failed: number; success: number }>({
+    running: 0,
+    failed: 0,
+    success: 0,
+  })
+  const [avgParseMinutes, setAvgParseMinutes] = useState<number>(5)
+  const [resumeOpen, setResumeOpen] = useState(false)
+  const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
+  const [currentName, setCurrentName] = useState<string>('简历预览')
+  const [resumeStruct, setResumeStruct] = useState<StructInfo | null>(null)
+  const [editedStruct, setEditedStruct] = useState<StructInfo | null>(null)
+  const [currentResumeId, setCurrentResumeId] = useState<number | null>(null)
+
+  const handleStructChange = useCallback((s: StructInfo) => {
+    setEditedStruct(s)
+  }, [])
 
   const mapErrorToStatus = (error?: string, backendStatus?: BackendStatus): `${UploadCardStatusCode}` => {
     // 优先按后端数值状态映射
@@ -70,7 +90,63 @@ export default function ResumeUploadPage() {
     return { running, failed, success }
   }, [items])
 
-  async function handleRefresh() {
+  async function handleManualEdit(file: FileItem) {
+    setCurrentName(file.name)
+    setResumeOpen(true)
+    setResumeStruct(null)
+    setCurrentResumeId(null)
+    const resumeId = file.backend?.id
+    if (!resumeId) {
+      setResumeValues({
+        name: file.name,
+        phone: '',
+        city: '',
+        gender: undefined,
+        email: '',
+        origin: '',
+        expectedSalary: '',
+        hobbies: '',
+        skills: '',
+        workSkillName: '',
+        workSkillLevel: undefined,
+        softSkills: '',
+        selfEvaluation: '',
+        workExperience: [],
+        projectExperience: [],
+        education: [],
+      })
+      return
+    }
+    setCurrentResumeId(resumeId)
+    const res = await fetchResumeDetail(resumeId)
+    const struct = res.success ? (res.item?.backend?.struct_info as StructInfo | undefined) : undefined
+    if (struct) {
+      setResumeValues(null)
+      setResumeStruct(struct)
+    } else {
+      setResumeValues({
+        name: file.name,
+        phone: '',
+        city: '',
+        gender: undefined,
+        email: '',
+        origin: '',
+        expectedSalary: '',
+        hobbies: '',
+        skills: '',
+        workSkillName: '',
+        workSkillLevel: undefined,
+        softSkills: '',
+        selfEvaluation: '',
+        workExperience: [],
+        projectExperience: [],
+        education: [],
+      })
+    }
+  }
+
+  async function handleRefresh(options?: { refreshCounts?: boolean }) {
+    const refreshCounts = options?.refreshCounts ?? false
     // 改为调用 headhunter/resumes 接口（枚举值）
     const statusParam = tab === 'running' ? BackendStatus.InProgress : tab === 'success' ? BackendStatus.Success : BackendStatus.Failed
     const skip = (page - 1) * pageSize
@@ -88,13 +164,85 @@ export default function ResumeUploadPage() {
     }))
     setItems(refreshed)
     setTotal(res.count)
+    // 解析耗时：后端单位为秒，前端显示分钟，向上取整
+    const minutes = Math.max(1, Math.ceil((res.average_parse_time ?? 0) / 60))
+    setAvgParseMinutes(minutes)
+
+    // 仅在需要时刷新计数，尽量避免重复请求
+    if (refreshCounts) {
+      const getCount = async (statusValue: BackendStatus) => {
+        const r = await fetchResumes({ skip: 0, limit: 1, status: statusValue })
+        return r.count || 0
+      }
+
+      const currentTab = tab
+      let runningCount = counts.running
+      let failedCount = counts.failed
+      let successCount = counts.success
+
+      // 当前 tab 的计数直接使用 res.count，其他两个 tab 发起轻量计数请求
+      if (currentTab === 'running') runningCount = res.count
+      if (currentTab === 'failed') failedCount = res.count
+      if (currentTab === 'success') successCount = res.count
+
+      const promises: Promise<void>[] = []
+      if (currentTab !== 'running') {
+        promises.push(
+          getCount(BackendStatus.InProgress).then((c) => {
+            runningCount = c
+          })
+        )
+      }
+      if (currentTab !== 'failed') {
+        promises.push(
+          getCount(BackendStatus.Failed).then((c) => { failedCount = c })
+        )
+      }
+      if (currentTab !== 'success') {
+        promises.push(
+          getCount(BackendStatus.Success).then((c) => {
+            successCount = c
+          })
+        )
+      }
+
+      await Promise.all(promises)
+      setCounts({ running: runningCount, failed: failedCount, success: successCount })
+    }
   }
 
-  // 首次加载与依赖变更时拉取当前 tab 列表
+  // 切换 Tab 或首次加载：拉取列表并刷新计数
   useEffect(() => {
-    void handleRefresh()
+    void handleRefresh({ refreshCounts: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, page, pageSize])
+  }, [tab])
+
+  // 分页变化：仅拉取当前 tab 列表，不刷新计数，避免重复调用
+  useEffect(() => {
+    void handleRefresh({ refreshCounts: false })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize])
+
+  // 当“进行中”列表存在数据时，启动5s自动刷新
+  const isPollingRef = useRef(false)
+  useEffect(() => {
+    if (tab !== 'running' || groups.running.length === 0) return
+
+    const intervalId = setInterval(async () => {
+      if (isPollingRef.current) return
+      isPollingRef.current = true
+      try {
+        await handleRefresh()
+      } finally {
+        isPollingRef.current = false
+      }
+    }, 5000)
+
+    return () => {
+      clearInterval(intervalId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, groups.running.length])
 
   return (
     <>
@@ -111,7 +259,7 @@ export default function ResumeUploadPage() {
               <h1 className='text-2xl font-bold tracking-tight md:text-3xl mb-2'>批量上传简历</h1>
             </div>
             {items.length > 0 && (
-              <Button variant='outline' onClick={handleRefresh}>刷新</Button>
+              <Button variant='outline' onClick={() => { void handleRefresh({ refreshCounts: true }) }}>刷新</Button>
             )}
           </div>
         </div>
@@ -121,21 +269,21 @@ export default function ResumeUploadPage() {
           <UploadArea
             onUploadComplete={(_results: UploadResult[]) => {
               // 上传完成后，不再直接使用 upload 接口返回渲染，改为调用 headhunter/resumes 拉取
-              void handleRefresh()
+              void handleRefresh({ refreshCounts: true })
             }}
           />
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
             <TabsList>
-              <TabsTrigger value="running">进行中</TabsTrigger>
-              <TabsTrigger value="failed">失败</TabsTrigger>
-              <TabsTrigger value="success">成功</TabsTrigger>
+              <TabsTrigger value="running">进行中({counts.running})</TabsTrigger>
+              <TabsTrigger value="failed">失败({counts.failed})</TabsTrigger>
+              <TabsTrigger value="success">成功({counts.success})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="running">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groups.running.map((f) => (
-                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} />
+                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} errorMsg={f.errorMsg} parseMinutes={avgParseMinutes} onManualEdit={() => { void handleManualEdit(f) }} />
                 ))}
               </div>
             </TabsContent>
@@ -148,9 +296,11 @@ export default function ResumeUploadPage() {
                     fileExt={f.ext}
                     status_code={f.status_code}
                     errorMsg={f.errorMsg}
+                    parseMinutes={avgParseMinutes}
+                    onManualEdit={() => { void handleManualEdit(f) }}
                     onRetryUpload={async () => {
-                      // 失败项重试：重拉当前列表
-                      await handleRefresh()
+                      // 失败项重试：重拉当前列表并刷新计数
+                      await handleRefresh({ refreshCounts: true })
                     }}
                   />
                 ))}
@@ -159,7 +309,7 @@ export default function ResumeUploadPage() {
             <TabsContent value="success">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groups.success.map((f) => (
-                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} />
+                  <UploadCard key={f.id} fileName={f.name} fileExt={f.ext} status_code={f.status_code} errorMsg={f.errorMsg} parseMinutes={avgParseMinutes} onManualEdit={() => { void handleManualEdit(f) }} />
                 ))}
               </div>
             </TabsContent>
@@ -198,6 +348,52 @@ export default function ResumeUploadPage() {
           </div>
         </div>
       </Main>
+
+      {/* Drawer: 简历预览（复用人才库预览样式） */}
+      <Sheet open={resumeOpen} onOpenChange={setResumeOpen}>
+        <SheetContent className='flex w-full sm:max-w-none md:w-[85vw] lg:w-[60vw] xl:w-[50vw] flex-col px-4 md:px-5'>
+          <SheetTitle className='sr-only'>简历预览</SheetTitle>
+          <div className='flex pt-2 pb-2'>
+            <div className='text-2xl font-semibold'>{resumeStruct?.basic_info?.name ?? currentName}</div>
+          </div>
+          {resumeStruct ? (
+            <TalentResumePreview
+              struct={resumeStruct}
+              fallbackName={currentName}
+              onStructChange={handleStructChange}
+              footer={
+                <div className='flex gap-2 justify-end'>
+                  <Button variant='outline' onClick={() => setResumeOpen(false)}>关闭</Button>
+                  <Button onClick={async () => {
+                    if (!currentResumeId) {
+                      setResumeOpen(false)
+                      setResumeValues(null)
+                      setResumeStruct(null)
+                      return
+                    }
+                    const payload = editedStruct ?? resumeStruct ?? ({} as StructInfo)
+                    const ok = await updateResumeDetail(currentResumeId, payload)
+                    if (ok.success) {
+                      await handleRefresh({ refreshCounts: true })
+                    }
+                    setResumeOpen(false)
+                    setResumeValues(null)
+                    setResumeStruct(null)
+                  }}>提交</Button>
+                </div>
+              }
+            />
+          ) : (
+            resumeValues && (
+              <TalentResumePreview
+                values={resumeValues}
+                onStructChange={handleStructChange}
+                footer={<Button onClick={() => setResumeOpen(false)}>关闭</Button>}
+              />
+            )
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   )
 }
