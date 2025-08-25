@@ -349,9 +349,27 @@ export default function ResumeUploadPage() {
             <div className='text-2xl font-semibold'>{resumeStruct?.basic_info?.name ?? currentName}</div>
           </div>
           {resumeStruct ? (
-            <TalentResumePreview struct={resumeStruct} fallbackName={currentName} variant='withFooter' />
+            <TalentResumePreview
+              struct={resumeStruct}
+              fallbackName={currentName}
+              footer={
+                <div className='flex gap-2 justify-end'>
+                  <Button variant='outline' onClick={() => setResumeOpen(false)}>关闭</Button>
+                  <Button onClick={() => {
+                    setResumeOpen(false)
+                    setResumeValues(null)
+                    setResumeStruct(null)
+                  }}>提交</Button>
+                </div>
+              }
+            />
           ) : (
-            resumeValues && <TalentResumePreview values={resumeValues} variant='withFooter' />
+            resumeValues && (
+              <TalentResumePreview
+                values={resumeValues}
+                footer={<Button onClick={() => setResumeOpen(false)}>关闭</Button>}
+              />
+            )
           )}
         </SheetContent>
       </Sheet>

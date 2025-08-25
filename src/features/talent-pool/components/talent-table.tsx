@@ -61,11 +61,11 @@ export interface TalentTableProps {
   mode?: 'talentPool' | 'jobRecommend'
   inviteContext?: InviteContextLike
 }
-export default function TalentTable({ data, onFilterChange, mode = 'talentPool', inviteContext }: TalentTableProps) {
+export default function TalentTable({ data, onFilterChange, mode = 'talentPool', inviteContext: _inviteContext }: TalentTableProps) {
   const [resumeOpen, setResumeOpen] = useState(false)
   const [current, setCurrent] = useState<TalentItem | null>(null)
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
-  const mergedInviteContext = useMemo(() => ({ link: 'https://talent.meetchances.com/', ...(inviteContext ?? {}) }), [inviteContext])
+  // const mergedInviteContext = useMemo(() => ({ link: 'https://talent.meetchances.com/', ...(inviteContext ?? {}) }), [inviteContext])
 
   const mapStructInfoToResumeValues = useCallback((struct: StructInfo | undefined, fallbackName?: string): ResumeFormValues => {
     const basic = struct?.basic_info ?? {}
@@ -354,7 +354,12 @@ export default function TalentTable({ data, onFilterChange, mode = 'talentPool',
           <div className='flex pt-2 pb-2'>
             <div className='text-2xl font-semibold'>{current?.name ?? '简历预览'}</div>
           </div>
-          {resumeValues && <TalentResumePreview values={resumeValues} inviteContext={mergedInviteContext} variant='withFooter' />}
+          {resumeValues && (
+            <TalentResumePreview
+              values={resumeValues}
+              footer={<Button onClick={() => setResumeOpen(false)}>关闭</Button>}
+            />
+          )}
         </SheetContent>
       </Sheet>
     </div>
