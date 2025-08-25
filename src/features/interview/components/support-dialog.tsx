@@ -23,7 +23,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 const formSchema = z.object({
   problem: z.string().min(1, '请说明您的问题'),
-  contact: z.enum(['phone', 'none'], { required_error: '请选择反馈方式' }),
+  // 兼容当前 zod 版本：第二参数仅支持 { message | error }
+  contact: z.enum(['phone', 'none'], { error: '请选择反馈方式' }),
 })
 
 type FormValues = z.infer<typeof formSchema>

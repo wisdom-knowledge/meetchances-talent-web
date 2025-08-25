@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Main } from '@/components/layout/main'
-import { Separator } from '@/components/ui/separator'
 import { LiveKitRoom, RoomAudioRenderer, StartAudio, useConnectionState, useRoomContext } from '@livekit/components-react'
 import { LogLevel, RoomEvent, setLogLevel } from 'livekit-client'
 import { AgentControlBar } from '@/components/livekit/agent-control-bar'
