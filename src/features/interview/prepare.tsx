@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { LocalCameraPreview } from '@/features/interview/components/local-camera-preview'
 import { SelectDropdown } from '@/components/select-dropdown'
 import { useMediaDeviceSelect } from '@livekit/components-react'
+import { DeviceTestStatus } from '@/types/device'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -47,9 +48,9 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.InterviewPrepare)
-  const [cameraStatus, setCameraStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle')
-  const [micStatus, setMicStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle')
-  const [spkStatus, setSpkStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle')
+  const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
+  const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
+  const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: true })
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
@@ -67,17 +68,17 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
     camActiveDeviceId?: string
     camDevices: Array<{ deviceId: string; label: string }>
     onCamChange: (id: string) => void
-    cameraStatus: 'idle' | 'testing' | 'success' | 'failed'
-    micStatus: 'idle' | 'testing' | 'success' | 'failed'
-    spkStatus: 'idle' | 'testing' | 'success' | 'failed'
-    onMicStatusChange: (s: 'idle' | 'testing' | 'success' | 'failed') => void
-    onSpkStatusChange: (s: 'idle' | 'testing' | 'success' | 'failed') => void
+    cameraStatus: DeviceTestStatus
+    micStatus: DeviceTestStatus
+    spkStatus: DeviceTestStatus
+    onMicStatusChange: (s: DeviceTestStatus) => void
+    onSpkStatusChange: (s: DeviceTestStatus) => void
   }) {
     const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
 
     const statusText = (s: typeof cameraStatus) =>
-      s === 'success' ? '测试完成' : s === 'testing' ? '测试中' : s === 'failed' ? '测试失败' : '未测试'
+      s === DeviceTestStatus.Success ? '测试完成' : s === DeviceTestStatus.Testing ? '测试中' : s === DeviceTestStatus.Failed ? '测试失败' : '未测试'
 
     return (
       <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
@@ -107,8 +108,8 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
               value={mic.activeDeviceId}
               onValueChange={(v) => {
                 mic.setActiveMediaDevice(v)
-                onMicStatusChange('testing')
-                setTimeout(() => onMicStatusChange('success'), 500)
+                onMicStatusChange(DeviceTestStatus.Testing)
+                setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
               }}
               placeholder='选择麦克风'
               className='h-9 flex-1 overflow-x-hidden truncate'
@@ -128,8 +129,8 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                 value={spk.activeDeviceId}
                 onValueChange={(v) => {
                   spk.setActiveMediaDevice(v)
-                  onSpkStatusChange('testing')
-                  setTimeout(() => onSpkStatusChange('success'), 500)
+                  onSpkStatusChange(DeviceTestStatus.Testing)
+                  setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
                 }}
                 placeholder='选择输出设备（耳机/扬声器）'
                 className='h-9 flex-1 overflow-x-hidden truncate'
@@ -237,7 +238,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
 
         {/* 主要布局组件 —— 面试准备 */}
         {viewMode === ViewMode.InterviewPrepare && (
-          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12'>
+          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
             {/* 左：职位标题 + 设备检查 */}
             <div className='lg:col-span-7 space-y-6'>
               <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
@@ -253,8 +254,8 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                 camDevices={cam.devices}
                 onCamChange={(v) => {
                   cam.setActiveMediaDevice(v)
-                  setCameraStatus('testing')
-                  setTimeout(() => setCameraStatus('success'), 500)
+                  setCameraStatus(DeviceTestStatus.Testing)
+                  setTimeout(() => setCameraStatus(DeviceTestStatus.Success), 500)
                 }}
                 cameraStatus={cameraStatus}
                 micStatus={micStatus}
@@ -264,15 +265,13 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
               />
             </div>
 
-          {/* 右：操作区域 */}
-            <div className='lg:col-span-5'>
-              <div className='p-6 sticky'>
-                <UploadArea className='my-4' onUploadComplete={(_results) => { /* 上传完成后保留页面即可 */ }} />
-                <div className='my-4'>
-                  <Button className='w-full' onClick={() => setConfirmOpen(true)}>
-                    确认简历，下一步
-                  </Button>
-                </div>
+            {/* 右：操作区域 */}
+            <div className='lg:col-span-5 p-6 sticky flex flex-col justify-start'>
+              <div className='my-36'>
+                <Button disabled={cameraStatus !== DeviceTestStatus.Success || micStatus !== DeviceTestStatus.Success || spkStatus !== DeviceTestStatus.Success} className='w-full' onClick={() => setConfirmOpen(true)}>
+                  确认设备，下一步
+                </Button>
+                <p className='text-xs text-muted-foreground mt-4'>请在安静、独立的空间进行本次AI面试，确保评估效果最佳</p>
               </div>
             </div>
           </div>
