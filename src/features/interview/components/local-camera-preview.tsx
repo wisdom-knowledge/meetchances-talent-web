@@ -5,7 +5,9 @@ import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { DeviceTestStatus } from '@/types/device'
 import { Button } from '@/components/ui/button'
+import { IconPlayerRecordFilled, IconPlayerPlayFilled } from '@tabler/icons-react'
 import Lottie from 'lottie-react'
+import { MicVisualizer } from '@/features/interview/components/mic-visualizer'
 
 type DeviceStage = 'headphone' | 'mic' | 'camera'
 
@@ -34,6 +36,7 @@ export function LocalCameraPreview({
   const [lottieData, setLottieData] = useState<object | null>(null)
 
   const shouldShowHeadphoneUI = stage === 'headphone'
+  const shouldShowMicUI = stage === 'mic'
   const lottieUrl = useMemo(
     () => 'https://dnu-cdn.xpertiise.com/common/0601997c-a415-41e3-ac07-680f610f417c.json',
     []
@@ -158,6 +161,168 @@ export function LocalCameraPreview({
     }
   }
 
+  // ---------- Mic stage: capture mic, visualize, 5s record & playback ----------
+  const micStreamRef = useRef<MediaStream | null>(null)
+  const micRecorderRef = useRef<MediaRecorder | null>(null)
+  const micChunksRef = useRef<Blob[]>([])
+  const micPlaybackAudioRef = useRef<HTMLAudioElement | null>(null)
+  const micStopRecordTimerRef = useRef<number | null>(null)
+  const micCountdownTimerRef = useRef<number | null>(null)
+  const [micMode, setMicMode] = useState<'recording' | 'playback'>('recording')
+  const [countdown, setCountdown] = useState<number>(5)
+  const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
+  const [playbackProgress, setPlaybackProgress] = useState<number>(0)
+  const PROGRESS_WIDTH_CLASSES = useMemo(
+    () => [
+      'w-[0%]','w-[2%]','w-[4%]','w-[6%]','w-[8%]','w-[10%]','w-[12%]','w-[14%]','w-[16%]','w-[18%]',
+      'w-[20%]','w-[22%]','w-[24%]','w-[26%]','w-[28%]','w-[30%]','w-[32%]','w-[34%]','w-[36%]','w-[38%]',
+      'w-[40%]','w-[42%]','w-[44%]','w-[46%]','w-[48%]','w-[50%]','w-[52%]','w-[54%]','w-[56%]','w-[58%]',
+      'w-[60%]','w-[62%]','w-[64%]','w-[66%]','w-[68%]','w-[70%]','w-[72%]','w-[74%]','w-[76%]','w-[78%]',
+      'w-[80%]','w-[82%]','w-[84%]','w-[86%]','w-[88%]','w-[90%]','w-[92%]','w-[94%]','w-[96%]','w-[98%]','w-[100%]'
+    ],
+    []
+  )
+  const progressWidthClass = useMemo(() => {
+    const clamped = Math.max(0, Math.min(100, Math.round(playbackProgress)))
+    const idx = Math.min(PROGRESS_WIDTH_CLASSES.length - 1, Math.max(0, Math.round(clamped / 2)))
+    return PROGRESS_WIDTH_CLASSES[idx]
+  }, [playbackProgress, PROGRESS_WIDTH_CLASSES])
+
+  useEffect(() => {
+    if (!shouldShowMicUI || micMode !== 'recording') return
+
+    let isCancelled = false
+
+    const initMic = async () => {
+      try {
+        // Request mic stream
+        const micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+          video: false,
+        })
+        if (isCancelled) return
+        micStreamRef.current = micStream
+
+        // Setup recorder: record 5s then playback
+        micChunksRef.current = []
+        const recorder = new MediaRecorder(micStream)
+        micRecorderRef.current = recorder
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) micChunksRef.current.push(e.data)
+        }
+        recorder.onstop = () => {
+          try {
+            const blob = new Blob(micChunksRef.current, { type: recorder.mimeType || 'audio/webm' })
+            const url = URL.createObjectURL(blob)
+            setPlaybackUrl(url)
+            setMicMode('playback')
+          } catch {
+            // ignore
+          }
+        }
+        recorder.start()
+        // countdown + stop after 5s
+        setCountdown(5)
+        micCountdownTimerRef.current = window.setInterval(() => {
+          setCountdown((prev) => (prev > 0 ? prev - 1 : 0))
+        }, 1000)
+        micStopRecordTimerRef.current = window.setTimeout(() => {
+          try {
+            if (recorder.state !== 'inactive') recorder.stop()
+          } catch {
+            // ignore
+          }
+        }, 5000)
+      } catch {
+        // ignore
+      }
+    }
+    void initMic()
+
+    return () => {
+      isCancelled = true
+      if (micStopRecordTimerRef.current) {
+        window.clearTimeout(micStopRecordTimerRef.current)
+        micStopRecordTimerRef.current = null
+      }
+      if (micCountdownTimerRef.current) {
+        window.clearInterval(micCountdownTimerRef.current)
+        micCountdownTimerRef.current = null
+      }
+      try {
+        if (micRecorderRef.current && micRecorderRef.current.state !== 'inactive') {
+          micRecorderRef.current.stop()
+        }
+      } catch {
+        // ignore
+      }
+      micRecorderRef.current = null
+      micChunksRef.current = []
+      const micStream = micStreamRef.current
+      micStream?.getTracks().forEach((t) => t.stop())
+      micStreamRef.current = null
+      if (micPlaybackAudioRef.current) {
+        try {
+          micPlaybackAudioRef.current.pause()
+        } catch {
+          // ignore
+        }
+        micPlaybackAudioRef.current = null
+      }
+    }
+  }, [shouldShowMicUI, micMode])
+
+  // autoplay playback and track progress
+  useEffect(() => {
+    if (!shouldShowMicUI || micMode !== 'playback' || !playbackUrl) return
+    const audio = new Audio(playbackUrl)
+    micPlaybackAudioRef.current = audio
+    const onTime = () => {
+      if (!audio.duration || Number.isNaN(audio.duration)) return
+      const pct = Math.max(0, Math.min(100, (audio.currentTime / audio.duration) * 100))
+      setPlaybackProgress(pct)
+    }
+    const onEnded = () => {
+      setPlaybackProgress(100)
+    }
+    audio.addEventListener('timeupdate', onTime)
+    audio.addEventListener('ended', onEnded)
+    void audio.play().catch(() => undefined)
+    return () => {
+      audio.removeEventListener('timeupdate', onTime)
+      audio.removeEventListener('ended', onEnded)
+      try {
+        audio.pause()
+      } catch {
+        // ignore
+      }
+      micPlaybackAudioRef.current = null
+      // keep playbackUrl for replays until retake
+    }
+  }, [shouldShowMicUI, micMode, playbackUrl])
+
+  const handleRetake = () => {
+    // cleanup playback
+    if (micPlaybackAudioRef.current) {
+      try {
+        micPlaybackAudioRef.current.pause()
+      } catch {
+        // ignore
+      }
+      micPlaybackAudioRef.current = null
+    }
+    if (playbackUrl) {
+      URL.revokeObjectURL(playbackUrl)
+      setPlaybackUrl(null)
+    }
+    setPlaybackProgress(0)
+    setMicMode('recording')
+  }
+
   return (
     <div className={className} {...props}>
       <Card className='overflow-hidden py-0'>
@@ -193,6 +358,41 @@ export function LocalCameraPreview({
                 </Button>
               </div>
             </>
+          ) : null}
+
+          {/* Mic stage overlay */}
+          {shouldShowMicUI ? (
+            <div className='absolute inset-x-0 bottom-0 h-[120px] backdrop-blur-md bg-background/40 border-border'>
+              <div className='h-full w-full px-6 py-4 flex flex-col items-center justify-center gap-3'>
+                {/* Title */}
+                <div className='text-base text-white'>
+                  {micMode === 'recording' ? '请对麦克风说：我准备好了' : '请确认音质正常'}
+                </div>
+
+                {/* Recording Row or Playback Row */}
+                {micMode === 'recording' ? (
+                  <div className='w-full flex items-center justify-center gap-2'>
+                    <div className='flex items-center gap-3'>
+                      <IconPlayerRecordFilled className='h-5 w-5 text-red-500' />
+                      <MicVisualizer stream={micStreamRef.current} />
+                    </div>
+                    <div className='text-white tabular-nums w-[60px] text-right'>
+                      00:0{Math.max(0, Math.min(5, countdown)).toString()}
+                    </div>
+                  </div>
+                ) : (
+                  <div className='w-full flex items-center justify-center gap-2'>
+                    <div className='flex items-center gap-3'>
+                      <IconPlayerPlayFilled className='h-5 w-5 text-white' />
+                      <div className='relative h-2 w-[360px] rounded-full bg-primary/20 overflow-hidden'>
+                        <div className={cn('absolute left-0 top-0 h-2 rounded-full bg-primary', progressWidthClass)} />
+                      </div>
+                    </div>
+                    <Button size='sm' variant='secondary' onClick={handleRetake}>重录</Button>
+                  </div>
+                )}
+              </div>
+            </div>
           ) : null}
         </div>
       </Card>
