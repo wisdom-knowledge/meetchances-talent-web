@@ -51,7 +51,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
   const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
-  const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('headphone')
+  const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: true })
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
@@ -293,6 +293,13 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                   if (resolvedId && resolvedId !== cam.activeDeviceId) {
                     cam.setActiveMediaDevice(resolvedId)
                   }
+                }}
+                onCameraConfirmed={() => {
+                  setCameraStatus(DeviceTestStatus.Success)
+                  setStage('headphone')
+                }}
+                onMicConfirmed={() => {
+                  setMicStatus(DeviceTestStatus.Success)
                 }}
               />
 

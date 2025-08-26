@@ -18,16 +18,20 @@ interface LocalCameraPreviewProps extends React.HTMLAttributes<HTMLDivElement> {
   onHeadphoneConfirm?: () => void
   testAudioDurationMs?: number
   onCameraDeviceResolved?: (deviceId: string | null) => void
+  onCameraConfirmed?: () => void
+  onMicConfirmed?: () => void
 }
 
 export function LocalCameraPreview({
   className,
   onStatusChange,
   deviceId,
-  stage = 'headphone',
+  stage = 'camera',
   onHeadphoneConfirm,
   testAudioDurationMs = 5500,
   onCameraDeviceResolved,
+  onCameraConfirmed,
+  onMicConfirmed,
   ...props
 }: LocalCameraPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -89,7 +93,7 @@ export function LocalCameraPreview({
         } catch {
           // ignore
         }
-        onStatusChange?.(DeviceTestStatus.Success)
+        // onStatusChange?.(DeviceTestStatus.Success)
       } catch (_e) {
         // eslint-disable-next-line no-console
         console.error('getUserMedia error', _e)
@@ -417,9 +421,17 @@ export function LocalCameraPreview({
                       </div>
                     </div>
                     <Button size='sm' variant='secondary' onClick={handleRetake}>重录</Button>
+                    <Button size='sm' variant='default' onClick={onMicConfirmed}>确认音质正常</Button>
                   </div>
                 )}
               </div>
+            </div>
+          ) : null}
+
+          {/* Camera stage simple action */}
+          {stage === 'camera' ? (
+            <div className='absolute inset-x-0 bottom-3 flex items-center justify-center'>
+              <Button size='sm' variant='default' onClick={onCameraConfirmed}>确认摄像头状态正常</Button>
             </div>
           ) : null}
         </div>
