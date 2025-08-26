@@ -17,6 +17,7 @@ interface LocalCameraPreviewProps extends React.HTMLAttributes<HTMLDivElement> {
   stage?: DeviceStage
   onHeadphoneConfirm?: () => void
   testAudioDurationMs?: number
+  onCameraDeviceResolved?: (deviceId: string | null) => void
 }
 
 export function LocalCameraPreview({
@@ -26,6 +27,7 @@ export function LocalCameraPreview({
   stage = 'headphone',
   onHeadphoneConfirm,
   testAudioDurationMs = 5500,
+  onCameraDeviceResolved,
   ...props
 }: LocalCameraPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -50,11 +52,27 @@ export function LocalCameraPreview({
     const start = async () => {
       try {
         onStatusChange?.(DeviceTestStatus.Testing)
-        const constraints: MediaStreamConstraints = {
-          video: deviceId ? { deviceId: { exact: deviceId } } : true,
-          audio: false,
+        // Robust constraints with fallbacks to avoid OverconstrainedError
+        const attempts: MediaStreamConstraints[] = []
+        if (deviceId) {
+          attempts.push({ video: { deviceId: { exact: deviceId } }, audio: false })
+          attempts.push({ video: { deviceId }, audio: false })
         }
-        const s = await navigator.mediaDevices.getUserMedia(constraints)
+        attempts.push({ video: { facingMode: 'user' }, audio: false })
+        attempts.push({ video: true, audio: false })
+
+        let s: MediaStream | null = null
+        let lastErr: unknown = null
+        for (const cs of attempts) {
+          try {
+            s = await navigator.mediaDevices.getUserMedia(cs)
+            if (s) break
+          } catch (e) {
+            lastErr = e
+            continue
+          }
+        }
+        if (!s) throw lastErr ?? new Error('getUserMedia failed')
         setStream((prev) => {
           prev?.getTracks().forEach((t) => t.stop())
           return s
@@ -63,8 +81,18 @@ export function LocalCameraPreview({
           ;(videoRef.current as HTMLVideoElement).srcObject = s
           await (videoRef.current as HTMLVideoElement).play().catch(() => undefined)
         }
+        try {
+          const track = s.getVideoTracks()[0]
+          const settings = track?.getSettings?.()
+          const resolvedId = (settings && 'deviceId' in settings ? (settings.deviceId as string) : null) ?? null
+          onCameraDeviceResolved?.(resolvedId)
+        } catch {
+          // ignore
+        }
         onStatusChange?.(DeviceTestStatus.Success)
       } catch (_e) {
+        // eslint-disable-next-line no-console
+        console.error('getUserMedia error', _e)
         onStatusChange?.(DeviceTestStatus.Failed)
       }
     }

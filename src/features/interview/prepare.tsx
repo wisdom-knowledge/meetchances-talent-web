@@ -5,7 +5,7 @@ import { UploadArea } from '@/features/resume-upload/upload-area'
 // import { useNavigate } from '@tanstack/react-router'
 import { useJobDetailQuery } from '@/features/jobs/api'
 import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -56,6 +56,14 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
 
+  // Auto-select first available camera when none is selected
+  useEffect(() => {
+    if (!cam.activeDeviceId && cam.devices && cam.devices.length > 0) {
+      cam.setActiveMediaDevice(cam.devices[0].deviceId)
+      setCameraStatus(DeviceTestStatus.Testing)
+    }
+  }, [cam])
+
   function DeviceSelectorsRow({
     camActiveDeviceId,
     camDevices,
@@ -72,8 +80,8 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
     cameraStatus: DeviceTestStatus
     micStatus: DeviceTestStatus
     spkStatus: DeviceTestStatus
-    onMicStatusChange: (s: DeviceTestStatus) => void
-    onSpkStatusChange: (s: DeviceTestStatus) => void
+    onMicStatusChange: (_s: DeviceTestStatus) => void
+    onSpkStatusChange: (_s: DeviceTestStatus) => void
   }) {
     const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
@@ -105,6 +113,23 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
 
     return (
       <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+
+        {/* 摄像头选择 */}
+        <div className='flex flex-col gap-2 '>
+          <div className="flex items-center gap-2">
+            <IconVideo className='h-4 w-4' />
+            <SelectDropdown
+              isControlled
+              value={camActiveDeviceId}
+              onValueChange={(id: string) => onCamChange(id)}
+              placeholder='选择摄像头'
+              className='h-9 flex-1'
+              useFormControl={false}
+              items={camDevices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
+            />
+          </div>
+          {renderStatus(cameraStatus)}
+        </div>
         
         {/* 耳机/扬声器 */}
         <div className='flex flex-col gap-2 '>
@@ -115,6 +140,8 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
               value={spk.activeDeviceId}
               onValueChange={(v) => {
                 spk.setActiveMediaDevice(v)
+                onSpkStatusChange(DeviceTestStatus.Testing)
+                setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
               }}
               placeholder='选择输出设备（耳机/扬声器）'
               className='h-9 flex-1 overflow-x-hidden truncate'
@@ -134,6 +161,8 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
               value={mic.activeDeviceId}
               onValueChange={(v) => {
                 mic.setActiveMediaDevice(v)
+                onMicStatusChange(DeviceTestStatus.Testing)
+                setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
               }}
               placeholder='选择麦克风'
               className='h-9 flex-1 overflow-x-hidden truncate'
@@ -144,22 +173,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
           {renderStatus(micStatus)}
         </div>
 
-        {/* 摄像头选择 */}
-        <div className='flex flex-col gap-2 '>
-          <div className="flex items-center gap-2">
-            <IconVideo className='h-4 w-4' />
-            <SelectDropdown
-              isControlled
-              value={camActiveDeviceId}
-              onValueChange={(id: string) => onCamChange(id)}
-              placeholder='选择摄像头'
-              className='h-9 flex-1'
-              useFormControl={false}
-              items={camDevices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
-            />
-          </div>
-          {renderStatus(cameraStatus)}
-        </div>
+
 
       </div>
     )
@@ -275,6 +289,11 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                 }}
                 onStatusChange={setCameraStatus}
                 deviceId={cam.activeDeviceId}
+                onCameraDeviceResolved={(resolvedId) => {
+                  if (resolvedId && resolvedId !== cam.activeDeviceId) {
+                    cam.setActiveMediaDevice(resolvedId)
+                  }
+                }}
               />
 
               {/* 三个设备选择 + 状态 */}
@@ -283,6 +302,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                 camDevices={cam.devices}
                 onCamChange={(v) => {
                   cam.setActiveMediaDevice(v)
+                  setCameraStatus(DeviceTestStatus.Testing)
                 }}
                 cameraStatus={cameraStatus}
                 micStatus={micStatus}
