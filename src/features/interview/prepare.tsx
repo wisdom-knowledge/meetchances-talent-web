@@ -348,7 +348,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
             <Button variant='outline' className='mr-4' onClick={() => setConfirmOpen(false)}>放弃</Button>
             <Button onClick={() => {
               setConfirmOpen(false)
-              navigate({ to: '/interview/session' })
+              navigate({ to: '/interview/session', search: { job_id: jobId ?? null } })
             }}>继续</Button>
           </DialogFooter>
         </DialogContent>

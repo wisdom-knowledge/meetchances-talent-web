@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { IconPlayerRecordFilled, IconPlayerPlayFilled } from '@tabler/icons-react'
 import Lottie from 'lottie-react'
 import { MicVisualizer } from '@/features/interview/components/mic-visualizer'
+import { motion } from 'framer-motion'
 
 type DeviceStage = 'headphone' | 'mic' | 'camera'
 
@@ -381,20 +382,30 @@ export function LocalCameraPreview({
               ) : null}
 
               {/* Bottom controls */}
-              <div className='absolute inset-x-0 bottom-3 flex items-center justify-center gap-3 px-4'>
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className='absolute inset-x-0 bottom-3 flex items-center justify-center gap-3 px-4'
+              >
                 <Button size='sm' onClick={handlePlayTestAudio} disabled={isPlayingTestAudio}>
                   播放测试音频
                 </Button>
                 <Button size='sm' variant='secondary' onClick={onHeadphoneConfirm}>
                   我能听到
                 </Button>
-              </div>
+              </motion.div>
             </>
           ) : null}
 
           {/* Mic stage overlay */}
           {shouldShowMicUI ? (
-            <div className='absolute inset-x-0 bottom-0 h-[120px] backdrop-blur-md bg-background/40 border-border'>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22 }}
+              className='absolute inset-x-0 bottom-0 h-[120px] backdrop-blur-md bg-background/40 border-border'
+            >
               <div className='h-full w-full px-6 py-4 flex flex-col items-center justify-center gap-3'>
                 {/* Title */}
                 <div className='text-base text-white'>
@@ -425,14 +436,19 @@ export function LocalCameraPreview({
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           ) : null}
 
           {/* Camera stage simple action */}
           {stage === 'camera' ? (
-            <div className='absolute inset-x-0 bottom-3 flex items-center justify-center'>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className='absolute inset-x-0 bottom-3 flex items-center justify-center'
+            >
               <Button size='sm' variant='default' onClick={onCameraConfirmed}>确认摄像头状态正常</Button>
-            </div>
+            </motion.div>
           ) : null}
         </div>
       </Card>
