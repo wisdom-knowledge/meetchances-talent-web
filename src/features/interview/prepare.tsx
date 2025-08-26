@@ -78,10 +78,20 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
     const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
 
-    const statusText = (s: typeof cameraStatus) =>
-      s === DeviceTestStatus.Success ? '测试完成' : s === DeviceTestStatus.Testing ? '测试中' : s === DeviceTestStatus.Failed ? '测试失败' : '未测试'
+    const statusText = (s: DeviceTestStatus) => {
+      switch (s) {
+        case DeviceTestStatus.Success:
+          return '测试完成'
+        case DeviceTestStatus.Testing:
+          return '测试中'
+        case DeviceTestStatus.Failed:
+          return '测试失败'
+        default:
+          return '未测试'
+      }
+    }
 
-    const renderStatus = (s: typeof cameraStatus) => {
+    const renderStatus = (s: DeviceTestStatus) => {
       if (s === DeviceTestStatus.Success) {
         return (
           <div className='text-xs text-primary flex items-center gap-1'>
@@ -95,6 +105,45 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
 
     return (
       <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+        
+        {/* 耳机/扬声器 */}
+        <div className='flex flex-col gap-2 '>
+          <div className='flex items-center gap-2'>
+            <IconVolume className='h-4 w-4' />
+            <SelectDropdown
+              isControlled
+              value={spk.activeDeviceId}
+              onValueChange={(v) => {
+                spk.setActiveMediaDevice(v)
+              }}
+              placeholder='选择输出设备（耳机/扬声器）'
+              className='h-9 flex-1 overflow-x-hidden truncate'
+              useFormControl={false}
+              items={spk.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
+            />
+          </div>
+          {renderStatus(spkStatus)}
+        </div>
+        
+        {/* 麦克风 */}
+        <div className='flex flex-col gap-2 '>
+          <div className='flex items-center gap-2'>
+            <IconMicrophone className='h-4 w-4' />
+            <SelectDropdown
+              isControlled
+              value={mic.activeDeviceId}
+              onValueChange={(v) => {
+                mic.setActiveMediaDevice(v)
+              }}
+              placeholder='选择麦克风'
+              className='h-9 flex-1 overflow-x-hidden truncate'
+              useFormControl={false}
+              items={mic.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
+            />
+          </div>
+          {renderStatus(micStatus)}
+        </div>
+
         {/* 摄像头选择 */}
         <div className='flex flex-col gap-2 '>
           <div className="flex items-center gap-2">
@@ -112,47 +161,6 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
           {renderStatus(cameraStatus)}
         </div>
 
-        {/* 麦克风 */}
-        <div className='flex flex-col gap-2 '>
-          <div className='flex items-center gap-2'>
-            <IconMicrophone className='h-4 w-4' />
-            <SelectDropdown
-              isControlled
-              value={mic.activeDeviceId}
-              onValueChange={(v) => {
-                mic.setActiveMediaDevice(v)
-                onMicStatusChange(DeviceTestStatus.Testing)
-                setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
-              }}
-              placeholder='选择麦克风'
-              className='h-9 flex-1 overflow-x-hidden truncate'
-              useFormControl={false}
-              items={mic.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
-            />
-          </div>
-          {renderStatus(micStatus)}
-        </div>
-
-        {/* 耳机/扬声器 */}
-        <div className='flex flex-col gap-2 '>
-          <div className='flex items-center gap-2'>
-            <IconVolume className='h-4 w-4' />
-            <SelectDropdown
-                isControlled
-                value={spk.activeDeviceId}
-                onValueChange={(v) => {
-                  spk.setActiveMediaDevice(v)
-                  onSpkStatusChange(DeviceTestStatus.Testing)
-                  setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
-                }}
-                placeholder='选择输出设备（耳机/扬声器）'
-                className='h-9 flex-1 overflow-x-hidden truncate'
-                useFormControl={false}
-                items={spk.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
-              />
-          </div>
-          {renderStatus(spkStatus)}
-        </div>
       </div>
     )
   }
@@ -182,7 +190,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
         {viewMode === ViewMode.Job && (
           <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12'>
             {/* 左：职位信息 */}
-            <div className='lg:col-span-7 space-y-6'>
+            <div className='lg:col-span-7 space-y-6 pl-3'>
               <div className='p-6 h-full flex-col'>
                 <div className='flex items-start justify-between gap-4'>
                   <div className='min-w-0'>
@@ -253,7 +261,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
         {viewMode === ViewMode.InterviewPrepare && (
           <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
             {/* 左：职位标题 + 设备检查 */}
-            <div className='lg:col-span-7 space-y-6'>
+            <div className='lg:col-span-7 space-y-6 pl-3'>
               <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
               <div className='flex items-center gap-4 text-gray-500 mb-2'>
                 <p>职位描述，这里的字段需要再明确</p>
@@ -275,8 +283,6 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                 camDevices={cam.devices}
                 onCamChange={(v) => {
                   cam.setActiveMediaDevice(v)
-                  setCameraStatus(DeviceTestStatus.Testing)
-                  setTimeout(() => setCameraStatus(DeviceTestStatus.Success), 500)
                 }}
                 cameraStatus={cameraStatus}
                 micStatus={micStatus}
