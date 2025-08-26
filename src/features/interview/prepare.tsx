@@ -2,7 +2,7 @@ import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { UploadArea } from '@/features/resume-upload/upload-area'
-// import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { useJobDetailQuery } from '@/features/jobs/api'
 import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
@@ -43,11 +43,11 @@ const Steps = ({ currentStep }: { currentStep: number }) => {
 }
 
 export default function InterviewPreparePage({ jobId }: InterviewPreparePageProps) {
-  // const navigate = useNavigate()
+  const navigate = useNavigate()
   const [supportOpen, setSupportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.InterviewPrepare)
+  const [viewMode] = useState<ViewMode>(ViewMode.InterviewPrepare)
   const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
@@ -347,8 +347,8 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
           <DialogFooter className='gap-2 sm:gap-0'>
             <Button variant='outline' className='mr-4' onClick={() => setConfirmOpen(false)}>放弃</Button>
             <Button onClick={() => {
-              setViewMode(ViewMode.InterviewPrepare)
               setConfirmOpen(false)
+              navigate({ to: '/interview/session' })
             }}>继续</Button>
           </DialogFooter>
         </DialogContent>
