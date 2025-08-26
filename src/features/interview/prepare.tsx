@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { UploadArea } from '@/features/resume-upload/upload-area'
 // import { useNavigate } from '@tanstack/react-router'
 import { useJobDetailQuery } from '@/features/jobs/api'
-import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone } from '@tabler/icons-react'
+import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { useState } from 'react'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
@@ -51,6 +51,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
   const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
+  const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('headphone')
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: true })
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
@@ -80,6 +81,18 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
     const statusText = (s: typeof cameraStatus) =>
       s === DeviceTestStatus.Success ? '测试完成' : s === DeviceTestStatus.Testing ? '测试中' : s === DeviceTestStatus.Failed ? '测试失败' : '未测试'
 
+    const renderStatus = (s: typeof cameraStatus) => {
+      if (s === DeviceTestStatus.Success) {
+        return (
+          <div className='text-xs text-primary flex items-center gap-1'>
+            <IconCircleCheckFilled className='h-4 w-4 text-primary' />
+            测试完成
+          </div>
+        )
+      }
+      return <div className='text-xs text-muted-foreground'>{statusText(s)}</div>
+    }
+
     return (
       <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
         {/* 摄像头选择 */}
@@ -96,7 +109,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
               items={camDevices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
             />
           </div>
-          <div className='text-xs text-muted-foreground'>{statusText(cameraStatus)}</div>
+          {renderStatus(cameraStatus)}
         </div>
 
         {/* 麦克风 */}
@@ -117,7 +130,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
               items={mic.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
             />
           </div>
-          <div className='text-xs text-muted-foreground'>{statusText(micStatus)}</div>
+          {renderStatus(micStatus)}
         </div>
 
         {/* 耳机/扬声器 */}
@@ -138,7 +151,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                 items={spk.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
               />
           </div>
-          <div className='text-xs text-muted-foreground'>{statusText(spkStatus)}</div>
+          {renderStatus(spkStatus)}
         </div>
       </div>
     )
@@ -246,7 +259,15 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                 <p>职位描述，这里的字段需要再明确</p>
               </div>
               {/* 用户摄像头展示区域 */}
-              <LocalCameraPreview onStatusChange={setCameraStatus} deviceId={cam.activeDeviceId} />
+              <LocalCameraPreview
+                stage={stage}
+                onHeadphoneConfirm={() => {
+                  setSpkStatus(DeviceTestStatus.Success)
+                  setStage('mic')
+                }}
+                onStatusChange={setCameraStatus}
+                deviceId={cam.activeDeviceId}
+              />
 
               {/* 三个设备选择 + 状态 */}
               <DeviceSelectorsRow

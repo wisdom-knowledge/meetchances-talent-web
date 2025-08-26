@@ -23,7 +23,7 @@ export function LocalCameraPreview({
   deviceId,
   stage = 'headphone',
   onHeadphoneConfirm,
-  testAudioDurationMs = 3000,
+  testAudioDurationMs = 5500,
   ...props
 }: LocalCameraPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
