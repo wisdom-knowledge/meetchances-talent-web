@@ -43,13 +43,16 @@ export default function JobDetailPage() {
   }, [jobDetail])
 
   return (
-    <div className='mr-[24px] ml-[24px] h-full'>
+    <div className='mr-[24px] ml-[24px] mt-[40px] h-full'>
       {job ? (
-        <JobDetailContent
-          job={job}
-          inviteToken={inviteToken}
-          recommendName={inviteInfo?.headhunter_name}
-        />
+        <div className='max-w-[992px] mx-auto'>
+          <JobDetailContent
+            job={job}
+            inviteToken={inviteToken}
+            recommendName={inviteInfo?.headhunter_name}
+            isTwoColumn
+          />
+        </div>
       ) : (
         <div className='text-muted-foreground flex h-full items-center justify-center text-sm'>
           正在加载...
