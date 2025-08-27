@@ -5,6 +5,7 @@ export interface InterviewConnectionDetails {
   serverUrl: string
   token: string
   roomName?: string
+  interviewId?: string | number
 }
 
 type UnknownRecord = Record<string, unknown>
@@ -29,7 +30,10 @@ function normalizeConnectionDetails(raw: unknown): InterviewConnectionDetails {
   const roomName =
     (obj.roomName as string) || (obj.room_name as string) || (obj.room as string) || undefined
 
-  return { serverUrl, token, roomName }
+  const interviewId =
+    (obj.interview_id as string | number) || (obj.interviewId as string | number) || undefined
+
+  return { serverUrl, token, roomName, interviewId }
 }
 
 async function fetchInterviewConnectionDetails(jobId: string | number): Promise<InterviewConnectionDetails> {
