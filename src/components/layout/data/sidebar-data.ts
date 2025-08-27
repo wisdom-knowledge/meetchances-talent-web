@@ -30,7 +30,7 @@ export const sidebarData: SidebarData = {
         },
         {
           title: '在线面试',
-          url: '/interview',
+          url: '/interview/prepare',
           icon: IconVideo,
         },
       ],

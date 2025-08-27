@@ -5,14 +5,20 @@ import { Card, CardContent } from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
 import { uploadFiles, type UploadResultItem } from './utils/api'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 export type UploadResult = UploadResultItem
 
-interface UploadAreaProps {
+type UploaderFn = (formData: FormData) => Promise<{ success: boolean; data: UploadResult[] }>
+
+interface   UploadAreaProps {
   onUploadComplete?: (results: UploadResult[]) => void
+  className?: string
+  uploader?: UploaderFn
+  onUploadingChange?: (uploading: boolean) => void
 }
 
-export function UploadArea({ onUploadComplete }: UploadAreaProps) {
+export function UploadArea({ onUploadComplete, className, uploader, onUploadingChange }: UploadAreaProps) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [dragOver, setDragOver] = useState(false)
@@ -22,16 +28,17 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
 
   const handleUpload = async (files: File[]) => {
     if (files.length === 0) return
+    const file = files[0]
+    if (!file) return
 
     setUploading(true)
-    setUploadingFiles(files)
+    onUploadingChange?.(true)
+    setUploadingFiles([file])
     setProgress(0)
 
     try {
       const formData = new FormData()
-      files.forEach((file) => {
-        formData.append('files', file)
-      })
+      formData.append('file', file)
 
       // 模拟进度更新
       const progressInterval = setInterval(() => {
@@ -40,8 +47,8 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
           return newProgress >= 90 ? 90 : newProgress
         })
       }, 200)
-
-      const response = await uploadFiles(formData)
+      const doUpload = uploader ?? uploadFiles
+      const response = await doUpload(formData)
 
       clearInterval(progressInterval)
       setProgress(100)
@@ -60,21 +67,22 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
       toast.error(`上传失败：${err?.message || '未知错误'}`)
     } finally {
       setUploading(false)
+      onUploadingChange?.(false)
       setUploadingFiles([])
       setProgress(0)
     }
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || [])
-    handleUpload(files)
+    const file = (event.target.files && event.target.files[0]) || null
+    handleUpload(file ? [file] : [])
   }
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     setDragOver(false)
-    const files = Array.from(event.dataTransfer.files)
-    handleUpload(files)
+    const file = event.dataTransfer.files && event.dataTransfer.files[0]
+    handleUpload(file ? [file] : [])
   }
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -95,7 +103,7 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={cn('space-y-6', className)}>
       {/* Upload Area */}
       <Card
         className={`transition-all duration-300 cursor-pointer rounded-[12px] border-2 border-dashed ${
@@ -115,19 +123,14 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-xl font-semibold">{dragOver ? '释放鼠标以上传' : '批量上传简历'}</h3>
-              <p className="text-sm text-muted-foreground">支持拖拽或点击选择多个文件</p>
+              <h3 className="text-xl font-semibold">{dragOver ? '释放鼠标以上传' : '上传简历'}</h3>
+              <p className="text-sm text-muted-foreground">支持拖拽或点击选择文件</p>
             </div>
-
-            <Button size="lg" className="pointer-events-none" disabled={uploading}>
-              选择文件
-            </Button>
           </div>
 
           <input
             ref={fileInputRef}
             type="file"
-            multiple
             className="hidden"
             onChange={handleFileSelect}
             disabled={uploading}

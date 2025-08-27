@@ -50,6 +50,8 @@ import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
+import { Route as AuthenticatedInterviewSessionRouteImport } from './routes/_authenticated/interview/session'
+import { Route as AuthenticatedInterviewPrepareRouteImport } from './routes/_authenticated/interview/prepare'
 
 const ClerkRouteRoute = ClerkRouteRouteImport.update({
   id: '/clerk',
@@ -271,6 +273,18 @@ const AuthenticatedSettingsAccountRoute =
     path: '/account',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const AuthenticatedInterviewSessionRoute =
+  AuthenticatedInterviewSessionRouteImport.update({
+    id: '/interview/session',
+    path: '/interview/session',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedInterviewPrepareRoute =
+  AuthenticatedInterviewPrepareRouteImport.update({
+    id: '/interview/prepare',
+    path: '/interview/prepare',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
@@ -287,6 +301,8 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
+  '/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -326,6 +342,8 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
+  '/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -370,6 +388,8 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
+  '/_authenticated/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -413,6 +433,8 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/interview/prepare'
+    | '/interview/session'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
@@ -452,6 +474,8 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/interview/prepare'
+    | '/interview/session'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
@@ -495,6 +519,8 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
+    | '/_authenticated/interview/prepare'
+    | '/_authenticated/interview/session'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
@@ -826,6 +852,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/_authenticated/interview/session': {
+      id: '/_authenticated/interview/session'
+      path: '/interview/session'
+      fullPath: '/interview/session'
+      preLoaderRoute: typeof AuthenticatedInterviewSessionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/interview/prepare': {
+      id: '/_authenticated/interview/prepare'
+      path: '/interview/prepare'
+      fullPath: '/interview/prepare'
+      preLoaderRoute: typeof AuthenticatedInterviewPrepareRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -855,6 +895,8 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedInterviewPrepareRoute: typeof AuthenticatedInterviewPrepareRoute
+  AuthenticatedInterviewSessionRoute: typeof AuthenticatedInterviewSessionRoute
   AuthenticatedAnnotateReportIndexRoute: typeof AuthenticatedAnnotateReportIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
@@ -877,6 +919,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedInterviewPrepareRoute: AuthenticatedInterviewPrepareRoute,
+  AuthenticatedInterviewSessionRoute: AuthenticatedInterviewSessionRoute,
   AuthenticatedAnnotateReportIndexRoute: AuthenticatedAnnotateReportIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,

@@ -17,9 +17,9 @@ type InviteContext = {
   link?: string
 }
 
-type Props = { values: ResumeFormValues; inviteContext?: InviteContext }
+type Props = { values: ResumeFormValues; inviteContext?: InviteContext; readOnly?: boolean; onSave?: (values: ResumeFormValues) => void }
 
-export default function TalentResumePreview({ values, inviteContext }: Props) {
+export default function TalentResumePreview({ values, inviteContext, readOnly = true, onSave }: Props) {
   const form = useForm<ResumeFormValues>({ resolver: zodResolver(resumeSchema), defaultValues: values, mode: 'onChange' })
   const user = useAuthStore((s) => s.auth.user)
 
@@ -70,23 +70,23 @@ export default function TalentResumePreview({ values, inviteContext }: Props) {
         <ResumeSection id='section-basic' title='基本信息'>
           <Form {...form}>
             <form className='w-full space-y-6'>
-              <DynamicBasicForm readOnly />
+              <DynamicBasicForm readOnly={readOnly} />
             </form>
           </Form>
         </ResumeSection>
 
         <ResumeSection variant='plain' id='section-experience' title='经历'>
           <Form {...form}>
-            <DynamicWorkExperience sectionKey='workExperience' readOnly />
-            <DynamicWorkExperience sectionKey='projectExperience' readOnly />
-            <DynamicWorkExperience sectionKey='education' readOnly />
+            <DynamicWorkExperience sectionKey='workExperience' readOnly={readOnly} />
+            <DynamicWorkExperience sectionKey='projectExperience' readOnly={readOnly} />
+            <DynamicWorkExperience sectionKey='education' readOnly={readOnly} />
           </Form>
         </ResumeSection>
 
         <ResumeSection id='section-interests' title='兴趣与技能'>
           <Form {...form}>
             <form className='w-full space-y-6'>
-              <DynamicBasicForm sectionKey='interests' readOnly />
+              <DynamicBasicForm sectionKey='interests' readOnly={readOnly} />
             </form>
           </Form>
         </ResumeSection>
@@ -94,22 +94,38 @@ export default function TalentResumePreview({ values, inviteContext }: Props) {
         <ResumeSection variant='plain' title='自我评价'>
           <Form {...form}>
             <form className='w-full space-y-6'>
-              <DynamicBasicForm sectionKey='self' readOnly />
+              <DynamicBasicForm sectionKey='self' readOnly={readOnly} />
             </form>
           </Form>
         </ResumeSection>
       </div>
       {/* 吸底操作区 */}
       <div className='sticky bottom-0 left-0 right-0 z-10 -mb-10 pt-3 pb-3 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-        <div className='flex justify-start'>
-          <button
-            type='button'
-            onClick={handleCopyInvite}
-            className='inline-flex items-center rounded-md bg-primary px-4 py-2 text-primary-foreground text-sm font-medium shadow hover:opacity-90 disabled:opacity-60'
-          >
-            复制邀请文案
-          </button>
-        </div>
+        {readOnly ? (
+          <div className='flex justify-start'>
+            <button
+              type='button'
+              onClick={handleCopyInvite}
+              className='inline-flex items-center rounded-md bg-primary px-4 py-2 text-primary-foreground text-sm font-medium shadow hover:opacity-90 disabled:opacity-60'
+            >
+              复制邀请文案
+            </button>
+          </div>
+        ) : (
+          <div className='flex justify-start'>
+            <button
+              type='button'
+              onClick={() => {
+                const vals = form.getValues()
+                onSave?.(vals)
+                toast.success('已保存更新')
+              }}
+              className='inline-flex items-center rounded-md bg-primary px-4 py-2 text-primary-foreground text-sm font-medium shadow hover:opacity-90 disabled:opacity-60'
+            >
+              保存更新
+            </button>
+          </div>
+        )}
       </div>
     </>
   )

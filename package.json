@@ -50,6 +50,7 @@
     "js-cookie": "^3.0.5",
     "livekit-client": "^2.15.5",
     "lodash": "^4.17.21",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^0.525.0",
     "react": "^19.1.0",
     "react-day-picker": "9.8.0",

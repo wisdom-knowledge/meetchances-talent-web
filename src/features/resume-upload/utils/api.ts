@@ -1,6 +1,7 @@
 import { api } from '@/lib/api'
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query'
 import { BackendStatus } from '@/features/resume-upload/types'
+import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 
 export interface UploadBackendSubset {
   source: number
@@ -41,7 +42,7 @@ type BackendItem = {
   source: number
   status: number
   status_msg?: string
-  struct_info: unknown
+  struct_info: StructInfo | unknown
   is_in_pool: boolean
   is_del: boolean
   id: number
@@ -80,7 +81,7 @@ function mapBackendItems(items: BackendItem[]): UploadResultItem[] {
 }
 
 // 对接后端：/api/v1/headhunter/upload_resume
-// - 表单字段：files (可多文件)
+// - 表单字段：file (单文件)
 // - 响应由 axios 拦截器解包后，返回 payload.data，即 { data: BackendItem[], count: number }
 export async function uploadFiles(formData: FormData): Promise<{ success: boolean; data: UploadResultItem[] }> {
   try {
@@ -94,6 +95,53 @@ export async function uploadFiles(formData: FormData): Promise<{ success: boolea
     return { success: true, data: mapBackendItems(items) }
   } catch (_e) {
     return { success: false, data: [] }
+  }
+}
+
+// 对接后端：/api/v1/talent/upload_resume（同步：上传+分析）
+// - 表单字段：file (单文件)
+// - 响应经拦截器解包后，期望返回 { data: { resume_id, status, status_msg, resume_detail } }
+export async function uploadTalentResume(formData: FormData): Promise<{ success: boolean; data: UploadResultItem[] }> {
+  try {
+    const res = (await api.post('/talent/upload_resume', formData)) as
+      | { data?: { resume_id?: number; status?: number; status_msg?: string; resume_detail?: BackendItem } }
+      | { resume_id?: number; status?: number; status_msg?: string; resume_detail?: BackendItem }
+
+    const payload = (res as { data?: unknown })?.data ?? res
+    const detail = (payload as { resume_detail?: BackendItem })?.resume_detail
+    if (!detail) {
+      return { success: false, data: [] }
+    }
+    return { success: true, data: mapBackendItems([detail]) }
+  } catch (_e) {
+    return { success: false, data: [] }
+  }
+}
+
+// 获取当前用户的简历详情：GET /api/v1/talent/resume_detail
+// 期望响应：{ data: { resume_detail: BackendItem } } 或扁平对象含 resume_detail
+export async function fetchTalentResumeDetail(): Promise<{ success: boolean; item?: UploadResultItem }> {
+  try {
+    const res = (await api.get('/talent/resume_detail')) as
+      | { data?: { resume_detail?: BackendItem } }
+      | { resume_detail?: BackendItem }
+    const payload = (res as { data?: unknown })?.data ?? res
+    const detail = (payload as { resume_detail?: BackendItem })?.resume_detail
+    if (!detail) return { success: false }
+    const mapped = mapBackendItems([detail])
+    return { success: true, item: mapped[0] }
+  } catch (_e) {
+    return { success: false }
+  }
+}
+
+// 更新简历详情：PATCH /api/v1/talent/resume_detail
+export async function patchTalentResumeDetail(structInfo: unknown): Promise<{ success: boolean }> {
+  try {
+    await api.patch('/talent/resume_detail', { struct_info: structInfo })
+    return { success: true }
+  } catch (_e) {
+    return { success: false }
   }
 }
 
