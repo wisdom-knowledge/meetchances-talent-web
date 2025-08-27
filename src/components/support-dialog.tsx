@@ -24,6 +24,13 @@ export default function SupportDialog({ open, onOpenChange, onSubmit }: SupportD
   const handleSubmit = async () => {
     await onSubmit?.({ message, contactMethod, phone: contactMethod === 'phone' ? phone : undefined })
     onOpenChange(false)
+    reset()
+  }
+
+  const reset = () => {
+    setMessage('')
+    setContactMethod('phone')
+    setPhone('')
   }
 
   return (
