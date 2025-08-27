@@ -46,8 +46,11 @@ export interface Talent extends TalentParams {
   is_onboard: boolean
   id: number
   username: string
+  full_name: string
   phone_number: string
+  birth_month: string
   avatar_url: string
+  is_superuser: boolean
 }
 
 export interface InviteInfo {
