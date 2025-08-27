@@ -2,7 +2,7 @@ import Cookies from 'js-cookie'
 import { useEffect } from 'react'
 import { Outlet, useMatches } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { fetchCurrentUser } from '@/lib/api'
+import { fetchTalentMe } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { cn } from '@/lib/utils'
 import { SearchProvider } from '@/context/search-context'
@@ -22,7 +22,7 @@ export function AuthenticatedLayout({ children }: Props) {
 
   const { data, error } = useQuery({
     queryKey: ['current-user'],
-    queryFn: fetchCurrentUser,
+    queryFn: fetchTalentMe,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: false,

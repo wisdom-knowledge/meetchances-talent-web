@@ -21,9 +21,9 @@ export function AgentControlBar({ className, onDisconnect, onSendMessage, ...pro
   }, [onDisconnect, room])
 
   return (
-    <div className={`bg-background border flex flex-col rounded-[31px] border p-3 shadow ${className ?? ''}`} {...props}>
+    <div className={`bg-background flex flex-col rounded-[31px]  ${className ?? ''}`} {...props}>
       <div className='flex flex-row justify-end gap-1'>
-        <Button variant='destructive' onClick={onLeave} className='font-mono'>结束</Button>
+        <Button variant='destructive' onClick={onLeave} className='font-mono'>结束面试</Button>
       </div>
     </div>
   )
