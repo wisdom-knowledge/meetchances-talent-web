@@ -4,7 +4,7 @@ import { Main } from '@/components/layout/main'
 // import { TopNav } from '@/components/layout/top-nav'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 // import { Search } from '@/components/search'
-import { Button } from '@/components/ui/button'
+// import { Button } from '@/components/ui/button'
 // import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -13,14 +13,15 @@ import { useJobsQuery, useJobDetailQuery } from './api'
 import { JobType } from '@/constants/explore'
 import type { Job } from '@/types/solutions'
 import { cn } from '@/lib/utils'
-import { IconArrowLeft, IconUserPlus, IconBriefcase, IconWorldPin } from '@tabler/icons-react'
+import { IconUserPlus } from '@tabler/icons-react'
 import { Separator } from '@/components/ui/separator'
-import { useNavigate } from '@tanstack/react-router'
-import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+// import { useNavigate } from '@tanstack/react-router'
+import JobDetailDrawer from './components/job-detail-drawer'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function JobsListPage() {
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
+
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
@@ -123,80 +124,12 @@ export default function JobsListPage() {
             </ScrollArea>
           </div>
           {/* 职位详情：Drawer 展示 */}
-          <Sheet open={isDrawerOpen} onOpenChange={(open) => (open ? setIsDrawerOpen(true) : handleCloseDrawer())}>
-            <SheetContent className='flex flex-col px-4 md:px-5 w-full sm:max-w-none md:w-[85vw] lg:w-[60vw] xl:w-[50vw]'>
-              <SheetTitle className='sr-only'>职位详情</SheetTitle>
-              {selectedJobData && (
-                <>
-                  {/* 顶部返回 */}
-                  <div className='flex pt-2 pb-2'>
-                    <button
-                      type='button'
-                      onClick={handleCloseDrawer}
-                      aria-label='返回'
-                      className='cursor-pointer'
-                    >
-                      <IconArrowLeft className='h-6 w-6 text-muted-foreground' />
-                    </button>
-                  </div>
-
-                  {/* 可滚动内容 */}
-                  <div className='flex-1 overflow-y-auto'>
-                    {/* 标题与薪资区 */}
-                    <div className='flex pt-5 pb-5 items-start justify-between border-b border-border'>
-                      <div className='flex-1 min-w-0'>
-                        <div className='text-2xl font-bold mb-2 leading-tight truncate text-foreground'>
-                          {selectedJobData.title}
-                        </div>
-                        <div className='flex items-center gap-4 text-primary mb-2'>
-                          <div className='flex items-center'>
-                            <IconBriefcase className='h-4 w-4 mr-1' />
-                            <span className='text-[14px]'>时薪制</span>
-                          </div>
-                          <div className='flex items-center'>
-                            <IconWorldPin className='h-4 w-4 mr-1' />
-                            <span className='text-[14px]'>远程</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className='hidden md:flex flex-col items-end min-w-[140px]'>
-                        <div className='text-xl font-semibold text-foreground mb-1'>
-                          ¥{selectedJobData.salaryRange?.[0] ?? 0}~¥{selectedJobData.salaryRange?.[1] ?? 0}
-                        </div>
-                        <div className='text-xs text-muted-foreground mb-3'>每小时</div>
-                        <Button onClick={() => navigate({ to: '/job-recommend', search: { job_id: selectedJobData.id } })}>推荐候选人</Button>
-                      </div>
-                    </div>
-
-                    {/* 发布者信息 */}
-                    <div className='flex items-center gap-3 py-4 border-b border-border'>
-                      <div className='w-9 h-9 border-2 border-gray-200 rounded-full flex items-center justify-center overflow-hidden bg-white'>
-                        <img src={'https://dnu-cdn.xpertiise.com/design-assets/logo-no-padding.svg'} alt='meetchances' className='h-7 w-7 object-contain' />
-                      </div>
-                      <div className='flex flex-col'>
-                        <span className='text-sm font-medium text-foreground'>由一面千识发布</span>
-                        <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
-                      </div>
-                    </div>
-
-                    {/* 详情描述（富文本 HTML 片段） */}
-                    <div className='py-8'>
-                      <div
-                        className='text-foreground/90 text-base leading-relaxed mb-8'
-                        dangerouslySetInnerHTML={{ __html: selectedJobData.description }}
-                      />
-
-                      <div className='mt-6 md:hidden relative mx-auto w-full max-w-[320px] bg-primary/5 rounded-lg shadow-sm px-6 py-5'>
-                        <div className='text-[18px] font-bold text-foreground mb-3'>准备好加入我们的专家群体了吗?</div>
-                        <div className='text-sm mb-[12px]'>备好简历,开始申请吧！</div>
-                        <Button disabled className='h-[44px] w-full'>岗位将于8月30日开放</Button>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </SheetContent>
-          </Sheet>
+          <JobDetailDrawer
+            open={isDrawerOpen}
+            job={selectedJobData ?? null}
+            onOpenChange={(open) => (open ? setIsDrawerOpen(true) : handleCloseDrawer())}
+            onBack={handleCloseDrawer}
+          />
         </div>
       </Main>
     </>

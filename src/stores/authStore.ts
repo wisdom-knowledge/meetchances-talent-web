@@ -17,10 +17,53 @@ interface AuthUser {
   exp?: number
 }
 
+export enum AcquistionChannel {
+  REFERRAL = 1,
+  SOCIAL_MEDIA = 2,
+  JOB_PLATFORM = 3,
+  OTHER = 4,
+}
+
+export enum PartTimeHours {
+  HOURS_0_5 = 1,
+  HOURS_5_20 = 2,
+  HOURS_20_40 = 3,
+  HOURS_40_PLUS = 4,
+}
+
+export interface TalentParams {
+  full_name?: string
+  birth_month?: string
+  location?: string
+  part_time_hours?: PartTimeHours
+  acquisition_channel?: AcquistionChannel
+  top_skills?: string
+}
+
+export interface Talent extends TalentParams {
+  email: string
+  is_active: boolean
+  is_onboard: boolean
+  id: number
+  username: string
+  phone_number: string
+  avatar_url: string
+}
+
+export interface InviteInfo {
+  headhunter_id?: number
+  headhunter_name?: string
+  job_id?: number
+}
+
 interface AuthState {
   auth: {
     user: AuthUser | null
+    talent: Talent | null
+    inviteInfo: InviteInfo | null
     setUser: (user: AuthUser | null) => void
+    setTalent: (user: Talent | null) => void
+    setInviteInfo: (info: InviteInfo | null) => void
     accessToken: string
     setAccessToken: (accessToken: string) => void
     resetAccessToken: () => void
@@ -36,6 +79,12 @@ export const useAuthStore = create<AuthState>()((set) => {
       user: null,
       setUser: (user) =>
         set((state) => ({ ...state, auth: { ...state.auth, user } })),
+      talent: null,
+      setTalent: (talent) =>
+        set((state) => ({ ...state, auth: { ...state.auth, talent } })),
+      inviteInfo: null,
+      setInviteInfo: (inviteInfo) =>
+        set((state) => ({ ...state, auth: { ...state.auth, inviteInfo } })),
       accessToken: initToken,
       setAccessToken: (accessToken) =>
         set((state) => {
@@ -52,7 +101,7 @@ export const useAuthStore = create<AuthState>()((set) => {
           Cookies.remove(ACCESS_TOKEN)
           return {
             ...state,
-            auth: { ...state.auth, user: null, accessToken: '' },
+            auth: { ...state.auth, user: null, talent: null, inviteInfo: null, accessToken: '' },
           }
         }),
     },

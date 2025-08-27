@@ -1,6 +1,9 @@
 import axios from 'axios'
+import { Talent, TalentParams } from '@/stores/authStore'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://service-dev.meetchances.com/api/v1'
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ??
+  'https://service-dev.meetchances.com/api/v1'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -30,12 +33,19 @@ api.interceptors.response.use(
       return Promise.reject({ status_code: 401, status_msg: 'Unauthorized' })
     }
     // 若没有通用外层，直接返回原始数据
-    if (!payload || typeof payload !== 'object' || !('status_code' in payload)) {
+    if (
+      !payload ||
+      typeof payload !== 'object' ||
+      !('status_code' in payload)
+    ) {
       // 对于非 2xx 的 HTTP 状态，抛出错误；否则返回数据
       if (status >= 200 && status < 300) {
         return payload
       }
-      return Promise.reject({ status_code: status, status_msg: 'Request failed' })
+      return Promise.reject({
+        status_code: status,
+        status_msg: 'Request failed',
+      })
     }
 
     const { status_code, status_msg, data } = payload as {
@@ -75,4 +85,11 @@ export async function fetchCurrentUser(): Promise<CurrentUserResponse> {
   return api.get('/users/me') as unknown as Promise<CurrentUserResponse>
 }
 
+export async function fetchTalentMe(): Promise<Talent> {
+  return api.get('/talent/me') as unknown as Promise<Talent>
+}
 
+export async function fetchChangeTalnet(params: TalentParams): Promise<Talent> {
+  const raw = await api.patch('/talent/me', params)
+  return raw as unknown as Promise<Talent>
+}

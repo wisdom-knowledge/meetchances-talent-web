@@ -13,7 +13,7 @@ export interface JobsListResponse {
   total?: number
 }
 
-type ApiJob = {
+export type ApiJob = {
   id: number | string
   title: string
   description: string
@@ -82,4 +82,10 @@ export function useJobDetailQuery(id: string | number | null, enabled = true, op
   })
 }
 
+export async function applyJob(jobId: string | number, inviteToken: string): Promise<void> {
+  await api.post('/talent/apply_job', {
+    job_id: jobId,
+    invite_token: inviteToken,
+  })
+}
 

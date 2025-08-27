@@ -33,9 +33,13 @@ import { Route as AuthenticatedResumeIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedResumeUploadIndexRouteImport } from './routes/_authenticated/resume-upload/index'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs/index'
 import { Route as AuthenticatedJobRecommendIndexRouteImport } from './routes/_authenticated/job-recommend/index'
+import { Route as AuthenticatedJobDetailIndexRouteImport } from './routes/_authenticated/job-detail/index'
+import { Route as AuthenticatedInvitedIndexRouteImport } from './routes/_authenticated/invited/index'
 import { Route as AuthenticatedInterviewIndexRouteImport } from './routes/_authenticated/interview/index'
 import { Route as AuthenticatedInterviewReportsIndexRouteImport } from './routes/_authenticated/interview-reports/index'
+import { Route as AuthenticatedHomeIndexRouteImport } from './routes/_authenticated/home/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
+import { Route as AuthenticatedFinishIndexRouteImport } from './routes/_authenticated/finish/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedAppsIndexRouteImport } from './routes/_authenticated/apps/index'
 import { Route as AuthenticatedAnnotateReportIndexRouteImport } from './routes/_authenticated/annotate-report/index'
@@ -170,6 +174,18 @@ const AuthenticatedJobRecommendIndexRoute =
     path: '/job-recommend/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedJobDetailIndexRoute =
+  AuthenticatedJobDetailIndexRouteImport.update({
+    id: '/job-detail/',
+    path: '/job-detail/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedInvitedIndexRoute =
+  AuthenticatedInvitedIndexRouteImport.update({
+    id: '/invited/',
+    path: '/invited/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInterviewIndexRoute =
   AuthenticatedInterviewIndexRouteImport.update({
     id: '/interview/',
@@ -182,10 +198,21 @@ const AuthenticatedInterviewReportsIndexRoute =
     path: '/interview-reports/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHomeIndexRoute = AuthenticatedHomeIndexRouteImport.update({
+  id: '/home/',
+  path: '/home/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedHelpCenterIndexRoute =
   AuthenticatedHelpCenterIndexRouteImport.update({
     id: '/help-center/',
     path: '/help-center/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFinishIndexRoute =
+  AuthenticatedFinishIndexRouteImport.update({
+    id: '/finish/',
+    path: '/finish/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedChatsIndexRoute = AuthenticatedChatsIndexRouteImport.update({
@@ -270,9 +297,13 @@ export interface FileRoutesByFullPath {
   '/annotate-report': typeof AuthenticatedAnnotateReportIndexRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
+  '/finish': typeof AuthenticatedFinishIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/home': typeof AuthenticatedHomeIndexRoute
   '/interview-reports': typeof AuthenticatedInterviewReportsIndexRoute
   '/interview': typeof AuthenticatedInterviewIndexRoute
+  '/invited': typeof AuthenticatedInvitedIndexRoute
+  '/job-detail': typeof AuthenticatedJobDetailIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
@@ -305,9 +336,13 @@ export interface FileRoutesByTo {
   '/annotate-report': typeof AuthenticatedAnnotateReportIndexRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
+  '/finish': typeof AuthenticatedFinishIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/home': typeof AuthenticatedHomeIndexRoute
   '/interview-reports': typeof AuthenticatedInterviewReportsIndexRoute
   '/interview': typeof AuthenticatedInterviewIndexRoute
+  '/invited': typeof AuthenticatedInvitedIndexRoute
+  '/job-detail': typeof AuthenticatedJobDetailIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
@@ -345,9 +380,13 @@ export interface FileRoutesById {
   '/_authenticated/annotate-report/': typeof AuthenticatedAnnotateReportIndexRoute
   '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
+  '/_authenticated/finish/': typeof AuthenticatedFinishIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
+  '/_authenticated/home/': typeof AuthenticatedHomeIndexRoute
   '/_authenticated/interview-reports/': typeof AuthenticatedInterviewReportsIndexRoute
   '/_authenticated/interview/': typeof AuthenticatedInterviewIndexRoute
+  '/_authenticated/invited/': typeof AuthenticatedInvitedIndexRoute
+  '/_authenticated/job-detail/': typeof AuthenticatedJobDetailIndexRoute
   '/_authenticated/job-recommend/': typeof AuthenticatedJobRecommendIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
   '/_authenticated/resume-upload/': typeof AuthenticatedResumeUploadIndexRoute
@@ -384,9 +423,13 @@ export interface FileRouteTypes {
     | '/annotate-report'
     | '/apps'
     | '/chats'
+    | '/finish'
     | '/help-center'
+    | '/home'
     | '/interview-reports'
     | '/interview'
+    | '/invited'
+    | '/job-detail'
     | '/job-recommend'
     | '/jobs'
     | '/resume-upload'
@@ -419,9 +462,13 @@ export interface FileRouteTypes {
     | '/annotate-report'
     | '/apps'
     | '/chats'
+    | '/finish'
     | '/help-center'
+    | '/home'
     | '/interview-reports'
     | '/interview'
+    | '/invited'
+    | '/job-detail'
     | '/job-recommend'
     | '/jobs'
     | '/resume-upload'
@@ -458,9 +505,13 @@ export interface FileRouteTypes {
     | '/_authenticated/annotate-report/'
     | '/_authenticated/apps/'
     | '/_authenticated/chats/'
+    | '/_authenticated/finish/'
     | '/_authenticated/help-center/'
+    | '/_authenticated/home/'
     | '/_authenticated/interview-reports/'
     | '/_authenticated/interview/'
+    | '/_authenticated/invited/'
+    | '/_authenticated/job-detail/'
     | '/_authenticated/job-recommend/'
     | '/_authenticated/jobs/'
     | '/_authenticated/resume-upload/'
@@ -656,6 +707,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJobRecommendIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/job-detail/': {
+      id: '/_authenticated/job-detail/'
+      path: '/job-detail'
+      fullPath: '/job-detail'
+      preLoaderRoute: typeof AuthenticatedJobDetailIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/invited/': {
+      id: '/_authenticated/invited/'
+      path: '/invited'
+      fullPath: '/invited'
+      preLoaderRoute: typeof AuthenticatedInvitedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/interview/': {
       id: '/_authenticated/interview/'
       path: '/interview'
@@ -670,11 +735,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInterviewReportsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/home/': {
+      id: '/_authenticated/home/'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/help-center/': {
       id: '/_authenticated/help-center/'
       path: '/help-center'
       fullPath: '/help-center'
       preLoaderRoute: typeof AuthenticatedHelpCenterIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/finish/': {
+      id: '/_authenticated/finish/'
+      path: '/finish'
+      fullPath: '/finish'
+      preLoaderRoute: typeof AuthenticatedFinishIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/chats/': {
@@ -779,9 +858,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnnotateReportIndexRoute: typeof AuthenticatedAnnotateReportIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
+  AuthenticatedFinishIndexRoute: typeof AuthenticatedFinishIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
+  AuthenticatedHomeIndexRoute: typeof AuthenticatedHomeIndexRoute
   AuthenticatedInterviewReportsIndexRoute: typeof AuthenticatedInterviewReportsIndexRoute
   AuthenticatedInterviewIndexRoute: typeof AuthenticatedInterviewIndexRoute
+  AuthenticatedInvitedIndexRoute: typeof AuthenticatedInvitedIndexRoute
+  AuthenticatedJobDetailIndexRoute: typeof AuthenticatedJobDetailIndexRoute
   AuthenticatedJobRecommendIndexRoute: typeof AuthenticatedJobRecommendIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
   AuthenticatedResumeUploadIndexRoute: typeof AuthenticatedResumeUploadIndexRoute
@@ -797,10 +880,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnnotateReportIndexRoute: AuthenticatedAnnotateReportIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
+  AuthenticatedFinishIndexRoute: AuthenticatedFinishIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
+  AuthenticatedHomeIndexRoute: AuthenticatedHomeIndexRoute,
   AuthenticatedInterviewReportsIndexRoute:
     AuthenticatedInterviewReportsIndexRoute,
   AuthenticatedInterviewIndexRoute: AuthenticatedInterviewIndexRoute,
+  AuthenticatedInvitedIndexRoute: AuthenticatedInvitedIndexRoute,
+  AuthenticatedJobDetailIndexRoute: AuthenticatedJobDetailIndexRoute,
   AuthenticatedJobRecommendIndexRoute: AuthenticatedJobRecommendIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
   AuthenticatedResumeUploadIndexRoute: AuthenticatedResumeUploadIndexRoute,
