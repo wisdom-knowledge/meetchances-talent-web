@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -64,6 +64,11 @@ export default function InvitedForm() {
     mode: 'onTouched',
   })
 
+  const jobId = useMemo(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('job_id') ?? ''
+  }, [])
+
   const handleNext = async () => {
     const ok = await formStep1.trigger()
     if (!ok) return
@@ -82,7 +87,7 @@ export default function InvitedForm() {
       top_skills: join([payload.skill1, payload.skill2, payload.skill3], ','),
     }).then((res) => {
       setTalent(res)
-      navigate({ to: '/interview/prepare' })
+      navigate({ to: '/interview/prepare', search: { job_id: Number(jobId) } })
     })
   }
 

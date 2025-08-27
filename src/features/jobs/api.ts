@@ -89,3 +89,19 @@ export async function applyJob(jobId: string | number, inviteToken: string): Pro
   })
 }
 
+export enum InviteTokenType {
+  ActiveApply = 2,
+}
+
+export interface GenerateInviteTokenPayload {
+  job_id: string | number
+  token_type: InviteTokenType
+}
+
+export async function generateInviteToken(payload: GenerateInviteTokenPayload): Promise<string | null> {
+  const res = (await api.post('/jobs/gen_invite_token', payload)) 
+
+  if (typeof res === 'string') return res
+  const token = (res as { invite_token?: string })?.invite_token
+  return token ?? null
+}
