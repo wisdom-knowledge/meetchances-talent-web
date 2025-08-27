@@ -41,7 +41,7 @@ export default function TalentResumePreview({ values, inviteContext }: Props) {
   const jobTitle = inviteContext?.jobTitle ?? '岗位'
   const salaryMin = inviteContext?.salaryMin
   const salaryMax = inviteContext?.salaryMax
-  const link = inviteContext?.link ?? 'https://talent.meetchances.com/'
+  const link = inviteContext?.link ?? 'https://talent.meetchances.com/job-detail'
 
   const { location } = useRouterState()
   const search = location.search as Record<string, unknown>
