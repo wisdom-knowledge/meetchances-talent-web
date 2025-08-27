@@ -85,7 +85,7 @@ export interface CurrentUserResponse {
 
 export async function fetchCurrentUser(): Promise<CurrentUserResponse> {
   // 该接口直接返回用户对象（无通用外层包装）。拦截器已将响应解包为数据对象。
-  return api.get('/users/me') as unknown as Promise<CurrentUserResponse>
+  return api.get('/talent/me') as unknown as Promise<CurrentUserResponse>
 }
 
 export async function fetchTalentMe(): Promise<Talent> {
