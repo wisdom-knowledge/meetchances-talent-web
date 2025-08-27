@@ -5,6 +5,7 @@ import { UploadArea } from '@/features/resume-upload/upload-area'
 import { useNavigate } from '@tanstack/react-router'
 import { useJobDetailQuery } from '@/features/jobs/api'
 import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
+import { IconLoader2 } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
@@ -14,6 +15,12 @@ import { LocalCameraPreview } from '@/features/interview/components/local-camera
 import { SelectDropdown } from '@/components/select-dropdown'
 import { useMediaDeviceSelect } from '@livekit/components-react'
 import { DeviceTestStatus } from '@/types/device'
+import { uploadTalentResume } from '@/features/resume-upload/utils/api'
+import TalentResumePreview from '@/features/talent-pool/components/talent-resume-preview'
+import type { ResumeFormValues } from '@/features/resume/data/schema'
+import { mapStructInfoToResumeFormValues, mapResumeFormValuesToStructInfo } from '@/features/resume/data/struct-mapper'
+import type { StructInfo } from '@/features/resume-upload/types/struct-info'
+import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -47,7 +54,10 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
   const [supportOpen, setSupportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [viewMode] = useState<ViewMode>(ViewMode.InterviewPrepare)
+  const [uploadingResume, setUploadingResume] = useState(false)
+  const [resumeOpen, setResumeOpen] = useState(false)
+  const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
+  const [viewMode] = useState<ViewMode>(ViewMode.Job)
   const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
@@ -64,6 +74,11 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
     }
   }, [cam])
 
+  /**
+   * 设备选择器
+   * @param param0 
+   * @returns 
+   */
   function DeviceSelectorsRow({
     camActiveDeviceId,
     camDevices,
@@ -260,13 +275,45 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
 
             {/* 右：上传简历 */}
             <div className='lg:col-span-5'>
-              <div className='p-6 sticky'>
-                <UploadArea className='my-4' onUploadComplete={(_results) => { /* 上传完成后保留页面即可 */ }} />
+              <div className='p-6 sticky relative'>
+                <UploadArea
+                  className='my-4'
+                  uploader={uploadTalentResume}
+                  onUploadingChange={setUploadingResume}
+                  onUploadComplete={(results) => {
+                    const first = results.find((r) => r.success)
+                    if (!first) return
+                    const si = (first.backend?.struct_info ?? {}) as StructInfo
+                    const mapped = mapStructInfoToResumeFormValues(si)
+                    setResumeValues(mapped)
+                  }}
+                />
+
+                {/* 解析后的基础信息 */}
+                {resumeValues && (
+                  <div className='mt-4 flex items-center justify-between rounded-md border p-3'>
+                    <div className='text-sm'>
+                      <div className='font-medium'>姓名：{resumeValues.name || '—'}</div>
+                      <div className='text-muted-foreground mt-1'>电话：{resumeValues.phone || '—'}</div>
+                    </div>
+                    <Button size='sm' variant='outline' onClick={() => setResumeOpen(true)}>点击查看</Button>
+                  </div>
+                )}
+
                 <div className='my-4'>
-                  <Button className='w-full' onClick={() => setConfirmOpen(true)}>
-                    确认简历，下一步
+                  <Button className='w-full' disabled={uploadingResume} onClick={() => setConfirmOpen(true)}>
+                    {uploadingResume ? '正在分析简历…' : '确认简历，下一步'}
                   </Button>
                 </div>
+
+                {/* 区域遮罩：结果未返回（上传/分析中）时禁用交互 */}
+                {uploadingResume && (
+                  <div className='pointer-events-auto absolute inset-0 z-10 grid place-items-center rounded-md bg-background/60 backdrop-blur-[1px]'>
+                    <div className='rounded-lg border bg-background p-3 shadow flex items-center gap-2 text-sm text-muted-foreground'>
+                      <IconLoader2 className='h-4 w-4 animate-spin text-primary' /> 正在上传并分析简历…
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>)}
@@ -348,7 +395,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
             <Button variant='outline' className='mr-4' onClick={() => setConfirmOpen(false)}>放弃</Button>
             <Button onClick={() => {
               setConfirmOpen(false)
-              navigate({ to: '/interview/session', search: { job_id: jobId ?? null } })
+              navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
             }}>继续</Button>
           </DialogFooter>
         </DialogContent>
@@ -403,6 +450,27 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                 </div>
               </div>
             </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Drawer: 简历预览 */}
+      <Sheet open={resumeOpen} onOpenChange={setResumeOpen}>
+        <SheetContent className='flex w-full sm:max-w-none md:w-[85vw] lg:w-[60vw] xl:w-[50vw] flex-col px-4 md:px-5'>
+          <SheetTitle className='sr-only'>简历预览</SheetTitle>
+          <div className='flex pt-2 pb-2'>
+            <div className='text-2xl font-semibold'>{resumeValues?.name ?? '简历预览'}</div>
+          </div>
+          {resumeValues && (
+            <TalentResumePreview
+              values={resumeValues}
+              readOnly={false}
+              onSave={async (vals) => {
+                setResumeValues(vals)
+                const struct = mapResumeFormValuesToStructInfo(vals)
+                await patchTalentResumeDetail(struct as unknown as StructInfo)
+              }}
+            />
           )}
         </SheetContent>
       </Sheet>

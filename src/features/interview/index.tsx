@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Main } from '@/components/layout/main'
-import { RoomAudioRenderer, StartAudio, RoomContext, useConnectionState, useRoomContext } from '@livekit/components-react'
+import { RoomAudioRenderer, RoomContext, useConnectionState, useRoomContext } from '@livekit/components-react'
 import { LogLevel, RoomEvent, Room, setLogLevel } from 'livekit-client'
 import { AgentControlBar } from '@/components/livekit/agent-control-bar'
 import '@livekit/components-styles'
@@ -67,7 +67,6 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
             <div className='h-full'>
               <RoomContext.Provider value={room}>
                 <RoomAudioRenderer />
-                <StartAudio label='开启音频' />
                 <SessionView disabled={false} sessionStarted className='h-full' />
                 <div className='pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
                   <div className='pointer-events-auto'>

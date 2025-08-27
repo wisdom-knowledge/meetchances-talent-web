@@ -9,12 +9,16 @@ import { cn } from '@/lib/utils'
 
 export type UploadResult = UploadResultItem
 
+type UploaderFn = (formData: FormData) => Promise<{ success: boolean; data: UploadResult[] }>
+
 interface   UploadAreaProps {
   onUploadComplete?: (results: UploadResult[]) => void
   className?: string
+  uploader?: UploaderFn
+  onUploadingChange?: (uploading: boolean) => void
 }
 
-export function UploadArea({ onUploadComplete, className }: UploadAreaProps) {
+export function UploadArea({ onUploadComplete, className, uploader, onUploadingChange }: UploadAreaProps) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [dragOver, setDragOver] = useState(false)
@@ -24,16 +28,17 @@ export function UploadArea({ onUploadComplete, className }: UploadAreaProps) {
 
   const handleUpload = async (files: File[]) => {
     if (files.length === 0) return
+    const file = files[0]
+    if (!file) return
 
     setUploading(true)
-    setUploadingFiles(files)
+    onUploadingChange?.(true)
+    setUploadingFiles([file])
     setProgress(0)
 
     try {
       const formData = new FormData()
-      files.forEach((file) => {
-        formData.append('files', file)
-      })
+      formData.append('file', file)
 
       // 模拟进度更新
       const progressInterval = setInterval(() => {
@@ -42,8 +47,8 @@ export function UploadArea({ onUploadComplete, className }: UploadAreaProps) {
           return newProgress >= 90 ? 90 : newProgress
         })
       }, 200)
-
-      const response = await uploadFiles(formData)
+      const doUpload = uploader ?? uploadFiles
+      const response = await doUpload(formData)
 
       clearInterval(progressInterval)
       setProgress(100)
@@ -62,21 +67,22 @@ export function UploadArea({ onUploadComplete, className }: UploadAreaProps) {
       toast.error(`上传失败：${err?.message || '未知错误'}`)
     } finally {
       setUploading(false)
+      onUploadingChange?.(false)
       setUploadingFiles([])
       setProgress(0)
     }
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || [])
-    handleUpload(files)
+    const file = (event.target.files && event.target.files[0]) || null
+    handleUpload(file ? [file] : [])
   }
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     setDragOver(false)
-    const files = Array.from(event.dataTransfer.files)
-    handleUpload(files)
+    const file = event.dataTransfer.files && event.dataTransfer.files[0]
+    handleUpload(file ? [file] : [])
   }
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -125,7 +131,6 @@ export function UploadArea({ onUploadComplete, className }: UploadAreaProps) {
           <input
             ref={fileInputRef}
             type="file"
-            multiple
             className="hidden"
             onChange={handleFileSelect}
             disabled={uploading}
