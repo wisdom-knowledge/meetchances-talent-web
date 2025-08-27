@@ -118,6 +118,23 @@ export async function uploadTalentResume(formData: FormData): Promise<{ success:
   }
 }
 
+// 获取当前用户的简历详情：GET /api/v1/talent/resume_detail
+// 期望响应：{ data: { resume_detail: BackendItem } } 或扁平对象含 resume_detail
+export async function fetchTalentResumeDetail(): Promise<{ success: boolean; item?: UploadResultItem }> {
+  try {
+    const res = (await api.get('/talent/resume_detail')) as
+      | { data?: { resume_detail?: BackendItem } }
+      | { resume_detail?: BackendItem }
+    const payload = (res as { data?: unknown })?.data ?? res
+    const detail = (payload as { resume_detail?: BackendItem })?.resume_detail
+    if (!detail) return { success: false }
+    const mapped = mapBackendItems([detail])
+    return { success: true, item: mapped[0] }
+  } catch (_e) {
+    return { success: false }
+  }
+}
+
 // 更新简历详情：PATCH /api/v1/talent/resume_detail
 export async function patchTalentResumeDetail(structInfo: unknown): Promise<{ success: boolean }> {
   try {

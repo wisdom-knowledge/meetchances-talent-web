@@ -15,7 +15,7 @@ import { LocalCameraPreview } from '@/features/interview/components/local-camera
 import { SelectDropdown } from '@/components/select-dropdown'
 import { useMediaDeviceSelect } from '@livekit/components-react'
 import { DeviceTestStatus } from '@/types/device'
-import { uploadTalentResume } from '@/features/resume-upload/utils/api'
+import { uploadTalentResume, fetchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import TalentResumePreview from '@/features/talent-pool/components/talent-resume-preview'
 import type { ResumeFormValues } from '@/features/resume/data/schema'
 import { mapStructInfoToResumeFormValues, mapResumeFormValuesToStructInfo } from '@/features/resume/data/struct-mapper'
@@ -65,6 +65,24 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: true })
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
+
+  // 进入页面（ViewMode=Job）即尝试获取用户简历，并进行回显
+  useEffect(() => {
+    let mounted = true
+    if (viewMode === ViewMode.Job) {
+      fetchTalentResumeDetail().then((res) => {
+        if (!mounted) return
+        const si = (res.item?.backend?.struct_info ?? null) as StructInfo | null
+        if (si && (si.basic_info || si.experience)) {
+          const mapped = mapStructInfoToResumeFormValues(si)
+          setResumeValues(mapped)
+        }
+      })
+    }
+    return () => {
+      mounted = false
+    }
+  }, [viewMode])
 
   // Auto-select first available camera when none is selected
   useEffect(() => {
@@ -301,7 +319,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
                 )}
 
                 <div className='my-4'>
-                  <Button className='w-full' disabled={uploadingResume} onClick={() => setConfirmOpen(true)}>
+                  <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={() => setConfirmOpen(true)}>
                     {uploadingResume ? '正在分析简历…' : '确认简历，下一步'}
                   </Button>
                 </div>
