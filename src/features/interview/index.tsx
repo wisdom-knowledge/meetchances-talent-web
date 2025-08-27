@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Main } from '@/components/layout/main'
 import { RoomAudioRenderer, RoomContext, useConnectionState, useRoomContext } from '@livekit/components-react'
 import { LogLevel, RoomEvent, Room, setLogLevel } from 'livekit-client'
 import { AgentControlBar } from '@/components/livekit/agent-control-bar'
 import '@livekit/components-styles'
 import { useInterviewConnectionDetails } from '@/features/interview/api'
+import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
@@ -15,11 +16,14 @@ interface InterviewPageProps {
 
 export default function InterviewPage({ jobId }: InterviewPageProps) {
   const isDev = import.meta.env.DEV
+  const navigate = useNavigate()
 
   const roomName = 'interview-room'
   const identity = useMemo(() => `user-${Date.now()}`, [])
   const { data, isLoading, isError, refetch } = useInterviewConnectionDetails(jobId, true)
   const room = useMemo(() => new Room(), [])
+  const hasEverConnectedRef = useRef(false)
+  const navigatedRef = useRef(false)
 
   // 当拿到 token/serverUrl 时，连接房间；离开时断开
   useEffect(() => {
@@ -33,19 +37,53 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
         const prefCam = getPreferredDeviceId('videoinput') ?? undefined
         await room.localParticipant.setMicrophoneEnabled(true, { deviceId: prefMic })
         await room.localParticipant.setCameraEnabled(true, { deviceId: prefCam })
+        hasEverConnectedRef.current = true
       } catch (_e) {
-        // ignore for now; UI 仍保持
+        /* ignore */
       }
     }
     connect()
     return () => {
-      try {
-        room.disconnect()
-      } catch (_e) {
-        // ignore
+      // 显式关闭本地设备与媒体轨道，确保释放摄像头/麦克风/扬声器占用
+      const release = async () => {
+        await room.localParticipant.setMicrophoneEnabled(false).catch(() => {})
+        await room.localParticipant.setCameraEnabled(false).catch(() => {})
+        room.localParticipant.getTrackPublications().forEach((pub) => {
+          try { pub.track?.stop?.() } catch (_ignored) { void _ignored }
+        })
+        await room.disconnect().catch(() => {})
       }
+      void release()
     }
   }, [room, data?.serverUrl, data?.token])
+
+  // 面试断开或有参与者断开时，结束面试：跳转 finish 页面（replace），带上 interview_id
+  useEffect(() => {
+    const handleDisconnected = () => {
+      if (!hasEverConnectedRef.current || navigatedRef.current) return
+      navigatedRef.current = true
+      const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
+      if (interviewId) {
+        navigate({ to: '/finish', search: { interview_id: interviewId } as unknown as Record<string, unknown>, replace: true })
+      } else {
+        navigate({ to: '/finish', replace: true })
+      }
+    }
+    const handleParticipantDisconnected = async () => {
+      // 明确释放本地设备并断开，以触发统一的 Disconnected 处理
+      await room.localParticipant.setMicrophoneEnabled(false).catch(() => {})
+      await room.localParticipant.setCameraEnabled(false).catch(() => {})
+      room.localParticipant.getTrackPublications().forEach((pub) => { try { pub.track?.stop?.() } catch (_ignored) { void _ignored } })
+      await room.disconnect().catch(() => {})
+      handleDisconnected()
+    }
+    room.on(RoomEvent.Disconnected, handleDisconnected)
+    room.on(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected)
+    return () => {
+      room.off(RoomEvent.Disconnected, handleDisconnected)
+      room.off(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected)
+    }
+  }, [navigate, room, data])
 
   return (
     <>
@@ -70,7 +108,16 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
                 <SessionView disabled={false} sessionStarted className='h-full' />
                 <div className='pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
                   <div className='pointer-events-auto'>
-                    <AgentControlBar />
+                    <AgentControlBar onDisconnect={() => {
+                      if (navigatedRef.current) return
+                      navigatedRef.current = true
+                      const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
+                      if (interviewId) {
+                        navigate({ to: '/finish', search: { interview_id: interviewId } as unknown as Record<string, unknown>, replace: true })
+                      } else {
+                        navigate({ to: '/finish', replace: true })
+                      }
+                    }} />
                   </div>
                 </div>
                 {isDev && data?.token && (

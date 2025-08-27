@@ -57,7 +57,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
   const [uploadingResume, setUploadingResume] = useState(false)
   const [resumeOpen, setResumeOpen] = useState(false)
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
-  const [viewMode] = useState<ViewMode>(ViewMode.Job)
+  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Job)
   const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
@@ -387,7 +387,15 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
             {/* 右：操作区域 */}
             <div className='lg:col-span-5 p-6 sticky flex flex-col justify-start'>
               <div className='my-36'>
-                <Button disabled={cameraStatus !== DeviceTestStatus.Success || micStatus !== DeviceTestStatus.Success || spkStatus !== DeviceTestStatus.Success} className='w-full' onClick={() => setConfirmOpen(true)}>
+                <Button 
+                  disabled={
+                    cameraStatus !== DeviceTestStatus.Success 
+                    || micStatus !== DeviceTestStatus.Success 
+                    || spkStatus !== DeviceTestStatus.Success
+                  } 
+                  className='w-full' onClick={() => {
+                    navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
+                  }}>
                   确认设备，下一步
                 </Button>
                 <p className='text-xs text-muted-foreground mt-4'>请在安静、独立的空间进行本次AI面试，确保评估效果最佳</p>
@@ -413,7 +421,11 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
             <Button variant='outline' className='mr-4' onClick={() => setConfirmOpen(false)}>放弃</Button>
             <Button onClick={() => {
               setConfirmOpen(false)
-              navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
+              if (viewMode === ViewMode.Job) {
+                setViewMode(ViewMode.InterviewPrepare)
+              } else {
+                navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
+              }
             }}>继续</Button>
           </DialogFooter>
         </DialogContent>
