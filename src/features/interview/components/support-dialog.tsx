@@ -20,12 +20,20 @@ import {
 } from '@/components/ui/form'
 import { Textarea } from '@/components/ui/textarea'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Input } from '@/components/ui/input'
+import { submitInterviewSupportDemand, type SupportDemandPayload } from '@/features/interview/api'
 
 const formSchema = z.object({
   problem: z.string().min(1, '请说明您的问题'),
   // 兼容当前 zod 版本：第二参数仅支持 { message | error }
   contact: z.enum(['phone', 'none'], { error: '请选择反馈方式' }),
-})
+  phone: z.string().optional(),
+}).refine((data) => {
+  if (data.contact === 'phone') {
+    return Boolean(data.phone && data.phone.trim().length >= 6)
+  }
+  return true
+}, { message: '请输入有效手机号', path: ['phone'] })
 
 type FormValues = z.infer<typeof formSchema>
 
@@ -38,11 +46,17 @@ interface SupportDialogProps {
 export function SupportDialog({ open, onOpenChange, onSubmit }: SupportDialogProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { problem: '', contact: 'phone' },
+    defaultValues: { problem: '', contact: 'phone', phone: '' },
   })
 
-  const handleSubmit = (values: FormValues) => {
+  const handleSubmit = async (values: FormValues) => {
     onSubmit?.(values)
+    const payload: SupportDemandPayload = {
+      detail: values.problem,
+      need_contact: values.contact !== 'none',
+      phone_number: values.contact === 'phone' ? values.phone : undefined,
+    }
+    await submitInterviewSupportDemand(payload)
     onOpenChange(false)
     form.reset()
   }
@@ -103,6 +117,22 @@ export function SupportDialog({ open, onOpenChange, onSubmit }: SupportDialogPro
                   </FormItem>
                 )}
               />
+
+              {form.watch('contact') === 'phone' && (
+                <FormField
+                  control={form.control}
+                  name='phone'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>手机号</FormLabel>
+                      <FormControl>
+                        <Input placeholder='请输入手机号' inputMode='tel' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </form>
           </Form>
         </div>

@@ -45,4 +45,19 @@ export function useInterviewConnectionDetails(jobId: string | number | null, ena
   })
 }
 
+export interface SupportDemandPayload {
+  detail: string
+  need_contact: boolean
+  phone_number?: string
+}
+
+export async function submitInterviewSupportDemand(payload: SupportDemandPayload): Promise<{ success: boolean }> {
+  try {
+    await api.post('/interview/page/demand', payload)
+    return { success: true }
+  } catch (_e) {
+    return { success: false }
+  }
+}
+
 
