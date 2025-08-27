@@ -7,6 +7,7 @@ export function ProfileDropdown() {
   const user = useAuthStore((s) => s.auth.user)
   const handleLogout = () => {
     const baseLogoutUrl = import.meta.env.VITE_AUTH_LOGOUT_URL
+    debugger
     location.replace(baseLogoutUrl)
   }
 

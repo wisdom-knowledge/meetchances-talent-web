@@ -1,86 +1,110 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { Separator } from '@/components/ui/separator'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { LiveKitRoom, VideoConference, useConnectionState, useRoomContext } from '@livekit/components-react'
-import { LogLevel, RoomEvent, setLogLevel } from 'livekit-client'
+import { RoomAudioRenderer, RoomContext, useConnectionState, useRoomContext } from '@livekit/components-react'
+import { LogLevel, RoomEvent, Room, setLogLevel } from 'livekit-client'
+import { AgentControlBar } from '@/components/livekit/agent-control-bar'
 import '@livekit/components-styles'
+import { useInterviewConnectionDetails } from '@/features/interview/api'
+import { Button } from '@/components/ui/button'
+import { SessionView } from '@/features/interview/session-view'
+import { getPreferredDeviceId } from '@/lib/devices'
 
-export default function InterviewPage() {
-  const [token, setToken] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+interface InterviewPageProps {
+  jobId: string | number
+}
+
+export default function InterviewPage({ jobId }: InterviewPageProps) {
   const isDev = import.meta.env.DEV
 
   const roomName = 'interview-room'
   const identity = useMemo(() => `user-${Date.now()}`, [])
+  const { data, isLoading, isError, refetch } = useInterviewConnectionDetails(jobId, true)
+  const room = useMemo(() => new Room(), [])
 
+  // 当拿到 token/serverUrl 时，连接房间；离开时断开
   useEffect(() => {
-    let isCancelled = false
-    const fetchToken = async () => {
+    if (!data?.token || !data?.serverUrl) return
+    const connect = async () => {
       try {
-        const response = await fetch('http://localhost:3001/get-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ roomName, identity }),
-        })
-        if (!response.ok) {
-          throw new Error(`Failed to fetch token: ${response.status}`)
+        if (room.state === 'disconnected') {
+          await room.connect(data.serverUrl, data.token)
         }
-        const data: { token?: string } = await response.json()
-        if (!isCancelled) {
-          if (data?.token) setToken(data.token)
-          else setError('未获取到有效的房间令牌（token）')
-        }
-      } catch (_err) {
-        if (!isCancelled) setError('获取房间令牌失败，请稍后重试。')
+        const prefMic = getPreferredDeviceId('audioinput') ?? undefined
+        const prefCam = getPreferredDeviceId('videoinput') ?? undefined
+        await room.localParticipant.setMicrophoneEnabled(true, { deviceId: prefMic })
+        await room.localParticipant.setCameraEnabled(true, { deviceId: prefCam })
+      } catch (_e) {
+        // ignore for now; UI 仍保持
       }
     }
-    fetchToken()
+    connect()
     return () => {
-      isCancelled = true
+      try {
+        room.disconnect()
+      } catch (_e) {
+        // ignore
+      }
     }
-  }, [identity])
+  }, [room, data?.serverUrl, data?.token])
 
   return (
     <>
-      <Header fixed>
-        <div className='ml-auto flex items-center space-x-4'>
-          <ProfileDropdown />
-        </div>
-      </Header>
-
       <Main>
-        <div className='space-y-0.5'>
-          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>在线面试</h1>
-          <p className='text-muted-foreground'>加入 LiveKit 面试房间，开始实时视频面试。</p>
-        </div>
-        <Separator className='my-4 lg:my-6' />
-
-        <div className='space-y-6'>
-          {!token && !error && <div>正在连接面试房间…</div>}
-          {error && (
-            <div className='text-red-600 text-sm'>
-              {error}
+        <div className='h-[80vh] relative'>
+          {isLoading && (
+            <div className='absolute inset-0 grid place-items-center text-sm text-muted-foreground'>正在连接面试房间…</div>
+          )}
+          {isError && (
+            <div className='absolute inset-0 grid place-items-center'>
+              <div className='flex items-center gap-3 text-sm text-red-600'>
+                <span>获取房间令牌失败。</span>
+                <Button size='sm' variant='outline' onClick={() => refetch()}>重试</Button>
+              </div>
             </div>
           )}
 
-          {token && (
-            <div className='h-[80vh]'>
-              <LiveKitRoom
-                video
-                audio
-                token={token}
-                serverUrl={import.meta.env.VITE_LIVEKIT_URL}
-                data-lk-theme='default'
-                style={{ height: '100%' }}
-              >
-                <VideoConference />
-                {isDev && (
-                  <DebugLiveKitStatus roomName={roomName} identity={identity} token={token} />
+          {data?.token ? (
+            <div className='h-full'>
+              <RoomContext.Provider value={room}>
+                <RoomAudioRenderer />
+                <SessionView disabled={false} sessionStarted className='h-full' />
+                <div className='pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
+                  <div className='pointer-events-auto'>
+                    <AgentControlBar />
+                  </div>
+                </div>
+                {isDev && data?.token && (
+                  <DebugLiveKitStatus roomName={roomName} identity={identity} token={data.token} />
                 )}
-              </LiveKitRoom>
+              </RoomContext.Provider>
             </div>
+          ) : (
+            <>
+              <div className='absolute inset-0 grid place-items-center text-sm text-muted-foreground'>
+                <div className='text-center'>
+                  <div className='text-base mb-2'>会话预览（未连接）</div>
+                  <div className='text-xs'>接口未就绪，正在以占位模式展示页面布局</div>
+                </div>
+              </div>
+              <RoomContext.Provider value={room}>
+                <SessionView disabled={false} sessionStarted={false} className='h-full' />
+              </RoomContext.Provider>
+              <div className='pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
+                <div className='pointer-events-auto bg-background border flex flex-col rounded-[31px] border p-3 shadow'>
+                  <div className='flex flex-row justify-between gap-1'>
+                    <div className='flex gap-1'>
+                      <Button type='button' size='sm' variant='outline' disabled className='w-auto pr-3 pl-3 md:rounded-r-none md:border-r-0 md:pr-2'>麦克风</Button>
+                      <Button type='button' size='sm' variant='outline' disabled className='rounded-l-none'>选择麦克风</Button>
+                      <Button type='button' size='sm' variant='outline' disabled className='w-auto rounded-r-none pr-3 pl-3 md:border-r-0 md:pr-2'>摄像头</Button>
+                      <Button type='button' size='sm' variant='outline' disabled className='rounded-l-none'>选择摄像头</Button>
+                      <Button type='button' size='sm' variant='outline' disabled className='w-auto'>共享屏幕</Button>
+                      <Button type='button' size='sm' variant='outline' disabled className='h-full'>字幕</Button>
+                    </div>
+                    <Button variant='destructive' disabled className='font-mono'>结束</Button>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </Main>

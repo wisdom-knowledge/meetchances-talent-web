@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import InterviewPage from '@/features/interview'
+import InterviewPreparePage from '@/features/interview/prepare'
 
 export const Route = createFileRoute('/_authenticated/interview/')({
-  component: InterviewPage,
+  component: InterviewPreparePage,
   staticData: { hideSidebar: true },
 })
 
