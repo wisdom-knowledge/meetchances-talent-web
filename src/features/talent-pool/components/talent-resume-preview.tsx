@@ -1,129 +1,234 @@
 import { useForm } from 'react-hook-form'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
+import type { ReactNode } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@/components/ui/form'
 import { resumeSchema, type ResumeFormValues } from '@/features/resume/data/schema'
+import type { StructInfo } from '@/types/struct-info'
 import DynamicBasicForm from '@/features/resume/components/dynamic-basic-form'
 import DynamicWorkExperience from '@/features/resume/components/dynamic-work-experience'
 import ResumeSection from '@/features/resume/components/resume-section'
-import { useAuthStore } from '@/stores/authStore'
-import { toast } from 'sonner'
-import { generateInviteToken, InviteTokenType } from '@/features/jobs/api'
-import { useRouterState } from '@tanstack/react-router'
+import { cn } from '@/lib/utils'
 
-type InviteContext = {
-  headhunterName?: string
-  jobTitle?: string
-  salaryMin?: number
-  salaryMax?: number
-  link?: string
+// Deprecated: previously used to build default footer content
+// interface InviteContext { ... }
+
+interface TalentResumePreviewProps {
+  values?: ResumeFormValues
+  struct?: StructInfo
+  fallbackName?: string
+  editable?: boolean
+  footer?: ReactNode
+  className?: string
+  onStructChange?: (struct: StructInfo) => void
 }
 
-type Props = { values: ResumeFormValues; inviteContext?: InviteContext }
+function mapStructInfoToResumeValues(struct: StructInfo | undefined, fallbackName?: string): ResumeFormValues {
+  const basic = struct?.basic_info ?? {}
+  const exp = struct?.experience ?? {}
+  const self = struct?.self_assessment ?? {}
 
-export default function TalentResumePreview({ values, inviteContext }: Props) {
-  const form = useForm<ResumeFormValues>({ resolver: zodResolver(resumeSchema), defaultValues: values, mode: 'onChange' })
-  const user = useAuthStore((s) => s.auth.user)
-  const [isCopying, setIsCopying] = useState(false)
+  const work = Array.isArray(exp?.work_experience)
+    ? exp.work_experience.map((w) => ({
+        organization: w?.organization ?? '',
+        title: w?.title ?? '',
+        startDate: w?.start_date ?? '',
+        endDate: w?.end_date ?? '',
+        city: w?.city ?? '',
+        employmentType: w?.employment_type ?? '',
+        achievements: Array.isArray(w?.achievements) ? w.achievements.join('\n') : '',
+      }))
+    : []
 
-  // 当外部传入的简历值变化时，重置表单，避免保留上一次的内容
+  const projects = Array.isArray(exp?.project_experience)
+    ? exp.project_experience.map((p) => ({
+        organization: p?.organization ?? '',
+        role: p?.role ?? '',
+        startDate: p?.start_date ?? '',
+        endDate: p?.end_date ?? '',
+        achievements: Array.isArray(p?.achievements) ? p.achievements.join('\n') : '',
+      }))
+    : []
+
+  const education = Array.isArray(exp?.education)
+    ? exp.education.map((e) => ({
+        institution: e?.institution ?? '',
+        major: e?.major ?? '',
+        degreeType: e?.degree_type ?? '',
+        degreeStatus: e?.degree_status ?? '',
+        city: e?.city ?? '',
+        startDate: e?.start_date ?? '',
+        endDate: e?.end_date ?? '',
+        achievements: Array.isArray(e?.achievements) ? e.achievements.join('\n') : '',
+      }))
+    : []
+
+  const hardSkills = Array.isArray(self?.hard_skills)
+    ? self.hard_skills.map((s) => s?.skill_name).filter(Boolean).join('、')
+    : ''
+
+  const gender = ((): '男' | '女' | '其他' | '不愿透露' | undefined => {
+    const g = basic?.gender ?? undefined
+    if (g === '男' || g === '女' || g === '其他' || g === '不愿透露') return g
+    return undefined
+  })()
+
+  const values: ResumeFormValues = {
+    name: basic?.name ?? fallbackName ?? '',
+    phone: basic?.phone ?? '',
+    city: basic?.city ?? '',
+    gender,
+    email: basic?.email ?? '',
+    origin: '',
+    expectedSalary: '',
+    hobbies: '',
+    skills: hardSkills,
+    workSkillName: '',
+    workSkillLevel: undefined,
+    softSkills: '',
+    selfEvaluation: self?.summary ?? '',
+    workExperience: work,
+    projectExperience: projects,
+    education,
+  }
+  return values
+}
+
+export default function TalentResumePreview({ values, struct, fallbackName, editable = true, footer, className, onStructChange }: TalentResumePreviewProps) {
+  const computedValues: ResumeFormValues = useMemo(() => {
+    if (struct) return mapStructInfoToResumeValues(struct, fallbackName)
+    return (
+      values ?? {
+        name: fallbackName ?? '',
+        phone: '',
+        city: '',
+        gender: undefined,
+        email: '',
+        origin: '',
+        expectedSalary: '',
+        hobbies: '',
+        skills: '',
+        workSkillName: '',
+        workSkillLevel: undefined,
+        softSkills: '',
+        selfEvaluation: '',
+        workExperience: [],
+        projectExperience: [],
+        education: [],
+      }
+    )
+  }, [struct, values, fallbackName])
+
+  const form = useForm<ResumeFormValues>({ resolver: zodResolver(resumeSchema), defaultValues: computedValues, mode: 'onChange' })
+
+  // 当外部传入内容变化时，重置表单，避免保留上一次的内容
   useEffect(() => {
-    form.reset(values)
-  }, [values, form])
+    form.reset(computedValues)
+  }, [computedValues, form])
 
-  const headhunterName = useMemo(() => {
-    if (inviteContext?.headhunterName) return inviteContext.headhunterName
-    if (user?.accountNo && user.accountNo.trim()) return user.accountNo
-    if (user?.email) return user.email.split('@')[0]
-    return '猎头'
-  }, [inviteContext?.headhunterName, user?.accountNo, user?.email])
+  function mapFormValuesToStructInfo(v: ResumeFormValues): StructInfo {
+    const hardSkills = (v.skills || '')
+      .split(/[,，、\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((skill) => ({ skill_name: skill, proficiency: null }))
 
-  const jobTitle = inviteContext?.jobTitle ?? '岗位'
-  const salaryMin = inviteContext?.salaryMin
-  const salaryMax = inviteContext?.salaryMax
-  const link = inviteContext?.link ?? 'https://talent.meetchances.com/job-detail'
-
-  const { location } = useRouterState()
-  const search = location.search as Record<string, unknown>
-  const jobId = useMemo(() => {
-    const v = search?.job_id
-    if (typeof v === 'string') return Number.isNaN(Number(v)) ? v : Number(v)
-    if (typeof v === 'number') return v
-    return null
-  }, [search])
-
-  const handleCopyInvite = async () => {
-    if (!jobId) {
-      toast.error('缺少职位ID，无法生成邀请令牌')
-      return
-    }
-    if (!user?.id) {
-      toast.error('未登录或缺少用户ID，无法生成邀请令牌')
-      return
-    }
-
-    setIsCopying(true)
-    try {
-      const inviteToken = await generateInviteToken({
-        job_id: jobId,
-        headhunter_id: user.id,
-        token_type: InviteTokenType.HeadhunterRecommend,
-      })
-      if (!inviteToken) {
-        toast.error('生成邀请令牌失败')
-        return
-      }
-
-      let finalLink = link
-      try {
-        const url = new URL(link)
-        url.searchParams.set('invite_token', inviteToken)
-        finalLink = url.toString()
-      } catch {
-        const sep = link.includes('?') ? '&' : '?'
-        finalLink = `${link}${sep}invite_token=${encodeURIComponent(inviteToken)}`
-      }
-
-      const x = salaryMin != null ? String(salaryMin) : ''
-      const y = salaryMax != null ? String(salaryMax) : ''
-      const text = `${headhunterName}邀请你参加${jobTitle}面试！时薪${x}～${y}元。在桌面端打开链接 ${finalLink} 参与吧！`
-
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text)
-      } else {
-        const ta = document.createElement('textarea')
-        ta.value = text
-        ta.style.position = 'fixed'
-        ta.style.opacity = '0'
-        document.body.appendChild(ta)
-        ta.select()
-        document.execCommand('copy')
-        document.body.removeChild(ta)
-      }
-      toast.success('复制成功')
-    } catch {
-      toast.error('操作失败，请稍后重试')
-    } finally {
-      setIsCopying(false)
+    return {
+      basic_info: {
+        name: v.name || '',
+        phone: v.phone || '',
+        city: v.city || '',
+        gender: v.gender ?? null,
+        email: v.email || '',
+      },
+      experience: {
+        work_experience: (v.workExperience || []).map((w) => ({
+          organization: w.organization || '',
+          title: w.title || '',
+          start_date: w.startDate || '',
+          end_date: w.endDate || '',
+          city: w.city || '',
+          employment_type: w.employmentType || '',
+          achievements: (w.achievements || '')
+            ? String(w.achievements)
+                .split(/\n/)
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [],
+        })),
+        project_experience: (v.projectExperience || []).map((p) => ({
+          organization: p.organization || '',
+          role: p.role || '',
+          start_date: p.startDate || '',
+          end_date: p.endDate || '',
+          achievements: (p.achievements || '')
+            ? String(p.achievements)
+                .split(/\n/)
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [],
+        })),
+        education: (v.education || []).map((e) => ({
+          institution: e.institution || '',
+          major: e.major || '',
+          degree_type: e.degreeType || '',
+          degree_status: e.degreeStatus || '',
+          city: e.city || '',
+          start_date: e.startDate || '',
+          end_date: e.endDate || '',
+          achievements: (e.achievements || '')
+            ? String(e.achievements)
+                .split(/\n/)
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [],
+        })),
+      },
+      self_assessment: {
+        summary: v.selfEvaluation || '',
+        hard_skills: hardSkills,
+        soft_skills: [],
+      },
     }
   }
 
+  // 将表单实时变更映射为 StructInfo 上抛
+  useEffect(() => {
+    const subscription = form.watch((val) => {
+      try {
+        const structInfo = mapFormValuesToStructInfo(val as ResumeFormValues)
+        onStructChange?.(structInfo)
+      } catch {
+        // ignore mapping errors
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form, onStructChange])
+
+  // Footer 内容由外部传入
+
   return (
     <>
-      <div className='space-y-10 faded-bottom h-full w-full overflow-y-auto scroll-smooth pr-4 pb-28 [overflow-anchor:none]'>
+      <div
+        className={cn(
+          'space-y-10 faded-bottom h-full w-full overflow-y-auto scroll-smooth pr-4 [overflow-anchor:none]',
+          footer != null ? 'pb-28' : 'pb-6',
+          className
+        )}
+      >
         <ResumeSection id='section-basic' title='基本信息'>
           <Form {...form}>
             <form className='w-full space-y-6'>
-              <DynamicBasicForm readOnly />
+              <DynamicBasicForm readOnly={!editable} />
             </form>
           </Form>
         </ResumeSection>
 
         <ResumeSection variant='plain' id='section-experience' title='经历'>
           <Form {...form}>
-            <DynamicWorkExperience sectionKey='workExperience' readOnly />
-            <DynamicWorkExperience sectionKey='projectExperience' readOnly />
-            <DynamicWorkExperience sectionKey='education' readOnly />
+            <DynamicWorkExperience sectionKey='workExperience' readOnly={!editable} />
+            <DynamicWorkExperience sectionKey='projectExperience' readOnly={!editable} />
+            <DynamicWorkExperience sectionKey='education' readOnly={!editable} />
           </Form>
         </ResumeSection>
 
@@ -138,24 +243,17 @@ export default function TalentResumePreview({ values, inviteContext }: Props) {
         <ResumeSection variant='plain' title='自我评价'>
           <Form {...form}>
             <form className='w-full space-y-6'>
-              <DynamicBasicForm sectionKey='self' readOnly />
+              <DynamicBasicForm sectionKey='self' readOnly={!editable} />
             </form>
           </Form>
         </ResumeSection>
       </div>
       {/* 吸底操作区 */}
-      <div className='sticky bottom-0 left-0 right-0 z-10 -mb-10 pt-3 pb-3 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-        <div className='flex justify-start'>
-          <button
-            type='button'
-            onClick={handleCopyInvite}
-            className='inline-flex items-center rounded-md bg-primary px-4 py-2 text-primary-foreground text-sm font-medium shadow hover:opacity-90 disabled:opacity-60'
-            disabled={isCopying}
-          >
-            {isCopying ? '复制中…' : '复制邀请文案'}
-          </button>
+      {footer != null && (
+        <div className='sticky bottom-0 left-0 right-0 z-10 -mb-10 pt-3 pb-3 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+          {footer}
         </div>
-      </div>
+      )}
     </>
   )
 }

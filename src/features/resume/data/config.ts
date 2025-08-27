@@ -72,9 +72,9 @@ export const resumeFormConfig: {
       key: 'basic',
       title: '基本信息',
       fields: [
-        { key: 'name', label: '姓名', component: 'input', placeholder: '请输入姓名', disabled: true, hint: '已实名认证，不可修改' },
+        { key: 'name', label: '姓名', component: 'input', placeholder: '请输入姓名' },
         { key: 'gender', label: '性别', component: 'select', optionsKey: 'gender', placeholder: '请选择性别' },
-        { key: 'phone', label: '电话', component: 'input', placeholder: '请输入电话号码', disabled: true, hint: '已验证，不可修改' },
+        { key: 'phone', label: '电话', component: 'input', placeholder: '请输入电话号码' },
         { key: 'email', label: '邮箱', component: 'input', placeholder: '请输入邮箱地址' },
         { key: 'city', label: '所在城市', component: 'input', placeholder: '请输入所在城市' },
         { key: 'origin', label: '籍贯', component: 'input', placeholder: '请输入籍贯' },
