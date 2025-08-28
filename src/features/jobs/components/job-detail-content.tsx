@@ -67,9 +67,7 @@ export default function JobDetailContent({
   }, [isMobile, job?.id])
 
   const applyJob = async () => {
-    console.log('apply job')
     // 如果是本地环境，则直接跳转
-    console.log('import.meta.env.DEV', import.meta.env.DEV)
     if (import.meta.env.DEV) {
       let url = `/interview/prepare?job_id=${job.id}`
       if (inviteToken) {
@@ -80,15 +78,10 @@ export default function JobDetailContent({
     }
 
     const targetUrl = import.meta.env.VITE_INVITE_REDIRECT_URL
-    console.log('targetUrl:', targetUrl)
     let url = `${targetUrl}?job_id=${job.id}`
-    console.log('url:', url)
-    console.log('inviteToken:', inviteToken)
     if (inviteToken) {
       url = `${url}&invite_token=${inviteToken}`
     }
-    console.log('inviteToken url', url)
-    debugger
     window.location.href = url
   }
 
