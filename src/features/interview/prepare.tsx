@@ -27,6 +27,7 @@ import { useAuthStore } from '@/stores/authStore'
 interface InterviewPreparePageProps {
   jobId?: string | number
   inviteToken?: string
+  isSkipConfirm?: boolean
 }
 
 enum ViewMode {
@@ -52,7 +53,7 @@ const Steps = ({ currentStep }: { currentStep: number }) => {
   )
 }
 
-export default function InterviewPreparePage({ jobId, inviteToken }: InterviewPreparePageProps) {
+export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false }: InterviewPreparePageProps) {
   const navigate = useNavigate()
   const [supportOpen, setSupportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -89,17 +90,8 @@ export default function InterviewPreparePage({ jobId, inviteToken }: InterviewPr
   }, [viewMode])
 
   async function handleApplyJob() {
-    if (!jobId) return
+    if (!jobId || isSkipConfirm) return
     try {
-      if(!user?.is_onboard){
-        navigate({
-          to: '/invited',
-          search: { job_id: jobId, inviteToken: inviteToken },
-          replace: true,
-        })
-        return
-      }
-
       const tokenToUse = inviteToken ||
         (await generateInviteToken({ job_id: jobId, token_type: InviteTokenType.ActiveApply }))
   
@@ -115,6 +107,14 @@ export default function InterviewPreparePage({ jobId, inviteToken }: InterviewPr
 
   useEffect(() => {
     if(!user) return
+    // if(!user?.is_onboard){
+    //   navigate({
+    //     to: '/invited',
+    //     search: { job_id: jobId, inviteToken: inviteToken },
+    //     replace: true,
+    //   })
+    //   return
+    // }
     handleApplyJob();
   }, [user, jobId, inviteToken])
 
