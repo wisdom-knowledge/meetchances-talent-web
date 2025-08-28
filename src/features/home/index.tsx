@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { IconX, IconHelp } from '@tabler/icons-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -19,6 +20,7 @@ import {
 } from './api'
 
 export default function HomeViewPage() {
+  const navigate = useNavigate()
   const { data: taskList = [], isLoading: loadingTasks } =
     useImportantTasksQuery()
   const [dismissed, setDismissed] = useState<Record<string, boolean>>({})
@@ -39,7 +41,11 @@ export default function HomeViewPage() {
 
   const [helpOpen, setHelpOpen] = useState(false)
   const handleHelp = () => setHelpOpen(true)
-  const handleSupportSubmit = async (_payload: { message: string; contactMethod: 'phone' | 'none'; phone?: string }) => {
+  const handleSupportSubmit = async (_payload: {
+    message: string
+    contactMethod: 'phone' | 'none'
+    phone?: string
+  }) => {
     fetchForHelp({
       detail: _payload.message,
       need_contact: _payload.contactMethod === 'phone',
@@ -155,7 +161,21 @@ export default function HomeViewPage() {
                       return `${days}天前申请`
                     })()
                     return (
-                      <Card key={item.id} className='border'>
+                      <Card
+                        key={item.id}
+                        className='hover:bg-accent/40 cursor-pointer border transition-colors'
+                        onClick={() => {
+                          if (!isCompleted) {
+                            navigate({
+                              to: '/interview/prepare',
+                              search: {
+                                job_id: item.job_id,
+                                isSkipConfirm: true,
+                              } as unknown as Record<string, unknown>,
+                            })
+                          }
+                        }}
+                      >
                         <div className='flex items-center justify-between gap-4 p-4'>
                           <div className='min-w-0'>
                             <div className='mb-1 flex items-center gap-2'>
@@ -183,7 +203,7 @@ export default function HomeViewPage() {
 
                           <div className='flex shrink-0 items-center'>
                             {startedText && (
-                              <div className='text-muted-foreground text-xs mr-5'>
+                              <div className='text-muted-foreground mr-5 text-xs'>
                                 {startedText}
                               </div>
                             )}
@@ -229,7 +249,11 @@ export default function HomeViewPage() {
         </Tabs>
 
         {/* 寻求支持弹窗 */}
-        <SupportDialog open={helpOpen} onOpenChange={setHelpOpen} onSubmit={handleSupportSubmit} />
+        <SupportDialog
+          open={helpOpen}
+          onOpenChange={setHelpOpen}
+          onSubmit={handleSupportSubmit}
+        />
       </Main>
     </>
   )

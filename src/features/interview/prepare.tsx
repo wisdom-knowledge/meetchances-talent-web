@@ -3,7 +3,7 @@ import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { UploadArea } from '@/features/resume-upload/upload-area'
 import { useNavigate } from '@tanstack/react-router'
-import { useJobDetailQuery } from '@/features/jobs/api'
+import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
 import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { IconLoader2 } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
@@ -21,9 +21,13 @@ import type { ResumeFormValues } from '@/features/resume/data/schema'
 import { mapStructInfoToResumeFormValues, mapResumeFormValuesToStructInfo } from '@/features/resume/data/struct-mapper'
 import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
+import { handleServerError } from '@/utils/handle-server-error'
+import { useAuthStore } from '@/stores/authStore'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
+  inviteToken?: string
+  isSkipConfirm?: boolean
 }
 
 enum ViewMode {
@@ -49,7 +53,7 @@ const Steps = ({ currentStep }: { currentStep: number }) => {
   )
 }
 
-export default function InterviewPreparePage({ jobId }: InterviewPreparePageProps) {
+export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false }: InterviewPreparePageProps) {
   const navigate = useNavigate()
   const [supportOpen, setSupportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -63,6 +67,7 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: true })
+  const user = useAuthStore((s) => s.auth.user)
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
 
@@ -83,6 +88,35 @@ export default function InterviewPreparePage({ jobId }: InterviewPreparePageProp
       mounted = false
     }
   }, [viewMode])
+
+  async function handleApplyJob() {
+    if (!jobId || isSkipConfirm) return
+    try {
+      const tokenToUse = inviteToken ||
+        (await generateInviteToken({ job_id: jobId, token_type: InviteTokenType.ActiveApply }))
+  
+      if (!tokenToUse) {
+        throw new Error('生成申请令牌失败')
+      }
+  
+      await applyJob(jobId, tokenToUse)
+    } catch (error) {
+      handleServerError(error)
+    }
+  }
+
+  useEffect(() => {
+    if(!user) return
+    // if(!user?.is_onboard){
+    //   navigate({
+    //     to: '/invited',
+    //     search: { job_id: jobId, inviteToken: inviteToken },
+    //     replace: true,
+    //   })
+    //   return
+    // }
+    handleApplyJob();
+  }, [user, jobId, inviteToken])
 
   // Auto-select first available camera when none is selected
   useEffect(() => {
