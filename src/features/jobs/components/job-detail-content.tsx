@@ -67,7 +67,9 @@ export default function JobDetailContent({
   }, [isMobile, job?.id])
 
   const applyJob = async () => {
+    console.log('apply job')
     // 如果是本地环境，则直接跳转
+    console.log('import.meta.env.DEV', import.meta.env.DEV)
     if (import.meta.env.DEV) {
       let url = `/interview/prepare?job_id=${job.id}`
       if (inviteToken) {
@@ -81,7 +83,9 @@ export default function JobDetailContent({
     let params = `job_id=${job.id}`
     if (inviteToken) {
       params = `${params}&invite_token=${inviteToken}`
+      console.log('params:', params)
     }
+    console.log('href', `${targetUrl}?${encodeURIComponent(params)}`)
     window.location.href = `${targetUrl}?${encodeURIComponent(params)}`
   }
 
