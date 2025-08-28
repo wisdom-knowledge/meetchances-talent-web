@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { IconArrowLeft } from '@tabler/icons-react'
 import type { Job } from '@/types/solutions'
 import avatarsImg from '@/assets/images/avatars.png'
