@@ -88,6 +88,7 @@ export default function JobDetailContent({
       url = `${url}&invite_token=${inviteToken}`
     }
     console.log('inviteToken url', url)
+    debugger
     window.location.href = url
   }
 
