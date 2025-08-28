@@ -10,6 +10,7 @@ interface AuthUser {
   full_name: string
   is_active: boolean
   is_superuser: boolean
+  is_onboard: boolean
 
   // 兼容历史字段（仅在少量地方使用）
   accountNo?: string
@@ -62,10 +63,8 @@ export interface InviteInfo {
 interface AuthState {
   auth: {
     user: AuthUser | null
-    talent: Talent | null
     inviteInfo: InviteInfo | null
     setUser: (user: AuthUser | null) => void
-    setTalent: (user: Talent | null) => void
     setInviteInfo: (info: InviteInfo | null) => void
     accessToken: string
     setAccessToken: (accessToken: string) => void
@@ -82,9 +81,6 @@ export const useAuthStore = create<AuthState>()((set) => {
       user: null,
       setUser: (user) =>
         set((state) => ({ ...state, auth: { ...state.auth, user } })),
-      talent: null,
-      setTalent: (talent) =>
-        set((state) => ({ ...state, auth: { ...state.auth, talent } })),
       inviteInfo: null,
       setInviteInfo: (inviteInfo) =>
         set((state) => ({ ...state, auth: { ...state.auth, inviteInfo } })),
@@ -104,7 +100,7 @@ export const useAuthStore = create<AuthState>()((set) => {
           Cookies.remove(ACCESS_TOKEN)
           return {
             ...state,
-            auth: { ...state.auth, user: null, talent: null, inviteInfo: null, accessToken: '' },
+            auth: { ...state.auth, user: null, inviteInfo: null, accessToken: '' },
           }
         }),
     },

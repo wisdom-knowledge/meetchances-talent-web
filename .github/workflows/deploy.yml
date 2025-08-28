@@ -49,6 +49,7 @@ jobs:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           VITE_AUTH_LOGIN_URL: ${{ secrets.VITE_AUTH_LOGIN_URL }}
           VITE_AUTH_LOGOUT_URL: ${{ secrets.VITE_AUTH_LOGOUT_URL }}
+          VITE_INVITE_REDIRECT_URL: ${{ secrets.VITE_INVITE_REDIRECT_URL }}
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
         run: pnpm run build
 
