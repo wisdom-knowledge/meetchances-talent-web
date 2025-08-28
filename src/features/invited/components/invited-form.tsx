@@ -48,7 +48,7 @@ type Step2Values = z.infer<typeof step2Schema>
 
 export default function InvitedForm() {
   const navigate = useNavigate()
-  const setTalent = useAuthStore((s) => s.auth.setTalent)
+  const setUser = useAuthStore((s) => s.auth.setUser)
 
   const [step, setStep] = useState<1 | 2>(1)
 
@@ -69,6 +69,11 @@ export default function InvitedForm() {
     return params.get('job_id') ?? ''
   }, [])
 
+  const inviteToken = useMemo(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('inviteToken') ?? ''
+  }, [])
+
   const handleNext = async () => {
     const ok = await formStep1.trigger()
     if (!ok) return
@@ -86,8 +91,19 @@ export default function InvitedForm() {
       acquisition_channel: Number(payload.source),
       top_skills: join([payload.skill1, payload.skill2, payload.skill3], ','),
     }).then((res) => {
-      setTalent(res)
-      navigate({ to: '/interview/prepare', search: { job_id: Number(jobId) } })
+      setUser({
+        id: res.id,
+        email: res.email,
+        full_name: res.full_name,
+        is_active: res.is_active,
+        is_superuser: res.is_superuser,
+        is_onboard: res.is_onboard,
+        accountNo: res.full_name || res.email.split('@')[0],
+      })
+      navigate({
+        to: '/interview/prepare',
+        search: { job_id: Number(jobId), inviteToken: inviteToken },
+      })
     })
   }
 

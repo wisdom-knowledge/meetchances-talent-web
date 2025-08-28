@@ -1,14 +1,10 @@
 import { forwardRef, useEffect, useRef, useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
 import { IconArrowLeft } from '@tabler/icons-react'
 import type { Job } from '@/types/solutions'
 import avatarsImg from '@/assets/images/avatars.png'
-import { useAuthStore } from '@/stores/authStore'
 import { cn } from '@/lib/utils'
-import { handleServerError } from '@/utils/handle-server-error'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
-import { applyJob as applyJobApi, generateInviteToken, InviteTokenType } from '@/features/jobs/api'
 import JobTitleAndTags from './job-title-and-tags'
 import PublisherSection from './publisher-section'
 
@@ -34,8 +30,6 @@ export default function JobDetailContent({
   isTwoColumn = false,
 }: JobDetailContentProps) {
   const isMobile = useIsMobile()
-  const talent = useAuthStore((s) => s.auth.talent)
-  const navigate = useNavigate()
 
   const applicationCardRef = useRef<HTMLDivElement>(null)
   const [showFixedBar, setShowFixedBar] = useState(true)
@@ -70,21 +64,23 @@ export default function JobDetailContent({
   }, [isMobile, job?.id])
 
   const applyJob = async () => {
-    try {
-      const tokenToUse = inviteToken ||
-        (await generateInviteToken({ job_id: job.id, token_type: InviteTokenType.ActiveApply }))
-
-      if (!tokenToUse) {
-        throw new Error('生成申请令牌失败')
+    // 如果是本地环境，则直接跳转
+    if (import.meta.env.DEV) {
+      let url = `/interview/prepare?job_id=${job.id}`
+      if (inviteToken) {
+        url = `${url}&invite_token=${inviteToken}`
       }
+      window.location.href = url
+      return
+    }
 
-      await applyJobApi(job.id, tokenToUse)
-      navigate({
-        to: talent?.is_onboard ? '/interview/prepare' : '/invited',
-        search: { job_id: job?.id },
-      })
-    } catch (error) {
-      handleServerError(error)
+    const targetUrl = import.meta.env.VITE_INVITE_REDIRECT_URL
+    if (targetUrl) {
+      let url = `${targetUrl}?job_id=${job.id}`
+      if (inviteToken) {
+        url = `${url}&invite_token=${inviteToken}`
+      }
+      window.location.href = url
     }
   }
 

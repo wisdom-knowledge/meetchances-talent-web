@@ -37,6 +37,7 @@ export function AuthenticatedLayout({ children }: Props) {
       full_name: data.full_name,
       is_active: data.is_active,
       is_superuser: data.is_superuser,
+      is_onboard: data.is_onboard,
       accountNo: data.full_name || data.email.split('@')[0],
     })
   }, [data, setUser])

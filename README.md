@@ -80,6 +80,7 @@ src/
 - `VITE_AUTH_LOGIN_URL`：统一登录地址（用于未授权时跳转）。
 - `VITE_AUTH_LOGOUT_URL`：统一登出地址（用于退出登录跳转）。
 - `VITE_CLERK_PUBLISHABLE_KEY`：Clerk 的 Publishable Key（前端可见）。
+- `VITE_INVITE_REDIRECT_URL`：专家被邀请后点击申请岗位后的跳转登录地址。
 .- `VITE_LIVEKIT_URL`：LiveKit 服务器地址（wss 协议，示例：`wss://your-livekit-host`）。
 
 示例（本地 `.env.local`）：
