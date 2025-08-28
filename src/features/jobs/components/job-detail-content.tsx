@@ -78,11 +78,11 @@ export default function JobDetailContent({
     }
 
     const targetUrl = import.meta.env.VITE_INVITE_REDIRECT_URL
-    let url = `${targetUrl}?job_id=${job.id}`
+    let params = `job_id=${job.id}`
     if (inviteToken) {
-      url = `${url}&invite_token=${inviteToken}`
+      params = `${params}&invite_token=${inviteToken}`
     }
-    window.location.href = url
+    window.location.href = `${targetUrl}?${encodeURIComponent(params)}`
   }
 
   return (
