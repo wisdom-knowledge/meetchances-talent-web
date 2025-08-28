@@ -169,8 +169,7 @@ export default function HomeViewPage() {
                             navigate({
                               to: '/interview/prepare',
                               search: {
-                                job_id: item.job_id,
-                                isSkipConfirm: true,
+                                data: `job_id${item.job_id}andisSkipConfirm${true}`,
                               } as unknown as Record<string, unknown>,
                             })
                           }
