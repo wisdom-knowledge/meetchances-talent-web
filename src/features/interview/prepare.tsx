@@ -107,14 +107,14 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
   useEffect(() => {
     if(!user) return
-    // if(!user?.is_onboard){
-    //   navigate({
-    //     to: '/invited',
-    //     search: { job_id: jobId, inviteToken: inviteToken },
-    //     replace: true,
-    //   })
-    //   return
-    // }
+    if(!user?.is_onboard){
+      navigate({
+        to: '/invited',
+        search: { job_id: jobId, inviteToken: inviteToken },
+        replace: true,
+      })
+      return
+    }
     handleApplyJob();
   }, [user, jobId, inviteToken])
 
