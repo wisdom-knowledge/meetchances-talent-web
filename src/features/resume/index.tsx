@@ -1,18 +1,22 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { IconListDetails, IconPlus, IconStar, IconUser, IconWand, IconUpload } from '@tabler/icons-react'
+import { IconListDetails, IconPlus, IconStar, IconUser, IconWand, IconUpload, IconLoader2 } from '@tabler/icons-react'
 
-import { showSubmittedData } from '@/utils/show-submitted-data'
+// import { showSubmittedData } from '@/utils/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { resumeSchema, type ResumeFormValues } from './data/schema'
 import { resumeMockData } from './data/mock'
 import { options } from './data/config'
+import { fetchTalentResumeDetail, patchTalentResumeDetail, uploadTalentResume } from '@/features/resume-upload/utils/api'
+import { mapStructInfoToResumeFormValues, mapResumeFormValuesToStructInfo } from '@/features/resume/data/struct-mapper'
+import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 // import { options } from './data/config'
 import SectionNav, { type SectionNavItem } from './components/section-nav'
 import DynamicBasicForm from './components/dynamic-basic-form'
@@ -48,6 +52,23 @@ export default function ResumePage() {
     },
     mode: 'onChange',
   })
+
+  const [uploadingResume, setUploadingResume] = useState(false)
+
+  // 从接口获取简历详情并回显
+  const { data: resumeDetail } = useQuery({
+    queryKey: ['talent', 'resume_detail'],
+    queryFn: fetchTalentResumeDetail,
+  })
+
+  useEffect(() => {
+    const si = (resumeDetail?.item?.backend?.struct_info ?? null) as StructInfo | null
+    if (si) {
+      const mapped = mapStructInfoToResumeFormValues(si)
+      form.reset({ ...form.getValues(), ...mapped })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeDetail?.item?.backend?.struct_info])
 
   // 开发调试：将 mock 数据映射为表单值
   function mapMockToFormValues(): ResumeFormValues {
@@ -108,8 +129,32 @@ export default function ResumePage() {
 
   // experiences 由动态组件内部管理；此处不需要声明
 
-  function onSubmit(values: ResumeFormValues) {
-    showSubmittedData(values)
+  // 上传新简历并回显
+  async function handleResumeFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      setUploadingResume(true)
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await uploadTalentResume(fd)
+      const first = res.data?.[0]
+      const si = (first?.backend?.struct_info ?? null) as StructInfo | null
+      if (si) {
+        const mapped = mapStructInfoToResumeFormValues(si)
+        form.reset({ ...form.getValues(), ...mapped })
+      }
+    } finally {
+      // 清空选择，便于下次重新选择同名文件
+      e.target.value = ''
+      setUploadingResume(false)
+    }
+  }
+
+  async function onSubmit(values: ResumeFormValues) {
+    const struct = mapResumeFormValuesToStructInfo(values)
+    await patchTalentResumeDetail(struct as unknown as StructInfo)
+    // showSubmittedData(values)
   }
 
   // 仅开发环境暴露：一键填充 mock 数据，便于调试
@@ -163,24 +208,30 @@ export default function ResumePage() {
                         accept='.pdf,.doc,.docx,.md,.txt'
                         aria-label='上传简历文件'
                         title='上传简历文件'
-                        onChange={() => {
-                          /* no-op for now */
-                        }}
+                        onChange={handleResumeFileChange}
                       />
                       <Button
                         variant='outline'
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={() => !uploadingResume && fileInputRef.current?.click()}
                         className='h-10 px-4 py-2'
+                        disabled={uploadingResume}
                       >
-                        <IconUpload className='h-4 w-4' />
-                        上传新简历
+                        {uploadingResume ? (
+                          <>
+                            <IconLoader2 className='h-4 w-4 animate-spin' /> 正在上传…
+                          </>
+                        ) : (
+                          <>
+                            <IconUpload className='h-4 w-4' /> 上传新简历
+                          </>
+                        )}
                       </Button>
                       {isDev && (
                         <Button variant='outline' className='h-10 px-4 py-2' onClick={fillWithMock}>
                           用 Mock 数据填充
                         </Button>
                       )}
-                      <Button className='h-10 px-4 py-2' onClick={form.handleSubmit(onSubmit)}>
+                      <Button className='h-10 px-4 py-2' onClick={form.handleSubmit(onSubmit)} disabled={uploadingResume}>
                         保存
                       </Button>
                     </div>
