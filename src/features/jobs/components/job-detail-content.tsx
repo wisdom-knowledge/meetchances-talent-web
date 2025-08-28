@@ -45,7 +45,10 @@ export default function JobDetailContent({
       '[data-slot="sheet-content"]'
     ) as HTMLElement | null
     const target = applicationCardRef.current
-    if (!target) return
+    if (!target) {
+      setShowFixedBar(true)
+      return
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -84,19 +87,110 @@ export default function JobDetailContent({
     }
   }
 
-  interface ApplyCardProps {
-    onApply: () => void
-    className?: string
-  }
+  return (
+    <>
+      <div
+        className={cn(
+          isTwoColumn && 'grid grid-cols-1 gap-8 md:grid-cols-[1fr_320px]'
+        )}
+      >
+        <div>
+          {onBack && (
+            <div className='flex pt-2 pb-2'>
+              <button
+                type='button'
+                onClick={onBack}
+                aria-label='返回'
+                className='cursor-pointer'
+              >
+                <IconArrowLeft className='text-muted-foreground h-6 w-6' />
+              </button>
+            </div>
+          )}
 
-  const ApplyCard = forwardRef<HTMLDivElement, ApplyCardProps>(
-    ({ onApply, className }, ref) => {
-      return (
+          {/* 顶部信息区（桌面在左列展示，这里仅用于小屏） */}
+          <div className='flex flex-row items-start justify-between border-b border-gray-200 pt-5 pb-5'>
+            {/* 左侧：标题和标签 */}
+            <div className='min-w-0 flex-1'>
+              <JobTitleAndTags job={job} />
+              {/* 移动端：薪资信息显示在左侧标题下方 */}
+              {isMobile && (
+                <div>
+                  <div className='flex items-center gap-2'>
+                    <div className='text-xl font-semibold text-gray-900'>
+                      ¥{job.salaryRange[0]}~¥{job.salaryRange[1]}
+                    </div>
+                    <div className='text-xs text-gray-500'>{`每${salaryTypeUnit[job.salaryType]}`}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* 右侧：薪资和按钮 - 桌面端显示 */}
+            {!isMobile && (
+              <div className='flex min-w-[140px] flex-col items-end'>
+                <div className='mb-1 text-xl font-semibold text-gray-900'>
+                  ¥{job.salaryRange[0]}~¥{job.salaryRange[1]}
+                </div>
+                <div className='mb-3 text-xs text-gray-500'>{`每${
+                  salaryTypeUnit[job.salaryType]
+                }`}</div>
+                <Button
+                  onClick={applyJob}
+                  className='!rounded-md !bg-[#4E02E4] !px-6 !py-2 !text-base !text-white'
+                >
+                  立即申请
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <PublisherSection recommendName={recommendName} />
+
+          <div
+            className='text-foreground/90 mb-8 text-base leading-relaxed'
+            dangerouslySetInnerHTML={{ __html: job.description }}
+          />
+        </div>
+        {isTwoColumn && (
+          <div
+            ref={applicationCardRef}
+            className={cn(
+              'bg-primary/5 relative max-h-[303px] rounded-lg px-6 py-5 shadow-sm',
+              'w-full md:w-[320px]'
+            )}
+          >
+            <div className='text-foreground mb-3 text-[18px] font-bold'>
+              准备好加入我们的专家群体了吗?
+            </div>
+            <div className='mb-[64px]'>
+              <div className='mb-3 text-[16px]'>
+                已有
+                <span className='px-[5px] text-[18px] font-semibold text-[#4E02E4]'>
+                  5万+
+                </span>
+                专家进驻
+              </div>
+              <div className='flex flex-row-reverse items-center'>
+                <div className='mr-3 flex -space-x-2'>
+                  <img src={avatarsImg} className='h-[37px] w-[187px]' />
+                </div>
+              </div>
+            </div>
+            <div className='mb-[12px] text-sm'>备好简历,开始申请吧！</div>
+            <Button onClick={applyJob} className='h-[44px] w-full'>
+              立即申请
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* 申请卡片放在正文下方 */}
+      {!isTwoColumn && (
         <div
-          ref={ref}
+          ref={applicationCardRef}
           className={cn(
-            'bg-primary/5 relative rounded-lg px-6 py-5 shadow-sm max-h-[303px]',
-            className
+            'bg-primary/5 relative max-h-[303px] rounded-lg px-6 py-5 shadow-sm',
+            'mx-auto my-6 w-full max-w-[320px]'
           )}
         >
           <div className='text-foreground mb-3 text-[18px] font-bold'>
@@ -117,90 +211,10 @@ export default function JobDetailContent({
             </div>
           </div>
           <div className='mb-[12px] text-sm'>备好简历,开始申请吧！</div>
-          <Button onClick={onApply} className='h-[44px] w-full'>
+          <Button onClick={applyJob} className='h-[44px] w-full'>
             立即申请
           </Button>
         </div>
-      )
-    }
-  )
-
-  return (
-    <>
-      <div className={cn(isTwoColumn && 'grid grid-cols-1 md:grid-cols-[1fr_320px] gap-8')}>
-        <div>
-        {onBack && (
-          <div className='flex pt-2 pb-2'>
-            <button
-              type='button'
-              onClick={onBack}
-              aria-label='返回'
-              className='cursor-pointer'
-            >
-              <IconArrowLeft className='text-muted-foreground h-6 w-6' />
-            </button>
-          </div>
-        )}
-
-        {/* 顶部信息区（桌面在左列展示，这里仅用于小屏） */}
-        <div className='flex flex-row items-start justify-between border-b border-gray-200 pt-5 pb-5'>
-          {/* 左侧：标题和标签 */}
-          <div className='min-w-0 flex-1'>
-            <JobTitleAndTags job={job} />
-            {/* 移动端：薪资信息显示在左侧标题下方 */}
-            {isMobile && (
-              <div>
-                <div className='flex items-center gap-2'>
-                  <div className='text-xl font-semibold text-gray-900'>
-                    ¥{job.salaryRange[0]}~¥{job.salaryRange[1]}
-                  </div>
-                  <div className='text-xs text-gray-500'>{`每${salaryTypeUnit[job.salaryType]}`}</div>
-                </div>
-              </div>
-            )}
-          </div>
-          {/* 右侧：薪资和按钮 - 桌面端显示 */}
-          {!isMobile && (
-            <div className='flex min-w-[140px] flex-col items-end'>
-              <div className='mb-1 text-xl font-semibold text-gray-900'>
-                ¥{job.salaryRange[0]}~¥{job.salaryRange[1]}
-              </div>
-              <div className='mb-3 text-xs text-gray-500'>{`每${
-                salaryTypeUnit[job.salaryType]
-              }`}</div>
-              <Button
-                onClick={applyJob}
-                className='!rounded-md !bg-[#4E02E4] !px-6 !py-2 !text-base !text-white'
-              >
-                立即申请
-              </Button>
-            </div>
-          )}
-        </div>
-
-        <PublisherSection recommendName={recommendName} />
-
-        <div
-          className='text-foreground/90 mb-8 text-base leading-relaxed'
-          dangerouslySetInnerHTML={{ __html: job.description }}
-        />
-        </div>
-        {isTwoColumn && (
-          <ApplyCard
-            ref={applicationCardRef}
-            onApply={applyJob}
-            className='w-full md:w-[320px]'
-          />
-        )}
-      </div>
-
-      {/* 申请卡片放在正文下方 */}
-      {!isTwoColumn && (
-        <ApplyCard
-          ref={applicationCardRef}
-          onApply={applyJob}
-          className='mx-auto my-6 w-full max-w-[320px]'
-        />
       )}
 
       {/* 底部固定栏 - 仅在移动端显示，带过渡 */}
