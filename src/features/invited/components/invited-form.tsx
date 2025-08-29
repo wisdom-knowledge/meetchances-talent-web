@@ -103,6 +103,7 @@ export default function InvitedForm() {
       navigate({
         to: '/interview/prepare',
         search: { job_id: Number(jobId), inviteToken: inviteToken },
+        replace: true
       })
     })
   }
