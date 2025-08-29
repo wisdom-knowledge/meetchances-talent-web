@@ -66,7 +66,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
-  const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: true })
+  const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const user = useAuthStore((s) => s.auth.user)
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
@@ -120,11 +120,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
   // Auto-select first available camera when none is selected
   useEffect(() => {
+    if (viewMode !== ViewMode.InterviewPrepare) return
     if (!cam.activeDeviceId && cam.devices && cam.devices.length > 0) {
       cam.setActiveMediaDevice(cam.devices[0].deviceId)
       setCameraStatus(DeviceTestStatus.Testing)
     }
-  }, [cam])
+  }, [cam, viewMode])
 
   /**
    * 设备选择器
