@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { IconArrowLeft } from '@tabler/icons-react'
 import type { Job } from '@/types/solutions'
+import backImg from '@/assets/images/back.svg'
 import avatarsImg from '@/assets/images/avatars.png'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -82,7 +82,7 @@ export default function JobDetailContent({
   }
 
   return (
-    <>
+    <div className={cn(isMobile ? 'my-[16px] mx-[8px]' : 'm-[16px]' )}>
       <div
         className={cn(
           isTwoColumn && 'grid grid-cols-1 gap-8 md:grid-cols-[1fr_320px]'
@@ -97,7 +97,7 @@ export default function JobDetailContent({
                 aria-label='返回'
                 className='cursor-pointer'
               >
-                <IconArrowLeft className='text-muted-foreground h-6 w-6' />
+                <img src={backImg} alt="back" className='text-muted-foreground h-6 w-6' />
               </button>
             </div>
           )}
@@ -141,7 +141,7 @@ export default function JobDetailContent({
           <PublisherSection recommendName={recommendName} />
 
           <div
-            className='text-foreground/90 mb-8 text-base leading-relaxed'
+            className='text-foreground/90 mb-8 text-base mt-5 leading-relaxed'
             dangerouslySetInnerHTML={{ __html: job.description }}
           />
         </div>
@@ -237,6 +237,6 @@ export default function JobDetailContent({
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
