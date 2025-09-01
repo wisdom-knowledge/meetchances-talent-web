@@ -6,7 +6,7 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { IconListDetails, IconPlus, IconStar, IconUser, IconWand, IconUpload, IconLoader2 } from '@tabler/icons-react'
+import { IconListDetails, IconStar, IconUser, IconWand, IconUpload, IconLoader2 } from '@tabler/icons-react'
 
 // import { showSubmittedData } from '@/utils/show-submitted-data'
 import { Button } from '@/components/ui/button'
@@ -49,6 +49,11 @@ export default function ResumePage() {
       workExperience: [],
       projectExperience: [],
       education: [],
+      awards: [],
+      publications: [],
+      repositories: [],
+      patents: [],
+      socialMedia: [],
     },
     mode: 'onChange',
   })
@@ -263,102 +268,15 @@ export default function ResumePage() {
                   </Form>
                 </ResumeSection>
 
-                {/* 附加资质 */}
+                {/* 附加资质（配置驱动） */}
                 <ResumeSection variant='plain' id='section-qualifications' title='附加资质' className='space-y-10'>
-                    {/* 奖励 */}
-                    <div className='mb-10'>
-                      <div className='mb-6 flex items-center justify-between'>
-                        <h3 className='text-lg leading-none'>奖励</h3>
-                        <Button variant='outline' className='h-9 rounded-md px-3'>
-                          <IconPlus className='h-4 w-4' /> 添加奖励
-                        </Button>
-                      </div>
-                      <div className='space-y-6'>
-                        <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                          <div className='text-center py-10 text-gray-500'>
-                            <span className='text-xs text-muted-foreground leading-none'>
-                              暂无奖励记录，点击上方按钮添加
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 论文发表 */}
-                    <div className='mb-10'>
-                      <div className='mb-6 flex items-center justify-between'>
-                        <h3 className='text-lg leading-none'>论文发表</h3>
-                        <Button variant='outline' className='h-9 rounded-md px-3'>
-                          <IconPlus className='h-4 w-4' /> 添加论文发表
-                        </Button>
-                      </div>
-                      <div className='space-y-6'>
-                        <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                          <div className='text-center py-10 text-gray-500'>
-                            <span className='text-xs text-muted-foreground leading-none'>
-                              暂无论文发表记录，点击上方按钮添加
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 代码仓库 */}
-                    <div className='mb-10'>
-                      <div className='mb-6 flex items-center justify-between'>
-                        <h3 className='text-lg leading-none'>代码仓库</h3>
-                        <Button variant='outline' className='h-9 rounded-md px-3'>
-                          <IconPlus className='h-4 w-4' /> 添加代码仓库
-                        </Button>
-                      </div>
-                      <div className='space-y-6'>
-                        <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                          <div className='text-center py-10 text-gray-500'>
-                            <span className='text-xs text-muted-foreground leading-none'>
-                              暂无代码仓库记录，点击上方按钮添加
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 专利 */}
-                    <div className='mb-10'>
-                      <div className='mb-6 flex items-center justify-between'>
-                        <h3 className='text-lg leading-none'>专利</h3>
-                        <Button variant='outline' className='h-9 rounded-md px-3'>
-                          <IconPlus className='h-4 w-4' /> 添加专利
-                        </Button>
-                      </div>
-                      <div className='space-y-6'>
-                        <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                          <div className='text-center py-10 text-gray-500'>
-                            <span className='text-xs text-muted-foreground leading-none'>
-                              暂无专利记录，点击上方按钮添加
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 社交媒体 */}
-                    <div className='mb-10'>
-                      <div className='mb-6 flex items-center justify-between'>
-                        <h3 className='text-lg leading-none'>社交媒体</h3>
-                        <Button variant='outline' className='h-9 rounded-md px-3'>
-                          <IconPlus className='h-4 w-4' /> 添加社交媒体
-                        </Button>
-                      </div>
-                      <div className='space-y-6'>
-                        <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
-                          <div className='text-center py-10 text-gray-500'>
-                            <span className='text-xs text-muted-foreground leading-none'>
-                              暂无社交媒体记录，点击上方按钮添加
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  <Form {...form}>
+                    <DynamicWorkExperience sectionKey='awards' scrollContainerRef={scrollContainerRef} />
+                    <DynamicWorkExperience sectionKey='publications' scrollContainerRef={scrollContainerRef} />
+                    <DynamicWorkExperience sectionKey='repositories' scrollContainerRef={scrollContainerRef} />
+                    <DynamicWorkExperience sectionKey='patents' scrollContainerRef={scrollContainerRef} />
+                    <DynamicWorkExperience sectionKey='socialMedia' scrollContainerRef={scrollContainerRef} />
+                  </Form>
                 </ResumeSection>
 
                 {/* 兴趣与技能（配置驱动） */}

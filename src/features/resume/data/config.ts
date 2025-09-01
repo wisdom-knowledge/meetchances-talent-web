@@ -31,7 +31,16 @@ export type EducationItemKey = keyof NonNullable<ResumeFormValues['education']>[
 
 // 表单渲染配置（展示、文案、组件类型、占位符等）
 type ArraySectionConfig = {
-  name: 'workExperience' | 'projectExperience' | 'education' | 'workSkills'
+  name:
+    | 'workExperience'
+    | 'projectExperience'
+    | 'education'
+    | 'workSkills'
+    | 'awards'
+    | 'publications'
+    | 'repositories'
+    | 'patents'
+    | 'socialMedia'
   addButtonText: string
   emptyText: string
   itemTitlePrefix?: string
@@ -176,6 +185,87 @@ export const resumeFormConfig: {
           colSpan: 2,
         },
       ],
+    },
+    {
+      key: 'awards',
+      title: '奖励',
+      array: {
+        name: 'awards',
+        addButtonText: '添加奖励',
+        emptyText: '暂无奖励记录，点击上方按钮添加',
+        itemTitlePrefix: '奖励',
+        itemFields: [
+          { key: 'title', label: '奖项名称', component: 'input', placeholder: '例如：国家奖学金' },
+          { key: 'issuer', label: '颁发机构', component: 'input', placeholder: '例如：教育部/学校' },
+          { key: 'date', label: '获奖时间', component: 'input', placeholder: '例如：2023/06' },
+          { key: 'achievements', label: '说明', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
+        ],
+      },
+    },
+    {
+      key: 'publications',
+      title: '论文发表',
+      array: {
+        name: 'publications',
+        addButtonText: '添加论文发表',
+        emptyText: '暂无论文发表记录，点击上方按钮添加',
+        itemTitlePrefix: '论文',
+        itemFields: [
+          { key: 'title', label: '论文题目', component: 'input', placeholder: '请输入论文题目' },
+          { key: 'publisher', label: '期刊/会议', component: 'input', placeholder: '例如：IEEE/ACM/某期刊' },
+          { key: 'date', label: '发表时间', component: 'input', placeholder: '例如：2022/12' },
+          { key: 'url', label: '链接', component: 'input', placeholder: '例如：https://...' },
+          { key: 'achievements', label: '摘要/说明', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
+        ],
+      },
+    },
+    {
+      key: 'repositories',
+      title: '代码仓库',
+      array: {
+        name: 'repositories',
+        addButtonText: '添加代码仓库',
+        emptyText: '暂无代码仓库记录，点击上方按钮添加',
+        itemTitlePrefix: '仓库',
+        itemFields: [
+          { key: 'name', label: '仓库名称', component: 'input', placeholder: '例如：awesome-project' },
+          { key: 'url', label: '仓库链接', component: 'input', placeholder: '例如：https://github.com/...' },
+          { key: 'achievements', label: '简介', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
+        ],
+      },
+    },
+    {
+      key: 'patents',
+      title: '专利',
+      array: {
+        name: 'patents',
+        addButtonText: '添加专利',
+        emptyText: '暂无专利记录，点击上方按钮添加',
+        itemTitlePrefix: '专利',
+        itemFields: [
+          { key: 'title', label: '专利名称', component: 'input', placeholder: '请输入专利名称' },
+          { key: 'number', label: '专利号', component: 'input', placeholder: '例如：CN12345678' },
+          { key: 'status', label: '状态', component: 'input', placeholder: '例如：已授权/申请中' },
+          { key: 'date', label: '日期', component: 'input', placeholder: '例如：2021/03' },
+          { key: 'achievements', label: '说明', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
+        ],
+      },
+    },
+    {
+      key: 'socialMedia',
+      title: '社交媒体',
+      array: {
+        name: 'socialMedia',
+        addButtonText: '添加社交媒体',
+        emptyText: '暂无社交媒体记录，点击上方按钮添加',
+        itemTitlePrefix: '社交',
+        itemFields: [
+          { key: 'platform', label: '平台', component: 'input', placeholder: '例如：LinkedIn/微博/知乎' },
+          { key: 'handle', label: '用户名/ID', component: 'input', placeholder: '请输入用户名或 ID' },
+          { key: 'url', label: '链接', component: 'input', placeholder: '例如：https://...' },
+          { key: 'achievements', label: '备注', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
+        ],
+      },
     },
   ],
 }
