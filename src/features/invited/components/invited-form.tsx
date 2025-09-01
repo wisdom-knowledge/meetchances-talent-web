@@ -33,7 +33,7 @@ import { MonthPicker } from '@/components/month-picker'
 const step1Schema = z.object({
   birthMonth: z.string().min(1, '请选择出生年月'),
   city: z.string().min(1, '请输入常驻地'),
-  weeklyHours: z.string().min(1, '请输入每周可兼职工作时长'),
+  weeklyHours: z.string().min(1, '请选择每周可兼职工作时长'),
   source: z.string().min(1, '请选择来源'),
 })
 
@@ -158,7 +158,7 @@ export default function InvitedForm() {
                   <FormLabel>常驻地*</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder='请选择常住地'
+                      placeholder='请输入常驻地'
                       className='bg-[rgba(78,2,228,0.1)] text-[var(--color-blue-600)]'
                       {...field}
                     />
