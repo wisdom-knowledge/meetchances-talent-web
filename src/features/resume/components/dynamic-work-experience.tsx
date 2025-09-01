@@ -17,7 +17,16 @@ import type { ResumeFormValues } from '../data/schema'
 import { resumeFormConfig, options } from '../data/config'
 import { IconPlus, IconTrash } from '@tabler/icons-react'
 
-type SectionKey = 'workExperience' | 'projectExperience' | 'education' | 'workSkills'
+type SectionKey =
+  | 'workExperience'
+  | 'projectExperience'
+  | 'education'
+  | 'workSkills'
+  | 'awards'
+  | 'publications'
+  | 'repositories'
+  | 'patents'
+  | 'socialMedia'
 
 type Props = { sectionKey?: SectionKey; scrollContainerRef?: React.RefObject<HTMLElement | null>; readOnly?: boolean }
 
@@ -87,7 +96,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                       render={({ field }) => (
                         <FormItem className={`space-y-2 ${f.colSpan === 2 ? 'md:col-span-2' : ''}`}>
                           <FormLabel>{f.label}</FormLabel>
-                          {f.component === 'input' && (f.key === 'startDate' || f.key === 'endDate') ? (
+                          {f.component === 'input' && (f.key === 'startDate' || f.key === 'endDate' || f.key === 'date') ? (
                             <FormControl>
                               <MonthPicker
                                 value={typeof field.value === 'string' ? field.value : undefined}
