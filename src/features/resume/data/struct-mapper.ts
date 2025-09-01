@@ -41,38 +41,38 @@ export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null):
 
   // 附加资质
   const awards = (exp?.awards ?? []).map((a) => ({
-    title: a?.title ?? undefined,
+    title: a?.title ?? '',
     issuer: a?.issuer ?? undefined,
-    date: a?.date ?? undefined,
+    date: a?.date ?? '',
     achievements: joinAchievements(a?.achievements ?? undefined),
   }))
 
   const publications = (exp?.publications ?? []).map((p) => ({
-    title: p?.title ?? undefined,
+    title: p?.title ?? '',
     publisher: p?.publisher ?? undefined,
-    date: p?.date ?? undefined,
+    date: p?.date ?? '',
     url: p?.url ?? undefined,
     achievements: joinAchievements(p?.achievements ?? undefined),
   }))
 
   const repositories = (exp?.repositories ?? []).map((r) => ({
-    name: r?.name ?? undefined,
-    url: r?.url ?? undefined,
+    name: r?.name ?? '',
+    url: r?.url ?? '',
     achievements: joinAchievements(r?.achievements ?? undefined),
   }))
 
   const patents = (exp?.patents ?? []).map((p) => ({
-    title: p?.title ?? undefined,
+    title: p?.title ?? '',
     number: p?.number ?? undefined,
     status: p?.status ?? undefined,
-    date: p?.date ?? undefined,
+    date: p?.date ?? '',
     achievements: joinAchievements(p?.achievements ?? undefined),
   }))
 
   const socialMedia = (exp?.social_media ?? []).map((s) => ({
-    platform: s?.platform ?? undefined,
+    platform: s?.platform ?? '',
     handle: s?.handle ?? undefined,
-    url: s?.url ?? undefined,
+    url: s?.url ?? '',
     achievements: joinAchievements(s?.achievements ?? undefined),
   }))
 
