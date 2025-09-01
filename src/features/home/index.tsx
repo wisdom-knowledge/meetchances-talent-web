@@ -53,8 +53,6 @@ export default function HomeViewPage() {
     })
   }
 
-  const handleCheckNotification = () => {}
-
   return (
     <>
       <Header fixed>
@@ -106,7 +104,7 @@ export default function HomeViewPage() {
                     )}
                     <Button
                       size='sm'
-                      onClick={handleCheckNotification}
+                      onClick={task.handleClick}
                       className='float-right'
                     >
                       {task.actionText ?? '去查看'}
