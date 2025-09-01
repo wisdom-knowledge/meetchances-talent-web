@@ -33,6 +33,38 @@ export interface StructInfo {
       achievements?: string[] | null
       organization?: string | null
     }>
+    // 附加资质
+    awards?: Array<{
+      title?: string | null
+      issuer?: string | null
+      date?: string | null
+      achievements?: string[] | null
+    }>
+    publications?: Array<{
+      title?: string | null
+      publisher?: string | null
+      date?: string | null
+      url?: string | null
+      achievements?: string[] | null
+    }>
+    repositories?: Array<{
+      name?: string | null
+      url?: string | null
+      achievements?: string[] | null
+    }>
+    patents?: Array<{
+      title?: string | null
+      number?: string | null
+      status?: string | null
+      date?: string | null
+      achievements?: string[] | null
+    }>
+    social_media?: Array<{
+      platform?: string | null
+      handle?: string | null
+      url?: string | null
+      achievements?: string[] | null
+    }>
   }
   self_assessment?: {
     summary?: string | null

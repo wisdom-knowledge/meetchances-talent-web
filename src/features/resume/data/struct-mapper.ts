@@ -39,6 +39,43 @@ export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null):
     achievements: joinAchievements(e?.achievements ?? undefined),
   }))
 
+  // 附加资质
+  const awards = (exp?.awards ?? []).map((a) => ({
+    title: a?.title ?? undefined,
+    issuer: a?.issuer ?? undefined,
+    date: a?.date ?? undefined,
+    achievements: joinAchievements(a?.achievements ?? undefined),
+  }))
+
+  const publications = (exp?.publications ?? []).map((p) => ({
+    title: p?.title ?? undefined,
+    publisher: p?.publisher ?? undefined,
+    date: p?.date ?? undefined,
+    url: p?.url ?? undefined,
+    achievements: joinAchievements(p?.achievements ?? undefined),
+  }))
+
+  const repositories = (exp?.repositories ?? []).map((r) => ({
+    name: r?.name ?? undefined,
+    url: r?.url ?? undefined,
+    achievements: joinAchievements(r?.achievements ?? undefined),
+  }))
+
+  const patents = (exp?.patents ?? []).map((p) => ({
+    title: p?.title ?? undefined,
+    number: p?.number ?? undefined,
+    status: p?.status ?? undefined,
+    date: p?.date ?? undefined,
+    achievements: joinAchievements(p?.achievements ?? undefined),
+  }))
+
+  const socialMedia = (exp?.social_media ?? []).map((s) => ({
+    platform: s?.platform ?? undefined,
+    handle: s?.handle ?? undefined,
+    url: s?.url ?? undefined,
+    achievements: joinAchievements(s?.achievements ?? undefined),
+  }))
+
   const values: ResumeFormValues = {
     name: basic?.name ?? undefined,
     phone: basic?.phone ?? undefined,
@@ -48,6 +85,11 @@ export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null):
     workExperience: workExperience.length ? workExperience : undefined,
     projectExperience: projectExperience.length ? projectExperience : undefined,
     education: education.length ? education : undefined,
+    awards: awards.length ? awards : undefined,
+    publications: publications.length ? publications : undefined,
+    repositories: repositories.length ? repositories : undefined,
+    patents: patents.length ? patents : undefined,
+    socialMedia: socialMedia.length ? socialMedia : undefined,
   }
 
   return values
@@ -104,6 +146,37 @@ export function mapResumeFormValuesToStructInfo(values: ResumeFormValues): Struc
       work_experience: work,
       project_experience: projects,
       education: edu,
+      awards: (values.awards ?? []).map((a) => ({
+        title: a.title ?? null,
+        issuer: a.issuer ?? null,
+        date: a.date ?? null,
+        achievements: splitAchievements(a.achievements) ?? null,
+      })),
+      publications: (values.publications ?? []).map((p) => ({
+        title: p.title ?? null,
+        publisher: p.publisher ?? null,
+        date: p.date ?? null,
+        url: p.url ?? null,
+        achievements: splitAchievements(p.achievements) ?? null,
+      })),
+      repositories: (values.repositories ?? []).map((r) => ({
+        name: r.name ?? null,
+        url: r.url ?? null,
+        achievements: splitAchievements(r.achievements) ?? null,
+      })),
+      patents: (values.patents ?? []).map((p) => ({
+        title: p.title ?? null,
+        number: p.number ?? null,
+        status: p.status ?? null,
+        date: p.date ?? null,
+        achievements: splitAchievements(p.achievements) ?? null,
+      })),
+      social_media: (values.socialMedia ?? []).map((s) => ({
+        platform: s.platform ?? null,
+        handle: s.handle ?? null,
+        url: s.url ?? null,
+        achievements: splitAchievements(s.achievements) ?? null,
+      })),
     },
   }
   return struct
