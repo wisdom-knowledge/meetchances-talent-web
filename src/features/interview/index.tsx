@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Main } from '@/components/layout/main'
 import { RoomAudioRenderer, RoomContext, useConnectionState, useRoomContext } from '@livekit/components-react'
-import { LogLevel, RoomEvent, Room, setLogLevel } from 'livekit-client'
+import { LogLevel, RoomEvent, Room, setLogLevel, type RemoteParticipant } from 'livekit-client'
 import { AgentControlBar } from '@/components/livekit/agent-control-bar'
 import '@livekit/components-styles'
 import { useInterviewConnectionDetails } from '@/features/interview/api'
@@ -28,9 +28,17 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
   // 当拿到 token/serverUrl 时，连接房间；离开时断开
   useEffect(() => {
     if (!data?.token || !data?.serverUrl) return
+    // eslint-disable-next-line no-console
+    console.log('[Interview] connect effect start', {
+      hasToken: Boolean(data?.token),
+      hasServerUrl: Boolean(data?.serverUrl),
+      roomState: room.state,
+    })
     const connect = async () => {
       try {
         if (room.state === 'disconnected') {
+          // eslint-disable-next-line no-console
+          console.log('[Interview] connecting to livekit ...')
           await room.connect(data.serverUrl, data.token)
         }
         const prefMic = getPreferredDeviceId('audioinput') ?? undefined
@@ -38,6 +46,11 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
         await room.localParticipant.setMicrophoneEnabled(true, { deviceId: prefMic })
         await room.localParticipant.setCameraEnabled(true, { deviceId: prefCam })
         hasEverConnectedRef.current = true
+        // eslint-disable-next-line no-console
+        console.log('[Interview] connected & devices enabled', {
+          mic: prefMic ?? 'default',
+          cam: prefCam ?? 'default',
+        })
       } catch (_e) {
         /* ignore */
       }
@@ -46,6 +59,8 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
     return () => {
       // 显式关闭本地设备与媒体轨道，确保释放摄像头/麦克风/扬声器占用
       const release = async () => {
+        // eslint-disable-next-line no-console
+        console.log('[Interview] release on unmount/cleanup')
         await room.localParticipant.setMicrophoneEnabled(false).catch(() => {})
         await room.localParticipant.setCameraEnabled(false).catch(() => {})
         room.localParticipant.getTrackPublications().forEach((pub) => {
@@ -59,7 +74,23 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
 
   // 面试断开或有参与者断开时，结束面试：跳转 finish 页面（replace），带上 interview_id
   useEffect(() => {
-    const handleDisconnected = () => {
+    const handleDisconnected = async (reason?: unknown) => {
+      // eslint-disable-next-line no-console
+      console.log('[Interview] Disconnected event', {
+        reason: String(reason ?? 'unknown'),
+        hasEverConnected: hasEverConnectedRef.current,
+        alreadyNavigated: navigatedRef.current,
+        roomState: room.state,
+        visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
+        online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
+      })
+      // 断开后立即释放本地设备与媒体轨道，尽快归还权限
+      await room.localParticipant.setMicrophoneEnabled(false).catch(() => {})
+      await room.localParticipant.setCameraEnabled(false).catch(() => {})
+      room.localParticipant.getTrackPublications().forEach((pub) => {
+        try { pub.track?.stop?.() } catch (_ignored) { void _ignored }
+      })
+
       if (!hasEverConnectedRef.current || navigatedRef.current) return
       navigatedRef.current = true
       const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
@@ -69,7 +100,15 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
         navigate({ to: '/finish', replace: true })
       }
     }
-    const handleParticipantDisconnected = async () => {
+    const handleParticipantDisconnected = async (participant?: RemoteParticipant) => {
+      // eslint-disable-next-line no-console
+      console.log('[Interview] ParticipantDisconnected', {
+        identity: participant?.identity,
+        sid: participant?.sid,
+        isAgentGuess: typeof participant?.identity === 'string' && participant.identity.toLowerCase().includes('agent'),
+        remoteParticipantCount: room.numParticipants,
+        localIdentity: room.localParticipant.identity,
+      })
       // 明确释放本地设备并断开，以触发统一的 Disconnected 处理
       await room.localParticipant.setMicrophoneEnabled(false).catch(() => {})
       await room.localParticipant.setCameraEnabled(false).catch(() => {})
@@ -77,13 +116,62 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
       await room.disconnect().catch(() => {})
       handleDisconnected()
     }
+    const handleReconnecting = () => {
+      // eslint-disable-next-line no-console
+      console.log('[Interview] Reconnecting ...', {
+        visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
+        online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
+      })
+    }
+    const handleReconnected = () => {
+      // eslint-disable-next-line no-console
+      console.log('[Interview] Reconnected')
+    }
+    const handleConnChanged = () => {
+      // eslint-disable-next-line no-console
+      console.log('[Interview] ConnectionStateChanged', { state: room.state })
+    }
     room.on(RoomEvent.Disconnected, handleDisconnected)
+    room.on(RoomEvent.Reconnecting, handleReconnecting)
+    room.on(RoomEvent.Reconnected, handleReconnected)
+    room.on(RoomEvent.ConnectionStateChanged, handleConnChanged)
     room.on(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected)
     return () => {
       room.off(RoomEvent.Disconnected, handleDisconnected)
+      room.off(RoomEvent.Reconnecting, handleReconnecting)
+      room.off(RoomEvent.Reconnected, handleReconnected)
+      room.off(RoomEvent.ConnectionStateChanged, handleConnChanged)
       room.off(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected)
     }
   }, [navigate, room, data])
+
+  // 记录页面可见性与网络状态，辅助定位生产环境切后台后的断开
+  useEffect(() => {
+    const onVisibility = () => {
+      // eslint-disable-next-line no-console
+      console.log('[Interview] visibilitychange', {
+        visibility: document.visibilityState,
+        online: navigator.onLine,
+        roomState: room.state,
+      })
+    }
+    const onOnline = () => {
+      // eslint-disable-next-line no-console
+      console.log('[Interview] network online')
+    }
+    const onOffline = () => {
+      // eslint-disable-next-line no-console
+      console.log('[Interview] network offline')
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
+    }
+  }, [room])
 
   return (
     <>
