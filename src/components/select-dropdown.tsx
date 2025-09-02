@@ -44,7 +44,7 @@ export function SelectDropdown({
     return match?.label
   }, [items, currentValue])
 
-  const isShowingPlaceholder = selectedLabel == null
+  const isPlaceholder = !selectedLabel
 
   const handleSelect = (value: string) => {
     if (!isControlled) {
@@ -64,10 +64,10 @@ export function SelectDropdown({
               variant='outline'
               role='combobox'
               disabled={disabled}
-              className={cn('justify-between gap-2 overflow-hidden', isShowingPlaceholder && 'text-muted-foreground', className)}
+              className={cn('justify-between gap-2 overflow-hidden', className)}
             >
               {prefix ? <span className='shrink-0 inline-flex items-center'>{prefix}</span> : null}
-              <span className='flex-1 min-w-0 truncate text-left'>
+              <span className={cn('flex-1 min-w-0 truncate text-left', isPlaceholder && 'text-muted-foreground')}>
                 {selectedLabel ?? placeholder ?? 'Select'}
               </span>
               <CaretSortIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
@@ -79,10 +79,10 @@ export function SelectDropdown({
             variant='outline'
             role='combobox'
             disabled={disabled}
-            className={cn('justify-between gap-2 overflow-hidden', isShowingPlaceholder && 'text-muted-foreground', className)}
+            className={cn('justify-between gap-2 overflow-hidden', className)}
           >
             {prefix ? <span className='shrink-0 inline-flex items-center'>{prefix}</span> : null}
-            <span className='flex-1 min-w-0 truncate text-left'>
+            <span className={cn('flex-1 min-w-0 truncate text-left', isPlaceholder && 'text-muted-foreground')}>
               {selectedLabel ?? placeholder ?? 'Select'}
             </span>
             <CaretSortIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
