@@ -21,6 +21,8 @@ interface LocalCameraPreviewProps extends React.HTMLAttributes<HTMLDivElement> {
   onCameraDeviceResolved?: (deviceId: string | null) => void
   onCameraConfirmed?: () => void
   onMicConfirmed?: () => void
+  disableHeadphoneActions?: boolean
+  disableCameraConfirm?: boolean
 }
 
 export function LocalCameraPreview({
@@ -33,6 +35,8 @@ export function LocalCameraPreview({
   onCameraDeviceResolved,
   onCameraConfirmed,
   onMicConfirmed,
+  disableHeadphoneActions = false,
+  disableCameraConfirm = false,
   ...props
 }: LocalCameraPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -388,10 +392,10 @@ export function LocalCameraPreview({
                 transition={{ duration: 0.2 }}
                 className='absolute inset-x-0 bottom-3 flex items-center justify-center gap-3 px-4'
               >
-                <Button size='sm' onClick={handlePlayTestAudio} disabled={isPlayingTestAudio}>
+                <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio}>
                   播放测试音频
                 </Button>
-                <Button size='sm' variant='secondary' onClick={onHeadphoneConfirm}>
+                <Button size='sm' variant='secondary' onClick={onHeadphoneConfirm} disabled={disableHeadphoneActions}>
                   我能听到
                 </Button>
               </motion.div>
@@ -447,7 +451,7 @@ export function LocalCameraPreview({
               transition={{ duration: 0.2 }}
               className='absolute inset-x-0 bottom-3 flex items-center justify-center'
             >
-              <Button size='sm' variant='default' onClick={onCameraConfirmed}>确认摄像头状态正常</Button>
+              <Button size='sm' variant='default' onClick={onCameraConfirmed} disabled={disableCameraConfirm}>确认摄像头状态正常</Button>
             </motion.div>
           ) : null}
         </div>
