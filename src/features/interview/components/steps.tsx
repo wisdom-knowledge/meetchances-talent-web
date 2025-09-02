@@ -9,15 +9,21 @@ interface StepsProps {
 type VisualStepStatus = 'completed' | 'inProgress' | 'notStarted'
 
 function mapNodeStatusToVisual(status: JobApplyNodeStatus): VisualStepStatus {
-  if (
-    status === JobApplyNodeStatus.CompletedPendingReview ||
-    status === JobApplyNodeStatus.Approved ||
-    status === JobApplyNodeStatus.Rejected
-  ) {
-    return 'completed'
+  switch (status) {
+    // 已完成：30
+    case JobApplyNodeStatus.Approved:
+      return 'completed'
+    // 进行中：10、20
+    case JobApplyNodeStatus.InProgress:
+    case JobApplyNodeStatus.CompletedPendingReview:
+      return 'inProgress'
+    // 未开始：0
+    case JobApplyNodeStatus.NotStarted:
+      return 'notStarted'
+    // 其他状态（如 40、50）暂按已完成处理，避免样式缺省
+    default:
+      return 'completed'
   }
-  if (status === JobApplyNodeStatus.InProgress) return 'inProgress'
-  return 'notStarted'
 }
 
 export function Steps({ jobId, className }: StepsProps) {
@@ -32,9 +38,9 @@ export function Steps({ jobId, className }: StepsProps) {
           const visual = mapNodeStatusToVisual(node.node_status as JobApplyNodeStatus)
           const barClass =
             visual === 'completed'
-              ? 'bg-blue-600/10'
+              ? 'bg-[linear-gradient(90deg,var(--steps-completed-from)_0%,var(--steps-completed-to)_100%)]'
               : visual === 'inProgress'
-              ? 'bg-primary'
+              ? 'bg-[var(--steps-inprogress-bg)]'
               : 'bg-muted'
           const labelClass =
             visual === 'notStarted' ? 'text-muted-foreground' : 'text-foreground'

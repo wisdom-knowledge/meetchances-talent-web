@@ -25,6 +25,7 @@ import { handleServerError } from '@/utils/handle-server-error'
 import { useAuthStore } from '@/stores/authStore'
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
+import searchPng from '@/assets/images/search.png'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -35,6 +36,7 @@ interface InterviewPreparePageProps {
 enum ViewMode {
   Job = 'job',
   InterviewPrepare = 'interview-prepare',
+  InterviewPendingReview = 'interview-pending-review',
   TrailTask = 'trail-task',
   EducationEval = 'education-eval',
 }
@@ -187,6 +189,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   function resolveViewModeFromProgress(): ViewMode | null {
     const nodes = progressNodes ?? []
     if (nodes.length === 0) return null
+    // 特殊规则：AI 面试 且状态=20（已完成待审核）
+    const aiPending = nodes.find((n) => n.node_name.includes('AI 面试') && n.node_status === JobApplyNodeStatus.CompletedPendingReview)
+    if (aiPending) return ViewMode.InterviewPendingReview
     // 优先进行中，其次未开始，否则取最后一个已完成相关节点
     const inProgress = nodes.find((n) => n.node_status === JobApplyNodeStatus.InProgress)
     if (inProgress) return nodeNameToViewMode(inProgress.node_name)
@@ -195,7 +200,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     const completedIdx = nodes
       .map((n, idx) => ({ n, idx }))
       .filter(({ n }) => (
-        n.node_status === JobApplyNodeStatus.CompletedPendingReview ||
         n.node_status === JobApplyNodeStatus.Approved ||
         n.node_status === JobApplyNodeStatus.Rejected
       ))
@@ -318,7 +322,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           </div>
         </div>
 
-        {/* 主要布局组件 —— 职位与简历上传 */}
+        {/* ViewMode.Job
+            职位与简历上传阶段：
+            - 左侧展示职位基本信息与描述
+            - 右侧提供简历上传与回显，确认后进入面试准备
+        */}
         {viewMode === ViewMode.Job && (
           <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12'>
             {/* 左：职位信息 */}
@@ -421,7 +429,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             </div>
           </div>)}
 
-        {/* 主要布局组件 —— 面试准备 */}
+        {/* ViewMode.InterviewPrepare
+            面试准备阶段：
+            - 展示本地摄像头画面与三项设备（摄像头/耳机/麦克风）检测与选择
+            - 设备均通过后可进入正式 AI 面试
+        */}
         {viewMode === ViewMode.InterviewPrepare && (
           <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
             {/* 左：职位标题 + 设备检查 */}
@@ -492,6 +504,35 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           
         )}
 
+        {/* ViewMode.InterviewPendingReview
+            AI 面试已完成，处于“已完成待审核”(20) 状态：
+            - 展示审核中提示与说明
+            - 可提供“重新面试”“寻求帮助”等操作入口
+        */}
+        {viewMode === ViewMode.InterviewPendingReview && (
+          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
+            <div className='lg:col-span-12 flex flex-col items-center justify-center py-24'>
+              <div className='w-36 rounded-2xl flex items-center justify-center mb-6'>
+                <img src={searchPng} alt='' className='' />
+              </div>
+              <h2 className='text-2xl font-bold tracking-tight mb-2'>审核中</h2>
+              <p className='text-muted-foreground text-center max-w-[560px]'>
+                感谢您完成面试，我们正在审核您的材料，预计48小时内通知您，请等待通知
+              </p>
+              <div className='my-8'>
+                <Button>重新面试</Button>
+              </div>
+              <div className='mt-8'>
+                <Button variant='link' className='text-primary' onClick={() => setSupportOpen(true)}>寻求帮助</Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ViewMode.TrailTask
+            测试任务阶段（第一/第二轮）：
+            - 占位区，后续将接入具体任务说明、提交入口与状态反馈
+        */}
         {viewMode === ViewMode.TrailTask && (
           <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
             <div className='lg:col-span-7 space-y-6 pl-3'>
@@ -509,6 +550,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           </div>
         )}
 
+        {/* ViewMode.EducationEval
+            学历验证阶段：
+            - 占位区，后续将接入学历验证流程（材料上传、验证结果等）
+        */}
         {viewMode === ViewMode.EducationEval && (
           <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
             <div className='lg:col-span-7 space-y-6 pl-3'>

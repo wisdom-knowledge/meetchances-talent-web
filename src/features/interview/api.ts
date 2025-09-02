@@ -83,9 +83,11 @@ export interface JobApplyProgressNode {
 const SHOULD_MOCK_JOB_APPLY_PROGRESS = import.meta.env.DEV && (import.meta.env.VITE_MOCK_JOB_PROGRESS === undefined || import.meta.env.VITE_MOCK_JOB_PROGRESS === '1')
 
 const MOCK_JOB_APPLY_PROGRESS: JobApplyProgressNode[] = [
-  { node_name: '简历分析', node_status: JobApplyNodeStatus.CompletedPendingReview },
-  { node_name: 'AI 面试', node_status: JobApplyNodeStatus.InProgress },
-  { node_name: 'HR 审核', node_status: JobApplyNodeStatus.NotStarted },
+  { node_name: '简历分析', node_status: JobApplyNodeStatus.Approved },
+  { node_name: 'AI 面试', node_status: JobApplyNodeStatus.CompletedPendingReview },
+  { node_name: '第一轮测试任务', node_status: JobApplyNodeStatus.NotStarted },
+  { node_name: '第二轮测试任务', node_status: JobApplyNodeStatus.NotStarted },
+  { node_name: '学历验证', node_status: JobApplyNodeStatus.NotStarted },
 ]
 
 async function fetchJobApplyProgress(jobId: string | number): Promise<JobApplyProgressNode[]> {
