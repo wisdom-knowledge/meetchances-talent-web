@@ -1,4 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { MobileFullscreenMask } from '@/components/mobile-fullscreen-mask'
 import InterviewPreparePage from '@/features/interview/prepare'
 
 const parseDataString = (
@@ -51,6 +53,7 @@ const parseDataString = (
 }
 
 function PrepareRouteComponent() {
+  const isMobile = useIsMobile()
   const search = Route.useSearch() as {
     data?: string
     job_id?: string | number
@@ -58,7 +61,11 @@ function PrepareRouteComponent() {
     isSkipConfirm?: boolean
   }
 
-  if(search?.data){
+  if (isMobile) {
+    return <MobileFullscreenMask open={true} />
+  }
+
+  if (search?.data) {
     const { jobId, inviteToken, isSkipConfirm } = parseDataString(search?.data)
     return (
       <InterviewPreparePage
