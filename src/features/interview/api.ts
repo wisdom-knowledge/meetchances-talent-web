@@ -65,3 +65,33 @@ export async function submitInterviewSupportDemand(payload: SupportDemandPayload
 }
 
 
+// Job apply progress
+export enum JobApplyNodeStatus {
+  NotStarted = 0, // 待开始
+  InProgress = 10, // 已开始未完成
+  CompletedPendingReview = 20, // 已完成待审核
+  Approved = 30, // 通过
+  Rejected = 40, // 不通过
+  Returned = 50, // 打回
+}
+
+export interface JobApplyProgressNode {
+  node_name: string
+  node_status: JobApplyNodeStatus
+}
+
+async function fetchJobApplyProgress(jobId: string | number): Promise<JobApplyProgressNode[]> {
+  // 接口返回的数据顺序即为展示顺序
+  const raw = await api.get('/talent/job_apply_progress', { params: { job_id: jobId } })
+  return (raw as unknown as JobApplyProgressNode[]) ?? []
+}
+
+export function useJobApplyProgress(jobId: string | number | null, enabled = true) {
+  return useQuery<JobApplyProgressNode[]>({
+    queryKey: ['job-apply-progress', jobId],
+    queryFn: () => fetchJobApplyProgress(jobId as string | number),
+    enabled: Boolean(jobId) && enabled,
+  })
+}
+
+

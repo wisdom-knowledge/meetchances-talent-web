@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import { cn } from '@/lib/utils'
+// import { cn } from '@/lib/utils'
 import { LocalCameraPreview } from '@/features/interview/components/local-camera-preview'
 import { SelectDropdown } from '@/components/select-dropdown'
 import { useMediaDeviceSelect } from '@livekit/components-react'
@@ -23,6 +23,7 @@ import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import { handleServerError } from '@/utils/handle-server-error'
 import { useAuthStore } from '@/stores/authStore'
+import { Steps } from '@/features/interview/components/steps'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -35,23 +36,7 @@ enum ViewMode {
   InterviewPrepare = 'interview-prepare'
 }
 
-const Steps = ({ currentStep }: { currentStep: number }) => {
-
-  return (
-    <div className='mt-8'>
-      <div className='flex items-center gap-6'>
-        <div className={cn('flex-1')}>
-          <div className={cn('h-2 w-full rounded-full', currentStep === 0 ? 'bg-blue-600/10' : 'bg-primary')} />
-          <div className='text-sm font-medium mb-2 text-center py-2'>简历分析</div>
-        </div>
-        <div className='flex-1'>
-          <div className={cn('h-2 w-full rounded-full', currentStep === 0 ? 'bg-muted' : 'bg-blue-600/10')} />
-          <div className='text-sm font-medium mb-2 text-muted-foreground text-center py-2'>AI 面试</div>
-        </div>
-      </div>
-    </div>
-  )
-}
+// steps 组件迁移为独立组件，见 features/interview/components/steps.tsx
 
 function DeviceSelectorsRow({
   camActiveDeviceId,
@@ -466,7 +451,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         )}
 
         {/* 底部步骤与下一步 */}
-        <Steps currentStep={viewMode === ViewMode.InterviewPrepare ? 1 : 0} />
+        <Steps jobId={jobId ?? null} />
 
       </Main>
       <SupportDialog open={supportOpen} onOpenChange={setSupportOpen} />

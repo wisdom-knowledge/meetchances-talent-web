@@ -15,7 +15,7 @@ interface MonthPickerProps {
 function parseYearMonth(input?: string): { year: number; month: number } {
   const now = new Date()
   if (!input) return { year: now.getFullYear(), month: now.getMonth() + 1 }
-  const match = /^\s*(\d{4})[-\/]?(\d{1,2})\s*$/.exec(input)
+  const match = /^\s*(\d{4})[-/]?(\d{1,2})\s*$/.exec(input)
   if (!match) return { year: now.getFullYear(), month: now.getMonth() + 1 }
   const year = Number(match[1])
   const month = Math.min(12, Math.max(1, Number(match[2])))
