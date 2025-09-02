@@ -44,6 +44,8 @@ export function SelectDropdown({
     return match?.label
   }, [items, currentValue])
 
+  const isShowingPlaceholder = selectedLabel == null
+
   const handleSelect = (value: string) => {
     if (!isControlled) {
       setUncontrolledValue(value)
@@ -62,7 +64,7 @@ export function SelectDropdown({
               variant='outline'
               role='combobox'
               disabled={disabled}
-              className={cn('justify-between gap-2 overflow-hidden', className)}
+              className={cn('justify-between gap-2 overflow-hidden', isShowingPlaceholder && 'text-muted-foreground', className)}
             >
               {prefix ? <span className='shrink-0 inline-flex items-center'>{prefix}</span> : null}
               <span className='flex-1 min-w-0 truncate text-left'>
@@ -77,7 +79,7 @@ export function SelectDropdown({
             variant='outline'
             role='combobox'
             disabled={disabled}
-            className={cn('justify-between gap-2 overflow-hidden', className)}
+            className={cn('justify-between gap-2 overflow-hidden', isShowingPlaceholder && 'text-muted-foreground', className)}
           >
             {prefix ? <span className='shrink-0 inline-flex items-center'>{prefix}</span> : null}
             <span className='flex-1 min-w-0 truncate text-left'>
