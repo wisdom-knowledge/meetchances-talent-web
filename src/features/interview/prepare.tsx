@@ -24,6 +24,7 @@ import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import { handleServerError } from '@/utils/handle-server-error'
 import { useAuthStore } from '@/stores/authStore'
 import { Steps } from '@/features/interview/components/steps'
+import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -33,7 +34,9 @@ interface InterviewPreparePageProps {
 
 enum ViewMode {
   Job = 'job',
-  InterviewPrepare = 'interview-prepare'
+  InterviewPrepare = 'interview-prepare',
+  TrailTask = 'trail-task',
+  EducationEval = 'education-eval',
 }
 
 // steps 组件迁移为独立组件，见 features/interview/components/steps.tsx
@@ -171,6 +174,36 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const user = useAuthStore((s) => s.auth.user)
+  const { data: progressNodes } = useJobApplyProgress(jobId ?? null, Boolean(jobId))
+
+  function nodeNameToViewMode(name: string): ViewMode {
+    if (name.includes('简历分析')) return ViewMode.Job
+    if (name.toLowerCase().includes('ai') || name.includes('AI 面试') || name.includes('Al面试')) return ViewMode.InterviewPrepare
+    if (name.includes('测试任务') || name.includes('第一轮测试任务') || name.includes('第二轮测试任务')) return ViewMode.TrailTask
+    if (name.includes('学历验证')) return ViewMode.EducationEval
+    return ViewMode.Job
+  }
+
+  function resolveViewModeFromProgress(): ViewMode | null {
+    const nodes = progressNodes ?? []
+    if (nodes.length === 0) return null
+    // 优先进行中，其次未开始，否则取最后一个已完成相关节点
+    const inProgress = nodes.find((n) => n.node_status === JobApplyNodeStatus.InProgress)
+    if (inProgress) return nodeNameToViewMode(inProgress.node_name)
+    const notStarted = nodes.find((n) => n.node_status === JobApplyNodeStatus.NotStarted)
+    if (notStarted) return nodeNameToViewMode(notStarted.node_name)
+    const completedIdx = nodes
+      .map((n, idx) => ({ n, idx }))
+      .filter(({ n }) => (
+        n.node_status === JobApplyNodeStatus.CompletedPendingReview ||
+        n.node_status === JobApplyNodeStatus.Approved ||
+        n.node_status === JobApplyNodeStatus.Rejected
+      ))
+      .map(({ idx }) => idx)
+      .pop()
+    if (completedIdx !== undefined) return nodeNameToViewMode(nodes[completedIdx].node_name)
+    return nodeNameToViewMode(nodes[0].node_name)
+  }
 
   // Determine if there is at least one audio output device (headphones/speaker)
   const [hasAudioOutput, setHasAudioOutput] = useState<boolean | null>(null)
@@ -212,6 +245,15 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       mounted = false
     }
   }, [viewMode])
+
+  // 根据进度切换视图
+  useEffect(() => {
+    const next = resolveViewModeFromProgress()
+    if (next && next !== viewMode) {
+      setViewMode(next)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progressNodes])
 
   async function handleApplyJob() {
     if (!jobId || isSkipConfirm) return
@@ -448,6 +490,40 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             </div>
           </div>
           
+        )}
+
+        {viewMode === ViewMode.TrailTask && (
+          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
+            <div className='lg:col-span-7 space-y-6 pl-3'>
+              <div className='text-2xl font-bold mb-2 leading-tight truncate'>测试任务</div>
+              <p className='text-muted-foreground'>测试任务的具体指引将在此展示。</p>
+            </div>
+            <div className='lg:col-span-5 p-6 sticky flex flex-col justify-start'>
+              <div className='my-36'>
+                <Button className='w-full' disabled>
+                  功能即将上线
+                </Button>
+                <p className='text-xs text-muted-foreground mt-4'>请稍后再试，或返回查看职位详情。</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {viewMode === ViewMode.EducationEval && (
+          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
+            <div className='lg:col-span-7 space-y-6 pl-3'>
+              <div className='text-2xl font-bold mb-2 leading-tight truncate'>学历验证</div>
+              <p className='text-muted-foreground'>学历验证相关内容将在此展示。</p>
+            </div>
+            <div className='lg:col-span-5 p-6 sticky flex flex-col justify-start'>
+              <div className='my-36'>
+                <Button className='w-full' disabled>
+                  功能即将上线
+                </Button>
+                <p className='text-xs text-muted-foreground mt-4'>请稍后再试，或返回查看职位详情。</p>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* 底部步骤与下一步 */}

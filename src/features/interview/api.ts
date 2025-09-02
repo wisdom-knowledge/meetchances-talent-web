@@ -80,8 +80,24 @@ export interface JobApplyProgressNode {
   node_status: JobApplyNodeStatus
 }
 
+const SHOULD_MOCK_JOB_APPLY_PROGRESS = import.meta.env.DEV && (import.meta.env.VITE_MOCK_JOB_PROGRESS === undefined || import.meta.env.VITE_MOCK_JOB_PROGRESS === '1')
+
+const MOCK_JOB_APPLY_PROGRESS: JobApplyProgressNode[] = [
+  { node_name: '简历分析', node_status: JobApplyNodeStatus.CompletedPendingReview },
+  { node_name: 'AI 面试', node_status: JobApplyNodeStatus.InProgress },
+  { node_name: 'HR 审核', node_status: JobApplyNodeStatus.NotStarted },
+]
+
 async function fetchJobApplyProgress(jobId: string | number): Promise<JobApplyProgressNode[]> {
   // 接口返回的数据顺序即为展示顺序
+  if (SHOULD_MOCK_JOB_APPLY_PROGRESS) {
+    // 模拟不同 job 的进度（如需）
+    if (String(jobId) === '1') return MOCK_JOB_APPLY_PROGRESS
+    return [
+      { node_name: '简历分析', node_status: JobApplyNodeStatus.InProgress },
+      { node_name: 'AI 面试', node_status: JobApplyNodeStatus.NotStarted },
+    ]
+  }
   const raw = await api.get('/talent/job_apply_progress', { params: { job_id: jobId } })
   return (raw as unknown as JobApplyProgressNode[]) ?? []
 }
