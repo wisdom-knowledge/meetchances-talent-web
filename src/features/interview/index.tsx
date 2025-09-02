@@ -58,17 +58,17 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
     connect()
     return () => {
       // 显式关闭本地设备与媒体轨道，确保释放摄像头/麦克风/扬声器占用
-      const release = async () => {
-        // eslint-disable-next-line no-console
-        console.log('[Interview] release on unmount/cleanup')
-        await room.localParticipant.setMicrophoneEnabled(false).catch(() => {})
-        await room.localParticipant.setCameraEnabled(false).catch(() => {})
-        room.localParticipant.getTrackPublications().forEach((pub) => {
-          try { pub.track?.stop?.() } catch (_ignored) { void _ignored }
-        })
-        await room.disconnect().catch(() => {})
-      }
-      void release()
+      // const release = async () => {
+      //   // eslint-disable-next-line no-console
+      //   console.log('[Interview] release on unmount/cleanup')
+      //   await room.localParticipant.setMicrophoneEnabled(false).catch(() => {})
+      //   await room.localParticipant.setCameraEnabled(false).catch(() => {})
+      //   room.localParticipant.getTrackPublications().forEach((pub) => {
+      //     try { pub.track?.stop?.() } catch (_ignored) { void _ignored }
+      //   })
+      //   await room.disconnect().catch(() => {})
+      // }
+      // void release()
     }
   }, [room, data?.serverUrl, data?.token])
 
