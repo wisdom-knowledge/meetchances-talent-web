@@ -36,7 +36,7 @@ export function LocalCameraPreview({
   onCameraConfirmed,
   onMicConfirmed,
   disableHeadphoneActions = false,
-  disableCameraConfirm = false,
+  disableCameraConfirm = true,
   ...props
 }: LocalCameraPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null)

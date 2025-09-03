@@ -1,4 +1,5 @@
 import type { ResumeFormValues } from '@/features/resume/data/schema'
+import type { Proficiency } from '@/features/resume/data/constants'
 import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 
 function joinAchievements(list?: string[] | null): string | undefined {
@@ -98,7 +99,7 @@ export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null):
       (sa?.hard_skills ?? [])
         .map((hs) => ({
           name: (hs?.skill_name ?? undefined) as ResumeFormValues['workSkills'] extends Array<infer T> ? T extends { name?: string } ? string | undefined : string | undefined : string | undefined,
-          level: (hs?.proficiency ?? undefined) as ResumeFormValues['workSkills'] extends Array<infer T> ? T extends { level?: ResumeFormValues['workSkillLevel'] } ? ResumeFormValues['workSkillLevel'] : ResumeFormValues['workSkillLevel'] : ResumeFormValues['workSkillLevel'],
+          level: (hs?.proficiency ?? undefined) as Proficiency | undefined,
         }))
         .filter((w) => Boolean(w.name) && Boolean(w.level)) as ResumeFormValues['workSkills'],
     skills: (() => {

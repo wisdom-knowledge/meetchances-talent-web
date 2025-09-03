@@ -152,6 +152,17 @@ export default function JobDetailContent({
               'bg-primary/5 relative max-h-[303px] rounded-lg px-6 py-5 shadow-sm',
               'w-full md:w-[320px]'
             )}
+            style={
+              isMobile
+                ? {
+                    backgroundImage:
+                      'url("https://dnu-cdn.xpertiise.com/common/3be774fc-cec8-4dae-9a15-7e83f4315dcc.svg")',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '283px 314px',
+                    backgroundPosition: 'right 17px bottom -31px',
+                  }
+                : undefined
+            }
           >
             <div className='text-foreground mb-3 text-[18px] font-bold'>
               准备好加入我们的专家群体了吗?
@@ -183,9 +194,20 @@ export default function JobDetailContent({
         <div
           ref={applicationCardRef}
           className={cn(
-            'bg-primary/5 relative max-h-[303px] rounded-lg px-6 py-5 shadow-sm',
-            'mx-auto my-6 w-full max-w-[320px]'
+            'bg-primary/5 relative rounded-lg px-6 py-5 shadow-sm',
+            'mx-auto my-6 w-full'
           )}
+          style={
+            isMobile
+              ? undefined
+              : {
+                backgroundImage:
+                  'url("https://dnu-cdn.xpertiise.com/common/3be774fc-cec8-4dae-9a15-7e83f4315dcc.svg")',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: '283px 314px',
+                backgroundPosition: 'right 17px bottom -31px',
+              }
+          }
         >
           <div className='text-foreground mb-3 text-[18px] font-bold'>
             准备好加入我们的专家群体了吗?
@@ -198,14 +220,14 @@ export default function JobDetailContent({
               </span>
               专家进驻
             </div>
-            <div className='flex flex-row-reverse items-center'>
-              <div className='mr-3 flex -space-x-2'>
+            <div className={cn('flex items-center', isMobile ? 'flex-row-reverse' : '')}>
+              <div className='flex -space-x-2'>
                 <img src={avatarsImg} className='h-[37px] w-[187px]' />
               </div>
             </div>
           </div>
           <div className='mb-[12px] text-sm'>备好简历,开始申请吧！</div>
-          <Button onClick={applyJob} className='h-[44px] w-full'>
+          <Button onClick={applyJob} className={cn('h-[44px] w-full', isMobile ? '' : 'max-w-[272px]')}>
             立即申请
           </Button>
         </div>

@@ -24,6 +24,7 @@ import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import { handleServerError } from '@/utils/handle-server-error'
 import { useAuthStore } from '@/stores/authStore'
+import { confirmResume } from '@/features/interview/api'
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
@@ -60,6 +61,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const user = useAuthStore((s) => s.auth.user)
+  const [jobApplyId, setJobApplyId] = useState<number | string | null>(null)
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
 
@@ -91,7 +93,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         throw new Error('生成申请令牌失败')
       }
 
-      await applyJob(jobId, tokenToUse)
+      const id = await applyJob(jobId, tokenToUse)
+      if (id !== null) setJobApplyId(id)
     } catch (error) {
       handleServerError(error)
     }
@@ -185,6 +188,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               placeholder='选择摄像头'
               className='h-9 flex-1'
               useFormControl={false}
+              disabled={cameraStatus === DeviceTestStatus.Failed}
               items={camDevices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
             />
           </div>
@@ -493,11 +497,18 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 )}
 
                 <div className='my-4'>
-                  <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={() => {
+                  <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={async () => {
                     if (uploadedThisVisit) {
                       setConfirmOpen(true)
                     } else {
                       if (viewMode === ViewMode.Job) {
+                        if (jobApplyId != null) {
+                          try {
+                            await confirmResume(jobApplyId)
+                          } catch (_e) {
+                            // ignore, allow navigation even if confirm fails
+                          }
+                        }
                         setViewMode(ViewMode.InterviewPrepare)
                       } else {
                         navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
@@ -554,6 +565,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onMicConfirmed={() => {
                   setMicStatus(DeviceTestStatus.Success)
                 }}
+                disableCameraConfirm={cameraStatus === DeviceTestStatus.Failed}
               />
 
               {/* 三个设备选择 + 状态 */}
@@ -581,7 +593,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     || micStatus !== DeviceTestStatus.Success
                     || spkStatus !== DeviceTestStatus.Success
                   }
-                  className='w-full' onClick={() => {
+                  className='w-full' onClick={async () => {
                     navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
                   }}>
                   确认设备，下一步

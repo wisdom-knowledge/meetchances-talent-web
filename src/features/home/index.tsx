@@ -18,6 +18,7 @@ import {
   useMyApplicationsQuery,
   type ApiApplyListItem,
 } from './api'
+import { toast } from 'sonner'
 
 export default function HomeViewPage() {
   const navigate = useNavigate()
@@ -46,11 +47,16 @@ export default function HomeViewPage() {
     contactMethod: 'phone' | 'none'
     phone?: string
   }) => {
-    fetchForHelp({
-      detail: _payload.message,
-      need_contact: _payload.contactMethod === 'phone',
-      phone_number: _payload.phone ?? '',
-    })
+    try {
+      await fetchForHelp({
+        detail: _payload.message,
+        need_contact: _payload.contactMethod === 'phone',
+        phone_number: _payload.phone ?? '',
+      })
+      toast.success('提交成功')
+    } catch {
+      // 统一错误处理由全局 QueryClient/handle-server-error 负责
+    }
   }
 
   return (

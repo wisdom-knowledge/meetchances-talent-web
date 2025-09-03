@@ -64,6 +64,16 @@ export async function submitInterviewSupportDemand(payload: SupportDemandPayload
   }
 }
 
+// 简历确认：POST /api/v1/talent/resume/confirm
+export async function confirmResume(jobApplyId: number | string): Promise<{ success: boolean }> {
+  try {
+    await api.post('/talent/resume/confirm', { job_apply_id: jobApplyId })
+    return { success: true }
+  } catch (_e) {
+    return { success: false }
+  }
+}
+
 
 // Job apply progress
 export enum JobApplyNodeStatus {
