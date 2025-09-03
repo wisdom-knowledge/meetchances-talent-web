@@ -128,5 +128,5 @@ interface ForHelpParams {
 }
 
 export async function fetchForHelp(params: ForHelpParams): Promise<null> {
-  return await api.post('/page/demand', params)
+  return await api.post('/interview/page/demand', params)
 }

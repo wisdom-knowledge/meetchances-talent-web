@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PROFICIENCY_OPTIONS } from './constants'
 
 export const resumeSchema = z.object({
   name: z.string().optional(),
@@ -10,16 +11,22 @@ export const resumeSchema = z.object({
   expectedSalary: z.string().optional(),
   hobbies: z.string().optional(),
   skills: z.string().optional(),
-  workSkillName: z.string().optional(),
-  workSkillLevel: z.enum(['初级', '中级', '高级', '专家', '熟悉', '精通']).optional(),
   softSkills: z.string().optional(),
   selfEvaluation: z.string().optional(),
   workSkills: z
     .array(
-      z.object({
-        name: z.string().optional(),
-        level: z.enum(['初级', '中级', '高级', '专家', '熟悉', '精通']).optional(),
-      })
+      z
+        .object({
+          name: z.string().optional(),
+          level: z
+            .enum(PROFICIENCY_OPTIONS)
+            .optional(),
+        })
+        .superRefine((val, ctx) => {
+          if (val?.name && !val?.level) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: '请选择熟练程度', path: ['level'] })
+          }
+        })
     )
     .optional(),
   workExperience: z
@@ -119,5 +126,3 @@ export const resumeSchema = z.object({
 })
 
 export type ResumeFormValues = z.infer<typeof resumeSchema>
-
-

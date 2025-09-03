@@ -10,6 +10,7 @@ import { Main } from '@/components/layout/main'
 import SupportDialog from '@/components/support-dialog'
 import { fetchForHelp } from '../home/api'
 import { FeedbackParams, fetchFeedback } from './api'
+import { toast } from 'sonner'
 
 type StepKey = 1 | 2
 
@@ -60,11 +61,16 @@ export default function FinishPage() {
     contactMethod: 'phone' | 'none'
     phone?: string
   }) => {
-    fetchForHelp({
-      detail: _payload.message,
-      need_contact: _payload.contactMethod === 'phone',
-      phone_number: _payload.phone ?? '',
-    })
+    try {
+      await fetchForHelp({
+        detail: _payload.message,
+        need_contact: _payload.contactMethod === 'phone',
+        phone_number: _payload.phone ?? '',
+      })
+      toast.success('提交成功')
+    } catch (error) {
+      handleServerError(error)
+    }
   }
 
   const goNext = () => {
