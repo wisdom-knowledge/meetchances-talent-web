@@ -209,6 +209,7 @@ export function LocalCameraPreview({
   const [countdown, setCountdown] = useState<number>(5)
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
   const [playbackProgress, setPlaybackProgress] = useState<number>(0)
+  const [micPermissionDenied, setMicPermissionDenied] = useState<boolean>(false)
   const PROGRESS_WIDTH_CLASSES = useMemo(
     () => [
       'w-[0%]','w-[2%]','w-[4%]','w-[6%]','w-[8%]','w-[10%]','w-[12%]','w-[14%]','w-[16%]','w-[18%]',
@@ -242,6 +243,7 @@ export function LocalCameraPreview({
           video: false,
         })
         if (isCancelled) return
+        setMicPermissionDenied(false)
         micStreamRef.current = micStream
 
         // Setup recorder: record 5s then playback
@@ -275,7 +277,7 @@ export function LocalCameraPreview({
           }
         }, 5000)
       } catch {
-        // ignore
+        setMicPermissionDenied(true)
       }
     }
     void initMic()
@@ -413,11 +415,19 @@ export function LocalCameraPreview({
               <div className='h-full w-full px-6 py-4 flex flex-col items-center justify-center gap-3'>
                 {/* Title */}
                 <div className='text-base text-white'>
-                  {micMode === 'recording' ? '请对麦克风说：我准备好了' : '请确认音质正常'}
+                  {micPermissionDenied
+                    ? '请选择麦克风设备'
+                    : micMode === 'recording'
+                      ? '请对麦克风说：我准备好了'
+                      : '请确认音质正常'}
                 </div>
 
                 {/* Recording Row or Playback Row */}
-                {micMode === 'recording' ? (
+                {micPermissionDenied ? (
+                  <div className='w-full flex items-center justify-center gap-2'>
+                    {/* 当未授权时，不展示录制与确认控件，交互在父层被禁用 */}
+                  </div>
+                ) : micMode === 'recording' ? (
                   <div className='w-full flex items-center justify-center gap-2'>
                     <div className='flex items-center gap-3'>
                       <IconPlayerRecordFilled className='h-5 w-5 text-red-500' />
