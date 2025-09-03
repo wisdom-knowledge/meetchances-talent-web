@@ -6,7 +6,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
 import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { IconLoader2 } from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -59,6 +59,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [uploadingResume, setUploadingResume] = useState(false)
+  const [uploadedThisVisit, setUploadedThisVisit] = useState(false)
   const [resumeOpen, setResumeOpen] = useState(false)
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Job)
@@ -89,7 +90,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     }
   }, [viewMode])
 
-  async function handleApplyJob() {
+  const handleApplyJob = useCallback(async function handleApplyJob() {
     if (!jobId || isSkipConfirm) return
     try {
       const tokenToUse = inviteToken ||
@@ -103,7 +104,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     } catch (error) {
       handleServerError(error)
     }
-  }
+  }, [jobId, inviteToken, isSkipConfirm])
 
   useEffect(() => {
     if(!user) return
@@ -116,7 +117,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       return
     }
     handleApplyJob();
-  }, [user, jobId, inviteToken])
+  }, [user, jobId, inviteToken, navigate, handleApplyJob])
 
   // Auto-select first available camera when none is selected
   useEffect(() => {
@@ -339,6 +340,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     const si = (first.backend?.struct_info ?? {}) as StructInfo
                     const mapped = mapStructInfoToResumeFormValues(si)
                     setResumeValues(mapped)
+                    setUploadedThisVisit(true)
                   }}
                 />
 
@@ -354,7 +356,17 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 )}
 
                 <div className='my-4'>
-                  <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={() => setConfirmOpen(true)}>
+                  <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={() => {
+                    if (uploadedThisVisit) {
+                      setConfirmOpen(true)
+                    } else {
+                      if (viewMode === ViewMode.Job) {
+                        setViewMode(ViewMode.InterviewPrepare)
+                      } else {
+                        navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
+                      }
+                    }
+                  }}>
                     {uploadingResume ? '正在分析简历…' : '确认简历，下一步'}
                   </Button>
                 </div>
