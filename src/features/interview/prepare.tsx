@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 // import { cn } from '@/lib/utils'
 import { LocalCameraPreview } from '@/features/interview/components/local-camera-preview'
 import { SelectDropdown } from '@/components/select-dropdown'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useMediaDeviceSelect } from '@livekit/components-react'
 import { DeviceTestStatus } from '@/types/device'
 import { uploadTalentResume, fetchTalentResumeDetail } from '@/features/resume-upload/utils/api'
@@ -166,6 +167,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [supportOpen, setSupportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [reinterviewOpen, setReinterviewOpen] = useState(false)
+  const [reinterviewReason, setReinterviewReason] = useState<string>('')
   const [uploadingResume, setUploadingResume] = useState(false)
   const [resumeOpen, setResumeOpen] = useState(false)
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
@@ -520,7 +523,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 感谢您完成面试，我们正在审核您的材料，预计48小时内通知您，请等待通知
               </p>
               <div className='my-8'>
-                <Button>重新面试</Button>
+                <Button onClick={() => setReinterviewOpen(true)}>重新面试</Button>
               </div>
               <div className='mt-8'>
                 <Button variant='link' className='text-primary' onClick={() => setSupportOpen(true)}>寻求帮助</Button>
@@ -593,6 +596,56 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
               }
             }}>继续</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Re-Interview Dialog: 重新面试 */}
+      <Dialog open={reinterviewOpen} onOpenChange={setReinterviewOpen}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader className='text-left'>
+            <DialogTitle>重新面试</DialogTitle>
+            <DialogDescription>重新面试会导致您此前的面试记录被清除</DialogDescription>
+          </DialogHeader>
+          <div className='space-y-2'>
+            <label className='text-sm font-medium'>请选择您想要重新面试的原因</label>
+            <Select value={reinterviewReason} onValueChange={(v) => setReinterviewReason(v)}>
+              <SelectTrigger className='h-9'>
+                <SelectValue placeholder='请选择一个原因' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='performance'>
+                  <div className='text-left'>
+                    <div className='font-medium'>提升表现</div>
+                    <div className='text-xs text-muted-foreground'>我没有拿出最好的状态，想再试一次</div>
+                  </div>
+                </SelectItem>
+                <SelectItem value='tech-issue'>
+                  <div className='text-left'>
+                    <div className='font-medium'>技术问题</div>
+                    <div className='text-xs text-muted-foreground'>由于一面千识的技术问题，我无法继续面试</div>
+                  </div>
+                </SelectItem>
+                <SelectItem value='disturbance'>
+                  <div className='text-left'>
+                    <div className='font-medium'>受到干扰</div>
+                    <div className='text-xs text-muted-foreground'>我在面试过程中收到干扰或者不得已提早结束</div>
+                  </div>
+                </SelectItem>
+                <SelectItem value='just-testing'>
+                  <div className='text-left'>
+                    <div className='font-medium'>只是测试</div>
+                    <div className='text-xs text-muted-foreground'>我刚才只是测试，现在我想认真面一次</div>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button disabled={!reinterviewReason} onClick={() => {
+              setReinterviewOpen(false)
+              navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
+            }}>重新面试</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
