@@ -164,7 +164,7 @@ export const resumeFormConfig: {
         itemTitlePrefix: '技能',
         itemFields: [
           { key: 'name', label: '技能名称', component: 'input', placeholder: '例如：前端开发' },
-          { key: 'level', label: '熟练程度', component: 'input', placeholder: '请填写熟练程度' },
+          { key: 'level', label: '*熟练程度', component: 'input', placeholder: '请填写熟练程度' },
         ],
       },
       fields: [
