@@ -1,4 +1,5 @@
 import { type ResumeFormValues } from './schema'
+import { PROFICIENCY_OPTIONS } from './constants'
 
 // 映射后端字段 -> 前端表单字段
 export const resumeFieldMap = {
@@ -22,6 +23,7 @@ export const options = {
   employmentType: ['全职', '实习', '兼职'],
   degreeType: ['本科', '硕士', '博士'],
   degreeStatus: ['毕业', '在读', '肄业', '结业'],
+  proficiency: [...PROFICIENCY_OPTIONS],
 } as const
 
 // for array item key typing
@@ -164,7 +166,7 @@ export const resumeFormConfig: {
         itemTitlePrefix: '技能',
         itemFields: [
           { key: 'name', label: '技能名称', component: 'input', placeholder: '例如：前端开发' },
-          { key: 'level', label: '*熟练程度', component: 'input', placeholder: '请填写熟练程度' },
+          { key: 'level', label: '*熟练程度', component: 'select', optionsKey: 'proficiency', placeholder: '请选择熟练程度' },
         ],
       },
       fields: [
