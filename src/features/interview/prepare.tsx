@@ -6,7 +6,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
 import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { IconLoader2 } from '@tabler/icons-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -44,123 +44,200 @@ enum ViewMode {
 
 // steps 组件迁移为独立组件，见 features/interview/components/steps.tsx
 
-function DeviceSelectorsRow({
-  camActiveDeviceId,
-  camDevices,
-  onCamChange,
-  cameraStatus,
-  micStatus,
-  spkStatus,
-  onMicStatusChange,
-  onSpkStatusChange,
-}: {
-  camActiveDeviceId?: string
-  camDevices: Array<{ deviceId: string; label: string }>
-  onCamChange: (id: string) => void
-  cameraStatus: DeviceTestStatus
-  micStatus: DeviceTestStatus
-  spkStatus: DeviceTestStatus
-  onMicStatusChange: (_s: DeviceTestStatus) => void
-  onSpkStatusChange: (_s: DeviceTestStatus) => void
-}) {
-  const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
-  const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
+export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false }: InterviewPreparePageProps) {
+  const navigate = useNavigate()
+  const [supportOpen, setSupportOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [uploadingResume, setUploadingResume] = useState(false)
+  const [uploadedThisVisit, setUploadedThisVisit] = useState(false)
+  const [resumeOpen, setResumeOpen] = useState(false)
+  const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
+  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Job)
+  const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
+  const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
+  const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
+  const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
+  const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
+  const user = useAuthStore((s) => s.auth.user)
 
-  const statusText = (s: DeviceTestStatus) => {
-    switch (s) {
-      case DeviceTestStatus.Success:
-        return '测试完成'
-      case DeviceTestStatus.Testing:
-        return '测试中'
-      case DeviceTestStatus.Failed:
-        return '测试失败'
-      default:
-        return '未测试'
+  const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
+
+  // 进入页面（ViewMode=Job）即尝试获取用户简历，并进行回显
+  useEffect(() => {
+    let mounted = true
+    if (viewMode === ViewMode.Job) {
+      fetchTalentResumeDetail().then((res) => {
+        if (!mounted) return
+        const si = (res.item?.backend?.struct_info ?? null) as StructInfo | null
+        if (si && (si.basic_info || si.experience)) {
+          const mapped = mapStructInfoToResumeFormValues(si)
+          setResumeValues(mapped)
+        }
+      })
     }
-  }
-
-  const renderStatus = (s: DeviceTestStatus) => {
-    if (s === DeviceTestStatus.Success) {
-      return (
-        <div className='text-xs text-primary flex items-center gap-1'>
-          <IconCircleCheckFilled className='h-4 w-4 text-primary' />
-          测试完成
-        </div>
-      )
+    return () => {
+      mounted = false
     }
-    return <div className='text-xs text-muted-foreground'>{statusText(s)}</div>
+  }, [viewMode])
+
+  const handleApplyJob = useCallback(async function handleApplyJob() {
+    if (!jobId || isSkipConfirm) return
+    try {
+      const tokenToUse = inviteToken ||
+        (await generateInviteToken({ job_id: jobId, token_type: InviteTokenType.ActiveApply }))
+
+      if (!tokenToUse) {
+        throw new Error('生成申请令牌失败')
+      }
+
+      await applyJob(jobId, tokenToUse)
+    } catch (error) {
+      handleServerError(error)
+    }
+  }, [jobId, inviteToken, isSkipConfirm])
+
+  useEffect(() => {
+    if(!user) return
+    if(!user?.is_onboard){
+      navigate({
+        to: '/invited',
+        search: { job_id: jobId, inviteToken: inviteToken },
+        replace: true,
+      })
+      return
+    }
+    handleApplyJob();
+  }, [user, jobId, inviteToken, navigate, handleApplyJob])
+
+  // Auto-select first available camera when none is selected
+  useEffect(() => {
+    if (viewMode !== ViewMode.InterviewPrepare) return
+    if (!cam.activeDeviceId && cam.devices && cam.devices.length > 0) {
+      cam.setActiveMediaDevice(cam.devices[0].deviceId)
+      setCameraStatus(DeviceTestStatus.Testing)
+    }
+  }, [cam, viewMode])
+
+  /**
+   * 设备选择器
+   * @param param0
+   * @returns
+   */
+  function DeviceSelectorsRow({
+    camActiveDeviceId,
+    camDevices,
+    onCamChange,
+    cameraStatus,
+    micStatus,
+    spkStatus,
+    onMicStatusChange,
+    onSpkStatusChange,
+  }: {
+    camActiveDeviceId?: string
+    camDevices: Array<{ deviceId: string; label: string }>
+    onCamChange: (id: string) => void
+    cameraStatus: DeviceTestStatus
+    micStatus: DeviceTestStatus
+    spkStatus: DeviceTestStatus
+    onMicStatusChange: (_s: DeviceTestStatus) => void
+    onSpkStatusChange: (_s: DeviceTestStatus) => void
+  }) {
+    const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
+    const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
+
+    const statusText = (s: DeviceTestStatus) => {
+      switch (s) {
+        case DeviceTestStatus.Success:
+          return '测试完成'
+        case DeviceTestStatus.Testing:
+          return '测试中'
+        case DeviceTestStatus.Failed:
+          return '测试失败'
+        default:
+          return '未测试'
+      }
+    }
+
+    const renderStatus = (s: DeviceTestStatus) => {
+      if (s === DeviceTestStatus.Success) {
+        return (
+          <div className='text-xs text-primary flex items-center gap-1'>
+            <IconCircleCheckFilled className='h-4 w-4 text-primary' />
+            测试完成
+          </div>
+        )
+      }
+      return <div className='text-xs text-muted-foreground'>{statusText(s)}</div>
+    }
+
+    return (
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+
+        {/* 摄像头选择 */}
+        <div className='flex flex-col gap-2 '>
+          <div className="flex items-center gap-2">
+            <IconVideo className='h-4 w-4' />
+            <SelectDropdown
+              isControlled
+              value={camActiveDeviceId}
+              onValueChange={(id: string) => onCamChange(id)}
+              placeholder='选择摄像头'
+              className='h-9 flex-1'
+              useFormControl={false}
+              items={camDevices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
+            />
+          </div>
+          {renderStatus(cameraStatus)}
+        </div>
+
+        {/* 耳机/扬声器 */}
+        <div className='flex flex-col gap-2 '>
+          <div className='flex items-center gap-2'>
+            <IconVolume className='h-4 w-4' />
+            <SelectDropdown
+              isControlled
+              value={spk.activeDeviceId}
+              onValueChange={(v) => {
+                spk.setActiveMediaDevice(v)
+                onSpkStatusChange(DeviceTestStatus.Testing)
+                setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
+              }}
+              placeholder='选择输出设备（耳机/扬声器）'
+              className='h-9 flex-1 overflow-x-hidden truncate'
+              useFormControl={false}
+              items={spk.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
+            />
+          </div>
+          {renderStatus(spkStatus)}
+        </div>
+
+        {/* 麦克风 */}
+        <div className='flex flex-col gap-2 '>
+          <div className='flex items-center gap-2'>
+            <IconMicrophone className='h-4 w-4' />
+            <SelectDropdown
+              isControlled
+              value={mic.activeDeviceId}
+              onValueChange={(v) => {
+                mic.setActiveMediaDevice(v)
+                onMicStatusChange(DeviceTestStatus.Testing)
+                setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
+              }}
+              placeholder='选择麦克风'
+              className='h-9 flex-1 overflow-x-hidden truncate'
+              useFormControl={false}
+              items={mic.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
+            />
+          </div>
+          {renderStatus(micStatus)}
+        </div>
+
+
+
+      </div>
+    )
   }
-
-  return (
-    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-
-      {/* 摄像头选择 */}
-      <div className='flex flex-col gap-2 '>
-        <div className="flex items-center gap-2">
-          <IconVideo className='h-4 w-4' />
-          <SelectDropdown
-            isControlled
-            value={camActiveDeviceId}
-            onValueChange={(id: string) => onCamChange(id)}
-            placeholder='选择摄像头'
-            className='h-9 flex-1'
-            useFormControl={false}
-            disabled={camDevices.length === 0}
-            items={camDevices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
-          />
-        </div>
-        {renderStatus(cameraStatus)}
-      </div>
-      
-      {/* 耳机/扬声器 */}
-      <div className='flex flex-col gap-2 '>
-        <div className='flex items-center gap-2'>
-          <IconVolume className='h-4 w-4' />
-          <SelectDropdown
-            isControlled
-            value={spk.activeDeviceId}
-            onValueChange={(v) => {
-              spk.setActiveMediaDevice(v)
-              onSpkStatusChange(DeviceTestStatus.Testing)
-              setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
-            }}
-            placeholder='选择输出设备（耳机/扬声器）'
-            className='h-9 flex-1 overflow-x-hidden truncate'
-            useFormControl={false}
-            disabled={spk.devices.length === 0}
-            items={spk.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
-          />
-        </div>
-        {renderStatus(spkStatus)}
-      </div>
-      
-      {/* 麦克风 */}
-      <div className='flex flex-col gap-2 '>
-        <div className='flex items-center gap-2'>
-          <IconMicrophone className='h-4 w-4' />
-          <SelectDropdown
-            isControlled
-            value={mic.activeDeviceId}
-            onValueChange={(v) => {
-              mic.setActiveMediaDevice(v)
-              onMicStatusChange(DeviceTestStatus.Testing)
-              setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
-            }}
-            placeholder='选择麦克风'
-            className='h-9 flex-1 overflow-x-hidden truncate'
-            useFormControl={false}
-            disabled={mic.devices.length === 0}
-            items={mic.devices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
-          />
-        </div>
-        {renderStatus(micStatus)}
-      </div>
-
-
-
-    </div>
-  )
-}
 
 export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false }: InterviewPreparePageProps) {
   const navigate = useNavigate()
@@ -267,11 +344,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     try {
       const tokenToUse = inviteToken ||
         (await generateInviteToken({ job_id: jobId, token_type: InviteTokenType.ActiveApply }))
-  
+
       if (!tokenToUse) {
         throw new Error('生成申请令牌失败')
       }
-  
+
       await applyJob(jobId, tokenToUse)
     } catch (error) {
       handleServerError(error)
@@ -400,6 +477,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     const si = (first.backend?.struct_info ?? {}) as StructInfo
                     const mapped = mapStructInfoToResumeFormValues(si)
                     setResumeValues(mapped)
+                    setUploadedThisVisit(true)
                   }}
                 />
 
@@ -415,7 +493,17 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 )}
 
                 <div className='my-4'>
-                  <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={() => setConfirmOpen(true)}>
+                  <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={() => {
+                    if (uploadedThisVisit) {
+                      setConfirmOpen(true)
+                    } else {
+                      if (viewMode === ViewMode.Job) {
+                        setViewMode(ViewMode.InterviewPrepare)
+                      } else {
+                        navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
+                      }
+                    }
+                  }}>
                     {uploadingResume ? '正在分析简历…' : '确认简历，下一步'}
                   </Button>
                 </div>
@@ -466,8 +554,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onMicConfirmed={() => {
                   setMicStatus(DeviceTestStatus.Success)
                 }}
-                disableHeadphoneActions={hasAudioOutput === false}
-                disableCameraConfirm={cameraStatus === DeviceTestStatus.Failed}
               />
 
               {/* 三个设备选择 + 状态 */}
@@ -489,12 +575,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             {/* 右：操作区域 */}
             <div className='lg:col-span-5 p-6 sticky flex flex-col justify-start'>
               <div className='my-36'>
-                <Button 
+                <Button
                   disabled={
-                    cameraStatus !== DeviceTestStatus.Success 
-                    || micStatus !== DeviceTestStatus.Success 
+                    cameraStatus !== DeviceTestStatus.Success
+                    || micStatus !== DeviceTestStatus.Success
                     || spkStatus !== DeviceTestStatus.Success
-                  } 
+                  }
                   className='w-full' onClick={() => {
                     navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
                   }}>
@@ -504,7 +590,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               </div>
             </div>
           </div>
-          
+
         )}
 
         {/* ViewMode.InterviewPendingReview
