@@ -197,6 +197,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               placeholder='选择摄像头'
               className='h-9 flex-1'
               useFormControl={false}
+              disabled={cameraStatus === DeviceTestStatus.Failed}
               items={camDevices.map((d) => ({ label: d.label || d.deviceId, value: d.deviceId }))}
             />
           </div>
@@ -423,6 +424,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onMicConfirmed={() => {
                   setMicStatus(DeviceTestStatus.Success)
                 }}
+                disableCameraConfirm={cameraStatus === DeviceTestStatus.Failed}
               />
 
               {/* 三个设备选择 + 状态 */}
