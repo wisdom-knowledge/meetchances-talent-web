@@ -9,6 +9,7 @@ function joinAchievements(list?: string[] | null): string | undefined {
 export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null): ResumeFormValues {
   const basic = structInfo?.basic_info
   const exp = structInfo?.experience
+  const sa = structInfo?.self_assessment
 
   const workExperience = (exp?.work_experience ?? []).map((w) => ({
     organization: w?.organization ?? undefined,
@@ -39,15 +40,79 @@ export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null):
     achievements: joinAchievements(e?.achievements ?? undefined),
   }))
 
+  // 附加资质
+  const awards = (exp?.awards ?? []).map((a) => ({
+    title: a?.title ?? '',
+    issuer: a?.issuer ?? undefined,
+    date: a?.date ?? '',
+    achievements: joinAchievements(a?.achievements ?? undefined),
+  }))
+
+  const publications = (exp?.publications ?? []).map((p) => ({
+    title: p?.title ?? '',
+    publisher: p?.publisher ?? undefined,
+    date: p?.date ?? '',
+    url: p?.url ?? undefined,
+    achievements: joinAchievements(p?.achievements ?? undefined),
+  }))
+
+  const repositories = (exp?.repositories ?? []).map((r) => ({
+    name: r?.name ?? '',
+    url: r?.url ?? '',
+    achievements: joinAchievements(r?.achievements ?? undefined),
+  }))
+
+  const patents = (exp?.patents ?? []).map((p) => ({
+    title: p?.title ?? '',
+    number: p?.number ?? undefined,
+    status: p?.status ?? undefined,
+    date: p?.date ?? '',
+    achievements: joinAchievements(p?.achievements ?? undefined),
+  }))
+
+  const socialMedia = (exp?.social_media ?? []).map((s) => ({
+    platform: s?.platform ?? '',
+    handle: s?.handle ?? undefined,
+    url: s?.url ?? '',
+    achievements: joinAchievements(s?.achievements ?? undefined),
+  }))
+
   const values: ResumeFormValues = {
     name: basic?.name ?? undefined,
     phone: basic?.phone ?? undefined,
     email: basic?.email ?? undefined,
     gender: (basic?.gender as ResumeFormValues['gender']) ?? undefined,
     city: basic?.city ?? undefined,
+    // 自我评价
+    selfEvaluation: sa?.summary ?? undefined,
     workExperience: workExperience.length ? workExperience : undefined,
     projectExperience: projectExperience.length ? projectExperience : undefined,
     education: education.length ? education : undefined,
+    awards: awards.length ? awards : undefined,
+    publications: publications.length ? publications : undefined,
+    repositories: repositories.length ? repositories : undefined,
+    patents: patents.length ? patents : undefined,
+    socialMedia: socialMedia.length ? socialMedia : undefined,
+    // 将有熟练度的 hard_skills 映射到工作技能，将无熟练度的映射到通用技能标签
+    workSkills:
+      (sa?.hard_skills ?? [])
+        .map((hs) => ({
+          name: (hs?.skill_name ?? undefined) as ResumeFormValues['workSkills'] extends Array<infer T> ? T extends { name?: string } ? string | undefined : string | undefined : string | undefined,
+          level: (hs?.proficiency ?? undefined) as ResumeFormValues['workSkills'] extends Array<infer T> ? T extends { level?: ResumeFormValues['workSkillLevel'] } ? ResumeFormValues['workSkillLevel'] : ResumeFormValues['workSkillLevel'] : ResumeFormValues['workSkillLevel'],
+        }))
+        .filter((w) => Boolean(w.name) && Boolean(w.level)) as ResumeFormValues['workSkills'],
+    skills: (() => {
+      const plainSkills = (sa?.hard_skills ?? [])
+        .filter((hs) => !hs?.proficiency)
+        .map((hs) => hs?.skill_name)
+        .filter(Boolean) as string[]
+      return plainSkills.length ? plainSkills.join('、') : undefined
+    })(),
+    softSkills: (() => {
+      const ss = (sa?.soft_skills ?? []) as Array<unknown>
+      const list = ss.map((v) => (typeof v === 'string' ? v : v == null ? '' : String(v))).filter(Boolean)
+      return list.length ? list.join('、') : undefined
+    })(),
   }
 
   return values
@@ -63,6 +128,15 @@ function splitAchievements(text?: string): string[] | undefined {
 }
 
 export function mapResumeFormValuesToStructInfo(values: ResumeFormValues): StructInfo {
+  function splitTags(text?: string): string[] | null {
+    if (!text) return null
+    const list = String(text)
+      .split(/[，、,\s]+/u)
+      .map((s) => s.trim())
+      .filter(Boolean)
+    return list.length ? list : null
+  }
+
   const work = (values.workExperience ?? []).map((w) => ({
     organization: w.organization ?? null,
     title: w.title ?? null,
@@ -104,6 +178,53 @@ export function mapResumeFormValuesToStructInfo(values: ResumeFormValues): Struc
       work_experience: work,
       project_experience: projects,
       education: edu,
+      awards: (values.awards ?? []).map((a) => ({
+        title: a.title ?? null,
+        issuer: a.issuer ?? null,
+        date: a.date ?? null,
+        achievements: splitAchievements(a.achievements) ?? null,
+      })),
+      publications: (values.publications ?? []).map((p) => ({
+        title: p.title ?? null,
+        publisher: p.publisher ?? null,
+        date: p.date ?? null,
+        url: p.url ?? null,
+        achievements: splitAchievements(p.achievements) ?? null,
+      })),
+      repositories: (values.repositories ?? []).map((r) => ({
+        name: r.name ?? null,
+        url: r.url ?? null,
+        achievements: splitAchievements(r.achievements) ?? null,
+      })),
+      patents: (values.patents ?? []).map((p) => ({
+        title: p.title ?? null,
+        number: p.number ?? null,
+        status: p.status ?? null,
+        date: p.date ?? null,
+        achievements: splitAchievements(p.achievements) ?? null,
+      })),
+      social_media: (values.socialMedia ?? []).map((s) => ({
+        platform: s.platform ?? null,
+        handle: s.handle ?? null,
+        url: s.url ?? null,
+        achievements: splitAchievements(s.achievements) ?? null,
+      })),
+    },
+    self_assessment: {
+      summary: values.selfEvaluation ?? null,
+      hard_skills: [
+        // 明确填写了名称/等级的工作技能
+        ...((values.workSkills ?? []).map((w) => ({
+          skill_name: w?.name ?? null,
+          proficiency: w?.level ?? null,
+        })) as Array<{ skill_name?: string | null; proficiency?: string | null }>),
+        // 标签型技能（无熟练度）
+        ...((splitTags(values.skills) ?? []).map((name) => ({
+          skill_name: name ?? null,
+          proficiency: null,
+        })) as Array<{ skill_name?: string | null; proficiency?: string | null }>),
+      ],
+      soft_skills: (splitTags(values.softSkills) ?? undefined) as unknown[] | undefined,
     },
   }
   return struct

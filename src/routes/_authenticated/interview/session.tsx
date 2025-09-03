@@ -1,5 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import InterviewPage from '@/features/interview'
+import { MobileFullscreenMask } from '@/components/mobile-fullscreen-mask'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export const Route = createFileRoute('/_authenticated/interview/session')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -14,7 +16,13 @@ export const Route = createFileRoute('/_authenticated/interview/session')({
 })
 
 function InterviewSessionRouteComponent() {
+  const isMobile = useIsMobile()
   const search = Route.useSearch() as { job_id: string | number }
+  
+  if (isMobile) {
+    return <MobileFullscreenMask open={true} />
+  }
+
   return <InterviewPage jobId={search.job_id} />
 }
 

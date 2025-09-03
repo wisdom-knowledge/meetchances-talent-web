@@ -35,6 +35,7 @@ export interface ImportantTaskItem {
   description?: string
   actionText?: string
   closable?: boolean
+  handleClick?: () => void
 }
 
 export async function fetchImportantTasks(): Promise<ImportantTaskItem[]> {
@@ -48,10 +49,14 @@ export async function fetchImportantTasks(): Promise<ImportantTaskItem[]> {
   return [
     {
       id: 'guide',
-      title: '一面干识使用须知',
+      title: '一面千识使用须知',
       description: '请查看我们的用户手册',
       actionText: '去查看',
       closable: true,
+      handleClick: () => {
+        const url = 'https://dnu-cdn.xpertiise.com/common/fd57793e-5af3-4ddc-8da8-2e8bb06506a4.pdf'
+        window.open(url, '_blank', 'noopener,noreferrer')
+      },
     },
   ]
 }
