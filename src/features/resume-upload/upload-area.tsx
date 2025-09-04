@@ -16,9 +16,10 @@ interface   UploadAreaProps {
   className?: string
   uploader?: UploaderFn
   onUploadingChange?: (uploading: boolean) => void
+  children?: React.ReactNode
 }
 
-export function UploadArea({ onUploadComplete, className, uploader, onUploadingChange }: UploadAreaProps) {
+export function UploadArea({ onUploadComplete, className, uploader, onUploadingChange, children }: UploadAreaProps) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [dragOver, setDragOver] = useState(false)
@@ -127,6 +128,8 @@ export function UploadArea({ onUploadComplete, className, uploader, onUploadingC
               <p className="text-sm text-muted-foreground">支持拖拽或点击选择文件</p>
             </div>
           </div>
+
+          {children ? <div className="mt-6">{children}</div> : null}
 
           <input
             ref={fileInputRef}
