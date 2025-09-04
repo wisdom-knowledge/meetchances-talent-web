@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Main } from '@/components/layout/main'
 import { RoomAudioRenderer, RoomContext, useConnectionState, useRoomContext } from '@livekit/components-react'
 import { LogLevel, RoomEvent, Room, setLogLevel, type RemoteParticipant } from 'livekit-client'
-import { AgentControlBar } from '@/components/livekit/agent-control-bar'
+// import { AgentControlBar } from '@/components/livekit/agent-control-bar'  
 import '@livekit/components-styles'
-import { useInterviewConnectionDetails } from '@/features/interview/api'
+import { useInterviewConnectionDetails, postNodeAction, NodeActionTrigger } from '@/features/interview/api'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { SessionView } from '@/features/interview/session-view'
@@ -12,9 +12,11 @@ import { getPreferredDeviceId } from '@/lib/devices'
 
 interface InterviewPageProps {
   jobId: string | number
+  jobApplyId?: string | number
+  interviewNodeId?: string | number
 }
 
-export default function InterviewPage({ jobId }: InterviewPageProps) {
+export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: InterviewPageProps) {
   const isDev = import.meta.env.DEV
   const navigate = useNavigate()
 
@@ -131,6 +133,13 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
       })
       endedRef.current = true
       try { await room.disconnect() } catch { /* noop */ }
+      // Progress advance on interview end: submit current node
+      try {
+        if (interviewNodeId) {
+          await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
+          debugger
+        }
+      } catch { /* ignore */ }
       void handleDisconnected()
     }
     const handleReconnecting = () => {
@@ -160,7 +169,7 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
       room.off(RoomEvent.ConnectionStateChanged, handleConnChanged)
       room.off(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected)
     }
-  }, [navigate, data])
+  }, [navigate, data, jobApplyId, interviewNodeId])
 
   // 记录页面可见性与网络状态，辅助定位生产环境切后台后的断开
   useEffect(() => {
@@ -214,7 +223,7 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
                 <SessionView disabled={false} sessionStarted className='h-full' />
                 <div className='pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
                   <div className='pointer-events-auto'>
-                    <AgentControlBar onDisconnect={() => {
+                    {/* <AgentControlBar onDisconnect={() => {
                       if (navigatedRef.current) return
                       endedRef.current = true
                       navigatedRef.current = true
@@ -227,7 +236,7 @@ export default function InterviewPage({ jobId }: InterviewPageProps) {
                       } else {
                         navigate({ to: '/finish', replace: true })
                       }
-                    }} />
+                    }} /> */}
                   </div>
                 </div>
                 {isDev && data?.token && (

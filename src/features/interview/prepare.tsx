@@ -25,7 +25,7 @@ import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import { handleServerError } from '@/utils/handle-server-error'
 import { useAuthStore } from '@/stores/authStore'
-import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger } from '@/features/interview/api'
+import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, getInterviewNodeId } from '@/features/interview/api'
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
@@ -465,7 +465,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                         }
                         setViewMode(ViewMode.InterviewPrepare)
                       } else {
-                        navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
+                        navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: getInterviewNodeId(workflow) } })
                       }
                     }
                   }}>
@@ -548,7 +548,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     || spkStatus !== DeviceTestStatus.Success
                   }
                   className='w-full' onClick={async () => {
-                    navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
+                    navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: getInterviewNodeId(workflow) } })
                   }}>
                   确认设备，下一步
                 </Button>
@@ -645,7 +645,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               if (viewMode === ViewMode.Job) {
                 setViewMode(ViewMode.InterviewPrepare)
               } else {
-                navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
+                navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: getInterviewNodeId(workflow) } })
               }
             }}>继续</Button>
           </DialogFooter>
@@ -696,7 +696,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           <DialogFooter>
             <Button disabled={!reinterviewReason} onClick={() => {
               setReinterviewOpen(false)
-              navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '' } })
+              navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: getInterviewNodeId(workflow) } })
             }}>重新面试</Button>
           </DialogFooter>
         </DialogContent>

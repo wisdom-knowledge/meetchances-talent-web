@@ -115,7 +115,7 @@ export interface JobApplyWorkflowResponse {
   nodes?: JobApplyWorkflowNode[]
 }
 
-async function fetchJobApplyWorkflow(jobApplyId: string | number): Promise<JobApplyWorkflowResponse> {
+export async function fetchJobApplyWorkflow(jobApplyId: string | number): Promise<JobApplyWorkflowResponse> {
   const raw = await api.get('/talent/job_apply_progress', { params: { job_apply_id: jobApplyId } })
   return raw as unknown as JobApplyWorkflowResponse
 }
@@ -128,6 +128,13 @@ export function useJobApplyWorkflow(jobApplyId: string | number | null, enabled 
     staleTime: 30_000,
     refetchOnMount: false,
   })
+}
+
+// Helper: get INTERVIEW node id from workflow
+export function getInterviewNodeId(workflow?: JobApplyWorkflowResponse | null): string | number | undefined {
+  if (!workflow || !Array.isArray(workflow.nodes)) return undefined
+  const node = workflow.nodes.find((n) => n?.node_type === 'INTERVIEW')
+  return node?.id as string | number | undefined
 }
 
 // Node action API
