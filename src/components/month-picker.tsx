@@ -50,10 +50,12 @@ export function MonthPicker({ value, onChange, placeholder, disabled, className 
           variant='outline'
           role='combobox'
           disabled={disabled}
-          className={cn('justify-between h-9 w-full', className)}
+          className={cn('justify-between gap-2 overflow-hidden h-9 w-full', className)}
           aria-label='选择月份'
         >
-          {displayLabel ?? placeholder ?? '选择月份'}
+          <span className={cn('flex-1 min-w-0 truncate text-left', !displayLabel && 'text-muted-foreground')}>
+            {displayLabel ?? placeholder ?? '选择月份'}
+          </span>
           <CaretSortIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
         </Button>
       </PopoverTrigger>
