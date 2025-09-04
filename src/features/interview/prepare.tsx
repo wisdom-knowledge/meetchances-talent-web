@@ -6,7 +6,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
 import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { IconLoader2 } from '@tabler/icons-react'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -45,82 +45,7 @@ enum ViewMode {
 
 // steps 组件迁移为独立组件，见 features/interview/components/steps.tsx
 
-export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false }: InterviewPreparePageProps) {
-  const navigate = useNavigate()
-  const [supportOpen, setSupportOpen] = useState(false)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [uploadingResume, setUploadingResume] = useState(false)
-  const [uploadedThisVisit, setUploadedThisVisit] = useState(false)
-  const [resumeOpen, setResumeOpen] = useState(false)
-  const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
-  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Job)
-  const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
-  const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
-  const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
-  const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
-  const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
-  const user = useAuthStore((s) => s.auth.user)
-  const [jobApplyId, setJobApplyId] = useState<number | string | null>(null)
-
-  const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
-
-  // 进入页面（ViewMode=Job）即尝试获取用户简历，并进行回显
-  useEffect(() => {
-    let mounted = true
-    if (viewMode === ViewMode.Job) {
-      fetchTalentResumeDetail().then((res) => {
-        if (!mounted) return
-        const si = (res.item?.backend?.struct_info ?? null) as StructInfo | null
-        if (si && (si.basic_info || si.experience)) {
-          const mapped = mapStructInfoToResumeFormValues(si)
-          setResumeValues(mapped)
-        }
-      })
-    }
-    return () => {
-      mounted = false
-    }
-  }, [viewMode])
-
-  const handleApplyJob = useCallback(async function handleApplyJob() {
-    if (!jobId || isSkipConfirm) return
-    try {
-      const tokenToUse = inviteToken ||
-        (await generateInviteToken({ job_id: jobId, token_type: InviteTokenType.ActiveApply }))
-
-      if (!tokenToUse) {
-        throw new Error('生成申请令牌失败')
-      }
-
-      const id = await applyJob(jobId, tokenToUse)
-      if (id !== null) setJobApplyId(id)
-    } catch (error) {
-      handleServerError(error)
-    }
-  }, [jobId, inviteToken, isSkipConfirm])
-
-  useEffect(() => {
-    if(!user) return
-    if(!user?.is_onboard){
-      navigate({
-        to: '/invited',
-        search: { job_id: jobId, inviteToken: inviteToken },
-        replace: true,
-      })
-      return
-    }
-    handleApplyJob();
-  }, [user, jobId, inviteToken, navigate, handleApplyJob])
-
-  // Auto-select first available camera when none is selected
-  useEffect(() => {
-    if (viewMode !== ViewMode.InterviewPrepare) return
-    if (!cam.activeDeviceId && cam.devices && cam.devices.length > 0) {
-      cam.setActiveMediaDevice(cam.devices[0].deviceId)
-      setCameraStatus(DeviceTestStatus.Testing)
-    }
-  }, [cam, viewMode])
+// Duplicate definition introduced during merge. Keeping the enhanced definition below and removing this one.
 
   /**
    * 设备选择器
@@ -251,6 +176,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [reinterviewOpen, setReinterviewOpen] = useState(false)
   const [reinterviewReason, setReinterviewReason] = useState<string>('')
   const [uploadingResume, setUploadingResume] = useState(false)
+  const [uploadedThisVisit, setUploadedThisVisit] = useState(false)
   const [resumeOpen, setResumeOpen] = useState(false)
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Job)
@@ -258,6 +184,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
+  const [jobApplyId, setJobApplyId] = useState<number | string | null>(null)
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const user = useAuthStore((s) => s.auth.user)
   const { data: progressNodes } = useJobApplyProgress(jobId ?? null, Boolean(jobId))
@@ -293,26 +220,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     return nodeNameToViewMode(nodes[0].node_name)
   }
 
-  // Determine if there is at least one audio output device (headphones/speaker)
-  const [hasAudioOutput, setHasAudioOutput] = useState<boolean | null>(null)
-  useEffect(() => {
-    let cancelled = false
-    const check = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices()
-        if (cancelled) return
-        setHasAudioOutput(devices.some((d) => d.kind === 'audiooutput'))
-      } catch {
-        if (!cancelled) setHasAudioOutput(false)
-      }
-    }
-    if (viewMode === ViewMode.InterviewPrepare) {
-      void check()
-    }
-    return () => {
-      cancelled = true
-    }
-  }, [viewMode])
+  // (removed) Audio output check – not used
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
 
@@ -343,7 +251,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progressNodes])
 
-  async function handleApplyJob() {
+  const handleApplyJob = useCallback(async () => {
     if (!jobId || isSkipConfirm) return
     try {
       const tokenToUse = inviteToken ||
@@ -353,11 +261,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         throw new Error('生成申请令牌失败')
       }
 
-      await applyJob(jobId, tokenToUse)
+      const id = await applyJob(jobId, tokenToUse)
+      if (id !== null) setJobApplyId(id)
     } catch (error) {
       handleServerError(error)
     }
-  }
+  }, [jobId, inviteToken, isSkipConfirm])
 
   useEffect(() => {
     if(!user) return
@@ -370,7 +279,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       return
     }
     handleApplyJob();
-  }, [user, jobId, inviteToken])
+  }, [user, jobId, inviteToken, navigate, handleApplyJob])
 
   // Auto-select first available camera when none is selected
   const firstCamId = cam.devices?.[0]?.deviceId
@@ -383,13 +292,13 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       cam.setActiveMediaDevice(firstCamId)
       setCameraStatus(DeviceTestStatus.Testing)
     }
-  }, [viewMode, cam.activeDeviceId, firstCamId])
+  }, [viewMode, cam, firstCamId])
 
   return (
     <>
       <Main fixed>
         {/* 顶部工具栏：返回 + 寻求支持 */}
-        <div className='flex items-center justify-between mb-2'>
+        <div className='flex items-center justify-between mb-2 max-w-screen-xl mx-auto w-full'>
           <div className='flex items-center'>
             <Button
               type='button'
@@ -412,9 +321,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             - 右侧提供简历上传与回显，确认后进入面试准备
         */}
         {viewMode === ViewMode.Job && (
-          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12'>
+          <div className='flex-1 grid grid-cols-12 gap-8'>
             {/* 左：职位信息 */}
-            <div className='lg:col-span-7 space-y-6 pl-3'>
+            <div className='col-span-7 space-y-6 pl-3'>
               <div className='p-6 h-full flex-col'>
                 <div className='flex items-start justify-between gap-4'>
                   <div className='min-w-0'>
@@ -537,9 +446,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             - 设备均通过后可进入正式 AI 面试
         */}
         {viewMode === ViewMode.InterviewPrepare && (
-          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
+          <div className='flex-1 grid gap-8 grid-cols-12 max-w-screen-xl mx-auto'>
             {/* 左：职位标题 + 设备检查 */}
-            <div className='lg:col-span-7 space-y-6 pl-3'>
+            <div className='col-span-7 space-y-6 pl-3 flex flex-col justify-center'>
               <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
               <div className='flex items-center gap-4 text-gray-500 mb-2'>
                 <p>职位描述，这里的字段需要再明确</p>
@@ -585,7 +494,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             </div>
 
             {/* 右：操作区域 */}
-            <div className='lg:col-span-5 p-6 sticky flex flex-col justify-start'>
+            <div className='col-span-5 p-6 sticky flex flex-col justify-center'>
               <div className='my-36'>
                 <Button
                   disabled={

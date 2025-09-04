@@ -94,7 +94,7 @@ const SHOULD_MOCK_JOB_APPLY_PROGRESS = import.meta.env.DEV && (import.meta.env.V
 
 const MOCK_JOB_APPLY_PROGRESS: JobApplyProgressNode[] = [
   { node_name: '简历分析', node_status: JobApplyNodeStatus.Approved },
-  { node_name: 'AI 面试', node_status: JobApplyNodeStatus.CompletedPendingReview },
+  { node_name: 'AI 面试', node_status: JobApplyNodeStatus.NotStarted },
   { node_name: '第一轮测试任务', node_status: JobApplyNodeStatus.NotStarted },
   { node_name: '第二轮测试任务', node_status: JobApplyNodeStatus.NotStarted },
   { node_name: '学历验证', node_status: JobApplyNodeStatus.NotStarted },
