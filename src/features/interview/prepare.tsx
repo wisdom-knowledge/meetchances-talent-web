@@ -7,6 +7,7 @@ import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } fro
 import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { IconLoader2 } from '@tabler/icons-react'
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -24,7 +25,7 @@ import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import { handleServerError } from '@/utils/handle-server-error'
 import { useAuthStore } from '@/stores/authStore'
-import { confirmResume } from '@/features/interview/api'
+import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger } from '@/features/interview/api'
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
@@ -187,7 +188,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [jobApplyId, setJobApplyId] = useState<number | string | null>(null)
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const user = useAuthStore((s) => s.auth.user)
-  const { data: progressNodes } = useJobApplyProgress(jobId ?? null, Boolean(jobId))
+  const queryClient = useQueryClient()
+  const { data: progressNodes, isLoading: isProgressLoading } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
+  const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
 
   function nodeNameToViewMode(name: string): ViewMode {
     if (name.includes('简历分析')) return ViewMode.Job
@@ -294,6 +297,22 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     }
   }, [viewMode, cam, firstCamId])
 
+  // 在进度返回之前展示 Loading
+  const isWorkflowLoading = !jobApplyId || isProgressLoading
+  if (isWorkflowLoading) {
+    return (
+      <>
+        <Main fixed>
+          <div className='flex h-[60vh] items-center justify-center'>
+            <div className='rounded-lg border bg-background p-3 shadow flex items-center gap-2 text-sm text-muted-foreground'>
+              <IconLoader2 className='h-4 w-4 animate-spin text-primary' /> 正在加载流程…
+            </div>
+          </div>
+        </Main>
+      </>
+    )
+  }
+
   return (
     <>
       <Main fixed>
@@ -379,7 +398,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
             {/* 右：上传简历 */}
             <div className='lg:col-span-5'>
-              <div className='p-6 sticky relative'>
+              <div className='p-6 sticky relative w-[400px] my-8'>
                 <UploadArea
                   className='my-4'
                   uploader={uploadTalentResume}
@@ -392,7 +411,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     setResumeValues(mapped)
                     setUploadedThisVisit(true)
                   }}
-                />
+                >
+                  {resumeValues ? <Button size='sm' variant='secondary'>更新简历</Button> : null}
+                </UploadArea>
 
                 {/* 解析后的基础信息 */}
                 {resumeValues && (
@@ -414,6 +435,30 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                         if (jobApplyId != null) {
                           try {
                             await confirmResume(jobApplyId)
+                            // also submit node action (submit) with first node id
+                            const firstNodeId = workflow?.nodes?.[0]?.id
+                            if (firstNodeId != null) {
+                              const res = await postNodeAction({ node_id: firstNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
+                              if (res.success && jobApplyId != null) {
+                                // optimistic update: advance first step to next stage (10->20)
+                                queryClient.setQueryData(
+                                  ['job-apply-workflow', jobApplyId],
+                                  (prev: unknown) => {
+                                    // prev is JobApplyWorkflowResponse
+                                    if (!prev || typeof prev !== 'object') return prev
+                                    const p = prev as { nodes?: Array<{ status?: number | string }> }
+                                    if (!Array.isArray(p.nodes) || p.nodes.length === 0) return prev
+                                    const nextNodes = [...p.nodes]
+                                    const cur = nextNodes[0]
+                                    const curNum = typeof cur.status === 'number' ? cur.status : parseInt(String(cur.status ?? '0'), 10)
+                                    // 10 -> 20 ; otherwise keep
+                                    const moved = curNum === 10 ? 20 : 20
+                                    nextNodes[0] = { ...cur, status: moved }
+                                    return { ...(prev as Record<string, unknown>), nodes: nextNodes }
+                                  }
+                                )
+                              }
+                            }
                           } catch (_e) {
                             // ignore, allow navigation even if confirm fails
                           }
@@ -582,7 +627,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         )}
 
         {/* 底部步骤与下一步 */}
-        <Steps jobId={jobId ?? null} />
+        <Steps jobApplyId={jobApplyId ?? null} />
 
       </Main>
       <SupportDialog open={supportOpen} onOpenChange={setSupportOpen} />

@@ -90,35 +90,113 @@ export interface JobApplyProgressNode {
   node_status: JobApplyNodeStatus
 }
 
-const SHOULD_MOCK_JOB_APPLY_PROGRESS = import.meta.env.DEV && (import.meta.env.VITE_MOCK_JOB_PROGRESS === undefined || import.meta.env.VITE_MOCK_JOB_PROGRESS === '1')
+// (mock constants removed)
 
-const MOCK_JOB_APPLY_PROGRESS: JobApplyProgressNode[] = [
-  { node_name: '简历分析', node_status: JobApplyNodeStatus.Approved },
-  { node_name: 'AI 面试', node_status: JobApplyNodeStatus.NotStarted },
-  { node_name: '第一轮测试任务', node_status: JobApplyNodeStatus.NotStarted },
-  { node_name: '第二轮测试任务', node_status: JobApplyNodeStatus.NotStarted },
-  { node_name: '学历验证', node_status: JobApplyNodeStatus.NotStarted },
-]
+// (legacy type removed)
 
-async function fetchJobApplyProgress(jobId: string | number): Promise<JobApplyProgressNode[]> {
-  // 接口返回的数据顺序即为展示顺序
-  if (SHOULD_MOCK_JOB_APPLY_PROGRESS) {
-    // 模拟不同 job 的进度（如需）
-    if (String(jobId) === '1') return MOCK_JOB_APPLY_PROGRESS
-    return [
-      { node_name: '简历分析', node_status: JobApplyNodeStatus.InProgress },
-      { node_name: 'AI 面试', node_status: JobApplyNodeStatus.NotStarted },
-    ]
-  }
-  const raw = await api.get('/talent/job_apply_progress', { params: { job_id: jobId } })
-  return (raw as unknown as JobApplyProgressNode[]) ?? []
+// (legacy backend response type removed in favor of JobApplyWorkflowResponse)
+
+// (removed) old fetchJobApplyProgress in favor of workflow-based selector
+
+// Expose raw workflow with node ids for callers that need node_id
+export interface JobApplyWorkflowNode {
+  node_type?: string
+  node_key?: string
+  node_name?: string
+  status?: number | string
+  id?: number | string
 }
 
-export function useJobApplyProgress(jobId: string | number | null, enabled = true) {
-  return useQuery<JobApplyProgressNode[]>({
-    queryKey: ['job-apply-progress', jobId],
-    queryFn: () => fetchJobApplyProgress(jobId as string | number),
-    enabled: Boolean(jobId) && enabled,
+export interface JobApplyWorkflowResponse {
+  job_apply_id?: number | string
+  workflow_instance_id?: number | string
+  workflow_status?: string
+  current_node_id?: number | string
+  nodes?: JobApplyWorkflowNode[]
+}
+
+async function fetchJobApplyWorkflow(jobApplyId: string | number): Promise<JobApplyWorkflowResponse> {
+  const raw = await api.get('/talent/job_apply_progress', { params: { job_apply_id: jobApplyId } })
+  return raw as unknown as JobApplyWorkflowResponse
+}
+
+export function useJobApplyWorkflow(jobApplyId: string | number | null, enabled = true) {
+  return useQuery<JobApplyWorkflowResponse>({
+    queryKey: ['job-apply-workflow', jobApplyId],
+    queryFn: () => fetchJobApplyWorkflow(jobApplyId as string | number),
+    enabled: Boolean(jobApplyId) && enabled,
+    staleTime: 30_000,
+    refetchOnMount: false,
+  })
+}
+
+// Node action API
+export enum NodeActionTrigger {
+  Start = 'start',
+  Submit = 'submit',
+  Approve = 'approve',
+  Reject = 'reject',
+  SendBack = 'send_back',
+  Restart = 'restart',
+}
+
+export interface NodeActionPayload {
+  node_id: number | string
+  trigger: NodeActionTrigger
+  result_data?: Record<string, unknown>
+}
+
+export async function postNodeAction(payload: NodeActionPayload): Promise<{ success: boolean }> {
+  try {
+    await api.post('/talent/node/action', payload)
+    return { success: true }
+  } catch (_e) {
+    return { success: false }
+  }
+}
+
+export function useJobApplyProgress(jobApplyId: string | number | null, enabled = true) {
+  return useQuery<JobApplyWorkflowResponse, unknown, JobApplyProgressNode[]>({
+    queryKey: ['job-apply-workflow', jobApplyId],
+    queryFn: () => fetchJobApplyWorkflow(jobApplyId as string | number),
+    enabled: Boolean(jobApplyId) && enabled,
+    staleTime: 30_000,
+    refetchOnMount: false,
+    select: (obj) => {
+      const backendNodes = Array.isArray(obj?.nodes) ? obj.nodes! : []
+      const normalizeName = (n: JobApplyWorkflowNode): string => {
+        const type = String(n.node_type ?? '')
+        const key = String(n.node_key ?? '')
+        const name = String(n.node_name ?? '')
+        const lowerName = name.toLowerCase()
+        if (type === 'INTERVIEW' || key === 'Interview' || lowerName.includes('interview')) return 'AI 面试'
+        if (type === 'RESUME_CHECK' || key === 'ResumeCheck' || lowerName.includes('resume')) return '简历分析'
+        if (type === 'TRIAL_TASK' || key.toLowerCase().includes('task') || lowerName.includes('task')) return '测试任务'
+        if (type === 'EDUCATION_VERIFY' || lowerName.includes('education')) return '学历验证'
+        return name || key || '—'
+      }
+      const normalizeStatus = (n: JobApplyWorkflowNode): JobApplyNodeStatus => {
+        const rawStatus = n.status
+        const num = typeof rawStatus === 'number' ? rawStatus : parseInt(String(rawStatus ?? '0'), 10)
+        switch (num) {
+          case 0:
+            return JobApplyNodeStatus.NotStarted
+          case 10:
+            return JobApplyNodeStatus.InProgress
+          case 20:
+            return JobApplyNodeStatus.CompletedPendingReview
+          case 30:
+            return JobApplyNodeStatus.Approved
+          case 40:
+            return JobApplyNodeStatus.Rejected
+          case 50:
+            return JobApplyNodeStatus.Returned
+          default:
+            return JobApplyNodeStatus.NotStarted
+        }
+      }
+      return backendNodes.map((n) => ({ node_name: normalizeName(n), node_status: normalizeStatus(n) }))
+    },
   })
 }
 

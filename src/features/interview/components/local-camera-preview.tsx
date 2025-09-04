@@ -365,7 +365,7 @@ export function LocalCameraPreview({
   return (
     <div className={className} {...props}>
       <Card className='overflow-hidden py-0'>
-        <div className={cn('relative bg-black aspect-video')}>
+        <div className={cn('relative bg-black aspect-video w-full max-w-[720px] mx-auto')}>
           <video ref={videoRef} playsInline muted className='h-full w-full object-cover' />
 
           {/* Headphone stage overlay */}

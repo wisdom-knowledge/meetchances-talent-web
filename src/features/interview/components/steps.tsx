@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 
 interface StepsProps {
-  jobId: string | number | null
+  jobApplyId: string | number | null
   className?: string
 }
 
@@ -26,10 +26,10 @@ function mapNodeStatusToVisual(status: JobApplyNodeStatus): VisualStepStatus {
   }
 }
 
-export function Steps({ jobId, className }: StepsProps) {
-  const { data, isLoading } = useJobApplyProgress(jobId, Boolean(jobId))
+export function Steps({ jobApplyId, className }: StepsProps) {
+  const { data, isLoading } = useJobApplyProgress(jobApplyId, Boolean(jobApplyId))
 
-  if (!jobId) return null
+  if (!jobApplyId) return null
 
   return (
     <div className={cn('mt-8', className)}>
