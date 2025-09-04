@@ -137,7 +137,6 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
       try {
         if (interviewNodeId) {
           await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
-          debugger
         }
       } catch { /* ignore */ }
       void handleDisconnected()

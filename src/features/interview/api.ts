@@ -145,6 +145,7 @@ export enum NodeActionTrigger {
   Reject = 'reject',
   SendBack = 'send_back',
   Restart = 'restart',
+  Retake = 'retake'
 }
 
 export interface NodeActionPayload {
@@ -155,7 +156,14 @@ export interface NodeActionPayload {
 
 export async function postNodeAction(payload: NodeActionPayload): Promise<{ success: boolean }> {
   try {
-    await api.post('/talent/node/action', payload)
+    const body = {
+      node_id: payload.node_id,
+      trigger: String(payload.trigger),
+      result_data: payload.result_data ?? {},
+    }
+    await api.post('/talent/node/action', body, {
+      headers: { 'Content-Type': 'application/json' },
+    })
     return { success: true }
   } catch (_e) {
     return { success: false }

@@ -662,41 +662,30 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           <div className='space-y-2'>
             <label className='text-sm font-medium'>请选择您想要重新面试的原因</label>
             <Select value={reinterviewReason} onValueChange={(v) => setReinterviewReason(v)}>
-              <SelectTrigger className='h-9'>
+              <SelectTrigger className='h-9 min-w-72'>
                 <SelectValue placeholder='请选择一个原因' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='performance'>
-                  <div className='text-left'>
-                    <div className='font-medium'>提升表现</div>
-                    <div className='text-xs text-muted-foreground'>我没有拿出最好的状态，想再试一次</div>
-                  </div>
-                </SelectItem>
-                <SelectItem value='tech-issue'>
-                  <div className='text-left'>
-                    <div className='font-medium'>技术问题</div>
-                    <div className='text-xs text-muted-foreground'>由于一面千识的技术问题，我无法继续面试</div>
-                  </div>
-                </SelectItem>
-                <SelectItem value='disturbance'>
-                  <div className='text-left'>
-                    <div className='font-medium'>受到干扰</div>
-                    <div className='text-xs text-muted-foreground'>我在面试过程中收到干扰或者不得已提早结束</div>
-                  </div>
-                </SelectItem>
-                <SelectItem value='just-testing'>
-                  <div className='text-left'>
-                    <div className='font-medium'>只是测试</div>
-                    <div className='text-xs text-muted-foreground'>我刚才只是测试，现在我想认真面一次</div>
-                  </div>
-                </SelectItem>
+                <SelectItem value='performance' description='我没有拿出最好的状态，想再试一次'>提升表现</SelectItem>
+                <SelectItem value='tech-issue' description='由于一面千识的技术问题，我无法继续面试'>技术问题</SelectItem>
+                <SelectItem value='disturbance' description='我在面试过程中收到干扰或者不得已提早结束'>受到干扰</SelectItem>
+                <SelectItem value='just-testing' description='我刚才只是测试，现在我想认真面一次'>只是测试</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <DialogFooter>
-            <Button disabled={!reinterviewReason} onClick={() => {
+            <Button disabled={!reinterviewReason} onClick={async () => {
               setReinterviewOpen(false)
-              navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: getInterviewNodeId(workflow) } })
+              const interviewNodeId = getInterviewNodeId(workflow)
+              if (interviewNodeId != null) {
+                const res = await postNodeAction({ 
+                  node_id: interviewNodeId, 
+                  trigger: NodeActionTrigger.Retake, 
+                  result_data: {}
+                })
+                if (!res.success) return
+              }
+              navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
             }}>重新面试</Button>
           </DialogFooter>
         </DialogContent>
