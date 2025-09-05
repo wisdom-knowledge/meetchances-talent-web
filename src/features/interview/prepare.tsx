@@ -194,6 +194,23 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
   const interviewNodeId = useMemo(() => getInterviewNodeId(workflow), [workflow])
 
+  // 确保在离开页面前主动释放媒体资源，避免设备权限长期占用
+  const releaseAllMediaStreams = useCallback(() => {
+    try {
+      type MediaWithObject = HTMLMediaElement & { srcObject?: MediaStream | null }
+      const medias = Array.from(document.querySelectorAll('video, audio')) as MediaWithObject[]
+      for (const m of medias) {
+        const stream = (m as MediaWithObject).srcObject ?? null
+        if (stream) {
+          try { stream.getTracks().forEach((t) => t.stop()) } catch { /* ignore */ }
+          try { (m as MediaWithObject).srcObject = null } catch { /* ignore */ }
+        }
+        try { m.pause?.() } catch { /* ignore */ }
+        try { (m as HTMLMediaElement).removeAttribute('src') } catch { /* ignore */ }
+      }
+    } catch { /* ignore */ }
+  }, [])
+
   function nodeNameToViewMode(name: string): ViewMode {
     if (name.includes('简历分析')) return ViewMode.Job
     if (name.toLowerCase().includes('ai') || name.includes('AI 面试') || name.includes('Al面试')) return ViewMode.InterviewPrepare
@@ -325,13 +342,14 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               type='button'
               variant='ghost'
               onClick={() => {
-                // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
+                // 先主动释放媒体资源，再进行跳转
+                releaseAllMediaStreams()
                 if (viewMode === ViewMode.InterviewPendingReview) {
+                  // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
                   window.location.replace('/home')
                 } else {
-                  // 对于“返回上一页”，也采用原生 replace，避免 SPA 保持页面从而占用设备权限
-                  const backTarget = document.referrer && document.referrer !== '' ? document.referrer : '/home'
-                  window.location.replace(backTarget)
+                  // 其它情况：回到上一页（保留 SPA 路由栈体验）
+                  window.history.back()
                 }
               }}
               aria-label='返回'
