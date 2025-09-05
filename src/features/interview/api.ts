@@ -132,9 +132,24 @@ export function useJobApplyWorkflow(jobApplyId: string | number | null, enabled 
 
 // Helper: get INTERVIEW node id from workflow
 export function getInterviewNodeId(workflow?: JobApplyWorkflowResponse | null): string | number | undefined {
-  if (!workflow || !Array.isArray(workflow.nodes)) return undefined
-  const node = workflow.nodes.find((n) => n?.node_type === 'INTERVIEW')
-  return node?.id as string | number | undefined
+  if (!workflow) return undefined
+  const nodes: JobApplyWorkflowNode[] = Array.isArray(workflow.nodes) ? workflow.nodes : []
+  const isInterviewLike = (n: JobApplyWorkflowNode): boolean => {
+    const type = String(n?.node_type ?? '').toUpperCase()
+    const key = String(n?.node_key ?? '')
+    const name = String(n?.node_name ?? '')
+    const lower = `${key} ${name}`.toLowerCase()
+    return (
+      type === 'INTERVIEW' ||
+      key === 'Interview' ||
+      lower.includes('interview') ||
+      name.includes('面试')
+    )
+  }
+  const hit = nodes.find((n) => isInterviewLike(n))
+  if (hit?.id != null) return hit.id
+  if (workflow.current_node_id != null) return workflow.current_node_id
+  return undefined
 }
 
 // Node action API
