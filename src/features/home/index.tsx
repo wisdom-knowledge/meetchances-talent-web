@@ -169,16 +169,14 @@ export default function HomeViewPage() {
                         key={item.id}
                         className='hover:bg-accent/40 cursor-pointer border transition-colors'
                         onClick={() => {
-                          if (!isCompleted) {
-                            navigate({
-                              to: '/interview/prepare',
-                              search: {
-                                data: `job_id${item.job_id}andisSkipConfirm${true}`,
-                                // 直接传递 job_apply_id，供目标页使用
-                                job_apply_id: item.id,
-                              } as unknown as Record<string, unknown>,
-                            })
-                          }
+                          navigate({
+                            to: '/interview/prepare',
+                            search: {
+                              data: `job_id${item.job_id}andisSkipConfirm${true}`,
+                              // 直接传递 job_apply_id，供目标页使用
+                              job_apply_id: item.id,
+                            } as unknown as Record<string, unknown>,
+                          })
                         }}
                       >
                         <div className='flex items-center justify-between gap-4 p-4'>

@@ -109,11 +109,34 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
       if (interviewId) {
         setTimeout(() => {
           // TIPS： 这里使用原生API而非route跳转，因为这样可以低成本解决设备权限未被释放的问题
-          window.location.replace(`/finish?interview_id=${interviewId}`)
-          // navigate({ to: '/finish', search: { interview_id: interviewId } as unknown as Record<string, unknown>, replace: true })
+          const params = new URLSearchParams()
+          const current = new URLSearchParams(window.location.search)
+          params.set('interview_id', String(interviewId))
+          params.set('job_id', String(jobId))
+          if (jobApplyId) params.set('job_apply_id', String(jobApplyId))
+          if (interviewNodeId) params.set('interview_node_id', String(interviewNodeId))
+          const invite = current.get('invite_token')
+          if (invite) params.set('invite_token', invite)
+          const skip = current.get('isSkipConfirm')
+          if (skip) params.set('isSkipConfirm', skip)
+          const dataStr = current.get('data')
+          if (dataStr) params.set('data', dataStr)
+          window.location.replace(`/finish?${params.toString()}`)
         }, 2000)
       } else {
-        navigate({ to: '/finish', replace: true })
+        const current = new URLSearchParams(window.location.search)
+        navigate({
+          to: '/finish',
+          search: {
+            job_id: jobId,
+            job_apply_id: jobApplyId,
+            interview_node_id: interviewNodeId,
+            invite_token: current.get('invite_token') ?? undefined,
+            isSkipConfirm: current.get('isSkipConfirm') ?? undefined,
+            data: current.get('data') ?? undefined,
+          } as unknown as Record<string, unknown>,
+          replace: true,
+        })
       }
     }
     const handleParticipantDisconnected = async (participant?: RemoteParticipant) => {
@@ -175,7 +198,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
       room.off(RoomEvent.ConnectionStateChanged, handleConnChanged)
       room.off(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected)
     }
-  }, [navigate, data, jobApplyId, interviewNodeId])
+  }, [navigate, data, jobApplyId, interviewNodeId, jobId])
 
   // 记录页面可见性与网络状态，辅助定位生产环境切后台后的断开
   useEffect(() => {
