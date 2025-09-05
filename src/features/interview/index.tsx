@@ -28,6 +28,8 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
   const navigatedRef = useRef(false)
   const endedRef = useRef(false)
 
+  // 直接使用 URL 传入的 interview_node_id
+
   // 当拿到 token/serverUrl 时，连接房间；离开时断开
   useEffect(() => {
     if (!data?.token || !data?.serverUrl) return
@@ -99,6 +101,11 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
       if (!hasEverConnectedRef.current || navigatedRef.current) return
       navigatedRef.current = true
       const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
+      try {
+        if (interviewNodeId) {
+          await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
+        }
+      } catch { /* ignore */ }
       if (interviewId) {
         setTimeout(() => {
           // TIPS： 这里使用原生API而非route跳转，因为这样可以低成本解决设备权限未被释放的问题

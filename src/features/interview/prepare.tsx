@@ -6,7 +6,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
 import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { IconLoader2 } from '@tabler/icons-react'
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
@@ -171,7 +171,6 @@ enum ViewMode {
   }
 
 export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute }: InterviewPreparePageProps) {
-  console.log({jobApplyIdFromRoute})
   const navigate = useNavigate()
   const [supportOpen, setSupportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -193,6 +192,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const queryClient = useQueryClient()
   const { data: progressNodes, isLoading: isProgressLoading } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
   const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
+  const interviewNodeId = useMemo(() => getInterviewNodeId(workflow), [workflow])
 
   function nodeNameToViewMode(name: string): ViewMode {
     if (name.includes('简历分析')) return ViewMode.Job
@@ -467,7 +467,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                         }
                         setViewMode(ViewMode.InterviewPrepare)
                       } else {
-                        navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: getInterviewNodeId(workflow) } })
+                        if (!interviewNodeId) return
+                        navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
                       }
                     }
                   }}>
@@ -548,9 +549,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     cameraStatus !== DeviceTestStatus.Success
                     || micStatus !== DeviceTestStatus.Success
                     || spkStatus !== DeviceTestStatus.Success
+                    || !interviewNodeId
                   }
                   className='w-full' onClick={async () => {
-                    navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: getInterviewNodeId(workflow) } })
+                    if (!interviewNodeId) return
+                    navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
                   }}>
                   确认设备，下一步
                 </Button>
@@ -647,7 +650,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               if (viewMode === ViewMode.Job) {
                 setViewMode(ViewMode.InterviewPrepare)
               } else {
-                navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: getInterviewNodeId(workflow) } })
+                if (!interviewNodeId) return
+                navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
               }
             }}>继续</Button>
           </DialogFooter>
@@ -678,16 +682,14 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           <DialogFooter>
             <Button disabled={!reinterviewReason} onClick={async () => {
               setReinterviewOpen(false)
-              const interviewNodeId = getInterviewNodeId(workflow)
               if (interviewNodeId != null) {
-                const res = await postNodeAction({ 
+                await postNodeAction({ 
                   node_id: interviewNodeId, 
                   trigger: NodeActionTrigger.Retake, 
                   result_data: {}
                 })
-                if (!res.success) return
+                navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
               }
-              navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
             }}>重新面试</Button>
           </DialogFooter>
         </DialogContent>
