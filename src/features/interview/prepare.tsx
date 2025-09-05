@@ -326,7 +326,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               variant='ghost'
               onClick={() => {
                 if (viewMode === ViewMode.InterviewPendingReview) {
-                  navigate({ to: '/home', replace: true })
+                  // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
+                  window.location.replace('/home')
                 } else {
                   window.history.back()
                 }
