@@ -325,11 +325,13 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               type='button'
               variant='ghost'
               onClick={() => {
+                // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
                 if (viewMode === ViewMode.InterviewPendingReview) {
-                  // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
                   window.location.replace('/home')
                 } else {
-                  window.history.back()
+                  // 对于“返回上一页”，也采用原生 replace，避免 SPA 保持页面从而占用设备权限
+                  const backTarget = document.referrer && document.referrer !== '' ? document.referrer : '/home'
+                  window.location.replace(backTarget)
                 }
               }}
               aria-label='返回'
