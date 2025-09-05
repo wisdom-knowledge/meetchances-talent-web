@@ -34,6 +34,7 @@ interface InterviewPreparePageProps {
   jobId?: string | number
   inviteToken?: string
   isSkipConfirm?: boolean
+  jobApplyIdFromRoute?: string | number
 }
 
 enum ViewMode {
@@ -169,7 +170,8 @@ enum ViewMode {
     )
   }
 
-export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false }: InterviewPreparePageProps) {
+export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute }: InterviewPreparePageProps) {
+  console.log({jobApplyIdFromRoute})
   const navigate = useNavigate()
   const [supportOpen, setSupportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -185,7 +187,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
-  const [jobApplyId, setJobApplyId] = useState<number | string | null>(null)
+  const [jobApplyId, setJobApplyId] = useState<number | string | null>(jobApplyIdFromRoute ?? null)
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const user = useAuthStore((s) => s.auth.user)
   const queryClient = useQueryClient()

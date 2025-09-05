@@ -174,6 +174,8 @@ export default function HomeViewPage() {
                               to: '/interview/prepare',
                               search: {
                                 data: `job_id${item.job_id}andisSkipConfirm${true}`,
+                                // 直接传递 job_apply_id，供目标页使用
+                                job_apply_id: item.id,
                               } as unknown as Record<string, unknown>,
                             })
                           }
