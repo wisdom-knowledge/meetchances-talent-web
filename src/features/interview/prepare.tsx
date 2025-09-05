@@ -324,7 +324,13 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             <Button
               type='button'
               variant='ghost'
-              onClick={() => window.history.back()}
+              onClick={() => {
+                if (viewMode === ViewMode.InterviewPendingReview) {
+                  navigate({ to: '/home', replace: true })
+                } else {
+                  window.history.back()
+                }
+              }}
               aria-label='返回'
               className='cursor-pointer flex items-center gap-2'
             >
