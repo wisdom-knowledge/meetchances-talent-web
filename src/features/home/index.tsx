@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { IconX, IconHelp } from '@tabler/icons-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -153,8 +152,6 @@ export default function HomeViewPage() {
                     const isCompleted =
                       (item.total_step ?? 0) > 0 &&
                       (item.progress ?? 0) >= (item.total_step ?? 0)
-                    const tagLabel =
-                      jd?.online_status === 0 ? '招聘中' : '结束招聘'
                     const startedText = (() => {
                       const created = item.created_at
                       if (!created || created <= 0) return ''
@@ -185,13 +182,6 @@ export default function HomeViewPage() {
                               <div className='font-medium'>
                                 {jd?.title ?? '岗位'}
                               </div>
-                              <Badge
-                                variant={
-                                  tagLabel === '招聘中' ? 'emphasis' : 'outline'
-                                }
-                              >
-                                {tagLabel}
-                              </Badge>
                             </div>
                             <div className='text-muted-foreground text-xs'>
                               {jd?.salary_min ?? 0}-{jd?.salary_max ?? 0} / 小时
