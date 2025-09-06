@@ -163,12 +163,6 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
       })
       endedRef.current = true
       try { await room.disconnect() } catch { /* noop */ }
-      // Progress advance on interview end: submit current node
-      try {
-        if (interviewNodeId) {
-          await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
-        }
-      } catch { /* ignore */ }
       void handleDisconnected()
     }
     const handleReconnecting = () => {
