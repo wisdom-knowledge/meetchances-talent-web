@@ -18,6 +18,7 @@ import {
   useMyApplicationsQuery,
   type ApiApplyListItem,
 } from './api'
+import { toast } from 'sonner'
 
 export default function HomeViewPage() {
   const navigate = useNavigate()
@@ -46,11 +47,16 @@ export default function HomeViewPage() {
     contactMethod: 'phone' | 'none'
     phone?: string
   }) => {
-    fetchForHelp({
-      detail: _payload.message,
-      need_contact: _payload.contactMethod === 'phone',
-      phone_number: _payload.phone ?? '',
-    })
+    try {
+      await fetchForHelp({
+        detail: _payload.message,
+        need_contact: _payload.contactMethod === 'phone',
+        phone_number: _payload.phone ?? '',
+      })
+      toast.success('提交成功')
+    } catch {
+      // 统一错误处理由全局 QueryClient/handle-server-error 负责
+    }
   }
 
   return (
@@ -163,14 +169,14 @@ export default function HomeViewPage() {
                         key={item.id}
                         className='hover:bg-accent/40 cursor-pointer border transition-colors'
                         onClick={() => {
-                          if (!isCompleted) {
-                            navigate({
-                              to: '/interview/prepare',
-                              search: {
-                                data: `job_id${item.job_id}andisSkipConfirm${true}`,
-                              } as unknown as Record<string, unknown>,
-                            })
-                          }
+                          navigate({
+                            to: '/interview/prepare',
+                            search: {
+                              data: `job_id${item.job_id}andisSkipConfirm${true}`,
+                              // 直接传递 job_apply_id，供目标页使用
+                              job_apply_id: item.id,
+                            } as unknown as Record<string, unknown>,
+                          })
                         }}
                       >
                         <div className='flex items-center justify-between gap-4 p-4'>

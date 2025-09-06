@@ -49,7 +49,7 @@ export async function fetchImportantTasks(): Promise<ImportantTaskItem[]> {
   return [
     {
       id: 'guide',
-      title: '一面干识使用须知',
+      title: '一面千识使用须知',
       description: '请查看我们的用户手册',
       actionText: '去查看',
       closable: true,
@@ -128,5 +128,5 @@ interface ForHelpParams {
 }
 
 export async function fetchForHelp(params: ForHelpParams): Promise<null> {
-  return await api.post('/page/demand', params)
+  return await api.post('/interview/page/demand', params)
 }

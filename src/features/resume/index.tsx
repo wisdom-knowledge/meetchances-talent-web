@@ -17,6 +17,7 @@ import { options } from './data/config'
 import { fetchTalentResumeDetail, patchTalentResumeDetail, uploadTalentResume } from '@/features/resume-upload/utils/api'
 import { mapStructInfoToResumeFormValues, mapResumeFormValuesToStructInfo } from '@/features/resume/data/struct-mapper'
 import type { StructInfo } from '@/features/resume-upload/types/struct-info'
+import { toast } from 'sonner'
 // import { options } from './data/config'
 import SectionNav, { type SectionNavItem } from './components/section-nav'
 import DynamicBasicForm from './components/dynamic-basic-form'
@@ -42,8 +43,7 @@ export default function ResumePage() {
       expectedSalary: '',
       hobbies: '',
       skills: '',
-      workSkillName: '',
-      workSkillLevel: undefined,
+      workSkills: [],
       softSkills: '',
       selfEvaluation: '',
       workExperience: [],
@@ -92,8 +92,7 @@ export default function ResumePage() {
       expectedSalary: '',
       hobbies: '',
       skills: '',
-      workSkillName: '',
-      workSkillLevel: undefined,
+      workSkills: [],
       softSkills: (resumeMockData.structured_resume.self_assessment.soft_skills ?? []).join('、'),
       selfEvaluation: resumeMockData.structured_resume.self_assessment.summary ?? '',
       workExperience:
@@ -159,6 +158,7 @@ export default function ResumePage() {
   async function onSubmit(values: ResumeFormValues) {
     const struct = mapResumeFormValuesToStructInfo(values)
     await patchTalentResumeDetail(struct as unknown as StructInfo)
+    toast.success('保存成功')
     // showSubmittedData(values)
   }
 

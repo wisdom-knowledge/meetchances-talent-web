@@ -1,4 +1,5 @@
 import { type ResumeFormValues } from './schema'
+import { PROFICIENCY_OPTIONS } from './constants'
 
 // 映射后端字段 -> 前端表单字段
 export const resumeFieldMap = {
@@ -22,6 +23,7 @@ export const options = {
   employmentType: ['全职', '实习', '兼职'],
   degreeType: ['本科', '硕士', '博士'],
   degreeStatus: ['毕业', '在读', '肄业', '结业'],
+  proficiency: [...PROFICIENCY_OPTIONS],
 } as const
 
 // for array item key typing
@@ -163,7 +165,7 @@ export const resumeFormConfig: {
         itemTitlePrefix: '技能',
         itemFields: [
           { key: 'name', label: '技能名称', component: 'input', placeholder: '例如：前端开发' },
-          { key: 'level', label: '熟练程度', component: 'input', placeholder: '请填写熟练程度' },
+          { key: 'level', label: '*熟练程度', component: 'select', optionsKey: 'proficiency', placeholder: '请选择熟练程度' },
         ],
       },
       fields: [
@@ -194,9 +196,9 @@ export const resumeFormConfig: {
         emptyText: '暂无奖励记录，点击上方按钮添加',
         itemTitlePrefix: '奖励',
         itemFields: [
-          { key: 'title', label: '奖项名称', component: 'input', placeholder: '例如：国家奖学金' },
+          { key: 'title', label: '*奖项名称', component: 'input', placeholder: '例如：国家奖学金' },
           { key: 'issuer', label: '颁发机构', component: 'input', placeholder: '例如：教育部/学校' },
-          { key: 'date', label: '获奖时间', component: 'input', placeholder: '例如：2023/06' },
+          { key: 'date', label: '*获奖时间', component: 'input', placeholder: '例如：2023/06' },
           { key: 'achievements', label: '说明', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
         ],
       },
@@ -210,10 +212,10 @@ export const resumeFormConfig: {
         emptyText: '暂无论文发表记录，点击上方按钮添加',
         itemTitlePrefix: '论文',
         itemFields: [
-          { key: 'title', label: '论文题目', component: 'input', placeholder: '请输入论文题目' },
+          { key: 'title', label: '*论文题目', component: 'input', placeholder: '请输入论文题目' },
           { key: 'publisher', label: '期刊/会议', component: 'input', placeholder: '例如：IEEE/ACM/某期刊' },
-          { key: 'date', label: '发表时间', component: 'input', placeholder: '例如：2022/12' },
-          { key: 'url', label: '链接', component: 'input', placeholder: '例如：https://...' },
+          { key: 'date', label: '*发表时间', component: 'input', placeholder: '例如：2022/12' },
+          { key: 'url', label: '*链接', component: 'input', placeholder: '例如：https://...' },
           { key: 'achievements', label: '摘要/说明', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
         ],
       },
@@ -227,8 +229,8 @@ export const resumeFormConfig: {
         emptyText: '暂无代码仓库记录，点击上方按钮添加',
         itemTitlePrefix: '仓库',
         itemFields: [
-          { key: 'name', label: '仓库名称', component: 'input', placeholder: '例如：awesome-project' },
-          { key: 'url', label: '仓库链接', component: 'input', placeholder: '例如：https://github.com/...' },
+          { key: 'name', label: '*仓库名称', component: 'input', placeholder: '例如：awesome-project' },
+          { key: 'url', label: '*仓库链接', component: 'input', placeholder: '例如：https://github.com/...' },
           { key: 'achievements', label: '简介', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
         ],
       },
@@ -242,10 +244,10 @@ export const resumeFormConfig: {
         emptyText: '暂无专利记录，点击上方按钮添加',
         itemTitlePrefix: '专利',
         itemFields: [
-          { key: 'title', label: '专利名称', component: 'input', placeholder: '请输入专利名称' },
+          { key: 'title', label: '*专利名称', component: 'input', placeholder: '请输入专利名称' },
           { key: 'number', label: '专利号', component: 'input', placeholder: '例如：CN12345678' },
           { key: 'status', label: '状态', component: 'input', placeholder: '例如：已授权/申请中' },
-          { key: 'date', label: '日期', component: 'input', placeholder: '例如：2021/03' },
+          { key: 'date', label: '*日期', component: 'input', placeholder: '例如：2021/03' },
           { key: 'achievements', label: '说明', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
         ],
       },
@@ -259,9 +261,9 @@ export const resumeFormConfig: {
         emptyText: '暂无社交媒体记录，点击上方按钮添加',
         itemTitlePrefix: '社交',
         itemFields: [
-          { key: 'platform', label: '平台', component: 'input', placeholder: '例如：LinkedIn/微博/知乎' },
+          { key: 'platform', label: '*平台', component: 'input', placeholder: '例如：LinkedIn/微博/知乎' },
           { key: 'handle', label: '用户名/ID', component: 'input', placeholder: '请输入用户名或 ID' },
-          { key: 'url', label: '链接', component: 'input', placeholder: '例如：https://...' },
+          { key: 'url', label: '*链接', component: 'input', placeholder: '例如：https://...' },
           { key: 'achievements', label: '备注', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
         ],
       },

@@ -20,11 +20,18 @@ export default function SupportDialog({ open, onOpenChange, onSubmit }: SupportD
   const [message, setMessage] = useState('')
   const [contactMethod, setContactMethod] = useState<'phone' | 'none'>('phone')
   const [phone, setPhone] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async () => {
-    await onSubmit?.({ message, contactMethod, phone: contactMethod === 'phone' ? phone : undefined })
-    onOpenChange(false)
-    reset()
+    if (isSubmitting) return
+    setIsSubmitting(true)
+    try {
+      await onSubmit?.({ message, contactMethod, phone: contactMethod === 'phone' ? phone : undefined })
+      onOpenChange(false)
+      reset()
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const reset = () => {
@@ -78,7 +85,12 @@ export default function SupportDialog({ open, onOpenChange, onSubmit }: SupportD
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleSubmit} disabled={contactMethod === 'phone' && phone.trim().length === 0}>提交</Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting || (contactMethod === 'phone' && phone.trim().length === 0)}
+          >
+            {isSubmitting ? '提交中…' : '提交'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
