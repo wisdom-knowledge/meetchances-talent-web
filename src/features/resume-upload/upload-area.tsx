@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react'
-import { Upload, FileIcon, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { FileIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
 import { uploadFiles, type UploadResultItem } from './utils/api'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { IconLoader2 } from '@tabler/icons-react'
 
 export type UploadResult = UploadResultItem
 
@@ -107,72 +107,66 @@ export function UploadArea({ onUploadComplete, className, uploader, onUploadingC
     <div className={cn('space-y-6', className)}>
       {/* Upload Area */}
       <Card
-        className={`transition-all duration-300 cursor-pointer rounded-[12px] border-2 border-dashed ${
+        className={`transition-all duration-300 cursor-pointer rounded-[12px] border-1 min-h-[346px] justify-center relative ${
           dragOver
-            ? 'border-[#4E02E4]/50 bg-[#4E02E4]/10 scale-[1.02]'
-            : 'border-[#4E02E4]/50 bg-[#4E02E4]/10'
+            ? 'scale-[1.02]'
+            : ''
         }`}
         onClick={() => fileInputRef.current?.click()}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
       >
-        <CardContent className="p-12 text-center">
+        <CardContent className="p-2 text-center">
           <div className="flex flex-col items-center justify-center space-y-6">
-            <div className={`transition-all duration-300 ${dragOver ? 'scale-110' : ''}`}>
-              <Upload className="h-16 w-16 text-muted-foreground" />
-            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={handleFileSelect}
+              disabled={uploading}
+              aria-label="选择文件"
+              title="选择文件"
+            />
 
-            <div className="space-y-3">
-              <h3 className="text-xl font-semibold">{dragOver ? '释放鼠标以上传' : '上传简历'}</h3>
-              <p className="text-sm text-muted-foreground">支持拖拽或点击选择文件</p>
+            {/* Upload Progress (moved inside the same CardContent) */}
+            {uploading && (
+              <div className="mt-4 rounded-md border p-3 min-w-[400px]">
+                <div className="space-y-4 text-left">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-base font-semibold">正在上传文件</h4>
+                    <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
+                  </div>
+
+                  <Progress value={progress} className="h-2" />
+
+                  <div className="space-y-3 px-2">
+                    {uploadingFiles.map((file, index) => (
+                      <div key={index} className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                        <FileIcon className="h-8 w-8 text-blue-500" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {children ? <div>{children}</div> : null}
+            <p className="text-sm text-muted-foreground">支持拖拽或点击选择文件</p>
+          </div>
+        </CardContent>
+        {uploading && (
+          <div className="pointer-events-auto absolute inset-0 z-10 grid place-items-center rounded-[12px] bg-background/60 backdrop-blur-[1px]">
+            <div className="rounded-lg border bg-background p-3 shadow flex items-center gap-2 text-sm text-muted-foreground">
+              <IconLoader2 className="h-4 w-4 animate-spin text-primary" /> 正在上传并分析简历…
             </div>
           </div>
-
-          {children ? <div className="mt-6">{children}</div> : null}
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            onChange={handleFileSelect}
-            disabled={uploading}
-            aria-label="选择文件"
-            title="选择文件"
-          />
-        </CardContent>
+        )}
       </Card>
-
-      {/* Upload Progress */}
-      {uploading && (
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-lg font-semibold">正在上传文件</h4>
-                <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
-              </div>
-
-              <Progress value={progress} className="h-2" />
-
-              <div className="space-y-3">
-                {uploadingFiles.map((file, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
-                    <FileIcon className="h-8 w-8 text-blue-500" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
-                    </div>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }
