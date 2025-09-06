@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { UploadArea } from '@/features/resume-upload/upload-area'
 import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
-import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
+import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled, IconUpload } from '@tabler/icons-react'
+import { cn } from '@/lib/utils'
 import { IconLoader2 } from '@tabler/icons-react'
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -193,6 +194,46 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const { data: progressNodes, isLoading: isProgressLoading } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
   const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
   const interviewNodeId = useMemo(() => getInterviewNodeId(workflow), [workflow])
+  const handleConfirmResumeClick = useCallback(async () => {
+    if (uploadingResume || !resumeValues) return
+    if (uploadedThisVisit) {
+      setConfirmOpen(true)
+      return
+    }
+    if (viewMode === ViewMode.Job) {
+      if (jobApplyId != null) {
+        try {
+          await confirmResume(jobApplyId)
+          const firstNodeId = workflow?.nodes?.[0]?.id
+          if (firstNodeId != null) {
+            const res = await postNodeAction({ node_id: firstNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
+            if (res.success && jobApplyId != null) {
+              queryClient.setQueryData(
+                ['job-apply-workflow', jobApplyId],
+                (prev: unknown) => {
+                  if (!prev || typeof prev !== 'object') return prev
+                  const p = prev as { nodes?: Array<{ status?: number | string }> }
+                  if (!Array.isArray(p.nodes) || p.nodes.length === 0) return prev
+                  const nextNodes = [...p.nodes]
+                  const cur = nextNodes[0]
+                  const curNum = typeof cur.status === 'number' ? cur.status : parseInt(String(cur.status ?? '0'), 10)
+                  const moved = curNum === 10 ? 20 : 20
+                  nextNodes[0] = { ...cur, status: moved }
+                  return { ...(prev as Record<string, unknown>), nodes: nextNodes }
+                }
+              )
+            }
+          }
+        } catch (_e) {
+          // ignore, allow navigation even if confirm fails
+        }
+      }
+      setViewMode(ViewMode.InterviewPrepare)
+    } else {
+      if (!interviewNodeId) return
+      navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
+    }
+  }, [uploadingResume, resumeValues, uploadedThisVisit, viewMode, jobApplyId, workflow, queryClient, interviewNodeId, jobId, navigate])
 
   // 确保在离开页面前主动释放媒体资源，避免设备权限长期占用
   const releaseAllMediaStreams = useCallback(() => {
@@ -336,7 +377,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     <>
       <Main fixed>
         {/* 顶部工具栏：返回 + 寻求支持 */}
-        <div className='flex items-center justify-between mb-2 max-w-screen-xl mx-auto w-full'>
+        <div className={cn('flex items-center justify-between mb-2 w-full max-w-screen-xl mx-auto')}>
           <div className='flex items-center'>
             <Button
               type='button'
@@ -369,10 +410,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             - 右侧提供简历上传与回显，确认后进入面试准备
         */}
         {viewMode === ViewMode.Job && (
-          <div className='flex-1 grid grid-cols-12 gap-8'>
+          <div className='flex-1 flex flex-row items-stretch w-full justify-between max-w-screen-xl mx-auto overflow-hidden min-h-0'>
             {/* 左：职位信息 */}
-            <div className='col-span-7 space-y-6 pl-3'>
-              <div className='p-6 h-full flex-col'>
+            <div className='col-span-7 space-y-6 pl-3 flex flex-col h-full min-h-0'>
+              <div className='flex h-full flex-col min-h-0'>
                 <div className='flex items-start justify-between gap-4'>
                   <div className='min-w-0'>
                     <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
@@ -405,10 +446,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
                   </div>
                 </div>
-                <div className='flex-1 text-foreground/90 leading-relaxed text-sm md:text-base py-4'>
+                <div className='flex-1 min-h-0 text-foreground/90 leading-relaxed text-sm md:text-base py-4 flex flex-col'>
                   {/* 限高 + 渐隐遮罩 */}
-                  <div className='relative'>
-                    <div className='overflow-hidden'>
+                  <div className='relative flex-1 min-h-0 overflow-hidden'>
+                    <div className='h-full overflow-hidden'>
                       {job?.description ? (
                         <div dangerouslySetInnerHTML={{ __html: job.description }} />
                       ) : (
@@ -418,7 +459,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     {/* 渐隐遮罩 */}
                     <div className='pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent' />
                   </div>
-                  <div className='mt-4'>
+                  <div className='mt-4 text-center'>
                     <Button variant='outline' onClick={() => setDrawerOpen(true)}>查看更多</Button>
                   </div>
                 </div>
@@ -426,10 +467,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             </div>
 
             {/* 右：上传简历 */}
-            <div className='lg:col-span-5'>
-              <div className='p-6 sticky relative w-[400px] my-8'>
+            <div className='col-span-5 flex flex-col h-full min-h-0 justify-center'>
+              <div className='p-4 sticky relative my-8'>
                 <UploadArea
-                  className='my-4'
+                  className='my-4 min-w-[420px]'
                   uploader={uploadTalentResume}
                   onUploadingChange={setUploadingResume}
                   onUploadComplete={(results) => {
@@ -441,76 +482,40 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     setUploadedThisVisit(true)
                   }}
                 >
-                  {resumeValues ? <Button size='sm' variant='secondary'>更新简历</Button> : null}
+                  {resumeValues && !uploadingResume && (
+                    <div className='mb-4 flex items-center justify-between rounded-md border p-3 min-w-[400px]'>
+                      <div className='text-sm text-left'>
+                        <div className='font-medium'>姓名：{resumeValues.name || '—'}</div>
+                        <div className='text-muted-foreground mt-1'>电话：{resumeValues.phone || '—'}</div>
+                      </div>
+                      <Button size='sm' variant='outline' onClick={(e) => { e.stopPropagation(); setResumeOpen(true) }}>点击查看</Button>
+                    </div>
+                  )}
+
+                  {resumeValues ? (
+                    <Button size='sm' variant='secondary'>
+                      <IconUpload className='h-4 w-4' />
+                      更新简历
+                    </Button>
+                  ) : (
+                    <Button size='sm' variant='secondary'>
+                      <IconUpload className='h-4 w-4' />
+                      上传简历
+                    </Button>
+                  )}
+                                  {/* 解析后的基础信息 */}
+
                 </UploadArea>
 
-                {/* 解析后的基础信息 */}
-                {resumeValues && (
-                  <div className='mt-4 flex items-center justify-between rounded-md border p-3'>
-                    <div className='text-sm'>
-                      <div className='font-medium'>姓名：{resumeValues.name || '—'}</div>
-                      <div className='text-muted-foreground mt-1'>电话：{resumeValues.phone || '—'}</div>
-                    </div>
-                    <Button size='sm' variant='outline' onClick={() => setResumeOpen(true)}>点击查看</Button>
-                  </div>
-                )}
+
 
                 <div className='my-4'>
-                  <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={async () => {
-                    if (uploadedThisVisit) {
-                      setConfirmOpen(true)
-                    } else {
-                      if (viewMode === ViewMode.Job) {
-                        if (jobApplyId != null) {
-                          try {
-                            await confirmResume(jobApplyId)
-                            // also submit node action (submit) with first node id
-                            const firstNodeId = workflow?.nodes?.[0]?.id
-                            if (firstNodeId != null) {
-                              const res = await postNodeAction({ node_id: firstNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
-                              if (res.success && jobApplyId != null) {
-                                // optimistic update: advance first step to next stage (10->20)
-                                queryClient.setQueryData(
-                                  ['job-apply-workflow', jobApplyId],
-                                  (prev: unknown) => {
-                                    // prev is JobApplyWorkflowResponse
-                                    if (!prev || typeof prev !== 'object') return prev
-                                    const p = prev as { nodes?: Array<{ status?: number | string }> }
-                                    if (!Array.isArray(p.nodes) || p.nodes.length === 0) return prev
-                                    const nextNodes = [...p.nodes]
-                                    const cur = nextNodes[0]
-                                    const curNum = typeof cur.status === 'number' ? cur.status : parseInt(String(cur.status ?? '0'), 10)
-                                    // 10 -> 20 ; otherwise keep
-                                    const moved = curNum === 10 ? 20 : 20
-                                    nextNodes[0] = { ...cur, status: moved }
-                                    return { ...(prev as Record<string, unknown>), nodes: nextNodes }
-                                  }
-                                )
-                              }
-                            }
-                          } catch (_e) {
-                            // ignore, allow navigation even if confirm fails
-                          }
-                        }
-                        setViewMode(ViewMode.InterviewPrepare)
-                      } else {
-                        if (!interviewNodeId) return
-                        navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
-                      }
-                    }
-                  }}>
+                  <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={handleConfirmResumeClick}>
                     {uploadingResume ? '正在分析简历…' : '确认简历，下一步'}
                   </Button>
                 </div>
 
-                {/* 区域遮罩：结果未返回（上传/分析中）时禁用交互 */}
-                {uploadingResume && (
-                  <div className='pointer-events-auto absolute inset-0 z-10 grid place-items-center rounded-md bg-background/60 backdrop-blur-[1px]'>
-                    <div className='rounded-lg border bg-background p-3 shadow flex items-center gap-2 text-sm text-muted-foreground'>
-                      <IconLoader2 className='h-4 w-4 animate-spin text-primary' /> 正在上传并分析简历…
-                    </div>
-                  </div>
-                )}
+                {/* 遮罩交给 UploadArea 内部处理，这里不再渲染 */}
               </div>
             </div>
           </div>)}

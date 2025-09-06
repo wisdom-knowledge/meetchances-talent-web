@@ -137,7 +137,7 @@ export const resumeFormConfig: {
           { key: 'institution', label: '学校/机构', component: 'input', placeholder: '例如：某某大学' },
           { key: 'major', label: '专业', component: 'input', placeholder: '例如：计算机科学' },
           { key: 'degreeType', label: '学历/学位', component: 'select', optionsKey: 'degreeType', placeholder: '请选择学历/学位' },
-          { key: 'degreeStatus', label: '获取状态', component: 'select', optionsKey: 'degreeStatus', placeholder: '请选择状态' },
+          { key: 'degreeStatus', label: '学业状态', component: 'select', optionsKey: 'degreeStatus', placeholder: '请选择状态' },
           { key: 'startDate', label: '开始时间', component: 'input', placeholder: '例如：2018/09' },
           { key: 'endDate', label: '结束时间', component: 'input', placeholder: '例如：2021/08' },
           { key: 'city', label: '城市', component: 'input', placeholder: '请输入城市' },
