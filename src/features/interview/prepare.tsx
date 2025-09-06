@@ -446,9 +446,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
                   </div>
                 </div>
-                <div className='flex-1 min-h-0 overflow-hidden text-foreground/90 leading-relaxed text-sm md:text-base py-4'>
+                <div className='flex-1 min-h-0 text-foreground/90 leading-relaxed text-sm md:text-base py-4 flex flex-col'>
                   {/* 限高 + 渐隐遮罩 */}
-                  <div className='relative h-full'>
+                  <div className='relative flex-1 min-h-0 overflow-hidden'>
                     <div className='h-full overflow-hidden'>
                       {job?.description ? (
                         <div dangerouslySetInnerHTML={{ __html: job.description }} />
@@ -459,7 +459,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     {/* 渐隐遮罩 */}
                     <div className='pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent' />
                   </div>
-                  <div className='mt-4'>
+                  <div className='mt-4 text-center'>
                     <Button variant='outline' onClick={() => setDrawerOpen(true)}>查看更多</Button>
                   </div>
                 </div>
@@ -467,7 +467,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             </div>
 
             {/* 右：上传简历 */}
-            <div className='col-span-5'>
+            <div className='col-span-5 flex flex-col h-full min-h-0 justify-center'>
               <div className='p-4 sticky relative my-8'>
                 <UploadArea
                   className='my-4 min-w-[420px]'
