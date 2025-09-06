@@ -377,7 +377,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     <>
       <Main fixed>
         {/* 顶部工具栏：返回 + 寻求支持 */}
-        <div className={cn('flex items-center justify-between mb-2 w-full', viewMode === ViewMode.InterviewPrepare ? 'max-w-screen-xl mx-auto' : '')}>
+        <div className={cn('flex items-center justify-between mb-2 w-full max-w-screen-xl mx-auto')}>
           <div className='flex items-center'>
             <Button
               type='button'
@@ -410,10 +410,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             - 右侧提供简历上传与回显，确认后进入面试准备
         */}
         {viewMode === ViewMode.Job && (
-          <div className='flex-1 grid grid-cols-12 gap-8'>
+          <div className='flex-1 flex flex-row items-stretch w-full justify-between max-w-screen-xl mx-auto overflow-hidden min-h-0'>
             {/* 左：职位信息 */}
-            <div className='col-span-7 space-y-6 pl-3'>
-              <div className='p-6 h-full flex-col'>
+            <div className='col-span-7 space-y-6 pl-3 flex flex-col h-full min-h-0'>
+              <div className='flex h-full flex-col min-h-0'>
                 <div className='flex items-start justify-between gap-4'>
                   <div className='min-w-0'>
                     <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
@@ -446,10 +446,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
                   </div>
                 </div>
-                <div className='flex-1 text-foreground/90 leading-relaxed text-sm md:text-base py-4'>
+                <div className='flex-1 min-h-0 overflow-hidden text-foreground/90 leading-relaxed text-sm md:text-base py-4'>
                   {/* 限高 + 渐隐遮罩 */}
-                  <div className='relative'>
-                    <div className='overflow-hidden'>
+                  <div className='relative h-full'>
+                    <div className='h-full overflow-hidden'>
                       {job?.description ? (
                         <div dangerouslySetInnerHTML={{ __html: job.description }} />
                       ) : (
@@ -468,7 +468,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
             {/* 右：上传简历 */}
             <div className='col-span-5'>
-              <div className='p-6 sticky relative my-8'>
+              <div className='p-4 sticky relative my-8'>
                 <UploadArea
                   className='my-4 min-w-[420px]'
                   uploader={uploadTalentResume}
