@@ -134,7 +134,7 @@ export function UploadArea({ onUploadComplete, className, uploader, onUploadingC
               <div className="mt-4 rounded-md border p-3 min-w-[400px]">
                 <div className="space-y-4 text-left">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-base font-semibold">正在上传文件</h4>
+                    <h4 className="text-base">正在上传文件</h4>
                     <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
                   </div>
 
@@ -142,7 +142,7 @@ export function UploadArea({ onUploadComplete, className, uploader, onUploadingC
 
                   <div className="space-y-3 px-2">
                     {uploadingFiles.map((file, index) => (
-                      <div key={index} className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                      <div key={index} className="flex flex-start space-x-3 bg-muted/30 rounded-lg">
                         <FileIcon className="h-8 w-8 text-blue-500" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{file.name}</p>

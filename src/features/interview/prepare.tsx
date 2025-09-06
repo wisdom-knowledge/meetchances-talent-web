@@ -5,6 +5,7 @@ import { UploadArea } from '@/features/resume-upload/upload-area'
 import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
 import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled, IconUpload } from '@tabler/icons-react'
+import { cn } from '@/lib/utils'
 import { IconLoader2 } from '@tabler/icons-react'
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -376,7 +377,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     <>
       <Main fixed>
         {/* 顶部工具栏：返回 + 寻求支持 */}
-        <div className='flex items-center justify-between mb-2 max-w-screen-xl mx-auto w-full'>
+        <div className={cn('flex items-center justify-between mb-2 w-full', viewMode === ViewMode.InterviewPrepare ? 'max-w-screen-xl mx-auto' : '')}>
           <div className='flex items-center'>
             <Button
               type='button'
