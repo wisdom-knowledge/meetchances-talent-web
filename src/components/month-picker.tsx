@@ -3,6 +3,7 @@ import { CaretSortIcon, ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/reac
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface MonthPickerProps {
   value?: string // 格式: YYYY/MM，例如 2025/03
@@ -24,7 +25,9 @@ function parseYearMonth(input?: string): { year: number; month: number } {
 
 export function MonthPicker({ value, onChange, placeholder, disabled, className }: MonthPickerProps) {
   const [{ year }, setYm] = useState(() => ({ year: parseYearMonth(value).year }))
-  const { month: selectedMonth } = useMemo(() => parseYearMonth(value), [value])
+  const { year: selectedYear, month: selectedMonth } = useMemo(() => parseYearMonth(value), [value])
+  const [mode, setMode] = useState<'month' | 'year'>('month')
+  const [open, setOpen] = useState(false)
 
   const months = useMemo(
     () => Array.from({ length: 12 }, (_, i) => ({ n: i + 1, label: `${i + 1}月` })),
@@ -40,10 +43,15 @@ export function MonthPicker({ value, onChange, placeholder, disabled, className 
   const handlePick = (m: number) => {
     const next = `${year}/${m.toString().padStart(2, '0')}`
     onChange?.(next)
+    setOpen(false)
   }
 
+  // 年份页（12 年一页）
+  const yearPageStart = useMemo(() => Math.floor(year / 12) * 12, [year])
+  const yearOptions = useMemo(() => Array.from({ length: 12 }, (_, i) => yearPageStart + i), [yearPageStart])
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           type='button'
@@ -61,30 +69,76 @@ export function MonthPicker({ value, onChange, placeholder, disabled, className 
       </PopoverTrigger>
       <PopoverContent className='w-[280px] p-3'>
         <div className='flex items-center justify-between pb-2'>
-          <Button variant='ghost' size='icon' className='h-8 w-8' aria-label='上一年' onClick={() => setYm((s) => ({ year: s.year - 1 }))}>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-8 w-8'
+            aria-label={mode === 'year' ? '上一页年份' : '上一年'}
+            onClick={() => setYm((s) => ({ year: s.year - (mode === 'year' ? 12 : 1) }))}
+          >
             <ChevronLeftIcon className='h-4 w-4' />
           </Button>
-          <div className='text-sm font-medium'>{year} 年</div>
-          <Button variant='ghost' size='icon' className='h-8 w-8' aria-label='下一年' onClick={() => setYm((s) => ({ year: s.year + 1 }))}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type='button'
+                className='text-sm font-medium cursor-pointer underline underline-offset-4'
+                onClick={() => setMode('year')}
+                aria-label='选择年份'
+              >
+                {year} 年
+              </button>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>点击选择年份</TooltipContent>
+          </Tooltip>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-8 w-8'
+            aria-label={mode === 'year' ? '下一页年份' : '下一年'}
+            onClick={() => setYm((s) => ({ year: s.year + (mode === 'year' ? 12 : 1) }))}
+          >
             <ChevronRightIcon className='h-4 w-4' />
           </Button>
         </div>
-        <div className='grid grid-cols-4 gap-2'>
-          {months.map((m) => {
-            const isActive = m.n === selectedMonth && parseYearMonth(value).year === year
-            return (
-              <Button
-                key={m.n}
-                type='button'
-                variant={isActive ? 'default' : 'ghost'}
-                className='h-9'
-                onClick={() => handlePick(m.n)}
-              >
-                {m.label}
-              </Button>
-            )
-          })}
-        </div>
+        {mode === 'year' ? (
+          <div className='grid grid-cols-4 gap-2'>
+            {yearOptions.map((y) => {
+              const isActive = y === selectedYear
+              return (
+                <Button
+                  key={y}
+                  type='button'
+                  variant={isActive ? 'default' : 'ghost'}
+                  className='h-9'
+                  onClick={() => {
+                    setYm({ year: y })
+                    setMode('month')
+                  }}
+                >
+                  {y}
+                </Button>
+              )
+            })}
+          </div>
+        ) : (
+          <div className='grid grid-cols-4 gap-2'>
+            {months.map((m) => {
+              const isActive = m.n === selectedMonth && selectedYear === year
+              return (
+                <Button
+                  key={m.n}
+                  type='button'
+                  variant={isActive ? 'default' : 'ghost'}
+                  className='h-9'
+                  onClick={() => handlePick(m.n)}
+                >
+                  {m.label}
+                </Button>
+              )
+            })}
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   )
