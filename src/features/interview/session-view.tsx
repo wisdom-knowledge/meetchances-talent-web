@@ -10,6 +10,7 @@ import {
   useRoomContext,
   useVoiceAssistant
 } from '@livekit/components-react'
+import { ConnectionQualityBars } from '@/components/interview/connection-quality-bars'
 import { ConnectionStatus } from '@/components/interview/connection-status'
 import { InterviewTimer } from '@/components/interview/interview-timer'
 import { RecordingIndicator } from '@/components/interview/recording-indicator'
@@ -69,9 +70,14 @@ export function SessionView({ disabled, sessionStarted, className, ...props }: S
         </div>
       )}
 
-      {/* 右上：计时器 */}
-      <div className='fixed top-20 right-6 z-50'>
+      {/* 右上：计时器 + 网络状态（使用 LiveKit 组件） */}
+      <div className='fixed top-20 right-6 z-50 flex items-center gap-3'>
         <InterviewTimer active={sessionStarted} />
+        {sessionStarted && (
+          <div className='flex items-center gap-2'>
+            <ConnectionQualityBars />
+          </div>
+        )}
       </div>
 
       {/* 右侧：字幕区域（占位，后续接入字幕组件） */}

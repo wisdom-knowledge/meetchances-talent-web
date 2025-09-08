@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 export function InterviewTimer({ active, className }: { active?: boolean; className?: string }) {
   // 固定 15 分钟倒计时（900 秒）
-  const [seconds, setSeconds] = useState(1 * 60)
+  const [seconds, setSeconds] = useState(15 * 60)
   useEffect(() => {
     if (!active) return
     if (seconds <= 0) return
