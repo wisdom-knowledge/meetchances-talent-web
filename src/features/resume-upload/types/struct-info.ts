@@ -70,6 +70,9 @@ export interface StructInfo {
     summary?: string | null
     hard_skills?: Array<{ skill_name?: string | null; proficiency?: string | null }>
     soft_skills?: unknown[]
+    // 新增：区分存储通用技能与兴趣爱好
+    skills?: string[] | null
+    hobbies?: string[] | null
   } | null
 }
 
