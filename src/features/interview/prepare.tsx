@@ -44,6 +44,7 @@ enum ViewMode {
   InterviewPendingReview = 'interview-pending-review',
   TrailTask = 'trail-task',
   EducationEval = 'education-eval',
+  AllApproved = 'all-approved',
 }
 
 // steps 组件迁移为独立组件，见 features/interview/components/steps.tsx
@@ -194,12 +195,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const { data: progressNodes, isLoading: isProgressLoading } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
   const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
   const interviewNodeId = useMemo(() => getInterviewNodeId(workflow), [workflow])
-  const handleConfirmResumeClick = useCallback(async () => {
-    if (uploadingResume || !resumeValues) return
-    if (uploadedThisVisit) {
-      setConfirmOpen(true)
-      return
-    }
+
+  // 将确认后的后续动作抽取为独立方法，供不同入口复用
+  const proceedAfterResumeConfirm = useCallback(async () => {
     if (viewMode === ViewMode.Job) {
       if (jobApplyId != null) {
         try {
@@ -233,7 +231,16 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       if (!interviewNodeId) return
       navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
     }
-  }, [uploadingResume, resumeValues, uploadedThisVisit, viewMode, jobApplyId, workflow, queryClient, interviewNodeId, jobId, navigate])
+  }, [viewMode, jobApplyId, workflow, queryClient, interviewNodeId, jobId, navigate])
+
+  const handleConfirmResumeClick = useCallback(async () => {
+    if (uploadingResume || !resumeValues) return
+    if (uploadedThisVisit) {
+      setConfirmOpen(true)
+      return
+    }
+    await proceedAfterResumeConfirm()
+  }, [uploadingResume, resumeValues, uploadedThisVisit, proceedAfterResumeConfirm])
 
   // 确保在离开页面前主动释放媒体资源，避免设备权限长期占用
   const releaseAllMediaStreams = useCallback(() => {
@@ -263,6 +270,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   function resolveViewModeFromProgress(): ViewMode | null {
     const nodes = progressNodes ?? []
     if (nodes.length === 0) return null
+    // 全部节点均为已通过（30）→ 进入最终完成状态
+    const allApproved = nodes.every((n) => n.node_status === JobApplyNodeStatus.Approved)
+    if (allApproved) return ViewMode.AllApproved
     // 特殊规则：AI 面试 且状态=20（已完成待审核）
     const aiPending = nodes.find((n) => n.node_name.includes('AI 面试') && n.node_status === JobApplyNodeStatus.CompletedPendingReview)
     if (aiPending) return ViewMode.InterviewPendingReview
@@ -663,6 +673,18 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           </div>
         )}
 
+        {/* ViewMode.AllApproved
+            所有流程节点均为 30（通过）：
+            - 仅展示祝贺与下一步提示文案，居中显示
+        */}
+        {viewMode === ViewMode.AllApproved && (
+          <div className='flex-1 flex items-center justify-center min-h-[60vh]'>
+            <div className='text-center whitespace-pre-line text-xl font-semibold leading-relaxed text-foreground'>
+              {`恭喜你,你已通过本次筛选\n我们会尽快告知下一步`}
+            </div>
+          </div>
+        )}
+
         {/* 底部步骤与下一步 */}
         <Steps jobApplyId={jobApplyId ?? null} />
 
@@ -677,14 +699,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           </DialogHeader>
           <DialogFooter className='gap-2 sm:gap-0'>
             <Button variant='outline' className='mr-4' onClick={() => setConfirmOpen(false)}>放弃</Button>
-            <Button onClick={() => {
+            <Button onClick={async () => {
               setConfirmOpen(false)
-              if (viewMode === ViewMode.Job) {
-                setViewMode(ViewMode.InterviewPrepare)
-              } else {
-                if (!interviewNodeId) return
-                navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
-              }
+              await proceedAfterResumeConfirm()
             }}>继续</Button>
           </DialogFooter>
         </DialogContent>
