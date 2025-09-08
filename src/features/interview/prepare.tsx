@@ -775,7 +775,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               {/* 可滚动内容 */}
               <div className='flex-1 overflow-y-auto'>
                 {/* 标题与薪资区 */}
-                <div className='flex pt-5 pb-5 items-start justify-between border-b border-border'>
+                <div className='flex pt-5 mt-5 pb-5 items-start justify-between border-b border-border'>
                   <div className='flex-1 min-w-0'>
                     <div className='text-2xl font-bold mb-2 leading-tight truncate text-foreground'>
                       {job.title}
