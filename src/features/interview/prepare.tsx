@@ -377,9 +377,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             {/* 左：职位标题 + 设备检查 */}
             <div className='lg:col-span-7 space-y-6 pl-3'>
               <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
-              <div className='flex items-center gap-4 text-gray-500 mb-2'>
-                <p>职位描述，这里的字段需要再明确</p>
-              </div>
               {/* 用户摄像头展示区域 */}
               <LocalCameraPreview
                 stage={stage}
