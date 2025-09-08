@@ -195,6 +195,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const { data: progressNodes, isLoading: isProgressLoading } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
   const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
   const interviewNodeId = useMemo(() => getInterviewNodeId(workflow), [workflow])
+  const interviewNodeStatus = useMemo(() => {
+    const nodes = progressNodes ?? []
+    const ai = nodes.find((n) => n.node_name.includes('AI 面试'))
+    return ai?.node_status
+  }, [progressNodes])
 
   // 将确认后的后续动作抽取为独立方法，供不同入口复用
   const proceedAfterResumeConfirm = useCallback(async () => {
@@ -274,7 +279,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     const allApproved = nodes.every((n) => n.node_status === JobApplyNodeStatus.Approved)
     if (allApproved) return ViewMode.AllApproved
     // 特殊规则：AI 面试 且状态=20（已完成待审核）
-    const aiPending = nodes.find((n) => n.node_name.includes('AI 面试') && n.node_status === JobApplyNodeStatus.CompletedPendingReview)
+    const aiPending = nodes.find((n) => n.node_name.includes('AI 面试') && [JobApplyNodeStatus.CompletedPendingReview, JobApplyNodeStatus.Rejected].includes(n.node_status) )
     if (aiPending) return ViewMode.InterviewPendingReview
     // 优先进行中，其次未开始，否则取最后一个已完成相关节点
     const inProgress = nodes.find((n) => n.node_status === JobApplyNodeStatus.InProgress)
@@ -621,9 +626,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               <p className='text-muted-foreground text-center max-w-[560px]'>
                 感谢您完成面试，我们正在审核您的材料，预计48小时内通知您，请等待通知
               </p>
-              <div className='my-8'>
-                <Button onClick={() => setReinterviewOpen(true)}>重新面试</Button>
-              </div>
+              {interviewNodeStatus === JobApplyNodeStatus.CompletedPendingReview && (
+                <div className='my-8'>
+                  <Button onClick={() => setReinterviewOpen(true)}>重新面试</Button>
+                </div>
+              )}
               <div className='mt-8'>
                 <Button variant='link' className='text-primary' onClick={() => setSupportOpen(true)}>寻求帮助</Button>
               </div>
