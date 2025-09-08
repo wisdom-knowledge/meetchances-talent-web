@@ -1,5 +1,4 @@
 import type { ResumeFormValues } from '@/features/resume/data/schema'
-import type { Proficiency } from '@/features/resume/data/constants'
 import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 
 function joinAchievements(list?: string[] | null): string | undefined {
@@ -94,20 +93,32 @@ export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null):
     repositories: repositories.length ? repositories : undefined,
     patents: patents.length ? patents : undefined,
     socialMedia: socialMedia.length ? socialMedia : undefined,
-    // 将有熟练度的 hard_skills 映射到工作技能，将无熟练度的映射到通用技能标签
+    // 将有熟练度的 hard_skills 映射到工作技能
     workSkills:
       (sa?.hard_skills ?? [])
         .map((hs) => ({
           name: (hs?.skill_name ?? undefined) as ResumeFormValues['workSkills'] extends Array<infer T> ? T extends { name?: string } ? string | undefined : string | undefined : string | undefined,
-          level: (hs?.proficiency ?? undefined) as Proficiency | undefined,
+          level: (hs?.proficiency ?? undefined) as string | undefined,
         }))
         .filter((w) => Boolean(w.name) && Boolean(w.level)) as ResumeFormValues['workSkills'],
+    // 通用技能：优先读取 self_assessment.skills（数组），兼容旧数据回落到 hard_skills 无熟练度项
     skills: (() => {
-      const plainSkills = (sa?.hard_skills ?? [])
+      const explicitSkills = Array.isArray(sa?.skills)
+        ? (sa?.skills as string[]).map((s) => (typeof s === 'string' ? s : s == null ? '' : String(s))).filter(Boolean)
+        : []
+      if (explicitSkills.length) return explicitSkills.join('、')
+      const fallbackPlain = (sa?.hard_skills ?? [])
         .filter((hs) => !hs?.proficiency)
         .map((hs) => hs?.skill_name)
         .filter(Boolean) as string[]
-      return plainSkills.length ? plainSkills.join('、') : undefined
+      return fallbackPlain.length ? fallbackPlain.join('、') : undefined
+    })(),
+    // 兴趣爱好：读取 self_assessment.hobbies 数组
+    hobbies: (() => {
+      const arr = Array.isArray(sa?.hobbies)
+        ? (sa?.hobbies as string[]).map((s) => (typeof s === 'string' ? s : s == null ? '' : String(s))).filter(Boolean)
+        : []
+      return arr.length ? arr.join('、') : undefined
     })(),
     softSkills: (() => {
       const ss = (sa?.soft_skills ?? []) as Array<unknown>
@@ -213,19 +224,14 @@ export function mapResumeFormValuesToStructInfo(values: ResumeFormValues): Struc
     },
     self_assessment: {
       summary: values.selfEvaluation ?? null,
-      hard_skills: [
-        // 明确填写了名称/等级的工作技能
-        ...((values.workSkills ?? []).map((w) => ({
-          skill_name: w?.name ?? null,
-          proficiency: w?.level ?? null,
-        })) as Array<{ skill_name?: string | null; proficiency?: string | null }>),
-        // 标签型技能（无熟练度）
-        ...((splitTags(values.skills) ?? []).map((name) => ({
-          skill_name: name ?? null,
-          proficiency: null,
-        })) as Array<{ skill_name?: string | null; proficiency?: string | null }>),
-      ],
+      hard_skills: ((values.workSkills ?? []).map((w) => ({
+        skill_name: w?.name ?? null,
+        proficiency: w?.level ?? null,
+      })) as Array<{ skill_name?: string | null; proficiency?: string | null }>),
       soft_skills: (splitTags(values.softSkills) ?? undefined) as unknown[] | undefined,
+      // 新增：分别写入 skills 与 hobbies（数组）
+      skills: splitTags(values.skills) ?? null,
+      hobbies: splitTags(values.hobbies) ?? null,
     },
   }
   return struct

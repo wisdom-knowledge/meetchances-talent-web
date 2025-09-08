@@ -157,9 +157,12 @@ export default function ResumePage() {
 
   async function onSubmit(values: ResumeFormValues) {
     const struct = mapResumeFormValuesToStructInfo(values)
-    await patchTalentResumeDetail(struct as unknown as StructInfo)
-    toast.success('保存成功')
-    // showSubmittedData(values)
+    const res = await patchTalentResumeDetail(struct as unknown as StructInfo)
+    if (res.success) {
+      toast.success('保存成功')
+    } else {
+      toast.error('保存失败')
+    }
   }
 
   // 仅开发环境暴露：一键填充 mock 数据，便于调试

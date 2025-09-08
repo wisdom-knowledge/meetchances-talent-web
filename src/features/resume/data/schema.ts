@@ -1,9 +1,19 @@
 import { z } from 'zod'
-import { PROFICIENCY_OPTIONS } from './constants'
 
 export const resumeSchema = z.object({
   name: z.string().optional(),
-  gender: z.enum(['男', '女', '其他', '不愿透露']).optional(),
+  gender: z
+    .string()
+    .optional()
+    .superRefine((val, ctx) => {
+      if (val === '') {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: '请选择性别' })
+        return
+      }
+      if (val != null && !['男', '女', '其他', '不愿透露'].includes(val)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: '请选择性别' })
+      }
+    }),
   phone: z.string().optional(),
   email: z.string().email('请输入有效邮箱地址').optional().or(z.literal('')),
   city: z.string().optional(),
@@ -18,9 +28,7 @@ export const resumeSchema = z.object({
       z
         .object({
           name: z.string().optional(),
-          level: z
-            .enum(PROFICIENCY_OPTIONS)
-            .optional(),
+          level: z.string().optional(),
         })
         .superRefine((val, ctx) => {
           if (val?.name && !val?.level) {
