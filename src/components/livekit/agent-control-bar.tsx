@@ -6,19 +6,24 @@ import { Button } from '@/components/ui/button'
 
 interface AgentControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
   onDisconnect?: () => void
+  onRequestEnd?: () => void
   onSendMessage?: (message: string) => Promise<void>
 }
 
-export function AgentControlBar({ className, onDisconnect, onSendMessage, ...props }: AgentControlBarProps) {
+export function AgentControlBar({ className, onDisconnect, onRequestEnd, onSendMessage, ...props }: AgentControlBarProps) {
   const room = useRoomContext()
 
   const onLeave = useCallback(async () => {
+    if (onRequestEnd) {
+      onRequestEnd()
+      return
+    }
     try {
       await room?.disconnect?.()
     } finally {
       onDisconnect?.()
     }
-  }, [onDisconnect, room])
+  }, [onDisconnect, onRequestEnd, room])
 
   return (
     <div className={`bg-background flex flex-col rounded-[31px]  ${className ?? ''}`} {...props}>

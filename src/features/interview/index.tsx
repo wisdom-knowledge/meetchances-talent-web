@@ -2,11 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Main } from '@/components/layout/main'
 import { RoomAudioRenderer, RoomContext, useConnectionState, useRoomContext } from '@livekit/components-react'
 import { LogLevel, RoomEvent, Room, setLogLevel, type RemoteParticipant } from 'livekit-client'
-// import { AgentControlBar } from '@/components/livekit/agent-control-bar'  
+import { AgentControlBar } from '@/components/livekit/agent-control-bar'  
 import '@livekit/components-styles'
 import { useInterviewConnectionDetails, postNodeAction, NodeActionTrigger } from '@/features/interview/api'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
 
@@ -27,6 +28,20 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
   const hasEverConnectedRef = useRef(false)
   const navigatedRef = useRef(false)
   const endedRef = useRef(false)
+  const [confirmEndOpen, setConfirmEndOpen] = useState(false)
+  const performEndInterview = async () => {
+    if (navigatedRef.current) return
+    const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
+    endedRef.current = true
+    navigatedRef.current = true
+    if (interviewId) {
+      setTimeout(() => {
+        window.location.replace(`/finish?interview_id=${interviewId}`)
+      }, 2000)
+    } else {
+      navigate({ to: '/finish', replace: true })
+    }
+  }
 
   // 直接使用 URL 传入的 interview_node_id
 
@@ -244,22 +259,9 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
               <RoomContext.Provider value={roomRef.current}>
                 <RoomAudioRenderer />
                 <SessionView disabled={false} sessionStarted className='h-full' />
-                <div className='pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
+                <div className='pointer-events-none fixed bottom-32 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
                   <div className='pointer-events-auto'>
-                    {/* <AgentControlBar onDisconnect={() => {
-                      if (navigatedRef.current) return
-                      endedRef.current = true
-                      navigatedRef.current = true
-                      const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
-                      if (interviewId) {
-                        setTimeout(() => {
-                          // TIPS： 这里使用原生API而非route跳转，因为这样可以低成本解决设备权限未被释放的问题
-                          window.location.replace(`/finish?interview_id=${interviewId}`)
-                        }, 2000)
-                      } else {
-                        navigate({ to: '/finish', replace: true })
-                      }
-                    }} /> */}
+                    <AgentControlBar onRequestEnd={() => setConfirmEndOpen(true)} onDisconnect={performEndInterview} />
                   </div>
                 </div>
                 {isDev && data?.token && (
@@ -278,7 +280,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
               <RoomContext.Provider value={roomRef.current}>
                 <SessionView disabled={false} sessionStarted={false} className='h-full' />
               </RoomContext.Provider>
-              <div className='pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
+              <div className='pointer-events-none fixed bottom-32 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
                 <div className='pointer-events-auto bg-background border flex flex-col rounded-[31px] border p-3 shadow'>
                   <div className='flex flex-row justify-between gap-1'>
                     <div className='flex gap-1'>
@@ -297,6 +299,21 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
           )}
         </div>
       </Main>
+      <Dialog open={confirmEndOpen} onOpenChange={setConfirmEndOpen}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader className='text-left'>
+            <DialogTitle>确认要提前结束面试吗？</DialogTitle>
+            <DialogDescription>提前结束面试将影响您的面试结果评估</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className='gap-2 sm:gap-0'>
+            <Button onClick={() => setConfirmEndOpen(false)}>继续面试</Button>
+            <Button variant='destructive' onClick={() => {
+              setConfirmEndOpen(false)
+              performEndInterview()
+            }}>确定结束</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
