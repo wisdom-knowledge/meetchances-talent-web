@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Main } from '@/components/layout/main'
-import { RoomAudioRenderer, RoomContext, useConnectionState, useRoomContext } from '@livekit/components-react'
-import { LogLevel, RoomEvent, Room, setLogLevel, type RemoteParticipant } from 'livekit-client'
+import { RoomAudioRenderer, RoomContext } from '@livekit/components-react'
+import { RoomEvent, Room, type RemoteParticipant } from 'livekit-client'
 import { AgentControlBar } from '@/components/livekit/agent-control-bar'  
 import '@livekit/components-styles'
 import { useInterviewConnectionDetails, postNodeAction, NodeActionTrigger } from '@/features/interview/api'
@@ -18,11 +18,9 @@ interface InterviewPageProps {
 }
 
 export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: InterviewPageProps) {
-  const isDev = import.meta.env.DEV
   const navigate = useNavigate()
 
-  const roomName = 'interview-room'
-  const identity = useMemo(() => `user-${Date.now()}`, [])
+  // const identity = useMemo(() => `user-${Date.now()}`, [])
   const { data, isLoading, isError, refetch } = useInterviewConnectionDetails(jobId, true)
   const roomRef = useRef<Room>(new Room())
   const hasEverConnectedRef = useRef(false)
@@ -36,7 +34,19 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
     navigatedRef.current = true
     if (interviewId) {
       setTimeout(() => {
-        window.location.replace(`/finish?interview_id=${interviewId}`)
+        const params = new URLSearchParams()
+        const current = new URLSearchParams(window.location.search)
+        params.set('interview_id', String(interviewId))
+        params.set('job_id', String(jobId))
+        if (jobApplyId) params.set('job_apply_id', String(jobApplyId))
+        if (interviewNodeId) params.set('interview_node_id', String(interviewNodeId))
+        const invite = current.get('invite_token')
+        if (invite) params.set('invite_token', invite)
+        const skip = current.get('isSkipConfirm')
+        if (skip) params.set('isSkipConfirm', skip)
+        const dataStr = current.get('data')
+        if (dataStr) params.set('data', dataStr)
+        window.location.replace(`/finish?${params.toString()}`)
       }, 2000)
     } else {
       navigate({ to: '/finish', replace: true })
@@ -264,9 +274,6 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
                     <AgentControlBar onRequestEnd={() => setConfirmEndOpen(true)} onDisconnect={performEndInterview} />
                   </div>
                 </div>
-                {isDev && data?.token && (
-                  <DebugLiveKitStatus roomName={roomName} identity={identity} token={data.token} />
-                )}
               </RoomContext.Provider>
             </div>
           ) : (
@@ -305,9 +312,9 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
             <DialogTitle>确认要提前结束面试吗？</DialogTitle>
             <DialogDescription>提前结束面试将影响您的面试结果评估</DialogDescription>
           </DialogHeader>
-          <DialogFooter className='gap-2 sm:gap-0'>
+          <DialogFooter className='gap-2'>
             <Button onClick={() => setConfirmEndOpen(false)}>继续面试</Button>
-            <Button variant='destructive' onClick={() => {
+            <Button variant='outline' onClick={() => {
               setConfirmEndOpen(false)
               performEndInterview()
             }}>确定结束</Button>
@@ -315,44 +322,6 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
         </DialogContent>
       </Dialog>
     </>
-  )
-}
-
-interface DebugProps {
-  roomName: string
-  identity: string
-  token: string
-}
-
-function DebugLiveKitStatus({ roomName, identity, token }: DebugProps) {
-  const room = useRoomContext()
-  const connState = useConnectionState()
-  const [disconnectReason, setDisconnectReason] = useState<string | null>(null)
-
-  useEffect(() => {
-    setLogLevel(LogLevel.debug)
-  }, [])
-
-  useEffect(() => {
-    if (!room) return
-    const handleDisconnected = (reason?: unknown) => {
-      setDisconnectReason(String(reason ?? 'unknown'))
-    }
-    room.on(RoomEvent.Disconnected, handleDisconnected)
-    return () => {
-      room.off(RoomEvent.Disconnected, handleDisconnected)
-    }
-  }, [room])
-
-  return (
-    <div className='mt-2 rounded-md border p-2 text-xs text-muted-foreground bg-background/60'>
-      <div>Connection: {String(connState)}</div>
-      {disconnectReason && <div>Reason: {disconnectReason}</div>}
-      <div>Server: {import.meta.env.VITE_LIVEKIT_URL}</div>
-      <div>Room: {roomName}</div>
-      <div>Identity: {identity}</div>
-      <div>Token: {token.slice(0, 16)}...</div>
-    </div>
   )
 }
 
