@@ -45,6 +45,7 @@ enum ViewMode {
   TrailTask = 'trail-task',
   EducationEval = 'education-eval',
   AllApproved = 'all-approved',
+  Rejected = 'rejected',
 }
 
 // steps 组件迁移为独立组件，见 features/interview/components/steps.tsx
@@ -279,8 +280,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     const allApproved = nodes.every((n) => n.node_status === JobApplyNodeStatus.Approved)
     if (allApproved) return ViewMode.AllApproved
     // 特殊规则：AI 面试 且状态=20（已完成待审核）
-    const aiPending = nodes.find((n) => n.node_name.includes('AI 面试') && [JobApplyNodeStatus.CompletedPendingReview, JobApplyNodeStatus.Rejected].includes(n.node_status) )
+    const aiPending = nodes.find((n) => n.node_name.includes('AI 面试') && [JobApplyNodeStatus.CompletedPendingReview].includes(n.node_status) )
     if (aiPending) return ViewMode.InterviewPendingReview
+    // AI 面试 且状态=40（不通过）
+    const aiRejected = nodes.find((n) => n.node_name.includes('AI 面试') && n.node_status === JobApplyNodeStatus.Rejected)
+    if (aiRejected) return ViewMode.Rejected
     // 优先进行中，其次未开始，否则取最后一个已完成相关节点
     const inProgress = nodes.find((n) => n.node_status === JobApplyNodeStatus.InProgress)
     if (inProgress) return nodeNameToViewMode(inProgress.node_name)
@@ -688,6 +692,18 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           <div className='flex-1 flex items-center justify-center min-h-[60vh]'>
             <div className='text-center whitespace-pre-line text-xl font-semibold leading-relaxed text-foreground'>
               {`恭喜你,你已通过本次筛选\n我们会尽快告知下一步`}
+            </div>
+          </div>
+        )}
+
+        {/* ViewMode.Rejected
+            AI 面试节点状态为 40（不通过）：
+            - 展示拒绝提示文案，纵向横向居中
+        */}
+        {viewMode === ViewMode.Rejected && (
+          <div className='flex-1 flex items-center justify-center min-h-[60vh]'>
+            <div className='text-center whitespace-pre-line text-xl font-semibold leading-relaxed text-foreground'>
+              {`您没有通过项目筛选。\n感谢您的参与，欢迎申请其他岗位。`}
             </div>
           </div>
         )}
