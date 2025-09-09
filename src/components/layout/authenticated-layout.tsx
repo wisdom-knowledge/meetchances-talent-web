@@ -41,6 +41,7 @@ export function AuthenticatedLayout({ children }: Props) {
       id: data.id,
       email: data.email,
       full_name: data.full_name,
+      username: (data as unknown as { username?: string }).username,
       is_active: data.is_active,
       is_superuser: data.is_superuser,
       is_onboard: data.is_onboard,

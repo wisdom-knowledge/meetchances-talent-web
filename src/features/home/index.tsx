@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useAuthStore } from '@/stores/authStore'
 import { IconX, IconHelp } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -21,6 +22,8 @@ import { toast } from 'sonner'
 
 export default function HomeViewPage() {
   const navigate = useNavigate()
+  const authUser = useAuthStore((s) => s.auth.user)
+  const displayName = authUser?.full_name || authUser?.username || ''
   const { data: taskList = [], isLoading: loadingTasks } =
     useImportantTasksQuery()
   const [dismissed, setDismissed] = useState<Record<string, boolean>>({})
@@ -69,7 +72,7 @@ export default function HomeViewPage() {
       <Main fixed>
         <div className='space-y-0.5'>
           <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
-            欢迎回来，
+            欢迎回来{displayName ? `，${displayName}` : ''}
           </h1>
           <p className='text-muted-foreground'>查看你的任务与申请进度</p>
         </div>
