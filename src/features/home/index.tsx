@@ -42,6 +42,10 @@ export default function HomeViewPage() {
   const canPrev = page > 0
   const canNext = page + 1 < pageCount
 
+  // Offer 列表：暂未接入数据，先提供空状态逻辑与样式对齐
+  const loadingOffers = false
+  const offers: unknown[] = []
+
   const [helpOpen, setHelpOpen] = useState(false)
   const handleHelp = () => setHelpOpen(true)
   const handleSupportSubmit = async (_payload: {
@@ -145,7 +149,7 @@ export default function HomeViewPage() {
               <div className='space-y-3'>
                 {loadingApps && <Skeleton className='h-20 w-full rounded-md' />}
                 {!loadingApps && applications.length === 0 && (
-                  <div className='text-muted-foreground text-sm'>
+                  <div className='text-muted-foreground text-sm flex min-h-[400px] items-center justify-center'>
                     暂无申请记录
                   </div>
                 )}
@@ -241,6 +245,19 @@ export default function HomeViewPage() {
                 下一页
               </Button>
             </div>
+          </TabsContent>
+
+          <TabsContent value='offer'>
+            <ScrollArea className='h-[calc(100vh-30rem)] pr-1'>
+              <div className='space-y-3'>
+                {loadingOffers && <Skeleton className='h-20 w-full rounded-md' />}
+                {!loadingOffers && offers.length === 0 && (
+                  <div className='text-muted-foreground text-sm flex min-h-[400px] items-center justify-center'>
+                    暂无录用记录
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
           </TabsContent>
         </Tabs>
 
