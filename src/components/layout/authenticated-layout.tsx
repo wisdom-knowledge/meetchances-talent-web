@@ -20,6 +20,7 @@ export function AuthenticatedLayout({ children }: Props) {
   const setUser = useAuthStore((s) => s.auth.setUser)
   const matches = useMatches()
   const hideSidebar = matches.some((m) => (m.staticData as { hideSidebar?: boolean } | undefined)?.hideSidebar)
+  const interviewBg = matches.some((m) => (m.staticData as { interviewBg?: boolean } | undefined)?.interviewBg)
   const { location } = useRouterState()
 
   // 不调用talentme接口的路由列表
@@ -67,7 +68,8 @@ export function AuthenticatedLayout({ children }: Props) {
             !hideSidebar && 'peer-data-[state=expanded]:w-[calc(100%-var(--sidebar-width))]',
             'sm:transition-[width] sm:duration-200 sm:ease-linear',
             'flex h-svh flex-col',
-            'has-[main.fixed-main]:group-data-[scroll-locked=1]/body:h-svh'
+            'has-[main.fixed-main]:group-data-[scroll-locked=1]/body:h-svh',
+            interviewBg && 'bg-[#F1E3FD]'
           )}
         >
           {children ? children : <Outlet />}

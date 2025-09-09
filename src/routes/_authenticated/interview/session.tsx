@@ -18,7 +18,7 @@ export const Route = createFileRoute('/_authenticated/interview/session')({
     }
   },
   component: InterviewSessionRouteComponent,
-  staticData: { hideSidebar: true },
+  staticData: { hideSidebar: true, interviewBg: true },
 })
 
 function InterviewSessionRouteComponent() {
