@@ -21,6 +21,8 @@ interface LocalCameraPreviewProps extends React.HTMLAttributes<HTMLDivElement> {
   onCameraDeviceResolved?: (deviceId: string | null) => void
   onCameraConfirmed?: () => void
   onMicConfirmed?: () => void
+  disableHeadphoneActions?: boolean
+  disableCameraConfirm?: boolean
 }
 
 export function LocalCameraPreview({
@@ -33,6 +35,8 @@ export function LocalCameraPreview({
   onCameraDeviceResolved,
   onCameraConfirmed,
   onMicConfirmed,
+  disableHeadphoneActions = false,
+  disableCameraConfirm = true,
   ...props
 }: LocalCameraPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -205,6 +209,7 @@ export function LocalCameraPreview({
   const [countdown, setCountdown] = useState<number>(5)
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
   const [playbackProgress, setPlaybackProgress] = useState<number>(0)
+  const [micPermissionDenied, setMicPermissionDenied] = useState<boolean>(false)
   const PROGRESS_WIDTH_CLASSES = useMemo(
     () => [
       'w-[0%]','w-[2%]','w-[4%]','w-[6%]','w-[8%]','w-[10%]','w-[12%]','w-[14%]','w-[16%]','w-[18%]',
@@ -238,6 +243,7 @@ export function LocalCameraPreview({
           video: false,
         })
         if (isCancelled) return
+        setMicPermissionDenied(false)
         micStreamRef.current = micStream
 
         // Setup recorder: record 5s then playback
@@ -271,7 +277,7 @@ export function LocalCameraPreview({
           }
         }, 5000)
       } catch {
-        // ignore
+        setMicPermissionDenied(true)
       }
     }
     void initMic()
@@ -359,7 +365,7 @@ export function LocalCameraPreview({
   return (
     <div className={className} {...props}>
       <Card className='overflow-hidden py-0'>
-        <div className={cn('relative bg-black aspect-video')}>
+        <div className={cn('relative bg-black aspect-video w-full max-w-[720px] mx-auto')}>
           <video ref={videoRef} playsInline muted className='h-full w-full object-cover' />
 
           {/* Headphone stage overlay */}
@@ -388,10 +394,10 @@ export function LocalCameraPreview({
                 transition={{ duration: 0.2 }}
                 className='absolute inset-x-0 bottom-3 flex items-center justify-center gap-3 px-4'
               >
-                <Button size='sm' onClick={handlePlayTestAudio} disabled={isPlayingTestAudio}>
+                <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio}>
                   播放测试音频
                 </Button>
-                <Button size='sm' variant='secondary' onClick={onHeadphoneConfirm}>
+                <Button size='sm' variant='secondary' onClick={onHeadphoneConfirm} disabled={disableHeadphoneActions}>
                   我能听到
                 </Button>
               </motion.div>
@@ -409,11 +415,19 @@ export function LocalCameraPreview({
               <div className='h-full w-full px-6 py-4 flex flex-col items-center justify-center gap-3'>
                 {/* Title */}
                 <div className='text-base text-white'>
-                  {micMode === 'recording' ? '请对麦克风说：我准备好了' : '请确认音质正常'}
+                  {micPermissionDenied
+                    ? '请选择麦克风设备'
+                    : micMode === 'recording'
+                      ? '请对麦克风说：我准备好了'
+                      : '请确认音质正常'}
                 </div>
 
                 {/* Recording Row or Playback Row */}
-                {micMode === 'recording' ? (
+                {micPermissionDenied ? (
+                  <div className='w-full flex items-center justify-center gap-2'>
+                    {/* 当未授权时，不展示录制与确认控件，交互在父层被禁用 */}
+                  </div>
+                ) : micMode === 'recording' ? (
                   <div className='w-full flex items-center justify-center gap-2'>
                     <div className='flex items-center gap-3'>
                       <IconPlayerRecordFilled className='h-5 w-5 text-red-500' />
@@ -447,7 +461,7 @@ export function LocalCameraPreview({
               transition={{ duration: 0.2 }}
               className='absolute inset-x-0 bottom-3 flex items-center justify-center'
             >
-              <Button size='sm' variant='default' onClick={onCameraConfirmed}>确认摄像头状态正常</Button>
+              <Button size='sm' variant='default' onClick={onCameraConfirmed} disabled={disableCameraConfirm}>确认摄像头状态正常</Button>
             </motion.div>
           ) : null}
         </div>

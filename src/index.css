@@ -108,6 +108,11 @@
   
   /* 自定义蓝色系列 */
   --color-blue-600: #4E02E4;
+  
+  /* Steps 进度条配色 */
+  --steps-completed-from: #4E02E4; /* 完成-渐变起点 */
+  --steps-completed-to: #C994F7;   /* 完成-渐变终点 */
+  --steps-inprogress-bg: #E4C9FB;  /* 进行中-背景色 */
 }
 
 @layer base {

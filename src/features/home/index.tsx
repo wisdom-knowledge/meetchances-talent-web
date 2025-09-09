@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useAuthStore } from '@/stores/authStore'
 import { IconX, IconHelp } from '@tabler/icons-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -18,9 +18,12 @@ import {
   useMyApplicationsQuery,
   type ApiApplyListItem,
 } from './api'
+import { toast } from 'sonner'
 
 export default function HomeViewPage() {
   const navigate = useNavigate()
+  const authUser = useAuthStore((s) => s.auth.user)
+  const displayName = authUser?.full_name || authUser?.username || ''
   const { data: taskList = [], isLoading: loadingTasks } =
     useImportantTasksQuery()
   const [dismissed, setDismissed] = useState<Record<string, boolean>>({})
@@ -46,11 +49,16 @@ export default function HomeViewPage() {
     contactMethod: 'phone' | 'none'
     phone?: string
   }) => {
-    fetchForHelp({
-      detail: _payload.message,
-      need_contact: _payload.contactMethod === 'phone',
-      phone_number: _payload.phone ?? '',
-    })
+    try {
+      await fetchForHelp({
+        detail: _payload.message,
+        need_contact: _payload.contactMethod === 'phone',
+        phone_number: _payload.phone ?? '',
+      })
+      toast.success('提交成功')
+    } catch {
+      // 统一错误处理由全局 QueryClient/handle-server-error 负责
+    }
   }
 
   return (
@@ -64,7 +72,7 @@ export default function HomeViewPage() {
       <Main fixed>
         <div className='space-y-0.5'>
           <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
-            欢迎回来，
+            欢迎回来{displayName ? `，${displayName}` : ''}
           </h1>
           <p className='text-muted-foreground'>查看你的任务与申请进度</p>
         </div>
@@ -147,8 +155,6 @@ export default function HomeViewPage() {
                     const isCompleted =
                       (item.total_step ?? 0) > 0 &&
                       (item.progress ?? 0) >= (item.total_step ?? 0)
-                    const tagLabel =
-                      jd?.online_status === 0 ? '招聘中' : '结束招聘'
                     const startedText = (() => {
                       const created = item.created_at
                       if (!created || created <= 0) return ''
@@ -163,14 +169,14 @@ export default function HomeViewPage() {
                         key={item.id}
                         className='hover:bg-accent/40 cursor-pointer border transition-colors'
                         onClick={() => {
-                          if (!isCompleted) {
-                            navigate({
-                              to: '/interview/prepare',
-                              search: {
-                                data: `job_id${item.job_id}andisSkipConfirm${true}`,
-                              } as unknown as Record<string, unknown>,
-                            })
-                          }
+                          navigate({
+                            to: '/interview/prepare',
+                            search: {
+                              data: `job_id${item.job_id}andisSkipConfirm${true}`,
+                              // 直接传递 job_apply_id，供目标页使用
+                              job_apply_id: item.id,
+                            } as unknown as Record<string, unknown>,
+                          })
                         }}
                       >
                         <div className='flex items-center justify-between gap-4 p-4'>
@@ -179,13 +185,6 @@ export default function HomeViewPage() {
                               <div className='font-medium'>
                                 {jd?.title ?? '岗位'}
                               </div>
-                              <Badge
-                                variant={
-                                  tagLabel === '招聘中' ? 'emphasis' : 'outline'
-                                }
-                              >
-                                {tagLabel}
-                              </Badge>
                             </div>
                             <div className='text-muted-foreground text-xs'>
                               {jd?.salary_min ?? 0}-{jd?.salary_max ?? 0} / 小时

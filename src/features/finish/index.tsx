@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { IconStar, IconStarFilled } from '@tabler/icons-react'
-import { useRouterStore } from '@/stores/routerStore'
 import { handleServerError } from '@/utils/handle-server-error'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -10,6 +9,7 @@ import { Main } from '@/components/layout/main'
 import SupportDialog from '@/components/support-dialog'
 import { fetchForHelp } from '../home/api'
 import { FeedbackParams, fetchFeedback } from './api'
+import { toast } from 'sonner'
 
 type StepKey = 1 | 2
 
@@ -30,7 +30,36 @@ export default function FinishPage() {
     return params.get('interview_id') ?? ''
   }, [])
 
-  const previousPath = useRouterStore((s) => s.previousPath)
+  // 把 prepare 页面的参数原样透传回去，便于返回时延续上下文
+  const prepareSearch = useMemo(() => {
+    const sp = new URLSearchParams(window.location.search)
+    const out: Record<string, string | number | boolean | undefined> = {}
+    const coerceNum = (v: string | null): number | string | undefined => {
+      if (v == null) return undefined
+      const n = Number(v)
+      return Number.isNaN(n) ? v : n
+    }
+    const coerceBool = (v: string | null): boolean | undefined => {
+      if (v == null) return undefined
+      const raw = v.toLowerCase()
+      if (raw === '' || raw === '0' || raw === 'false' || raw === 'no' || raw === 'off') return false
+      return true
+    }
+    const data = sp.get('data')
+    if (data) out.data = data
+    const jobId = sp.get('job_id')
+    if (jobId) out.job_id = coerceNum(jobId) as number | string
+    const invite = sp.get('invite_token')
+    if (invite) out.invite_token = invite
+    const skip = sp.get('isSkipConfirm')
+    if (skip) out.isSkipConfirm = coerceBool(skip) as boolean
+    const applyId = sp.get('job_apply_id')
+    if (applyId) out.job_apply_id = coerceNum(applyId) as number | string
+    const nodeId = sp.get('interview_node_id')
+    if (nodeId) out.interview_node_id = coerceNum(nodeId) as number | string
+    return out
+  }, [])
+
   const finishSubmit = useMemo(() => {
     // if (!previousPath) return true
     // try {
@@ -40,7 +69,7 @@ export default function FinishPage() {
     //   return previousPath !== '/invited'
     // }
     return false
-  }, [previousPath])
+  }, [])
 
   const handleSubmit = async (params: FeedbackParams) => {
     if (rating <= 0 || submitting) return
@@ -60,26 +89,30 @@ export default function FinishPage() {
     contactMethod: 'phone' | 'none'
     phone?: string
   }) => {
-    fetchForHelp({
-      detail: _payload.message,
-      need_contact: _payload.contactMethod === 'phone',
-      phone_number: _payload.phone ?? '',
-    })
+    try {
+      await fetchForHelp({
+        detail: _payload.message,
+        need_contact: _payload.contactMethod === 'phone',
+        phone_number: _payload.phone ?? '',
+      })
+      toast.success('提交成功')
+    } catch (error) {
+      handleServerError(error)
+    }
   }
 
-  const goNext = () => {
-    if (step === 1 && interviewId) {
-      handleSubmit({
-        interview_id: Number(interviewId),
-        score: rating,
-        feedback: feedback,
-      })
-      return
-    }
-    if (step === 2) {
-      navigate({ to: '/resume' })
-      return
-    }
+  const goNext = async () => {
+    if (!interviewId || rating <= 0 || submitting) return
+    await handleSubmit({
+      interview_id: Number(interviewId),
+      score: rating,
+      feedback: feedback,
+    })
+    navigate({
+      to: '/interview/prepare',
+      search: prepareSearch as unknown as Record<string, unknown>,
+      replace: true,
+    })
   }
 
   const handleHelp = () => {

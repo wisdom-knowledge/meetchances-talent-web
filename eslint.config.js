@@ -42,6 +42,8 @@ export default tseslint.config(
           ignoreRestSiblings: true,
         },
       ],
+      // 永远不要使用 any
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   }
 )

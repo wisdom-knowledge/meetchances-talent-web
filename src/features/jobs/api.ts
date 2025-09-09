@@ -82,11 +82,14 @@ export function useJobDetailQuery(id: string | number | null, enabled = true, op
   })
 }
 
-export async function applyJob(jobId: string | number, inviteToken: string): Promise<void> {
-  await api.post('/talent/apply_job', {
+export async function applyJob(jobId: string | number, inviteToken: string): Promise<number | string | null> {
+  const res = await api.post('/talent/apply_job', {
     job_id: jobId,
     invite_token: inviteToken,
   })
+  const payload = (res as { data?: unknown })?.data ?? res
+  const jobApplyId = (payload as { job_apply_id?: number | string })?.job_apply_id
+  return (typeof jobApplyId === 'number' || typeof jobApplyId === 'string') ? jobApplyId : null
 }
 
 export enum InviteTokenType {

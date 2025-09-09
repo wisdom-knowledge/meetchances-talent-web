@@ -11,7 +11,7 @@ export const sidebarData: SidebarData = {
   teams: [],
   navGroups: [
     {
-      title: '通用',
+      title: '',
       items: [
         {
           title: '主页',
