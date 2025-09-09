@@ -28,8 +28,10 @@ export const sidebarData: SidebarData = {
           url: '/resume',
           icon: IconId,
         },
-        
       ],
     },
   ],
 }
+
+// 调用talentme接口失败后无需跳转的特殊处理页面
+export const noTalentMeRoutes = ['/job-detail', '/jobs']

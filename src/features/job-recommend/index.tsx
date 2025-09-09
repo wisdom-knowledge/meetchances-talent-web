@@ -62,7 +62,7 @@ export default function JobRecommendPage() {
           </div>
           <div className='hidden min-w-[140px] flex-col items-end md:flex'>
             <div className='mb-1 text-xl font-semibold text-foreground'>
-              ¥{jobDetail?.salaryRange?.[0] ?? 0}~¥{jobDetail?.salaryRange?.[1] ?? 0}
+              ¥{jobDetail?.salary_min ?? 0}~¥{jobDetail?.salary_max ?? 0}
             </div>
             <div className='mb-3 text-xs text-muted-foreground'>每小时</div>
             <div className='flex gap-2'>
@@ -76,7 +76,7 @@ export default function JobRecommendPage() {
             data={list}
             onFilterChange={handleFilterChange}
             mode='jobRecommend'
-            inviteContext={{ jobTitle: jobDetail?.title, salaryMin: jobDetail?.salaryRange?.[0], salaryMax: jobDetail?.salaryRange?.[1] }}
+            inviteContext={{ jobTitle: jobDetail?.title, salaryMin: jobDetail?.salary_min, salaryMax: jobDetail?.salary_max }}
           />
         </div>
       </Main>

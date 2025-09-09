@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie'
 import { useEffect } from 'react'
-import { Outlet, useMatches, useRouterState } from '@tanstack/react-router'
+import { Outlet, useMatches } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { fetchTalentMe } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
@@ -9,7 +9,6 @@ import { SearchProvider } from '@/context/search-context'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import SkipToMain from '@/components/skip-to-main'
-import { includes } from 'lodash'
 
 interface Props {
   children?: React.ReactNode
@@ -21,10 +20,7 @@ export function AuthenticatedLayout({ children }: Props) {
   const matches = useMatches()
   const hideSidebar = matches.some((m) => (m.staticData as { hideSidebar?: boolean } | undefined)?.hideSidebar)
   const interviewBg = matches.some((m) => (m.staticData as { interviewBg?: boolean } | undefined)?.interviewBg)
-  const { location } = useRouterState()
 
-  // 不调用talentme接口的路由列表
-  const noTalentMeRoutes = ['/job-detail']
 
   const { data, error } = useQuery({
     queryKey: ['current-user'],
@@ -33,7 +29,6 @@ export function AuthenticatedLayout({ children }: Props) {
     refetchOnWindowFocus: false,
     retry: false,
     select: (d) => d,
-    enabled: !includes(noTalentMeRoutes, location.pathname),
   })
 
   useEffect(() => {

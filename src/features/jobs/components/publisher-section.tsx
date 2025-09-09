@@ -6,11 +6,11 @@ export default function PublisherSection({ recommendName }: PublisherSectionProp
   return (
     <div>
       <div className='border-border flex items-center gap-3 border-b py-4'>
-        <div className='flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-gray-200 bg-white'>
+        <div className='flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-1 border-gray-200 bg-white'>
           <img
-            src={'https://dnu-cdn.xpertiise.com/design-assets/logo-no-padding.svg'}
+            src={'https://dnu-cdn.xpertiise.com/common/34af7d0c-7d83-421d-b8ed-8b636ac77bf3.png'}
             alt='meetchances'
-            className='h-7 w-7 object-contain'
+            className='h-9 w-9 object-contain ml-[3px] mt-[1px]'
           />
         </div>
         <div className='flex flex-col'>
