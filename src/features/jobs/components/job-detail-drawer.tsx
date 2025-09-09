@@ -1,10 +1,10 @@
-import type { Job } from '@/types/solutions'
+import type { ApiJob } from '@/features/jobs/api'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import JobDetailContent from '@/features/jobs/components/job-detail-content'
 
 export interface JobDetailDrawerProps {
   open: boolean
-  job: Job | null
+  job: ApiJob | null
   onOpenChange: (open: boolean) => void
   onBack: () => void
   recommendName?: string

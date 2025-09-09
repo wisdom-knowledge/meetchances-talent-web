@@ -1,5 +1,7 @@
 import axios from 'axios'
 import { Talent, TalentParams } from '@/stores/authStore'
+import { includes } from 'lodash'
+import { noTalentMeRoutes } from '@/components/layout/data/sidebar-data'
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
@@ -26,8 +28,9 @@ api.interceptors.response.use(
     const payload = response.data
     // 明确处理未登录/登录失效
     if (status === 401) {
+      const isSpecialPage = includes(noTalentMeRoutes, window.location.pathname)
       const loginUrl = LOGIN_URL
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && !isSpecialPage) {
         window.location.href = loginUrl!
       }
       return Promise.reject({ status_code: 401, status_msg: 'Unauthorized' })

@@ -449,7 +449,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   </div>
                   <div className='hidden md:flex flex-col items-end min-w-[140px]'>
                     <div className='text-xl font-semibold text-foreground mb-1'>
-                      {job ? `¥${job.salaryRange?.[0] ?? 0}~¥${job.salaryRange?.[1] ?? 0}` : '—'}
+                      {job ? `¥${job.salary_min ?? 0}~¥${job.salary_max ?? 0}` : '—'}
                     </div>
                     <div className='text-xs text-muted-foreground mb-3'>每小时</div>
                   </div>
@@ -457,8 +457,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 <Separator className='mt-2' />
                 {/* 发布者信息 */}
                 <div className='flex items-center gap-3 py-4 border-b border-border'>
-                  <div className='w-9 h-9 border-2 border-gray-200 rounded-full flex items-center justify-center overflow-hidden bg-white'>
-                    <img src={'https://dnu-cdn.xpertiise.com/design-assets/logo-no-padding.svg'} alt='meetchances' className='h-7 w-7 object-contain' />
+                  <div className='w-9 h-9 border-1 border-gray-200 rounded-full flex items-center justify-center overflow-hidden bg-white'>
+                    <img src={'https://dnu-cdn.xpertiise.com/common/34af7d0c-7d83-421d-b8ed-8b636ac77bf3.png'} alt='meetchances' className='h-9 w-9 object-contain ml-[3px] mt-[1px]' />
                   </div>
                   <div className='flex flex-col'>
                     <span className='text-sm font-medium text-foreground'>由一面千识发布</span>
@@ -790,16 +790,16 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   </div>
                   <div className='hidden md:flex flex-col items-end min-w-[140px]'>
                     <div className='text-xl font-semibold text-foreground mb-1'>
-                      ¥{job.salaryRange?.[0] ?? 0}~¥{job.salaryRange?.[1] ?? 0}
+                      ¥{job.salary_min ?? 0}~¥{job.salary_max ?? 0}
                     </div>
                     <div className='text-xs text-muted-foreground mb-3'>每小时</div>
                   </div>
                 </div>
 
                 {/* 发布者信息 */}
-                <div className='flex items-center gap-3 py-4 border-b border-border'>
-                  <div className='w-9 h-9 border-2 border-gray-200 rounded-full flex items-center justify-center overflow-hidden bg-white'>
-                    <img src={'https://dnu-cdn.xpertiise.com/design-assets/logo-no-padding.svg'} alt='meetchances' className='h-7 w-7 object-contain' />
+                <div className='flex items-center gap-3 py-4 border-b bord er-border'>
+                  <div className='w-9 h-9 border-1 border-gray-200 rounded-full flex items-center justify-center overflow-hidden bg-white'>
+                    <img src={'https://dnu-cdn.xpertiise.com/common/34af7d0c-7d83-421d-b8ed-8b636ac77bf3.png'} alt='meetchances' className='h-9 w-9 object-contain ml-[3px] mt-[1px]' />
                   </div>
                   <div className='flex flex-col'>
                     <span className='text-sm font-medium text-foreground'>由一面千识发布</span>

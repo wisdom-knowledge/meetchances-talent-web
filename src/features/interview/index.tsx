@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Main } from '@/components/layout/main'
 import { RoomAudioRenderer, RoomContext } from '@livekit/components-react'
 import { RoomEvent, Room, type RemoteParticipant } from 'livekit-client'
-import { AgentControlBar } from '@/components/livekit/agent-control-bar'  
+// AgentControlBar moved into SessionView
 import '@livekit/components-styles'
 import { useInterviewConnectionDetails, postNodeAction, NodeActionTrigger } from '@/features/interview/api'
 import { useNavigate } from '@tanstack/react-router'
@@ -32,6 +32,12 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
     const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
     endedRef.current = true
     navigatedRef.current = true
+    // 提交当前节点结果，确保后端状态更新
+    try {
+      if (interviewNodeId) {
+        await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
+      }
+    } catch { /* ignore */ }
     if (interviewId) {
       setTimeout(() => {
         const params = new URLSearchParams()
@@ -47,7 +53,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
         const dataStr = current.get('data')
         if (dataStr) params.set('data', dataStr)
         window.location.replace(`/finish?${params.toString()}`)
-      }, 2000)
+      }, 1000)
     } else {
       navigate({ to: '/finish', replace: true })
     }
@@ -147,7 +153,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
           const dataStr = current.get('data')
           if (dataStr) params.set('data', dataStr)
           window.location.replace(`/finish?${params.toString()}`)
-        }, 2000)
+        }, 1000)
       } else {
         const current = new URLSearchParams(window.location.search)
         navigate({
@@ -250,8 +256,8 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
 
   return (
     <>
-      <Main>
-        <div className='h-[80vh] relative'>
+      <Main className='bg-[#F1E3FD]'>
+        <div className='h-[80vh] relative bg-[#F1E3FD]'>
           {isLoading && (
             <div className='absolute inset-0 grid place-items-center text-sm text-muted-foreground'>正在连接面试房间…</div>
           )}
@@ -268,12 +274,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
             <div className='h-full'>
               <RoomContext.Provider value={roomRef.current}>
                 <RoomAudioRenderer />
-                <SessionView disabled={false} sessionStarted className='h-full' />
-                <div className='pointer-events-none fixed bottom-32 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
-                  <div className='pointer-events-auto'>
-                    <AgentControlBar onRequestEnd={() => setConfirmEndOpen(true)} onDisconnect={performEndInterview} />
-                  </div>
-                </div>
+                <SessionView disabled={false} sessionStarted className='h-full' onRequestEnd={() => setConfirmEndOpen(true)} onDisconnect={performEndInterview} />
               </RoomContext.Provider>
             </div>
           ) : (

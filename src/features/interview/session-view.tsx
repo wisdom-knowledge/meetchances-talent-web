@@ -19,6 +19,7 @@ import { AgentTile } from '@/components/livekit/chat/agent-tile';
 import { ChatEntry } from '@/components/livekit/chat/chat-entry'
 import { ChatMessageView } from '@/components/livekit/chat/chat-message-view'
 import voiceLottie from '@/lotties/voice-lottie.json';
+import { AgentControlBar } from '@/components/livekit/agent-control-bar'
 
 function useLocalTrackRef(source: Track.Source) {
   const { localParticipant } = useLocalParticipant()
@@ -33,9 +34,11 @@ function isAgentAvailable(agentState: AgentState) {
 export interface SessionViewProps extends React.ComponentProps<'main'> {
   disabled: boolean
   sessionStarted: boolean
+  onRequestEnd?: () => void
+  onDisconnect?: () => void
 }
 
-export function SessionView({ disabled, sessionStarted, className, ...props }: SessionViewProps) {
+export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, ...props }: SessionViewProps) {
   const { state: agentState } = useVoiceAssistant()
   const { messages } = useChatAndTranscription()
   const room = useRoomContext() as Room | undefined
@@ -132,24 +135,30 @@ export function SessionView({ disabled, sessionStarted, className, ...props }: S
         </div>
       )}
 
-      {/* 左下：本地视频占位（当相机开启时可替换为视频组件） */}
-      {sessionStarted && cameraTrack && cameraTrack.publication?.track && !cameraTrack.publication.isMuted ? (
-        <div className='pointer-events-none fixed bottom-32 left-6 z-30'>
-          <LocalVideoTile trackRef={cameraTrack} className='h-48 w-64 rounded-md overflow-hidden border bg-black' />
+      {/* 底部一行：左 LocalVideoTile | 中 RecordingIndicator | 右 AgentControlBar */}
+      {sessionStarted && (
+        <div className='fixed inset-x-0 bottom-12 z-50 px-6'>
+          <div className=' flex w-full items-end gap-4'>
+            {/* 左：本地视频 */}
+            <div className='min-w-[8rem] flex-1'>
+              {cameraTrack && cameraTrack.publication?.track && !cameraTrack.publication.isMuted ? (
+                <LocalVideoTile trackRef={cameraTrack} className='h-48 w-64 rounded-md overflow-hidden border bg-black' />
+              ) : (
+                <div className='h-24 w-32' />
+              )}
+            </div>
+
+            {/* 中：录音指示器（居中） */}
+            <div className='flex flex-1 justify-center -mb-10'>
+              <RecordingIndicator micTrackRef={micTrack} />
+            </div>
+
+            {/* 右：控制条（可点击） */}
+            <div className='flex flex-1 justify-end pointer-events-auto mb-4'>
+              <AgentControlBar onRequestEnd={onRequestEnd} onDisconnect={onDisconnect} />
+            </div>
+          </div>
         </div>
-      ) : null}
-
-      {/* 底部中：录音指示器（需要 micTrack） */}
-      {sessionStarted && (
-        <RecordingIndicator micTrackRef={micTrack} className='pointer-events-none fixed bottom-6 left-1/2 z-30 -translate-x-1/2 transform' />
-      )}
-
-      {/* 录音指示器 - 页面正下方居中 */}
-      {sessionStarted && (
-        <RecordingIndicator
-          micTrackRef={micTrack}
-          className="fixed bottom-6 left-1/2 z-30 -translate-x-1/2 transform"
-        />
       )}
     </main>
   )
