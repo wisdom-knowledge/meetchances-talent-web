@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ChevronsUpDown, LogOut } from 'lucide-react'
+import { ChevronsUpDown, LogOut, User as UserIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -54,7 +54,7 @@ export function NavUser({
               <Avatar className='h-8 w-8 rounded-[8px]'>
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className='rounded-[8px]'>
-                  {user.name.charAt(0) || 'U'}
+                  {user.name.charAt(0) || <UserIcon className='h-4 w-4' />}
                 </AvatarFallback>
               </Avatar>
               <div className='grid flex-1 text-left text-sm leading-tight'>
@@ -78,7 +78,7 @@ export function NavUser({
                   <Avatar className='h-8 w-8 rounded-[8px]'>
                     <AvatarImage src={user.avatar} alt={user.name} />
                     <AvatarFallback className='rounded-[8px]'>
-                      {user.name.charAt(0) || 'U'}
+                      {user.name.charAt(0) || <UserIcon className='h-4 w-4' />}
                     </AvatarFallback>
                   </Avatar>
                   <div className='grid flex-1 text-left text-sm leading-tight'>

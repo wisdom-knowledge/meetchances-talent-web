@@ -1,3 +1,4 @@
+import { User as UserIcon } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -34,14 +35,18 @@ export function ProfileDropdown() {
           onClick={() => {
             if (!isLogin) handleLogin()
           }}
-       >
+        >
           <Avatar className='h-8 w-8'>
             <AvatarImage
-              src={user?.avatar_url || '/avatars/01.png'
-             } alt={user?.full_name ?? user?.email ?? 'user'}
+              src={user?.avatar_url || '/avatars/01.png'}
+              alt={user?.full_name ?? user?.email ?? 'user'}
             />
             <AvatarFallback>
-              {(user?.full_name ?? user?.email ?? 'U').slice(0, 1)}
+              {user && (user.full_name || user.email) ? (
+                (user.full_name || user.email)!.slice(0, 1)
+              ) : (
+                <UserIcon className='h-4 w-4' />
+              )}
             </AvatarFallback>
           </Avatar>
         </Button>
