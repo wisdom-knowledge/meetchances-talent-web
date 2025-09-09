@@ -277,32 +277,11 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
               </RoomContext.Provider>
             </div>
           ) : (
-            <>
-              <div className='absolute inset-0 grid place-items-center text-sm text-muted-foreground'>
-                <div className='text-center'>
-                  <div className='text-base mb-2'>会话预览（未连接）</div>
-                  <div className='text-xs'>接口未就绪，正在以占位模式展示页面布局</div>
-                </div>
-              </div>
+            <div className='h-full'>
               <RoomContext.Provider value={roomRef.current}>
                 <SessionView disabled={false} sessionStarted={false} className='h-full' />
               </RoomContext.Provider>
-              <div className='pointer-events-none fixed bottom-32 left-1/2 z-50 -translate-x-1/2 transform w-[min(900px,90vw)]'>
-                <div className='pointer-events-auto bg-background border flex flex-col rounded-[31px] border p-3 shadow'>
-                  <div className='flex flex-row justify-between gap-1'>
-                    <div className='flex gap-1'>
-                      <Button type='button' size='sm' variant='outline' disabled className='w-auto pr-3 pl-3 md:rounded-r-none md:border-r-0 md:pr-2'>麦克风</Button>
-                      <Button type='button' size='sm' variant='outline' disabled className='rounded-l-none'>选择麦克风</Button>
-                      <Button type='button' size='sm' variant='outline' disabled className='w-auto rounded-r-none pr-3 pl-3 md:border-r-0 md:pr-2'>摄像头</Button>
-                      <Button type='button' size='sm' variant='outline' disabled className='rounded-l-none'>选择摄像头</Button>
-                      <Button type='button' size='sm' variant='outline' disabled className='w-auto'>共享屏幕</Button>
-                      <Button type='button' size='sm' variant='outline' disabled className='h-full'>字幕</Button>
-                    </div>
-                    <Button variant='destructive' disabled className='font-mono'>结束</Button>
-                  </div>
-                </div>
-              </div>
-            </>
+            </div>
           )}
         </div>
       </Main>
