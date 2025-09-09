@@ -15,7 +15,7 @@ export function ProfileDropdown() {
       <DropdownMenuTrigger asChild>
         <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
           <Avatar className='h-8 w-8'>
-            <AvatarImage src='/avatars/01.png' alt={user?.full_name ?? user?.email ?? 'user'} />
+            <AvatarImage src={user?.avatar_url || '/avatars/01.png'} alt={user?.full_name ?? user?.email ?? 'user'} />
             <AvatarFallback>{(user?.full_name ?? user?.email ?? 'U').slice(0, 1)}</AvatarFallback>
           </Avatar>
         </Button>
