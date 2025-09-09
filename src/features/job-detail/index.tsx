@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import type { Job } from '@/types/solutions'
+import type { ApiJob } from '@/features/jobs/api'
 import { useAuthStore } from '@/stores/authStore'
 import { useJobDetailQuery } from '@/features/jobs/api'
 import JobDetailContent from '../jobs/components/job-detail-content'
@@ -9,7 +9,7 @@ import { useInviteInfoQuery } from './api'
 export default function JobDetailPage() {
   const navigate = useNavigate()
   const setInviteInfo = useAuthStore((s) => s.auth.setInviteInfo)
-  const [job, setJob] = useState<Job | null>(null)
+  const [job, setJob] = useState<ApiJob | null>(null)
 
   // 读取 URL 中的 invite_token 参数
   const inviteToken = useMemo(() => {

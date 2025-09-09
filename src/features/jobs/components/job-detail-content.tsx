@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Job } from '@/types/solutions'
+import type { ApiJob } from '@/features/jobs/api'
 import backImg from '@/assets/images/back.svg'
 import avatarsImg from '@/assets/images/avatars.png'
 import { cn } from '@/lib/utils'
@@ -9,14 +9,14 @@ import JobTitleAndTags from './job-title-and-tags'
 import PublisherSection from './publisher-section'
 
 export interface JobDetailContentProps {
-  job: Job
+  job: ApiJob
   inviteToken?: string
   onBack?: () => void
   recommendName?: string
   isTwoColumn?: boolean
 }
 
-const salaryTypeUnit: Record<Job['salaryType'], string> = {
+const salaryTypeUnit: Record<NonNullable<ApiJob['salary_type']>, string> = {
   hour: '小时',
   month: '月',
   year: '年',
@@ -81,6 +81,10 @@ export default function JobDetailContent({
     window.location.href = `${targetUrl}?${params}`
   }
 
+  const low = job.salary_min ?? 0
+  const high = job.salary_max ?? 0
+  const unit = salaryTypeUnit[job.salary_type as keyof typeof salaryTypeUnit] ?? '小时'
+
   return (
     <div className={cn(isMobile ? 'my-[16px] mx-[8px]' : 'm-[16px]' )}>
       <div
@@ -112,9 +116,9 @@ export default function JobDetailContent({
                 <div>
                   <div className='flex items-center gap-2'>
                     <div className='text-xl font-semibold text-gray-900'>
-                      ¥{job.salaryRange[0]}~¥{job.salaryRange[1]}
+                      ¥{low}~¥{high}
                     </div>
-                    <div className='text-xs text-gray-500'>{`每${salaryTypeUnit[job.salaryType]}`}</div>
+                    <div className='text-xs text-gray-500'>{`每${unit}`}</div>
                   </div>
                 </div>
               )}
@@ -123,11 +127,9 @@ export default function JobDetailContent({
             {!isMobile && (
               <div className='flex min-w-[140px] flex-col items-end'>
                 <div className='mb-1 text-xl font-semibold text-gray-900'>
-                  ¥{job.salaryRange[0]}~¥{job.salaryRange[1]}
+                  ¥{low}~¥{high}
                 </div>
-                <div className='mb-3 text-xs text-gray-500'>{`每${
-                  salaryTypeUnit[job.salaryType]
-                }`}</div>
+                <div className='mb-3 text-xs text-gray-500'>{`每${unit}`}</div>
                 <Button
                   onClick={applyJob}
                   className='!rounded-md !bg-[#4E02E4] !px-6 !py-2 !text-base !text-white'
