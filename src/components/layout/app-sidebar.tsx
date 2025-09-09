@@ -9,7 +9,7 @@ import { useMemo } from 'react'
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const authUser = useAuthStore((s) => s.auth.user)
   const userForSidebar = useMemo(() => {
-    const name = authUser?.full_name || authUser?.accountNo || (authUser?.email ? authUser.email.split('@')[0] : '用户')
+    const name = authUser?.full_name || authUser?.accountNo || (authUser?.email ? authUser.email.split('@')[0] : '')
     const email = authUser?.email || ''
     const avatar = authUser?.avatar_url || '/avatars/shadcn.jpg'
     return { name, email, avatar }

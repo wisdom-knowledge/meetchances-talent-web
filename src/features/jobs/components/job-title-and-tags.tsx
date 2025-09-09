@@ -1,18 +1,18 @@
 import { IconBriefcase, IconWorldPin } from '@tabler/icons-react'
-import type { Job } from '@/types/solutions'
-import { JobType } from '@/constants/explore'
+import type { ApiJob } from '@/features/jobs/api'
 
-const salaryTypeMapping: Record<Job['salaryType'], string> = {
+const salaryTypeMapping: Record<'hour' | 'month' | 'year', string> = {
   hour: '时',
   month: '月',
   year: '年',
 }
 
 export interface JobTitleAndTagsProps {
-  job: Job
+  job: ApiJob
 }
 
 export default function JobTitleAndTags({ job }: JobTitleAndTagsProps) {
+  const key = (job.salary_type ?? 'hour') as 'hour' | 'month' | 'year'
   return (
     <>
       <div className='mb-2 truncate text-2xl leading-tight font-bold text-gray-900'>
@@ -22,10 +22,10 @@ export default function JobTitleAndTags({ job }: JobTitleAndTagsProps) {
         <div className='mr-4 flex items-center justify-center'>
           <IconBriefcase className='mr-1 h-4 w-4' />
           <span className='text-[14px]'>
-            {salaryTypeMapping[job.salaryType]}薪制
+            {salaryTypeMapping[key]}薪制
           </span>
         </div>
-        {job.jobType === JobType.PART_TIME && (
+        {job.job_type === 'part_time' && (
           <div className='flex items-center justify-center'>
             <IconWorldPin className='mr-1 h-4 w-4' />
             <span className='text-[14px]'>远程</span>
