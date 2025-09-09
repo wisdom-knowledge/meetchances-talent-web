@@ -2,7 +2,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from '@/component
 import { NavGroup } from '@/components/layout/nav-group'
 import { NavUser } from '@/components/layout/nav-user'
 import { sidebarData } from './data/sidebar-data'
-import AppLogo from '@/assets/app-logo'
+import logoCircle from '@/assets/images/logo-circle.svg'
 import { useAuthStore } from '@/stores/authStore'
 import { useMemo } from 'react'
 
@@ -19,12 +19,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         {/* 静态展示默认团队，无下拉、无点击 */}
         <div className='flex items-center gap-2 px-2 py-2'>
-          <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
-            <AppLogo className='size-4 text-white' />
+          <div className='flex aspect-square size-8 items-center justify-center rounded-full'>
+            <img src={logoCircle} alt='logo' className='size-6' />
           </div>
           <div className='grid text-left text-sm leading-tight'>
-            <span className='truncate font-semibold'>Meetchances Talent</span>
-            <span className='truncate text-xs'>寻找职位、维护个人简历</span>
+            <span className='truncate font-semibold'>一面千识</span>
+            <span className='truncate text-xs'>一次面试,千种机会</span>
           </div>
         </div>
 

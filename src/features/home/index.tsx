@@ -12,6 +12,8 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import SupportDialog from '@/components/support-dialog'
+import noApplySvg from '@/assets/images/no-apply.svg'
+import noOfferSvg from '@/assets/images/no-offer.svg'
 import {
   fetchForHelp,
   useImportantTasksQuery,
@@ -149,8 +151,12 @@ export default function HomeViewPage() {
               <div className='space-y-3'>
                 {loadingApps && <Skeleton className='h-20 w-full rounded-md' />}
                 {!loadingApps && applications.length === 0 && (
-                  <div className='text-muted-foreground text-sm flex min-h-[400px] items-center justify-center'>
-                    暂无申请记录
+                  <div className='flex min-h-[400px] items-center justify-center'>
+                    <div className='text-muted-foreground flex flex-col items-center text-sm'>
+                      <img src={noApplySvg} alt='no applications' className='mb-3 h-16 w-16 opacity-70' />
+                      <div className='mb-3'>暂无申请记录</div>
+                      <Button variant={"outline"} onClick={() => navigate({ to: '/jobs' })}>立即申请</Button>
+                    </div>
                   </div>
                 )}
                 {!loadingApps &&
@@ -252,8 +258,11 @@ export default function HomeViewPage() {
               <div className='space-y-3'>
                 {loadingOffers && <Skeleton className='h-20 w-full rounded-md' />}
                 {!loadingOffers && offers.length === 0 && (
-                  <div className='text-muted-foreground text-sm flex min-h-[400px] items-center justify-center'>
-                    暂无录用记录
+                  <div className='flex min-h-[400px] items-center justify-center'>
+                    <div className='text-muted-foreground flex flex-col items-center text-sm'>
+                      <img src={noOfferSvg} alt='no offers' className='mb-3 h-16 w-16 opacity-70' />
+                      <div>暂无录用记录</div>
+                    </div>
                   </div>
                 )}
               </div>
