@@ -5,6 +5,7 @@ import avatarsImg from '@/assets/images/avatars.png'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
+import { RichText } from '@/components/ui/rich-text'
 import JobTitleAndTags from './job-title-and-tags'
 import PublisherSection from './publisher-section'
 
@@ -142,9 +143,9 @@ export default function JobDetailContent({
 
           <PublisherSection recommendName={recommendName} />
 
-          <div
-            className='text-foreground/90 mb-8 text-base mt-5 leading-relaxed'
-            dangerouslySetInnerHTML={{ __html: job.description }}
+          <RichText
+            content={job.description || '暂无描述'}
+            className='min-h-[100px] mt-5 mb-8'
           />
         </div>
         {isTwoColumn && (
