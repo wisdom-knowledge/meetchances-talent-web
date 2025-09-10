@@ -3,6 +3,7 @@ import { NavGroup } from '@/components/layout/nav-group'
 import { NavUser } from '@/components/layout/nav-user'
 import { sidebarData } from './data/sidebar-data'
 import { useAuthStore } from '@/stores/authStore'
+import logoCircle from '@/assets/images/logo-circle.svg'
 import { useMemo } from 'react'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -16,15 +17,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible='icon' variant='floating' {...props}>
       <SidebarContent>
-        {/* 品牌区域：横向铺满的新 Logo 与副标题 */}
-        <div className='px-4 pt-4'>
+        {/* 展开态：横向 Logo + 文案 */}
+        <div className='px-4 pt-4 group-data-[collapsible=icon]:hidden'>
           <img
             src={'https://dnu-cdn.xpertiise.com/design-assets/logo-and-text-no-padding.svg'}
             alt='一面千识 Logo'
             className='w-[100px] h-auto object-contain'
           />
-          <div className='mt-1.5 px-0.5 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden'>
+          <div className='mt-1.5 px-0.5 text-xs text-muted-foreground'>
             一次面试，千种机会
+          </div>
+        </div>
+
+        {/* 收起态：仅小图标 */}
+        <div className='hidden px-2 pt-3 group-data-[collapsible=icon]:block'>
+          <div className='mx-auto flex aspect-square size-8 items-center justify-center rounded-full'>
+            <img src={logoCircle} alt='一面千识 Logo 小图标' className='size-6' />
           </div>
         </div>
 
