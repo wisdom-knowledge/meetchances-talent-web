@@ -148,7 +148,7 @@ export default function HomeViewPage() {
 
           <TabsContent value='applications'>
             <ScrollArea className='h-[calc(100vh-30rem)] pr-1'>
-              <div className='space-y-3'>
+              <div className='space-y-3 px-1 pt-2 pb-16 faded-bottom no-scrollbar'>
                 {loadingApps && <Skeleton className='h-20 w-full rounded-md' />}
                 {!loadingApps && applications.length === 0 && (
                   <div className='flex min-h-[400px] items-center justify-center'>
