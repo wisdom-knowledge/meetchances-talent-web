@@ -51,6 +51,9 @@ jobs:
           VITE_AUTH_LOGOUT_URL: ${{ secrets.VITE_AUTH_LOGOUT_URL }}
           VITE_INVITE_REDIRECT_URL: ${{ secrets.VITE_INVITE_REDIRECT_URL }}
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_APM_APP_ID: ${{ secrets.VITE_APM_APP_ID }}
+          VITE_APM_APP_TOKEN: ${{ secrets.VITE_APM_APP_TOKEN }}
+          VITE_APP_ENV: ${{ vars.VITE_APP_ENV }}
         run: pnpm run build
 
       - name: 验证构建产物

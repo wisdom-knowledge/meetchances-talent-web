@@ -15,6 +15,7 @@ import { ThemeProvider } from './context/theme-context'
 import './index.css'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
+import { initApm, setApmAuth, setApmContext } from '@/lib/apm'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -81,6 +82,23 @@ declare module '@tanstack/react-router' {
     router: typeof router
   }
 }
+
+// Init APM as early as possible
+initApm()
+{
+  const { user, inviteInfo, accessToken } = useAuthStore.getState().auth
+  setApmAuth({ user, inviteInfo, accessToken })
+  const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
+  setApmContext({ app_env: appEnv })
+}
+
+// Sync user changes to APM
+useAuthStore.subscribe((state) => {
+  const { user, inviteInfo, accessToken } = state.auth
+  setApmAuth({ user, inviteInfo, accessToken })
+  const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
+  setApmContext({ app_env: appEnv })
+})
 
 // Render the app
 const rootElement = document.getElementById('root')!
