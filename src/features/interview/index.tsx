@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
+import { toast } from 'sonner'
 
 interface InterviewPageProps {
   jobId: string | number
@@ -27,6 +28,15 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
   const navigatedRef = useRef(false)
   const endedRef = useRef(false)
   const [confirmEndOpen, setConfirmEndOpen] = useState(false)
+  
+  // 发生错误时使用 toast 提示
+  useEffect(() => {
+    if (isError) {
+      toast.error('获取房间令牌失败，请稍后重试', {
+        description: '请检查网络连接，或稍后点击“重试”。',
+      })
+    }
+  }, [isError])
   const performEndInterview = async () => {
     if (navigatedRef.current) return
     const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
@@ -85,7 +95,12 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
         if (endedRef.current) return
         const prefMic = getPreferredDeviceId('audioinput') ?? undefined
         const prefCam = getPreferredDeviceId('videoinput') ?? undefined
-        await room.localParticipant.setMicrophoneEnabled(true, { deviceId: prefMic })
+        await room.localParticipant.setMicrophoneEnabled(true, {
+          deviceId: prefMic,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        })
         await room.localParticipant.setCameraEnabled(true, { deviceId: prefCam })
         hasEverConnectedRef.current = true
         // eslint-disable-next-line no-console

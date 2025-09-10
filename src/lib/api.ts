@@ -1,6 +1,5 @@
 import axios from 'axios'
 import { Talent, TalentParams } from '@/stores/authStore'
-import { includes } from 'lodash'
 import { noTalentMeRoutes } from '@/components/layout/data/sidebar-data'
 
 const API_BASE_URL =
@@ -28,7 +27,7 @@ api.interceptors.response.use(
     const payload = response.data
     // 明确处理未登录/登录失效
     if (status === 401) {
-      const isSpecialPage = includes(noTalentMeRoutes, window.location.pathname)
+      const isSpecialPage = noTalentMeRoutes.includes(window.location.pathname)
       const loginUrl = LOGIN_URL
       if (typeof window !== 'undefined' && !isSpecialPage) {
         window.location.href = loginUrl!
