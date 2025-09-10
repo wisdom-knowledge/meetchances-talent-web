@@ -60,9 +60,9 @@ export function ProfileDropdown() {
                   user?.accountNo ||
                   (user?.email ? user.email.split('@')[0] : '未登录')}
               </p>
-              <p className='text-muted-foreground text-xs leading-none'>
+              {/* <p className='text-muted-foreground text-xs leading-none'>
                 {user?.email ?? ''}
-              </p>
+              </p> */}
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
