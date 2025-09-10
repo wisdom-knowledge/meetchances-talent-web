@@ -3,7 +3,6 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
-import { join } from 'lodash'
 import {
   AcquistionChannel,
   PartTimeHours,
@@ -89,7 +88,7 @@ export default function InvitedForm() {
       location: payload.city,
       part_time_hours: Number(payload.weeklyHours),
       acquisition_channel: Number(payload.source),
-      top_skills: join([payload.skill1, payload.skill2, payload.skill3], ','),
+      top_skills: [payload.skill1, payload.skill2, payload.skill3].join(','),
     }).then((res) => {
       setUser({
         id: res.id,

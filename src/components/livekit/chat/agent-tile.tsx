@@ -28,6 +28,7 @@ export const AgentTile = ({
       <div
         className={cn('h-60 w-60', {
           'animate-slow-spin': shouldRotate,
+          'scale-125': isThinking,
         })}
       >
         <Lottie

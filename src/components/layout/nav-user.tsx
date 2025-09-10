@@ -85,7 +85,7 @@ export function NavUser({
                     <span className='truncate font-semibold'>
                       {user.name || '未登录'}
                     </span>
-                    <span className='truncate text-xs'>{user.email}</span>
+                    {/* <span className='truncate text-xs'>{user.email}</span> */}
                   </div>
                 </div>
               </DropdownMenuLabel>

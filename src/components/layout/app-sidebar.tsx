@@ -2,7 +2,6 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from '@/component
 import { NavGroup } from '@/components/layout/nav-group'
 import { NavUser } from '@/components/layout/nav-user'
 import { sidebarData } from './data/sidebar-data'
-import logoCircle from '@/assets/images/logo-circle.svg'
 import { useAuthStore } from '@/stores/authStore'
 import { useMemo } from 'react'
 
@@ -17,14 +16,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible='icon' variant='floating' {...props}>
       <SidebarContent>
-        {/* 静态展示默认团队，无下拉、无点击 */}
-        <div className='flex items-center gap-2 px-2 py-2'>
-          <div className='flex aspect-square size-8 items-center justify-center rounded-full'>
-            <img src={logoCircle} alt='logo' className='size-6' />
-          </div>
-          <div className='grid text-left text-sm leading-tight'>
-            <span className='truncate font-semibold'>一面千识</span>
-            <span className='truncate text-xs'>一次面试,千种机会</span>
+        {/* 品牌区域：横向铺满的新 Logo 与副标题 */}
+        <div className='px-4 pt-4'>
+          <img
+            src={'https://dnu-cdn.xpertiise.com/design-assets/logo-and-text-no-padding.svg'}
+            alt='一面千识 Logo'
+            className='w-[100px] h-auto object-contain'
+          />
+          <div className='mt-1.5 px-0.5 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden'>
+            一次面试，千种机会
           </div>
         </div>
 
