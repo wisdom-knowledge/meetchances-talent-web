@@ -1,21 +1,27 @@
 import { useState, useMemo } from 'react'
-import { Header } from '@/components/layout/header'
-import { Main } from '@/components/layout/main'
-// import { TopNav } from '@/components/layout/top-nav'
-import { ProfileDropdown } from '@/components/profile-dropdown'
+import { IconClockHour4, IconCurrencyYen } from '@tabler/icons-react'
+import { cn } from '@/lib/utils'
 // import { Search } from '@/components/search'
 // import { Button } from '@/components/ui/button'
 // import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-// import { ExploreJobs } from './mockData.ts'
-import { useJobsQuery, useJobDetailQuery, type ApiJob, JobsSortBy, JobsSortOrder } from './api'
-import { cn } from '@/lib/utils'
-import { IconClockHour4, IconCurrencyYen } from '@tabler/icons-react'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+// import { TopNav } from '@/components/layout/top-nav'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+// import { ExploreJobs } from './mockData.ts'
+import {
+  useJobsQuery,
+  useJobDetailQuery,
+  type ApiJob,
+  JobsSortBy,
+  JobsSortOrder,
+} from './api'
 // import { useNavigate } from '@tanstack/react-router'
 import JobDetailDrawer from './components/job-detail-drawer'
-import { Skeleton } from '@/components/ui/skeleton'
 
 function formatPublishTime(createdAt?: string): string {
   if (!createdAt) return ''
@@ -42,12 +48,18 @@ export default function JobsListPage() {
   const [sortBy, setSortBy] = useState<JobsSortBy>(JobsSortBy.PublishTime)
   const [sortOrder, setSortOrder] = useState<JobsSortOrder>(JobsSortOrder.Desc)
 
-  const queryParams = useMemo(() => ({ skip: 0, limit: 20, sort_by: sortBy, sort_order: sortOrder }), [sortBy, sortOrder])
+  const queryParams = useMemo(
+    () => ({ skip: 0, limit: 20, sort_by: sortBy, sort_order: sortOrder }),
+    [sortBy, sortOrder]
+  )
   const { data: jobsData, isLoading } = useJobsQuery(queryParams)
   const jobs = jobsData?.data ?? []
 
   // 当只拿到列表的精简数据时，点击后再拉详情
-  const { data: detailData } = useJobDetailQuery(selectedJob?.id ?? null, isDrawerOpen)
+  const { data: detailData } = useJobDetailQuery(
+    selectedJob?.id ?? null,
+    isDrawerOpen
+  )
   const selectedJobData = detailData ?? selectedJob
 
   const handleSelectJob = (job: ApiJob) => {
@@ -75,7 +87,9 @@ export default function JobsListPage() {
       <Main fixed>
         <div className='flex items-start justify-between gap-3'>
           <div className='space-y-0.5'>
-            <h1 className='text-2xl font-bold tracking-tight md:text-3xl mb-2'>职位列表</h1>
+            <h1 className='mb-2 text-2xl font-bold tracking-tight md:text-3xl'>
+              职位列表
+            </h1>
             <p className='text-muted-foreground'>寻找与你匹配的工作机会</p>
           </div>
           <div className='flex items-center gap-2'>
@@ -86,7 +100,7 @@ export default function JobsListPage() {
                 setSortOrder(JobsSortOrder.Desc)
               }}
               className={cn(
-                'inline-flex items-center gap-1.5 h-9 rounded-full px-4 text-sm border transition-colors',
+                'inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors',
                 isPublishActive
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-background text-foreground border-border hover:bg-accent'
@@ -102,7 +116,7 @@ export default function JobsListPage() {
                 setSortOrder(JobsSortOrder.Desc)
               }}
               className={cn(
-                'inline-flex items-center gap-1.5 h-9 rounded-full px-4 text-sm border transition-colors',
+                'inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors',
                 isSalaryActive
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-background text-foreground border-border hover:bg-accent'
@@ -115,11 +129,11 @@ export default function JobsListPage() {
         </div>
         <Separator className='my-4 lg:my-6' />
 
-        <div className='relative flex h-[calc(100vh-4rem)] flex-col gap-6 lg:flex-row -mb-8'>
+        <div className='relative -mb-8 flex h-[calc(100vh-12rem)] flex-col gap-6 lg:flex-row'>
           {/* 左侧：职位列表 */}
-          <div className={cn('h-full lg:h-auto flex-1')}>
-            <ScrollArea className='h-full pr-1'>
-              <ul className='space-y-2'>
+          <div className='flex-1'>
+            <ScrollArea className='h-[calc(100vh-12rem)] pr-1'>
+              <ul className='space-y-2 pb-4'>
                 {isLoading
                   ? Array.from({ length: 8 }).map((_, index: number) => (
                       <li key={`skeleton-${index}`}>
@@ -138,40 +152,48 @@ export default function JobsListPage() {
                         </div>
                       </li>
                     ))
-                  : jobs.map((job: ApiJob) => {
-                   const isActive = selectedJob?.id === job.id
-                  return (
-                    <li key={job.id}>
-                      <div
-                        role='button'
-                        tabIndex={0}
-                        onClick={() => handleSelectJob(job)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') handleSelectJob(job)
-                        }}
-                        className={
-                          'w-full cursor-pointer rounded-md border p-4 text-left transition-colors hover:bg-accent ' +
-                          (isActive ? 'border-primary ring-primary/30' : 'border-border')
-                        }
-                      >
-                        <div className='flex items-center justify-between gap-4'>
-                          <div>
-                            <h3 className='font-medium'>{job.title}</h3>
-                             <p className='text-xs text-muted-foreground'>{formatPublishTime(job.created_at)}</p>
+                  : [...jobs].map((job: ApiJob) => {
+                      const isActive = selectedJob?.id === job.id
+                      return (
+                        <li key={job.id}>
+                          <div
+                            role='button'
+                            tabIndex={0}
+                            onClick={() => handleSelectJob(job)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ')
+                                handleSelectJob(job)
+                            }}
+                            className={
+                              'hover:bg-accent w-full cursor-pointer rounded-md border p-4 text-left transition-colors ' +
+                              (isActive
+                                ? 'border-primary ring-primary/30'
+                                : 'border-border')
+                            }
+                          >
+                            <div className='flex items-center justify-between gap-4'>
+                              <div>
+                                <h3 className='font-medium'>{job.title}</h3>
+                                <p className='text-muted-foreground text-xs'>
+                                  {formatPublishTime(job.created_at)}
+                                </p>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <Badge variant='outline'>
+                                  ￥{job.salary_min ?? 0} - ￥
+                                  {job.salary_max ?? 0} / 小时
+                                </Badge>
+                                <Badge variant='emphasis'>
+                                  {job.job_type === 'part_time'
+                                    ? '兼职'
+                                    : '全职'}
+                                </Badge>
+                              </div>
+                            </div>
                           </div>
-                          <div className='flex items-center gap-2'>
-                            <Badge variant='outline'>
-                              ￥{job.salary_min ?? 0} - ￥{job.salary_max ?? 0} / 小时
-                            </Badge>
-                            <Badge variant='emphasis'>
-                              {job.job_type === 'part_time' ? '兼职' : '全职'}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  )
-                  })}
+                        </li>
+                      )
+                    })}
               </ul>
             </ScrollArea>
           </div>
@@ -179,7 +201,9 @@ export default function JobsListPage() {
           <JobDetailDrawer
             open={isDrawerOpen}
             job={selectedJobData ?? null}
-            onOpenChange={(open) => (open ? setIsDrawerOpen(true) : handleCloseDrawer())}
+            onOpenChange={(open) =>
+              open ? setIsDrawerOpen(true) : handleCloseDrawer()
+            }
             onBack={handleCloseDrawer}
           />
         </div>
@@ -196,5 +220,3 @@ export default function JobsListPage() {
 //     disabled: false,
 //   },
 // ]
-
-
