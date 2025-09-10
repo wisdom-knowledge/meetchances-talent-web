@@ -1,14 +1,51 @@
 import { createBrowserClient } from '@apmplus/web'
 import type { AuthUser, InviteInfo } from '@/stores/authStore'
 
-type ApmCommandFn = (...args: any[]) => any
+type ApmCommandFn = (...args: unknown[]) => unknown
 
 let apmClient: ApmCommandFn | null = null
 let initialized = false
 let started = false
 const persistentContext: Record<string, string> = {}
-let userContextKeys = new Set<string>()
+const userContextKeys = new Set<string>()
 let userContext: Record<string, string> = {}
+
+// Interview/session custom metrics
+let interviewStartMs: number | null = null
+let reportedConnect = false
+let reportedFirstToken = false
+
+export function markInterviewStart(): void {
+  interviewStartMs = performance.now()
+  reportedConnect = false
+  reportedFirstToken = false
+}
+
+export function reportInterviewConnected(extra?: Record<string, string>): void {
+  if (!apmClient || reportedConnect) return
+  const start = interviewStartMs ?? performance.now()
+  const delta = Math.max(0, Math.round(performance.now() - start))
+  reportedConnect = true
+  apmClient('sendEvent', {
+    name: 'connect_time',
+    metrics: { value_ms: delta },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
+export function reportInterviewFirstToken(extra?: Record<string, string>): void {
+  if (!apmClient || reportedFirstToken) return
+  const start = interviewStartMs ?? performance.now()
+  const delta = Math.max(0, Math.round(performance.now() - start))
+  reportedFirstToken = true
+  apmClient('sendEvent', {
+    name: 'first_token_time',
+    metrics: { value_ms: delta },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
 
 export function initApm(): void {
   if (initialized) return
@@ -25,20 +62,22 @@ export function initApm(): void {
 
   apmClient = client
   // 在上报前将自定义上下文合并到 common.context
-  apmClient('on', 'beforeReport', (ev: any) => {
-    const extra = (ev.extra = ev.extra || {})
+  apmClient('on', 'beforeReport', (ev: unknown) => {
+    const e = ev as { extra?: { context?: Record<string, string> } }
+    const extra = (e.extra = e.extra || {})
     const ctx = (extra.context = extra.context || {})
     for (const [k, v] of Object.entries(persistentContext)) ctx[k] = v
     for (const [k, v] of Object.entries(userContext)) ctx[k] = v
-    return ev
+    return e
   })
   // 在发出前直接写入 sendEvent.common.context，确保可见
-  apmClient('on', 'beforeSend', (sendEv: any) => {
-    const common = (sendEv.common = sendEv.common || {})
+  apmClient('on', 'beforeSend', (sendEv: unknown) => {
+    const s = sendEv as { common?: { context?: Record<string, string> } }
+    const common = (s.common = s.common || {})
     const ctx = (common.context = common.context || {})
     for (const [k, v] of Object.entries(persistentContext)) ctx[k] = v
     for (const [k, v] of Object.entries(userContext)) ctx[k] = v
-    return sendEv
+    return s
   })
   initialized = true
 }
