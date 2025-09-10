@@ -1,5 +1,6 @@
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
+import { RichText } from '@/components/ui/rich-text'
 import { Button } from '@/components/ui/button'
 import { UploadArea } from '@/features/resume-upload/upload-area'
 import { useNavigate } from '@tanstack/react-router'
@@ -470,7 +471,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   <div className='relative flex-1 min-h-0 overflow-hidden'>
                     <div className='h-full overflow-hidden'>
                       {job?.description ? (
-                        <div dangerouslySetInnerHTML={{ __html: job.description }} />
+                        <RichText content={job.description} />
                       ) : (
                         <div className='text-muted-foreground'>{isLoading ? '正在加载职位详情…' : '暂无职位描述'}</div>
                       )}
@@ -770,7 +771,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           {job && (
             <>
               {/* 可滚动内容 */}
-              <div className='flex-1 overflow-y-auto'>
+              <div className='flex-1 overflow-y-auto no-scrollbar'>
                 {/* 标题与薪资区 */}
                 <div className='flex pt-5 mt-5 pb-5 items-start justify-between border-b border-border'>
                   <div className='flex-1 min-w-0'>
@@ -809,7 +810,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
                 {/* 详情描述 */}
                 <div className='py-6 text-foreground/90 text-base leading-relaxed'>
-                  <div dangerouslySetInnerHTML={{ __html: job.description }} />
+                  <RichText content={job.description || ''} />
                 </div>
               </div>
             </>
