@@ -15,7 +15,7 @@ import { ThemeProvider } from './context/theme-context'
 import './index.css'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
-import { initApm, setApmAuth, setApmContext } from '@/lib/apm'
+import { initApm, startApm, isApmStarted, setApmAuth, setApmContext } from '@/lib/apm'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -90,6 +90,7 @@ initApm()
   setApmAuth({ user, inviteInfo, accessToken })
   const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
   setApmContext({ app_env: appEnv })
+  if (user) startApm()
 }
 
 // Sync user changes to APM
@@ -98,7 +99,13 @@ useAuthStore.subscribe((state) => {
   setApmAuth({ user, inviteInfo, accessToken })
   const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
   setApmContext({ app_env: appEnv })
+  if (user && !isApmStarted()) startApm()
 })
+
+// fallback: 如果 3 秒后仍未有 user，则启动以避免数据缺失
+setTimeout(() => {
+  if (!isApmStarted()) startApm()
+}, 3000)
 
 // Render the app
 const rootElement = document.getElementById('root')!
