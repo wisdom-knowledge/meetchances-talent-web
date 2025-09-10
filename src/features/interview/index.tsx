@@ -22,7 +22,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
   const navigate = useNavigate()
 
   // const identity = useMemo(() => `user-${Date.now()}`, [])
-  const { data, isLoading, isError, error, refetch } = useInterviewConnectionDetails(jobId, true)
+  const { data, isLoading, isError, error } = useInterviewConnectionDetails(jobId, true)
   const roomRef = useRef<Room>(new Room())
   const hasEverConnectedRef = useRef(false)
   const navigatedRef = useRef(false)
