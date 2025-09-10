@@ -3,7 +3,7 @@ import { create } from 'zustand'
 
 const ACCESS_TOKEN = 'thisisjustarandomstring'
 
-interface AuthUser {
+export interface AuthUser {
   // 后端 /users/me 返回字段
   id: number
   email: string

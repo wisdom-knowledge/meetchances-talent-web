@@ -13,6 +13,7 @@
     "knip": "knip"
   },
   "dependencies": {
+    "@apmplus/web": "^2.10.0",
     "@clerk/clerk-react": "^5.35.3",
     "@hookform/resolvers": "^5.1.1",
     "@livekit/components-react": "^2.9.14",
