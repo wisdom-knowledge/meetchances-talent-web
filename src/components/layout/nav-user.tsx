@@ -5,7 +5,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -15,6 +14,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import aboutUsSvg from '@/assets/images/about_us.svg'
 
 export function NavUser({
   user,
@@ -25,7 +25,7 @@ export function NavUser({
     avatar: string
   }
 }) {
-  const { isMobile } = useSidebar()
+  const { state } = useSidebar()
 
   const handleLogout = () => {
     const baseLogoutUrl = import.meta.env.VITE_AUTH_LOGOUT_URL
@@ -35,6 +35,10 @@ export function NavUser({
   const handleLogin = () => {
     const baseLoginUrl = import.meta.env.VITE_AUTH_LOGIN_URL
     if (baseLoginUrl) location.replace(baseLoginUrl)
+  }
+
+  const handleAbout = () => {
+    window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')
   }
 
   const isLogin = useMemo(() => !!user?.name, [user?.name])
@@ -68,27 +72,15 @@ export function NavUser({
           </DropdownMenuTrigger>
           {isLogin && (
             <DropdownMenuContent
-              className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-              side={isMobile ? 'bottom' : 'right'}
-              align='end'
+              className={`w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg`}
+              side='top'
+              align={state === 'collapsed' ? 'start' : 'center'}
               sideOffset={4}
             >
-              <DropdownMenuLabel className='p-0 font-normal'>
-                <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
-                  <Avatar className='h-8 w-8 rounded-[8px]'>
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className='rounded-[8px]'>
-                      {user.name.charAt(0) || <UserIcon className='h-4 w-4' />}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className='grid flex-1 text-left text-sm leading-tight'>
-                    <span className='truncate font-semibold'>
-                      {user.name || '未登录'}
-                    </span>
-                    {/* <span className='truncate text-xs'>{user.email}</span> */}
-                  </div>
-                </div>
-              </DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleAbout}>
+                <img src={aboutUsSvg} alt='' className='h-4 w-4' />
+                关于我们
+              </DropdownMenuItem>
               {/* <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
                   <Link to='/settings/account'>
