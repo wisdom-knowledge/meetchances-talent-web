@@ -194,7 +194,10 @@ function LocalVideoTile({ trackRef, className, recordingStatus }: { trackRef: Tr
     el.muted = true
     el.playsInline = true
     el.autoplay = true
-    el.setAttribute('controls', 'false')
+    // 禁用所有原生控件与画中画
+    el.controls = false
+    el.setAttribute('controlsList', 'nodownload noplaybackrate noremoteplayback')
+    el.setAttribute('disablepictureinpicture', 'true')
     const play = () => el.play().catch(() => undefined)
     play()
     return () => {
@@ -207,7 +210,7 @@ function LocalVideoTile({ trackRef, className, recordingStatus }: { trackRef: Tr
     <div className={`relative ${className ?? ''}`}>
       <video ref={videoRef} className='h-full w-full object-cover' />
       {isKnown ? (
-        <div className={`pointer-events-none absolute right-2 top-2 h-3 w-3 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`} />
+        <div className={`pointer-events-none absolute right-2 top-2 h-3 w-3 rounded-full ${isRecording? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`} />
       ) : (
         <div className='pointer-events-none absolute right-2 top-2 text-xs font-semibold text-white/80'>-</div>
       )}

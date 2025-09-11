@@ -366,7 +366,15 @@ export function LocalCameraPreview({
     <div className={className} {...props}>
       <Card className='overflow-hidden py-0'>
         <div className={cn('relative bg-black aspect-video w-full max-w-[720px] mx-auto')}>
-          <video ref={videoRef} playsInline muted className='h-full w-full object-cover' />
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className='h-full w-full object-cover'
+            controls={false}
+            controlsList='nodownload noplaybackrate noremoteplayback'
+            disablePictureInPicture
+          />
 
           {/* Headphone stage overlay */}
           {shouldShowHeadphoneUI ? (
