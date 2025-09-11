@@ -11,6 +11,8 @@ interface MonthPickerProps {
   placeholder?: string
   disabled?: boolean
   className?: string
+  // 是否允许选择“至今”
+  allowPresent?: boolean
 }
 
 function parseYearMonth(input?: string): { year: number; month: number } {
@@ -23,11 +25,13 @@ function parseYearMonth(input?: string): { year: number; month: number } {
   return { year, month }
 }
 
-export function MonthPicker({ value, onChange, placeholder, disabled, className }: MonthPickerProps) {
+export function MonthPicker({ value, onChange, placeholder, disabled, className, allowPresent }: MonthPickerProps) {
   const [{ year }, setYm] = useState(() => ({ year: parseYearMonth(value).year }))
   const { year: selectedYear, month: selectedMonth } = useMemo(() => parseYearMonth(value), [value])
   const [mode, setMode] = useState<'month' | 'year'>('month')
   const [open, setOpen] = useState(false)
+  const presentLabel = '至今'
+  const isPresentSelected = allowPresent && (value?.trim() === presentLabel)
 
   const months = useMemo(
     () => Array.from({ length: 12 }, (_, i) => ({ n: i + 1, label: `${i + 1}月` })),
@@ -36,9 +40,10 @@ export function MonthPicker({ value, onChange, placeholder, disabled, className 
 
   const displayLabel = useMemo(() => {
     if (!value) return undefined
+    if (allowPresent && value.trim() === presentLabel) return presentLabel
     const { year: y, month: m } = parseYearMonth(value)
     return `${y}/${m.toString().padStart(2, '0')}`
-  }, [value])
+  }, [value, allowPresent])
 
   const handlePick = (m: number) => {
     const next = `${year}/${m.toString().padStart(2, '0')}`
@@ -104,7 +109,7 @@ export function MonthPicker({ value, onChange, placeholder, disabled, className 
         {mode === 'year' ? (
           <div className='grid grid-cols-4 gap-2'>
             {yearOptions.map((y) => {
-              const isActive = y === selectedYear
+              const isActive = !isPresentSelected && y === selectedYear
               return (
                 <Button
                   key={y}
@@ -124,7 +129,7 @@ export function MonthPicker({ value, onChange, placeholder, disabled, className 
         ) : (
           <div className='grid grid-cols-4 gap-2'>
             {months.map((m) => {
-              const isActive = m.n === selectedMonth && selectedYear === year
+              const isActive = !isPresentSelected && m.n === selectedMonth && selectedYear === year
               return (
                 <Button
                   key={m.n}
@@ -137,6 +142,21 @@ export function MonthPicker({ value, onChange, placeholder, disabled, className 
                 </Button>
               )
             })}
+          </div>
+        )}
+        {allowPresent && mode === 'month' && (
+          <div className='mt-3'>
+            <Button
+              type='button'
+              variant={value?.trim() === presentLabel ? 'default' : 'ghost'}
+              className='h-9 w-full'
+              onClick={() => {
+                onChange?.(presentLabel)
+                setOpen(false)
+              }}
+            >
+              {presentLabel}
+            </Button>
           </div>
         )}
       </PopoverContent>

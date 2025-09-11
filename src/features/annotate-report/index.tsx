@@ -18,14 +18,6 @@ export default function AnnotateReport() {
         <TopNav links={topNav} />
         <div className='ml-auto flex items-center space-x-4'>
           <Search />
-          <a
-            href='http://meetchances.com/'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='text-sm text-muted-foreground hover:text-foreground'
-          >
-            关于我们
-          </a>
         </div>
       </Header>
 
