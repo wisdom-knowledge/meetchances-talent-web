@@ -46,6 +46,7 @@ export function useInterviewConnectionDetails(jobId: string | number | null, ena
     queryKey: ['interview-connection-details', jobId],
     queryFn: () => fetchInterviewConnectionDetails(jobId as string | number),
     enabled: Boolean(jobId) && enabled,
+    retry: false,
   })
 }
 

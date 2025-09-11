@@ -290,7 +290,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
           {isError && (
             <div className='absolute inset-0 z-50 grid place-items-center'>
               {((error as { status_code?: number } | undefined)?.status_code === 100001) ? (
-                <div className='text-sm text-red-600'>抱歉，现在面试过于火爆，请15分钟后再试，我们期待与您结识。</div>
+                <div className='text-sm text-primary'>抱歉，现在面试过于火爆，请15分钟后再试，我们期待与您结识。</div>
               ) : (
                 <>  </>
               )}
