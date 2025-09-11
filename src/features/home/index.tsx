@@ -10,7 +10,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
 import SupportDialog from '@/components/support-dialog'
 import noApplySvg from '@/assets/images/no-apply.svg'
 import noOfferSvg from '@/assets/images/no-offer.svg'
@@ -71,7 +70,14 @@ export default function HomeViewPage() {
     <>
       <Header fixed>
         <div className='ml-auto flex items-center space-x-4'>
-          <ProfileDropdown />
+          <a
+            href='http://meetchances.com/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-sm text-muted-foreground hover:text-foreground'
+          >
+            关于我们
+          </a>
         </div>
       </Header>
 

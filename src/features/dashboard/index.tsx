@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { TopNav } from '@/components/layout/top-nav'
-import { ProfileDropdown } from '@/components/profile-dropdown'
+ 
 import { Search } from '@/components/search'
 import { Overview } from './components/overview'
 import { RecentSales } from './components/recent-sales'
@@ -23,7 +23,14 @@ export default function Dashboard() {
         <TopNav links={topNav} />
         <div className='ml-auto flex items-center space-x-4'>
           <Search />
-          <ProfileDropdown />
+          <a
+            href='http://meetchances.com/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-sm text-muted-foreground hover:text-foreground'
+          >
+            关于我们
+          </a>
         </div>
       </Header>
 

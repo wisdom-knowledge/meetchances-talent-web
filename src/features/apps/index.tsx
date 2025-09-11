@@ -16,7 +16,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
+ 
 import { Search } from '@/components/search'
 import { apps } from './data/apps'
 
@@ -52,7 +52,14 @@ export default function Apps() {
       <Header>
         <Search />
         <div className='ml-auto flex items-center gap-4'>
-          <ProfileDropdown />
+          <a
+            href='http://meetchances.com/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-sm text-muted-foreground hover:text-foreground'
+          >
+            关于我们
+          </a>
         </div>
       </Header>
 

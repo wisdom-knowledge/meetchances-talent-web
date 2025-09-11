@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
-import { ProfileDropdown } from '@/components/profile-dropdown'
+ 
 import UploadCard from './components/upload-card'
 import { UploadArea, type UploadResult } from '@/features/resume-upload/upload-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -100,7 +100,14 @@ export default function ResumeUploadPage() {
     <>
       <Header fixed>
         <div className='ml-auto flex items-center space-x-4'>
-          <ProfileDropdown />
+          <a
+            href='http://meetchances.com/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-sm text-muted-foreground hover:text-foreground'
+          >
+            关于我们
+          </a>
         </div>
       </Header>
 
