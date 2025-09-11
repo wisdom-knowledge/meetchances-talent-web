@@ -170,7 +170,7 @@ export default function Chats() {
                   <Button
                     size='icon'
                     variant='ghost'
-                    className='-ml-2 h-full sm:hidden'
+                    className=' h-full sm:hidden'
                     onClick={() => setMobileSelectedUser(null)}
                   >
                     <IconArrowLeft />
