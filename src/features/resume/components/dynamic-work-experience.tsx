@@ -52,7 +52,12 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                 acc[String(f.key)] = f.component === 'select' ? undefined : ''
                 return acc
               }, {})
-              fieldArray.append(emptyItem as unknown as Parameters<typeof fieldArray.append>[0])
+              const shouldPrepend = sectionKey === 'workExperience' || sectionKey === 'projectExperience'
+              if (shouldPrepend) {
+                fieldArray.prepend(emptyItem as unknown as Parameters<typeof fieldArray.prepend>[0])
+              } else {
+                fieldArray.append(emptyItem as unknown as Parameters<typeof fieldArray.append>[0])
+              }
             }}
           >
             <IconPlus className='h-4 w-4' /> {arraySection.addButtonText}
