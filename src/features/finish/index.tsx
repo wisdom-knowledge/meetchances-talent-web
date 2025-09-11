@@ -212,7 +212,7 @@ export default function FinishPage() {
         </section>
       )}
 
-      {step === 2 && (
+      {/* {step === 2 && (
         <section className='flex flex-col items-center justify-center space-y-6'>
           <img
             src={
@@ -238,7 +238,7 @@ export default function FinishPage() {
             </Button>
           </div>
         </section>
-      )}
+      )} */}
       <div className='absolute right-0 bottom-3 left-0 text-center text-sm text-black/70'>
         需要支持请
         <span
