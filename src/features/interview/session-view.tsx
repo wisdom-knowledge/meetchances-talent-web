@@ -20,6 +20,7 @@ import { ChatEntry } from '@/components/livekit/chat/chat-entry'
 import { ChatMessageView } from '@/components/livekit/chat/chat-message-view'
 import voiceLottie from '@/lotties/voice-lottie.json';
 import { AgentControlBar } from '@/components/livekit/agent-control-bar'
+import { getPreferredDeviceId } from '@/lib/devices'
 
 function useLocalTrackRef(source: Track.Source) {
   const { localParticipant } = useLocalParticipant()
@@ -62,6 +63,22 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
         // ignore
       }
     }
+  }, [room, sessionStarted])
+
+  // 会话开始后，尽可能应用在 prepare 阶段存储的设备ID
+  useEffect(() => {
+    if (!room || !sessionStarted) return
+    try {
+      const preferredCam = getPreferredDeviceId('videoinput')
+      if (preferredCam) {
+        void room.localParticipant.setCameraEnabled(true, { deviceId: preferredCam })
+      }
+      const preferredMic = getPreferredDeviceId('audioinput')
+      if (preferredMic) {
+        void room.localParticipant.setMicrophoneEnabled(true, { deviceId: preferredMic })
+      }
+      // 输出设备（audiooutput）在浏览器中通常需要绑定到 HTMLMediaElement，这里保持在 prepare 中选择并写入存储即可
+    } catch (_e) { /* ignore */ }
   }, [room, sessionStarted])
 
   return (
