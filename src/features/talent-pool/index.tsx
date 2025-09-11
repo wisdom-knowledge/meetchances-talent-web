@@ -27,14 +27,6 @@ export default function TalentPoolPage() {
     <>
       <Header fixed>
         <div className='ml-auto flex items-center space-x-4'>
-          <a
-            href='http://meetchances.com/'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='text-sm text-muted-foreground hover:text-foreground'
-          >
-            关于我们
-          </a>
         </div>
       </Header>
 
