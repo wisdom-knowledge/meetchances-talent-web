@@ -30,7 +30,7 @@ export type ProjectExperienceItemKey = keyof NonNullable<ResumeFormValues['proje
 export type EducationItemKey = keyof NonNullable<ResumeFormValues['education']>[number]
 
 // 表单渲染配置（展示、文案、组件类型、占位符等）
-type ArraySectionConfig = {
+export type ArraySectionConfig = {
   name:
     | 'workExperience'
     | 'projectExperience'
@@ -51,6 +51,8 @@ type ArraySectionConfig = {
     placeholder?: string
     optionsKey?: keyof typeof options
     colSpan?: 1 | 2
+    // 月份选择器特性：是否允许“至今”
+    allowPresent?: boolean
   }>
 }
 
@@ -101,7 +103,7 @@ export const resumeFormConfig: {
           { key: 'organization', label: '公司/组织', component: 'input', placeholder: '例如：某某科技有限公司' },
           { key: 'title', label: '职位', component: 'input', placeholder: '例如：前端工程师' },
           { key: 'startDate', label: '开始时间', component: 'input', placeholder: '例如：2021/07' },
-          { key: 'endDate', label: '结束时间', component: 'input', placeholder: '例如：2022/06 或 至今' },
+          { key: 'endDate', label: '结束时间', component: 'input', placeholder: '例如：2022/06 或 至今', allowPresent: true },
           { key: 'city', label: '城市', component: 'input', placeholder: '请输入城市' },
           { key: 'employmentType', label: '雇佣形式', component: 'select', optionsKey: 'employmentType', placeholder: '请选择雇佣形式' },
           { key: 'achievements', label: '工作内容/业绩', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
@@ -120,7 +122,7 @@ export const resumeFormConfig: {
           { key: 'organization', label: '组织/项目方', component: 'input', placeholder: '例如：外包项目' },
           { key: 'role', label: '角色', component: 'input', placeholder: '例如：场景概念设计师' },
           { key: 'startDate', label: '开始时间', component: 'input', placeholder: '例如：2022/01' },
-          { key: 'endDate', label: '结束时间', component: 'input', placeholder: '例如：2023/12' },
+          { key: 'endDate', label: '结束时间', component: 'input', placeholder: '例如：2023/12 或 至今', allowPresent: true },
           { key: 'achievements', label: '项目内容/业绩', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
         ],
       },
@@ -139,7 +141,7 @@ export const resumeFormConfig: {
           { key: 'degreeType', label: '学历/学位', component: 'select', optionsKey: 'degreeType', placeholder: '请选择学历/学位' },
           { key: 'degreeStatus', label: '学业状态', component: 'select', optionsKey: 'degreeStatus', placeholder: '请选择状态' },
           { key: 'startDate', label: '开始时间', component: 'input', placeholder: '例如：2018/09' },
-          { key: 'endDate', label: '结束时间', component: 'input', placeholder: '例如：2021/08' },
+          { key: 'endDate', label: '结束时间', component: 'input', placeholder: '例如：2021/08 或 至今', allowPresent: true },
           { key: 'city', label: '城市', component: 'input', placeholder: '请输入城市' },
           { key: 'achievements', label: '备注/成就', component: 'textarea', placeholder: '每行一条，支持换行', colSpan: 2 },
         ],

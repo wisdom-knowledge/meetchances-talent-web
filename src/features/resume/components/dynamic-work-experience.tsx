@@ -103,6 +103,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                                 onChange={field.onChange}
                                 placeholder={f.placeholder ?? '选择月份'}
                                 disabled={readOnly}
+                                allowPresent={f.key === 'endDate' ? f.allowPresent === true : false}
                               />
                             </FormControl>
                           ) : f.component === 'input' ? (
