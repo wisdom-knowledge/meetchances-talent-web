@@ -32,6 +32,7 @@ import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
 import { getPreferredDeviceId, setPreferredDeviceId } from '@/lib/devices'
+import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -569,7 +570,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           <div className='flex-1 grid gap-8 grid-cols-12 max-w-screen-xl mx-auto'>
             {/* 左：职位标题 + 设备检查 */}
             <div className='col-span-7 space-y-6 pl-3 flex flex-col justify-center'>
-              <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
+              <div className='flex items-center justify-between'>
+                <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
+                <div className='ml-4 flex-shrink-0'><ConnectionQualityBarsStandalone /></div>
+              </div>
               {/* 用户摄像头展示区域 */}
               <LocalCameraPreview
                 stage={stage}
