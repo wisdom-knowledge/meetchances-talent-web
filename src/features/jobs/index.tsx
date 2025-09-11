@@ -149,8 +149,8 @@ export default function JobsListPage() {
             className='w-full'
           >
             <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='publish' className='text-xs h-8'>最新发布</TabsTrigger>
-              <TabsTrigger value='salary' className='text-xs h-8'>最高薪资</TabsTrigger>
+              <TabsTrigger value='publish' className='text-xs h-8'><IconClockHour4 className='h-4 w-4' />最新发布</TabsTrigger>
+              <TabsTrigger value='salary' className='text-xs h-8'><IconCurrencyYen className='h-4 w-4' />最高薪资</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>

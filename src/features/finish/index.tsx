@@ -60,16 +60,16 @@ export default function FinishPage() {
     return out
   }, [])
 
-  const finishSubmit = useMemo(() => {
-    // if (!previousPath) return true
-    // try {
-    //   const url = new URL(previousPath)
-    //   return url.pathname !== '/invited'
-    // } catch {
-    //   return previousPath !== '/invited'
-    // }
-    return false
-  }, [])
+  // const finishSubmit = useMemo(() => {
+  //   // if (!previousPath) return true
+  //   // try {
+  //   //   const url = new URL(previousPath)
+  //   //   return url.pathname !== '/invited'
+  //   // } catch {
+  //   //   return previousPath !== '/invited'
+  //   // }
+  //   return false
+  // }, [])
 
   const handleSubmit = async (params: FeedbackParams) => {
     if (rating <= 0 || submitting) return
@@ -119,26 +119,27 @@ export default function FinishPage() {
     setHelpOpen(true)
   }
 
-  if (finishSubmit) {
-    return (
-      <Main
-        fixed
-        className={`flex w-full items-center justify-center bg-white`}
-      >
-        <img
-          src={
-            'https://dnu-cdn.xpertiise.com/common/8af6d9a9-6f39-47e2-ac48-74abe3c833e6.svg'
-          }
-          alt='meetchances'
-          className='mb-[32px] ml-3 h-[120px] w-[140px] object-contain'
-        />
-        <h2 className='mb-3 text-xl font-semibold'>复核面试中</h2>
-        <p className='mb-6 max-w-[428px] text-center text-sm opacity-70'>
-          感谢您完成面试，我们正在复核您的面试过程，预计48小时内通知您，请等待短信通知
-        </p>
-      </Main>
-    )
-  }
+  //  暂时展出提交资料符合页面
+  // if (finishSubmit) {
+  //   return (
+  //     <Main
+  //       fixed
+  //       className={`flex w-full items-center justify-center bg-white`}
+  //     >
+  //       <img
+  //         src={
+  //           'https://dnu-cdn.xpertiise.com/common/8af6d9a9-6f39-47e2-ac48-74abe3c833e6.svg'
+  //         }
+  //         alt='meetchances'
+  //         className='mb-[32px] ml-3 h-[120px] w-[140px] object-contain'
+  //       />
+  //       <h2 className='mb-3 text-xl font-semibold'>复核面试中</h2>
+  //       <p className='mb-6 max-w-[428px] text-center text-sm opacity-70'>
+  //         感谢您完成面试，我们正在复核您的面试过程，预计48小时内通知您，请等待短信通知
+  //       </p>
+  //     </Main>
+  //   )
+  // }
 
   return (
     <Main

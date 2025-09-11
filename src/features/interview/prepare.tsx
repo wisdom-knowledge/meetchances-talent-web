@@ -778,7 +778,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   trigger: NodeActionTrigger.Retake, 
                   result_data: {}
                 })
-                navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
+                location.reload()
+                // navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
               }
             }}>重新面试</Button>
           </DialogFooter>
