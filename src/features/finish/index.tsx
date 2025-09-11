@@ -11,12 +11,10 @@ import { fetchForHelp } from '../home/api'
 import { FeedbackParams, fetchFeedback } from './api'
 import { toast } from 'sonner'
 
-type StepKey = 1 | 2
 
 export default function FinishPage() {
   const navigate = useNavigate()
 
-  const [step, setStep] = useState<StepKey>(1)
   const [helpOpen, setHelpOpen] = useState(false)
 
   // Step 1: 面试体验
@@ -60,23 +58,22 @@ export default function FinishPage() {
     return out
   }, [])
 
-  const finishSubmit = useMemo(() => {
-    // if (!previousPath) return true
-    // try {
-    //   const url = new URL(previousPath)
-    //   return url.pathname !== '/invited'
-    // } catch {
-    //   return previousPath !== '/invited'
-    // }
-    return false
-  }, [])
+  // const finishSubmit = useMemo(() => {
+  //   // if (!previousPath) return true
+  //   // try {
+  //   //   const url = new URL(previousPath)
+  //   //   return url.pathname !== '/invited'
+  //   // } catch {
+  //   //   return previousPath !== '/invited'
+  //   // }
+  //   return false
+  // }, [])
 
   const handleSubmit = async (params: FeedbackParams) => {
     if (rating <= 0 || submitting) return
     setSubmitting(true)
     try {
       await fetchFeedback(params)
-      setStep(2)
     } catch (error) {
       handleServerError(error)
     } finally {
@@ -119,99 +116,98 @@ export default function FinishPage() {
     setHelpOpen(true)
   }
 
-  if (finishSubmit) {
-    return (
-      <Main
-        fixed
-        className={`flex w-full items-center justify-center bg-white`}
-      >
-        <img
-          src={
-            'https://dnu-cdn.xpertiise.com/common/8af6d9a9-6f39-47e2-ac48-74abe3c833e6.svg'
-          }
-          alt='meetchances'
-          className='mb-[32px] ml-3 h-[120px] w-[140px] object-contain'
-        />
-        <h2 className='mb-3 text-xl font-semibold'>复核面试中</h2>
-        <p className='mb-6 max-w-[428px] text-center text-sm opacity-70'>
-          感谢您完成面试，我们正在复核您的面试过程，预计48小时内通知您，请等待短信通知
-        </p>
-      </Main>
-    )
-  }
+  //  暂时展出提交资料符合页面
+  // if (finishSubmit) {
+  //   return (
+  //     <Main
+  //       fixed
+  //       className={`flex w-full items-center justify-center bg-white`}
+  //     >
+  //       <img
+  //         src={
+  //           'https://dnu-cdn.xpertiise.com/common/8af6d9a9-6f39-47e2-ac48-74abe3c833e6.svg'
+  //         }
+  //         alt='meetchances'
+  //         className='mb-[32px] ml-3 h-[120px] w-[140px] object-contain'
+  //       />
+  //       <h2 className='mb-3 text-xl font-semibold'>复核面试中</h2>
+  //       <p className='mb-6 max-w-[428px] text-center text-sm opacity-70'>
+  //         感谢您完成面试，我们正在复核您的面试过程，预计48小时内通知您，请等待短信通知
+  //       </p>
+  //     </Main>
+  //   )
+  // }
 
   return (
     <Main
       fixed
       className={`flex w-full items-center justify-center bg-[#ECD9FC]`}
     >
-      {step === 1 && (
-        <section className='min-w-[418px] space-y-6'>
-          <Card>
-            <CardContent className='p-6'>
-              <h2 className='mb-3 text-center text-[24px] font-semibold tracking-wide'>
-                您的面试体验如何？
-              </h2>
-              <div className='mb-6 flex items-center justify-center gap-[10px]'>
-                {Array.from({ length: 5 }).map((_, i) => {
-                  const value = i + 1
-                  const filled = (hoverRating || rating) >= value
-                  return (
-                    <button
-                      key={value}
-                      type='button'
-                      aria-label={`评分 ${value}`}
-                      onMouseEnter={() => setHoverRating(value)}
-                      onMouseLeave={() => setHoverRating(0)}
-                      onClick={() => setRating(value)}
-                      className='transition-transform hover:scale-105'
-                    >
-                      {filled ? (
-                        <IconStarFilled className='h-10 w-10 text-[#4E02E4]' />
-                      ) : (
-                        <IconStar className='h-10 w-10 text-[#4E02E4]' />
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
+      <section className='min-w-[418px] space-y-6'>
+        <Card>
+          <CardContent className='p-6'>
+            <h2 className='mb-3 text-center text-[24px] font-semibold tracking-wide'>
+              您的面试体验如何？
+            </h2>
+            <div className='mb-6 flex items-center justify-center gap-[10px]'>
+              {Array.from({ length: 5 }).map((_, i) => {
+                const value = i + 1
+                const filled = (hoverRating || rating) >= value
+                return (
+                  <button
+                    key={value}
+                    type='button'
+                    aria-label={`评分 ${value}`}
+                    onMouseEnter={() => setHoverRating(value)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    onClick={() => setRating(value)}
+                    className='transition-transform hover:scale-105'
+                  >
+                    {filled ? (
+                      <IconStarFilled className='h-10 w-10 text-[#4E02E4]' />
+                    ) : (
+                      <IconStar className='h-10 w-10 text-[#4E02E4]' />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
 
-              {rating > 0 && (
-                <div className='space-y-2 text-center'>
-                  <Textarea
-                    value={feedback}
-                    onChange={(e) => setFeedback(e.target.value)}
-                    placeholder='请填写您的反馈（可选）'
-                    className='min-h-[151px] min-w-[458px]'
-                  />
-                  <div>
-                    <a
-                      href='https://meetchances.feishu.cn/share/base/form/shrcnU5zDT6uFeBSHM0SeUVvdah'
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='text-sm text-[var(--color-blue-600)] underline '
-                    >
-                      参与体验调研{">>"}
-                    </a>
-                  </div>
+            {rating > 0 && (
+              <div className='space-y-2 text-center'>
+                <Textarea
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  placeholder='请填写您的反馈（可选）'
+                  className='min-h-[151px] min-w-[458px]'
+                />
+                <div>
+                  <a
+                    href='https://meetchances.feishu.cn/share/base/form/shrcnU5zDT6uFeBSHM0SeUVvdah'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-sm text-[var(--color-blue-600)] underline '
+                  >
+                    参与体验调研{">>"}
+                  </a>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          <div className='flex items-center justify-center'>
-            <Button
-              onClick={goNext}
-              disabled={rating <= 0 || submitting}
-              className='h-[44px] w-[200px] bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)] text-white'
-            >
-              提交
-            </Button>
-          </div>
-        </section>
-      )}
+        <div className='flex items-center justify-center'>
+          <Button
+            onClick={goNext}
+            disabled={rating <= 0 || submitting}
+            className='h-[44px] w-[200px] bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)] text-white'
+          >
+            提交
+          </Button>
+        </div>
+      </section>
 
-      {step === 2 && (
+      {/* {step === 2 && (
         <section className='flex flex-col items-center justify-center space-y-6'>
           <img
             src={
@@ -237,7 +233,7 @@ export default function FinishPage() {
             </Button>
           </div>
         </section>
-      )}
+      )} */}
       <div className='absolute right-0 bottom-3 left-0 text-center text-sm text-black/70'>
         需要支持请
         <span
