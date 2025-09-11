@@ -11,7 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 // import { TopNav } from '@/components/layout/top-nav'
-import { ProfileDropdown } from '@/components/profile-dropdown'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+ 
 // import { ExploreJobs } from './mockData.ts'
 import {
   useJobsQuery,
@@ -80,7 +81,14 @@ export default function JobsListPage() {
     <>
       <Header fixed>
         <div className='ml-auto flex items-center space-x-4'>
-          <ProfileDropdown />
+          <a
+            href='http://meetchances.com/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-sm text-muted-foreground hover:text-foreground'
+          >
+            关于我们
+          </a>
         </div>
       </Header>
 
@@ -90,9 +98,9 @@ export default function JobsListPage() {
             <h1 className='mb-2 text-2xl font-bold tracking-tight md:text-3xl'>
               职位列表
             </h1>
-            <p className='text-muted-foreground'>寻找与你匹配的工作机会</p>
+            <p className='text-muted-foreground text-sm sm:text-base'>寻找与你匹配的工作机会</p>
           </div>
-          <div className='flex items-center gap-2'>
+          <div className='hidden items-center gap-2 sm:flex'>
             <button
               type='button'
               onClick={() => {
@@ -100,12 +108,11 @@ export default function JobsListPage() {
                 setSortOrder(JobsSortOrder.Desc)
               }}
               className={cn(
-                'inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors',
+                'inline-flex h-8 sm:h-9 items-center gap-1 sm:gap-1.5 rounded-full border px-3 sm:px-4 text-xs sm:text-sm transition-colors',
                 isPublishActive
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-background text-foreground border-border hover:bg-accent'
               )}
-              aria-pressed={isPublishActive}
             >
               <IconClockHour4 className='h-4 w-4' /> 最新发布
             </button>
@@ -116,16 +123,36 @@ export default function JobsListPage() {
                 setSortOrder(JobsSortOrder.Desc)
               }}
               className={cn(
-                'inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors',
+                'inline-flex h-8 sm:h-9 items-center gap-1 sm:gap-1.5 rounded-full border px-3 sm:px-4 text-xs sm:text-sm transition-colors',
                 isSalaryActive
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-background text-foreground border-border hover:bg-accent'
               )}
-              aria-pressed={isSalaryActive}
             >
               <IconCurrencyYen className='h-4 w-4' /> 最高薪资
             </button>
           </div>
+        </div>
+        {/* 移动端 Tabs：放在标题和描述下方，仅小屏显示 */}
+        <div className='sm:hidden mt-2'>
+          <Tabs
+            value={isPublishActive ? 'publish' : 'salary'}
+            onValueChange={(v) => {
+              if (v === 'publish') {
+                setSortBy(JobsSortBy.PublishTime)
+                setSortOrder(JobsSortOrder.Desc)
+              } else {
+                setSortBy(JobsSortBy.SalaryMax)
+                setSortOrder(JobsSortOrder.Desc)
+              }
+            }}
+            className='w-full'
+          >
+            <TabsList className='grid w-full grid-cols-2'>
+              <TabsTrigger value='publish' className='text-xs h-8'>最新发布</TabsTrigger>
+              <TabsTrigger value='salary' className='text-xs h-8'>最高薪资</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
         <Separator className='my-4 lg:my-6' />
 

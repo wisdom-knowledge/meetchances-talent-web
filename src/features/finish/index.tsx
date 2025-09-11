@@ -177,13 +177,23 @@ export default function FinishPage() {
               </div>
 
               {rating > 0 && (
-                <div className='space-y-2'>
+                <div className='space-y-2 text-center'>
                   <Textarea
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
                     placeholder='请填写您的反馈（可选）'
                     className='min-h-[151px] min-w-[458px]'
                   />
+                  <div>
+                    <a
+                      href='https://meetchances.feishu.cn/share/base/form/shrcnU5zDT6uFeBSHM0SeUVvdah'
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='text-sm text-[var(--color-blue-600)] underline '
+                    >
+                      参与体验调研{">>"}
+                    </a>
+                  </div>
                 </div>
               )}
             </CardContent>

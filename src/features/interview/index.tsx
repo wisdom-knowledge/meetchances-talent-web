@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
+import { markInterviewStart, reportInterviewConnected } from '@/lib/apm'
 import { toast } from 'sonner'
 
 interface InterviewPageProps {
@@ -28,6 +29,11 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
   const navigatedRef = useRef(false)
   const endedRef = useRef(false)
   const [confirmEndOpen, setConfirmEndOpen] = useState(false)
+  
+  // 页面进入即标记 start（仅记录时间点，不触发上报）
+  useEffect(() => {
+    markInterviewStart()
+  }, [])
   
   // 发生错误时使用 toast 提示
   useEffect(() => {
@@ -111,6 +117,8 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
           mic: prefMic ?? 'default',
           cam: prefCam ?? 'default',
         })
+        // 上报“连接耗时”指标（连接成功 = connect + 设备启用成功）
+        reportInterviewConnected({ server: 'livekit' })
       } catch (_e) {
         /* ignore */
       }
