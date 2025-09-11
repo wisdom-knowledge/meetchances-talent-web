@@ -11,12 +11,10 @@ import { fetchForHelp } from '../home/api'
 import { FeedbackParams, fetchFeedback } from './api'
 import { toast } from 'sonner'
 
-type StepKey = 1 | 2
 
 export default function FinishPage() {
   const navigate = useNavigate()
 
-  const [step, setStep] = useState<StepKey>(1)
   const [helpOpen, setHelpOpen] = useState(false)
 
   // Step 1: 面试体验
@@ -76,7 +74,6 @@ export default function FinishPage() {
     setSubmitting(true)
     try {
       await fetchFeedback(params)
-      setStep(2)
     } catch (error) {
       handleServerError(error)
     } finally {
@@ -146,71 +143,69 @@ export default function FinishPage() {
       fixed
       className={`flex w-full items-center justify-center bg-[#ECD9FC]`}
     >
-      {step === 1 && (
-        <section className='min-w-[418px] space-y-6'>
-          <Card>
-            <CardContent className='p-6'>
-              <h2 className='mb-3 text-center text-[24px] font-semibold tracking-wide'>
-                您的面试体验如何？
-              </h2>
-              <div className='mb-6 flex items-center justify-center gap-[10px]'>
-                {Array.from({ length: 5 }).map((_, i) => {
-                  const value = i + 1
-                  const filled = (hoverRating || rating) >= value
-                  return (
-                    <button
-                      key={value}
-                      type='button'
-                      aria-label={`评分 ${value}`}
-                      onMouseEnter={() => setHoverRating(value)}
-                      onMouseLeave={() => setHoverRating(0)}
-                      onClick={() => setRating(value)}
-                      className='transition-transform hover:scale-105'
-                    >
-                      {filled ? (
-                        <IconStarFilled className='h-10 w-10 text-[#4E02E4]' />
-                      ) : (
-                        <IconStar className='h-10 w-10 text-[#4E02E4]' />
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
+      <section className='min-w-[418px] space-y-6'>
+        <Card>
+          <CardContent className='p-6'>
+            <h2 className='mb-3 text-center text-[24px] font-semibold tracking-wide'>
+              您的面试体验如何？
+            </h2>
+            <div className='mb-6 flex items-center justify-center gap-[10px]'>
+              {Array.from({ length: 5 }).map((_, i) => {
+                const value = i + 1
+                const filled = (hoverRating || rating) >= value
+                return (
+                  <button
+                    key={value}
+                    type='button'
+                    aria-label={`评分 ${value}`}
+                    onMouseEnter={() => setHoverRating(value)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    onClick={() => setRating(value)}
+                    className='transition-transform hover:scale-105'
+                  >
+                    {filled ? (
+                      <IconStarFilled className='h-10 w-10 text-[#4E02E4]' />
+                    ) : (
+                      <IconStar className='h-10 w-10 text-[#4E02E4]' />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
 
-              {rating > 0 && (
-                <div className='space-y-2 text-center'>
-                  <Textarea
-                    value={feedback}
-                    onChange={(e) => setFeedback(e.target.value)}
-                    placeholder='请填写您的反馈（可选）'
-                    className='min-h-[151px] min-w-[458px]'
-                  />
-                  <div>
-                    <a
-                      href='https://meetchances.feishu.cn/share/base/form/shrcnU5zDT6uFeBSHM0SeUVvdah'
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='text-sm text-[var(--color-blue-600)] underline '
-                    >
-                      参与体验调研{">>"}
-                    </a>
-                  </div>
+            {rating > 0 && (
+              <div className='space-y-2 text-center'>
+                <Textarea
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  placeholder='请填写您的反馈（可选）'
+                  className='min-h-[151px] min-w-[458px]'
+                />
+                <div>
+                  <a
+                    href='https://meetchances.feishu.cn/share/base/form/shrcnU5zDT6uFeBSHM0SeUVvdah'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-sm text-[var(--color-blue-600)] underline '
+                  >
+                    参与体验调研{">>"}
+                  </a>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          <div className='flex items-center justify-center'>
-            <Button
-              onClick={goNext}
-              disabled={rating <= 0 || submitting}
-              className='h-[44px] w-[200px] bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)] text-white'
-            >
-              提交
-            </Button>
-          </div>
-        </section>
-      )}
+        <div className='flex items-center justify-center'>
+          <Button
+            onClick={goNext}
+            disabled={rating <= 0 || submitting}
+            className='h-[44px] w-[200px] bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)] text-white'
+          >
+            提交
+          </Button>
+        </div>
+      </section>
 
       {/* {step === 2 && (
         <section className='flex flex-col items-center justify-center space-y-6'>
