@@ -31,6 +31,7 @@ import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, 
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
+import { getPreferredDeviceId, setPreferredDeviceId } from '@/lib/devices'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -79,6 +80,19 @@ enum ViewMode {
   }) {
     const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
+
+    // 首次挂载时，应用本地存储的设备偏好
+    useEffect(() => {
+      const preferredMic = getPreferredDeviceId('audioinput')
+      if (preferredMic && preferredMic !== mic.activeDeviceId) {
+        mic.setActiveMediaDevice(preferredMic)
+      }
+      const preferredSpk = getPreferredDeviceId('audiooutput')
+      if (preferredSpk && preferredSpk !== spk.activeDeviceId) {
+        spk.setActiveMediaDevice(preferredSpk)
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const statusText = (s: DeviceTestStatus) => {
       switch (s) {
@@ -135,6 +149,7 @@ enum ViewMode {
               value={spk.activeDeviceId}
               onValueChange={(v) => {
                 spk.setActiveMediaDevice(v)
+                setPreferredDeviceId('audiooutput', v)
                 onSpkStatusChange(DeviceTestStatus.Testing)
                 setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
               }}
@@ -156,6 +171,7 @@ enum ViewMode {
               value={mic.activeDeviceId}
               onValueChange={(v) => {
                 mic.setActiveMediaDevice(v)
+                setPreferredDeviceId('audioinput', v)
                 onMicStatusChange(DeviceTestStatus.Testing)
                 setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
               }}
@@ -370,9 +386,13 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   useEffect(() => {
     if (viewMode !== ViewMode.InterviewPrepare) return
     if (triedCamAutoRef.current) return
-    if (!cam.activeDeviceId && firstCamId) {
+    // 优先使用本地存储的摄像头ID，否则回退为第一个可用设备
+    const preferredCam = getPreferredDeviceId('videoinput')
+    const targetId = preferredCam || firstCamId
+    if (!cam.activeDeviceId && targetId) {
       triedCamAutoRef.current = true
-      cam.setActiveMediaDevice(firstCamId)
+      cam.setActiveMediaDevice(targetId)
+      if (targetId) setPreferredDeviceId('videoinput', targetId)
       setCameraStatus(DeviceTestStatus.Testing)
     }
   }, [viewMode, cam, firstCamId])

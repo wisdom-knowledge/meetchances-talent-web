@@ -20,6 +20,7 @@ import { ChatEntry } from '@/components/livekit/chat/chat-entry'
 import { ChatMessageView } from '@/components/livekit/chat/chat-message-view'
 import voiceLottie from '@/lotties/voice-lottie.json';
 import { AgentControlBar } from '@/components/livekit/agent-control-bar'
+import { getPreferredDeviceId } from '@/lib/devices'
 
 function useLocalTrackRef(source: Track.Source) {
   const { localParticipant } = useLocalParticipant()
@@ -36,9 +37,10 @@ export interface SessionViewProps extends React.ComponentProps<'main'> {
   sessionStarted: boolean
   onRequestEnd?: () => void
   onDisconnect?: () => void
+  recordingStatus?: number
 }
 
-export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, ...props }: SessionViewProps) {
+export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, recordingStatus, ...props }: SessionViewProps) {
   const { state: agentState } = useVoiceAssistant()
   const { messages } = useChatAndTranscription()
   const room = useRoomContext() as Room | undefined
@@ -62,6 +64,22 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
         // ignore
       }
     }
+  }, [room, sessionStarted])
+
+  // 会话开始后，尽可能应用在 prepare 阶段存储的设备ID
+  useEffect(() => {
+    if (!room || !sessionStarted) return
+    try {
+      const preferredCam = getPreferredDeviceId('videoinput')
+      if (preferredCam) {
+        void room.localParticipant.setCameraEnabled(true, { deviceId: preferredCam })
+      }
+      const preferredMic = getPreferredDeviceId('audioinput')
+      if (preferredMic) {
+        void room.localParticipant.setMicrophoneEnabled(true, { deviceId: preferredMic })
+      }
+      // 输出设备（audiooutput）在浏览器中通常需要绑定到 HTMLMediaElement，这里保持在 prepare 中选择并写入存储即可
+    } catch (_e) { /* ignore */ }
   }, [room, sessionStarted])
 
   return (
@@ -142,7 +160,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
             {/* 左：本地视频 */}
             <div className='min-w-[8rem] flex-1'>
               {cameraTrack && cameraTrack.publication?.track && !cameraTrack.publication.isMuted ? (
-                <LocalVideoTile trackRef={cameraTrack} className='h-48 w-64 rounded-md overflow-hidden border bg-black' />
+                <LocalVideoTile trackRef={cameraTrack} className='h-48 w-64 rounded-md overflow-hidden border bg-black' recordingStatus={recordingStatus} />
               ) : (
                 <div className='h-24 w-32' />
               )}
@@ -164,7 +182,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
   )
 }
 
-function LocalVideoTile({ trackRef, className }: { trackRef: TrackReference; className?: string }) {
+function LocalVideoTile({ trackRef, className, recordingStatus }: { trackRef: TrackReference; className?: string; recordingStatus?: number }) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
   useEffect(() => {
     const track = trackRef?.publication?.track
@@ -183,7 +201,18 @@ function LocalVideoTile({ trackRef, className }: { trackRef: TrackReference; cla
       try { track.detach(el) } catch (_e) { /* no-op */ }
     }
   }, [trackRef])
-  return <video ref={videoRef} className={className} />
+  const isRecording = recordingStatus === 10
+  const isKnown = recordingStatus === 0 || recordingStatus === 10
+  return (
+    <div className={`relative ${className ?? ''}`}>
+      <video ref={videoRef} className='h-full w-full object-cover' />
+      {isKnown ? (
+        <div className={`pointer-events-none absolute right-2 top-2 h-3 w-3 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`} />
+      ) : (
+        <div className='pointer-events-none absolute right-2 top-2 text-xs font-semibold text-white/80'>-</div>
+      )}
+    </div>
+  )
 }
 
 

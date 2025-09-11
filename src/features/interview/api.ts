@@ -50,6 +50,35 @@ export function useInterviewConnectionDetails(jobId: string | number | null, ena
   })
 }
 
+// Interview record status
+export interface InterviewRecordStatusData {
+  status: number
+  egress_list?: unknown[]
+}
+
+export async function fetchInterviewRecordStatus(roomName: string): Promise<InterviewRecordStatusData> {
+  const raw = await api.get('/talent/interview_record_status', { params: { room_name: roomName } })
+  // interceptor already unwraps { status_code, data }
+  const obj = (raw ?? {}) as unknown as UnknownRecord
+  const status = typeof obj.status === 'number' ? obj.status : parseInt(String(obj.status ?? '0'), 10)
+  const egress_list = (obj.egress_list as unknown[]) || []
+  return { status, egress_list }
+}
+
+export function useInterviewRecordStatus(
+  roomName: string | undefined,
+  enabled = true,
+  refetchInterval: number | false = 5000,
+) {
+  return useQuery<InterviewRecordStatusData>({
+    queryKey: ['interview-record-status', roomName],
+    queryFn: () => fetchInterviewRecordStatus(roomName as string),
+    enabled: Boolean(roomName) && enabled,
+    staleTime: 2000,
+    refetchInterval,
+  })
+}
+
 export interface SupportDemandPayload {
   detail: string
   need_contact: boolean
