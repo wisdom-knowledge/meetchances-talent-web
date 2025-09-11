@@ -653,9 +653,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   <Button onClick={() => setReinterviewOpen(true)}>重新面试</Button>
                 </div>
               )}
-              <div className='mt-8'>
-                <Button variant='link' className='text-primary' onClick={() => setSupportOpen(true)}>寻求帮助</Button>
-              </div>
             </div>
           </div>
         )}
