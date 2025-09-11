@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
+import { markInterviewStart, reportInterviewConnected } from '@/lib/apm'
 import { toast } from 'sonner'
 
 interface InterviewPageProps {
@@ -22,21 +23,29 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
   const navigate = useNavigate()
 
   // const identity = useMemo(() => `user-${Date.now()}`, [])
-  const { data, isLoading, isError, refetch } = useInterviewConnectionDetails(jobId, true)
+  const { data, isLoading, isError, error } = useInterviewConnectionDetails(jobId, true)
   const roomRef = useRef<Room>(new Room())
   const hasEverConnectedRef = useRef(false)
   const navigatedRef = useRef(false)
   const endedRef = useRef(false)
   const [confirmEndOpen, setConfirmEndOpen] = useState(false)
   
+  // 页面进入即标记 start（仅记录时间点，不触发上报）
+  useEffect(() => {
+    markInterviewStart()
+  }, [])
+  
   // 发生错误时使用 toast 提示
   useEffect(() => {
-    if (isError) {
-      toast.error('获取房间令牌失败，请稍后重试', {
-        description: '请检查网络连接，或稍后点击“重试”。',
-      })
+    if (!isError) return
+    const maybe = error as { status_code?: number; status_msg?: string } | undefined
+    const code = maybe?.status_code
+    if (code === 100001) {
+      // 屏幕中心展示，不使用 toast
+      return
     }
-  }, [isError])
+    toast.error('网络不给力，请稍后再试~')
+  }, [isError, error])
   const performEndInterview = async () => {
     if (navigatedRef.current) return
     const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
@@ -108,6 +117,8 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
           mic: prefMic ?? 'default',
           cam: prefCam ?? 'default',
         })
+        // 上报“连接耗时”指标（连接成功 = connect + 设备启用成功）
+        reportInterviewConnected({ server: 'livekit' })
       } catch (_e) {
         /* ignore */
       }
@@ -277,11 +288,12 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
             <div className='absolute inset-0 grid place-items-center text-sm text-muted-foreground'>正在连接面试房间…</div>
           )}
           {isError && (
-            <div className='absolute inset-0 grid place-items-center'>
-              <div className='flex items-center gap-3 text-sm text-red-600'>
-                <span>获取房间令牌失败。</span>
-                <Button size='sm' variant='outline' onClick={() => refetch()}>重试</Button>
-              </div>
+            <div className='absolute inset-0 z-50 grid place-items-center'>
+              {((error as { status_code?: number } | undefined)?.status_code === 100001) ? (
+                <div className='text-sm text-red-600'>抱歉，现在面试过于火爆，请15分钟后再试，我们期待与您结识。</div>
+              ) : (
+                <>  </>
+              )}
             </div>
           )}
 
