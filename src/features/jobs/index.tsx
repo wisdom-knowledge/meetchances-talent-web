@@ -93,6 +93,7 @@ export default function JobsListPage() {
       </Header>
 
       <Main fixed>
+        <div className='mx-auto w-full max-w-[1224px]'>
         <div className='flex items-start justify-between gap-3'>
           <div className='space-y-0.5'>
             <h1 className='mb-2 text-2xl font-bold tracking-tight md:text-3xl'>
@@ -233,6 +234,7 @@ export default function JobsListPage() {
             }
             onBack={handleCloseDrawer}
           />
+        </div>
         </div>
       </Main>
     </>
