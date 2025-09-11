@@ -1,6 +1,6 @@
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
+ 
 import { Button } from '@/components/ui/button'
 import TalentTable from '@/features/talent-pool/components/talent-table'
 import { IconBriefcase, IconWorldPin } from '@tabler/icons-react'
@@ -39,7 +39,14 @@ export default function JobRecommendPage() {
     <>
       <Header fixed>
         <div className='ml-auto flex items-center space-x-4'>
-          <ProfileDropdown />
+          <a
+            href='http://meetchances.com/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-sm text-muted-foreground hover:text-foreground'
+          >
+            关于我们
+          </a>
         </div>
       </Header>
 

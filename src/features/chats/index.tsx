@@ -21,7 +21,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
+ 
 import { Search } from '@/components/search'
 import { NewChat } from './components/new-chat'
 import { type ChatUser, type Convo } from './data/chat-types'
@@ -67,7 +67,14 @@ export default function Chats() {
       <Header>
         <Search />
         <div className='ml-auto flex items-center space-x-4'>
-          <ProfileDropdown />
+          <a
+            href='http://meetchances.com/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-sm text-muted-foreground hover:text-foreground'
+          >
+            关于我们
+          </a>
         </div>
       </Header>
 
