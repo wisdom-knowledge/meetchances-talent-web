@@ -4,7 +4,7 @@ import { RoomAudioRenderer, RoomContext } from '@livekit/components-react'
 import { RoomEvent, Room, type RemoteParticipant } from 'livekit-client'
 // AgentControlBar moved into SessionView
 import '@livekit/components-styles'
-import { useInterviewConnectionDetails, postNodeAction, NodeActionTrigger } from '@/features/interview/api'
+import { useInterviewConnectionDetails, postNodeAction, NodeActionTrigger, useInterviewRecordStatus } from '@/features/interview/api'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -126,6 +126,24 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
     void connect()
     // no cleanup disconnect here; handled by dedicated handlers
   }, [data?.serverUrl, data?.token])
+
+  // 获取录制状态（基于 connection_details 返回的 roomName）
+  const roomName = (data as { roomName?: string } | undefined)?.roomName
+  // 延迟 10s 后调用两次；默认不启用自动轮询
+  const { data: recordStatus, refetch: refetchRecordStatus } = useInterviewRecordStatus(roomName, false, false)
+  useEffect(() => {
+    if (!roomName) return
+    const timer = setTimeout(() => {
+      void refetchRecordStatus()
+      // 第二次调用稍作间隔，确保两次请求均发送
+      const timer2 = setTimeout(() => { void refetchRecordStatus() }, 600)
+      // 清理第二个定时器
+      ;(timer2 as unknown as { __cleanup?: boolean }).__cleanup = true
+    }, 10_000)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [roomName, refetchRecordStatus])
 
   // 面试断开或有参与者断开时，结束面试：跳转 finish 页面（replace），带上 interview_id
   useEffect(() => {
@@ -290,7 +308,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
           {isError && (
             <div className='absolute inset-0 z-50 grid place-items-center'>
               {((error as { status_code?: number } | undefined)?.status_code === 100001) ? (
-                <div className='text-sm text-red-600'>抱歉，现在面试过于火爆，请15分钟后再试，我们期待与您结识。</div>
+                <div className='text-sm text-primary'>抱歉，现在面试过于火爆，请15分钟后再试，我们期待与您结识。</div>
               ) : (
                 <>  </>
               )}
@@ -301,7 +319,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
             <div className='h-full'>
               <RoomContext.Provider value={roomRef.current}>
                 <RoomAudioRenderer />
-                <SessionView disabled={false} sessionStarted className='h-full' onRequestEnd={() => setConfirmEndOpen(true)} onDisconnect={performEndInterview} />
+                <SessionView disabled={false} sessionStarted className='h-full' onRequestEnd={() => setConfirmEndOpen(true)} onDisconnect={performEndInterview} recordingStatus={recordStatus?.status} />
               </RoomContext.Provider>
             </div>
           ) : (
