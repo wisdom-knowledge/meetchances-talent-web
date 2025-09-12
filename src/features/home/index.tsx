@@ -176,9 +176,13 @@ export default function HomeViewPage() {
                           text: '审核中',
                           classes: 'bg-[#4E02E41A] text-[#4E02E4]',
                         }
-                      return {
-                        text: '未完成',
-                        classes: 'bg-amber-200 text-amber-900',
+                      {
+                        const progress = item.progress ?? 0
+                        const total = item.total_step ?? 0
+                        return {
+                          text: `未完成（${progress}/${total}）`,
+                          classes: 'bg-amber-200 text-amber-900',
+                        }
                       }
                     })()
                     const startedText = (() => {
