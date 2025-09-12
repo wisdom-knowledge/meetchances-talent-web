@@ -452,7 +452,21 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               onClick={() => {
                 // 先主动释放媒体资源，再进行跳转
                 releaseAllMediaStreams()
-                if (viewMode === ViewMode.InterviewPendingReview) {
+                let isExternalReferrer = false
+                try {
+                  const ref = document.referrer
+                  if (ref) {
+                    const refOrigin = new URL(ref).origin
+                    isExternalReferrer = refOrigin !== window.location.origin
+                  }
+                } catch {
+                  /* ignore */
+                }
+
+                if (
+                  viewMode === ViewMode.InterviewPendingReview ||
+                  isExternalReferrer
+                ) {
                   // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
                   window.location.replace('/home')
                 } else {
