@@ -198,6 +198,24 @@ export function LocalCameraPreview({
     }
   }
 
+  const handleHeadphoneConfirmClick = () => {
+    // stop test audio immediately if playing
+    if (stopTimerRef.current) {
+      window.clearTimeout(stopTimerRef.current)
+      stopTimerRef.current = null
+    }
+    try {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+      }
+    } catch {
+      // ignore
+    }
+    setIsPlayingTestAudio(false)
+    onHeadphoneConfirm?.()
+  }
+
   // ---------- Mic stage: capture mic, visualize, 5s record & playback ----------
   const micStreamRef = useRef<MediaStream | null>(null)
   const micRecorderRef = useRef<MediaRecorder | null>(null)
@@ -405,7 +423,7 @@ export function LocalCameraPreview({
                 <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio}>
                   播放测试音频
                 </Button>
-                <Button size='sm' variant='secondary' onClick={onHeadphoneConfirm} disabled={disableHeadphoneActions}>
+                <Button size='sm' variant='secondary' onClick={handleHeadphoneConfirmClick} disabled={disableHeadphoneActions}>
                   我能听到
                 </Button>
               </motion.div>
