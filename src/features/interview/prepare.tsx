@@ -406,7 +406,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     return (
       <>
         <Main fixed>
-          <div className='flex h-[60vh] items-center justify-center'>
+          <div className='flex h-[calc(100vh-4rem)] items-center justify-center'>
             <div className='rounded-lg border bg-background p-3 shadow flex items-center gap-2 text-sm text-muted-foreground'>
               <IconLoader2 className='h-4 w-4 animate-spin text-primary' /> 正在加载流程…
             </div>

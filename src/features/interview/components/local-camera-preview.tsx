@@ -453,13 +453,13 @@ export function LocalCameraPreview({
               {isPlayingTestAudio && lottieData ? (
                 <>
                   {/* Left */}
-                  <div className='pointer-events-none absolute inset-y-0 -left-12 flex items-center'>
-                    <Lottie animationData={lottieData} loop autoplay className='h-48 w-48' />
+                  <div className='pointer-events-none absolute inset-y-0 -left-18 flex items-center'>
+                    <Lottie animationData={lottieData} loop autoplay className='h-[235px]' />
                   </div>
                   {/* Right (mirrored) */}
-                  <div className='pointer-events-none absolute inset-y-0 -right-12 flex items-center'>
+                  <div className='pointer-events-none absolute inset-y-0 -right-18 flex items-center'>
                     <div className='-scale-x-100'>
-                      <Lottie animationData={lottieData} loop autoplay className='h-48 w-48' />
+                      <Lottie animationData={lottieData} loop autoplay className='h-[235px]' />
                     </div>
                   </div>
                 </>
@@ -472,7 +472,7 @@ export function LocalCameraPreview({
                 transition={{ duration: 0.2 }}
                 className='absolute inset-x-0 bottom-3 flex items-center justify-center gap-3 px-4'
               >
-                <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio}>
+                <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio} className='disabled:backdrop-blur-[20px]'>
                   播放测试音频
                 </Button>
                 <Button size='sm' variant='secondary' onClick={handleHeadphoneConfirmClick} disabled={disableHeadphoneActions}>
