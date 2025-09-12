@@ -84,12 +84,6 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
   useEffect(() => {
     if (!data?.token || !data?.serverUrl) return
     const room = roomRef.current
-    // eslint-disable-next-line no-console
-    console.log('[Interview] connect effect start', {
-      hasToken: Boolean(data?.token),
-      hasServerUrl: Boolean(data?.serverUrl),
-      roomState: room.state,
-    })
     const connect = async () => {
       try {
         if (endedRef.current) {
@@ -97,26 +91,22 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
           return
         }
         if (room.state === 'disconnected') {
-          // eslint-disable-next-line no-console
-          console.log('[Interview] connecting to livekit ...')
           await room.connect(data.serverUrl, data.token)
         }
         if (endedRef.current) return
-        const prefMic = getPreferredDeviceId('audioinput') ?? undefined
-        const prefCam = getPreferredDeviceId('videoinput') ?? undefined
+        const prefMic = getPreferredDeviceId('audioinput')
+        const prefCam = getPreferredDeviceId('videoinput')
+        // 只有在设备ID不是 'default' 时才传递具体的设备ID
+        const micDeviceId = prefMic && prefMic !== 'default' ? prefMic : undefined
+        const camDeviceId = prefCam && prefCam !== 'default' ? prefCam : undefined
         await room.localParticipant.setMicrophoneEnabled(true, {
-          deviceId: prefMic,
+          deviceId: micDeviceId,
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
         })
-        await room.localParticipant.setCameraEnabled(true, { deviceId: prefCam })
+        await room.localParticipant.setCameraEnabled(true, { deviceId: camDeviceId })
         hasEverConnectedRef.current = true
-        // eslint-disable-next-line no-console
-        console.log('[Interview] connected & devices enabled', {
-          mic: prefMic ?? 'default',
-          cam: prefCam ?? 'default',
-        })
         // 上报“连接耗时”指标（连接成功 = connect + 设备启用成功）
         reportInterviewConnected({ server: 'livekit' })
       } catch (_e) {
@@ -148,16 +138,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
   // 面试断开或有参与者断开时，结束面试：跳转 finish 页面（replace），带上 interview_id
   useEffect(() => {
     const room = roomRef.current
-    const handleDisconnected = async (reason?: unknown) => {
-      // eslint-disable-next-line no-console
-      console.log('[Interview] Disconnected event', {
-        reason: String(reason ?? 'unknown'),
-        hasEverConnected: hasEverConnectedRef.current,
-        alreadyNavigated: navigatedRef.current,
-        roomState: room.state,
-        visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
-        online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
-      })
+    const handleDisconnected = async (_reason?: unknown) => {
       // 断开后立即释放本地设备与媒体轨道，尽快归还权限
       try { await room.localParticipant.setMicrophoneEnabled(false) } catch { /* noop */ }
       try { await room.localParticipant.setCameraEnabled(false) } catch { /* noop */ }
@@ -167,8 +148,6 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
           if (track && (track.kind === 'audio' || track.kind === 'video')) {
             track.stop()
             // 取消发布交给 room 内部
-            // eslint-disable-next-line no-console
-            console.log(`停止 ${track.kind} 轨道: ${track.sid}`)
           }
         } catch { /* ignore */ }
       })
@@ -214,15 +193,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
         })
       }
     }
-    const handleParticipantDisconnected = async (participant?: RemoteParticipant) => {
-      // eslint-disable-next-line no-console
-      console.log('[Interview] ParticipantDisconnected', {
-        identity: participant?.identity,
-        sid: participant?.sid,
-        isAgentGuess: typeof participant?.identity === 'string' && participant.identity.toLowerCase().includes('agent'),
-        remoteParticipantCount: room.numParticipants,
-        localIdentity: room.localParticipant.identity,
-      })
+    const handleParticipantDisconnected = async (_participant?: RemoteParticipant) => {
       // 明确释放本地设备并断开，以触发统一的 Disconnected 处理
       try { await room.localParticipant.setMicrophoneEnabled(false) } catch { /* noop */ }
       try { await room.localParticipant.setCameraEnabled(false) } catch { /* noop */ }
@@ -231,8 +202,6 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
           const track = pub.track
           if (track && (track.kind === 'audio' || track.kind === 'video')) {
             track.stop()
-            // eslint-disable-next-line no-console
-            console.log(`停止 ${track.kind} 轨道: ${track.sid}`)
           }
         } catch { /* ignore */ }
       })
@@ -241,19 +210,13 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
       void handleDisconnected()
     }
     const handleReconnecting = () => {
-      // eslint-disable-next-line no-console
-      console.log('[Interview] Reconnecting ...', {
-        visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
-        online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
-      })
+      // Reconnecting logic if needed
     }
     const handleReconnected = () => {
-      // eslint-disable-next-line no-console
-      console.log('[Interview] Reconnected')
+      // Reconnected logic if needed
     }
     const handleConnChanged = () => {
-      // eslint-disable-next-line no-console
-      console.log('[Interview] ConnectionStateChanged', { state: room.state })
+      // Connection state changed logic if needed
     }
     room.on(RoomEvent.Disconnected, handleDisconnected)
     room.on(RoomEvent.Reconnecting, handleReconnecting)
@@ -271,22 +234,14 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
 
   // 记录页面可见性与网络状态，辅助定位生产环境切后台后的断开
   useEffect(() => {
-    const room = roomRef.current
     const onVisibility = () => {
-      // eslint-disable-next-line no-console
-      console.log('[Interview] visibilitychange', {
-        visibility: document.visibilityState,
-        online: navigator.onLine,
-        roomState: room.state,
-      })
+      // Visibility change logic if needed
     }
     const onOnline = () => {
-      // eslint-disable-next-line no-console
-      console.log('[Interview] network online')
+      // Network online logic if needed
     }
     const onOffline = () => {
-      // eslint-disable-next-line no-console
-      console.log('[Interview] network offline')
+      // Network offline logic if needed
     }
     document.addEventListener('visibilitychange', onVisibility)
     window.addEventListener('online', onOnline)
