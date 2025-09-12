@@ -192,20 +192,20 @@ export default function JobsListPage() {
                                 : 'border-border')
                             }
                           >
-                            <div className='flex items-center justify-between gap-4'>
+                            <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4'>
                               <div>
                                 <h3 className='font-medium'>{job.title}</h3>
                                 <p className='text-muted-foreground text-xs'>
                                   {formatPublishTime(job.created_at)}
                                 </p>
                               </div>
-                              <div className='flex items-center gap-2'>
+                              <div className='mt-2 sm:mt-0 flex items-center gap-2 sm:justify-end'>
                                 <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary'>
                                   <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   ¥{job.salary_min ?? 0} - ¥{job.salary_max ?? 0} / 小时
                                 </Badge>
                                 
-                                <Badge variant='default' className='opacity-50 rounded-full px-3 py-1.5 '>
+                                <Badge variant='default' className='rounded-full px-6 py-1.5 bg-[#C994F7] text-white'>
                                   {job.job_type === 'part_time'
                                     ? '兼职'
                                     : '全职'}
