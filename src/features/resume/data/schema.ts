@@ -4,16 +4,7 @@ export const resumeSchema = z.object({
   name: z.string().optional(),
   gender: z
     .string()
-    .optional()
-    .superRefine((val, ctx) => {
-      if (val === '') {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: '请选择性别' })
-        return
-      }
-      if (val != null && !['男', '女', '其他', '不愿透露'].includes(val)) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: '请选择性别' })
-      }
-    }),
+    .optional(),
   phone: z.string().optional(),
   email: z.string().email('请输入有效邮箱地址').optional().or(z.literal('')),
   city: z.string().optional(),

@@ -33,6 +33,7 @@ import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/ap
 import searchPng from '@/assets/images/search.png'
 import { getPreferredDeviceId, setPreferredDeviceIdSmart } from '@/lib/devices'
 import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -235,6 +236,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   }, [cam.activeDeviceId, cam.devices])
   const user = useAuthStore((s) => s.auth.user)
   const queryClient = useQueryClient()
+  const isMobile = useIsMobile()
   const { data: progressNodes, isLoading: isProgressLoading } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
   const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
   const interviewNodeId = useMemo(() => getInterviewNodeId(workflow), [workflow])
@@ -428,7 +430,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     return (
       <>
         <Main fixed>
-          <div className='flex h-[60vh] items-center justify-center'>
+          <div className='flex h-[calc(100vh-4rem)] items-center justify-center'>
             <div className='rounded-lg border bg-background p-3 shadow flex items-center gap-2 text-sm text-muted-foreground'>
               <IconLoader2 className='h-4 w-4 animate-spin text-primary' /> 正在加载流程…
             </div>
@@ -477,7 +479,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         {viewMode === ViewMode.Job && (
           <div className='flex-1 flex flex-row items-stretch w-full justify-between max-w-screen-xl mx-auto overflow-hidden min-h-0'>
             {/* 左：职位信息 */}
-            <div className='col-span-7 space-y-6 pl-3 flex flex-col h-full min-h-0'>
+            <div className='col-span-7 space-y-6 pl-3 flex flex-col h-full min-h-0 max-h-[600px] overflow-y-auto my-auto w-full '>
               <div className='flex h-full flex-col min-h-0'>
                 <div className='flex items-start justify-between gap-4'>
                   <div className='min-w-0'>
@@ -533,7 +535,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
             {/* 右：上传简历 */}
             <div className='col-span-5 flex flex-col h-full min-h-0 justify-center'>
-              <div className='p-4 sticky relative my-8'>
+              <div className='p-4 sticky relative my-8 pl-[36px]'>
                 <UploadArea
                   className='my-4 min-w-[420px]'
                   uploader={uploadTalentResume}
@@ -819,7 +821,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           {job && (
             <>
               {/* 可滚动内容 */}
-              <div className='flex-1 overflow-y-auto no-scrollbar'>
+              <div className={cn('flex-1 overflow-y-auto no-scrollbar ', isMobile ? 'mx-[8px]' : 'mx-[16px]' )}>
                 {/* 标题与薪资区 */}
                 <div className='flex pt-5 mt-5 pb-5 items-start justify-between border-b border-border'>
                   <div className='flex-1 min-w-0'>
