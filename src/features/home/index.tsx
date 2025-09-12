@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { IconX, IconHelp } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
@@ -160,9 +161,26 @@ export default function HomeViewPage() {
                 {!loadingApps &&
                   applications.map((item) => {
                     const jd = item.job_detail
-                    const isCompleted =
-                      (item.total_step ?? 0) > 0 &&
-                      (item.progress ?? 0) >= (item.total_step ?? 0)
+                    // 根据最新需求：根据 current_node_status 展示状态 Pill
+                    const status = item.current_node_status ?? '0'
+                    type Pill = { text: string; classes: string }
+                    const pill: Pill = (() => {
+                      // 颜色：绿色 #00BD65；红色 #F4490B
+                      // 0/10/50 -> 进行中；20 -> 审核中；30 -> 通过；40 -> 已拒绝
+                      if (status === '30')
+                        return { text: '已通过', classes: 'bg-[#D7FCE3] text-[#00BD65]' }
+                      if (status === '40')
+                        return { text: '已拒绝', classes: 'bg-[#FFDEDD] text-[#F4490B]' }
+                      if (status === '20')
+                        return {
+                          text: '审核中',
+                          classes: 'bg-[#4E02E41A] text-[#4E02E4]',
+                        }
+                      return {
+                        text: '未完成',
+                        classes: 'bg-amber-200 text-amber-900',
+                      }
+                    })()
                     const startedText = (() => {
                       const created = item.created_at
                       if (!created || created <= 0) return ''
@@ -211,16 +229,14 @@ export default function HomeViewPage() {
                                 {startedText}
                               </div>
                             )}
-                            {isCompleted ? (
-                              <span className='inline-flex w-30 items-center justify-center rounded-full bg-emerald-500 px-3 py-1 text-sm text-white'>
-                                已完成
-                              </span>
-                            ) : (
-                              <span className='inline-flex w-30 items-center justify-center rounded-full bg-amber-200 px-3 py-1 text-sm text-amber-900'>
-                                未完成 ({item.progress ?? 0}/
-                                {item.total_step ?? 0})
-                              </span>
-                            )}
+                            <span
+                              className={cn(
+                                'inline-flex w-30 items-center justify-center rounded-full px-3 py-1 text-sm',
+                                pill.classes,
+                              )}
+                            >
+                              {pill.text}
+                            </span>
                           </div>
                         </div>
                       </Card>
