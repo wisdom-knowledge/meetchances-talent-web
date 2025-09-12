@@ -27,8 +27,10 @@ export function MicVisualizer({ stream, className, barCount = 12 }: MicVisualize
         audioContextRef.current = ctx
         const source = ctx.createMediaStreamSource(stream)
         const analyser = ctx.createAnalyser()
-        analyser.fftSize = 256
-        analyser.smoothingTimeConstant = 0.8
+        analyser.fftSize = 512 // 增加 FFT 大小以提高频率分辨率
+        analyser.smoothingTimeConstant = 0.3 // 降低平滑常数以提高响应速度
+        analyser.minDecibels = -90 // 设置更低的最小分贝值以提高敏感度
+        analyser.maxDecibels = -10 // 设置最大分贝值
         analyserRef.current = analyser
         source.connect(analyser)
 
@@ -37,9 +39,12 @@ export function MicVisualizer({ stream, className, barCount = 12 }: MicVisualize
 
         const tick = () => {
           analyser.getByteFrequencyData(dataArray)
-          const avg = dataArray.reduce((s, v) => s + v, 0) / dataArray.length
-          const ratio = Math.max(0, Math.min(1, avg / 255))
-          const lit = Math.max(0, Math.min(barCount, Math.round(ratio * barCount)))
+          // 使用 RMS (Root Mean Square) 计算更准确的音量
+          const rms = Math.sqrt(dataArray.reduce((sum, value) => sum + value * value, 0) / dataArray.length)
+          // 应用对数缩放和敏感度调整
+          const normalizedRms = Math.min(1, rms / 128) // 降低归一化阈值
+          const amplified = Math.pow(normalizedRms, 0.5) // 使用幂函数放大小信号
+          const lit = Math.max(0, Math.min(barCount, Math.round(amplified * barCount * 1.2))) // 增加放大系数
           if (!isCancelled) setActiveCount(lit)
           rafRef.current = requestAnimationFrame(tick)
         }
