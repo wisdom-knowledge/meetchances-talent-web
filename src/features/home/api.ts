@@ -26,6 +26,16 @@ export interface ApiApplyListItem {
   job_detail: ApiJob & { online_status?: number; company?: { name?: string } } // 岗位详细信息（扩展 online_status）
   progress: number // 当前进度
   total_step: number // 总步骤数
+  /**
+   * 当前申请的流程节点状态（字符串枚举）
+   * '0': 未开始(视为进行中)
+   * '10': 进行中
+   * '20': 审核中
+   * '30': 通过
+   * '40': 已拒绝
+   * '50': 打回(视为进行中)
+   */
+  current_node_status?: '0' | '10' | '20' | '30' | '40' | '50'
 }
 
 // Important tasks (data-driven)

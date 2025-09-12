@@ -29,4 +29,139 @@ export function setPreferredDeviceId(kind: SupportedMediaDeviceKind, deviceId: s
   }
 }
 
+/**
+ * 通过设备名称匹配找到默认设备的真实ID
+ * @param kind 设备类型
+ * @param devices 设备列表
+ * @returns 具体的设备ID或null
+ */
+export async function resolveDefaultDeviceByName(
+  _kind: SupportedMediaDeviceKind,
+  devices: MediaDeviceInfo[]
+): Promise<string | null> {
+  try {
+    // 找到标记为 "default" 的设备
+    const defaultDevice = devices.find(device => device.deviceId === 'default')
+    if (!defaultDevice) return null
+
+    // 提取默认设备名称中的实际设备名（去掉 "默认 - " 前缀）
+    const defaultLabel = defaultDevice.label
+    const actualDeviceName = defaultLabel.replace(/^默认\s*-\s*/, '').trim()
+
+
+    // 在设备列表中找到匹配的具体设备
+    const matchedDevice = devices.find(device =>
+      device.deviceId !== 'default' &&
+      device.label === actualDeviceName
+    )
+
+
+    return matchedDevice?.deviceId || null
+  } catch (_e) {
+    return null
+  }
+}
+
+/**
+ * 获取当前实际使用的默认设备ID
+ * 优先通过设备名称匹配，fallback到媒体流检测
+ * @param kind 设备类型
+ * @param devices 可用设备列表
+ * @returns 具体的设备ID或null
+ */
+export async function resolveRealDeviceId(
+  kind: SupportedMediaDeviceKind,
+  devices?: MediaDeviceInfo[]
+): Promise<string | null> {
+  try {
+    // 如果没有传入设备列表，先获取
+    if (!devices || devices.length === 0) {
+      // 先请求媒体权限
+      try {
+        let stream: MediaStream | null = null
+        if (kind === 'audioinput') {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        } else if (kind === 'videoinput') {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true })
+        }
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop())
+        }
+      } catch (_e) {
+        // Ignore permission errors
+      }
+
+      const allDevices = await navigator.mediaDevices.enumerateDevices()
+      devices = allDevices.filter(device => device.kind === kind)
+    }
+
+
+    // 方法1: 通过设备名称匹配
+    const nameMatchedId = await resolveDefaultDeviceByName(kind, devices)
+    if (nameMatchedId) {
+      return nameMatchedId
+    }
+
+    // 方法2: 通过媒体流检测（fallback）
+    try {
+      let stream: MediaStream | null = null
+      if (kind === 'audioinput') {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      } else if (kind === 'videoinput') {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      }
+
+      if (stream) {
+        const tracks = kind === 'audioinput' ? stream.getAudioTracks() : stream.getVideoTracks()
+        if (tracks.length > 0) {
+          const settings = tracks[0].getSettings()
+          const actualDeviceId = settings.deviceId
+          stream.getTracks().forEach(track => track.stop())
+
+          if (actualDeviceId && actualDeviceId !== 'default') {
+            return actualDeviceId
+          }
+        }
+      }
+    } catch (_e) {
+      // Ignore stream errors
+    }
+
+    // 方法3: fallback 到第一个可用设备
+    const firstRealDevice = devices.find(device => device.deviceId && device.deviceId !== 'default')
+    const fallbackId = firstRealDevice?.deviceId || null
+
+    return fallbackId
+  } catch (_e) {
+    return null
+  }
+}
+
+/**
+ * 智能保存设备偏好，如果是 'default' 则尝试保存具体的设备ID
+ * @param kind 设备类型
+ * @param deviceId 设备ID
+ * @param devices 可用设备列表（可选）
+ */
+export async function setPreferredDeviceIdSmart(
+  kind: SupportedMediaDeviceKind,
+  deviceId: string | null | undefined,
+  devices?: MediaDeviceInfo[]
+) {
+
+  if (!deviceId) {
+    setPreferredDeviceId(kind, deviceId)
+    return
+  }
+
+  // 如果是 'default'，尝试获取真实的设备ID
+  if (deviceId === 'default') {
+    const realId = await resolveRealDeviceId(kind, devices)
+    const finalId = realId || deviceId
+    setPreferredDeviceId(kind, finalId)
+  } else {
+    setPreferredDeviceId(kind, deviceId)
+  }
+}
+
 

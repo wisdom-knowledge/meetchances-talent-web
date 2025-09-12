@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useMaybeRoomContext, useMediaDeviceSelect } from '@livekit/components-react'
 import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { getPreferredDeviceId, setPreferredDeviceId } from '@/lib/devices'
+import { getPreferredDeviceId, setPreferredDeviceIdSmart } from '@/lib/devices'
 
 export interface DeviceSelectProps extends React.ComponentProps<typeof SelectTrigger> {
   kind: MediaDeviceKind
@@ -31,10 +31,20 @@ export function DeviceSelect({ kind, requestPermissions, onMediaDeviceError, cla
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // 当设备自动选择时（没有本地存储但有activeDeviceId），保存为默认选择
+  useEffect(() => {
+    const preferred = getPreferredDeviceId(kind)
+    if (!preferred && activeDeviceId) {
+      // 没有本地存储的首选设备，但系统已自动选择了设备，使用智能保存
+      void setPreferredDeviceIdSmart(kind, activeDeviceId, devices)
+    }
+  }, [activeDeviceId, kind, devices])
+
   // 用户切换设备时，写入本地存储
   const handleChange = (value: string) => {
     setActiveMediaDevice(value)
-    setPreferredDeviceId(kind, value)
+    // 使用智能保存，如果选择的是 'default'，尝试保存具体的设备ID
+    void setPreferredDeviceIdSmart(kind, value, devices)
   }
 
   return (
