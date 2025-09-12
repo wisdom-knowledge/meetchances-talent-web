@@ -57,9 +57,9 @@ export function RichText({ content, className }: RichTextProps) {
         '[&_h2]:text-foreground [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold',
         '[&_h3]:text-foreground [&_h3]:mb-2 [&_h3]:text-lg [&_h3]:font-medium',
         '[&_p]:mb-3 [&_p]:leading-relaxed',
-        '[&_li]:mb-1 [&_li]:leading-relaxed [&_ul]:mb-3 [&_ul]:pl-6',
-        // 一级有序列表无标记，二级使用阿拉伯数字（强制覆盖内联样式）
-        '[&_ol]:mb-3 [&_ol]:pl-6 [&_ol]:!list-none [&_ol_ol]:!list-decimal',
+        '[&_li]:mb-1 [&_li]:leading-relaxed [&_ul]:mb-3 [&_ul]:pl-6 [&_ul]:list-disc [&_ul_ul]:list-[circle]',
+        // 无序列表：一级实心圆，二级空心圆；有序列表：阿拉伯数字
+        '[&_ol]:mb-3 [&_ol]:pl-6 [&_ol]:list-decimal [&_ol_ol]:list-decimal',
         '[&_strong]:text-foreground [&_strong]:font-semibold',
         '[&_em]:italic',
         '[&_a]:text-blue-600 [&_a]:underline hover:[&_a]:text-blue-800',
