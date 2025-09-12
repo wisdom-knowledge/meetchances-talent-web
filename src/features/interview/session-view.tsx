@@ -71,11 +71,11 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
     if (!room || !sessionStarted) return
     try {
       const preferredCam = getPreferredDeviceId('videoinput')
-      if (preferredCam) {
+      if (preferredCam && preferredCam !== 'default') {
         void room.localParticipant.setCameraEnabled(true, { deviceId: preferredCam })
       }
       const preferredMic = getPreferredDeviceId('audioinput')
-      if (preferredMic) {
+      if (preferredMic && preferredMic !== 'default') {
         void room.localParticipant.setMicrophoneEnabled(true, { deviceId: preferredMic })
       }
       // 输出设备（audiooutput）在浏览器中通常需要绑定到 HTMLMediaElement，这里保持在 prepare 中选择并写入存储即可

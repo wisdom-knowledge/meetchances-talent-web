@@ -31,7 +31,7 @@ import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, 
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
-import { getPreferredDeviceId, setPreferredDeviceId } from '@/lib/devices'
+import { getPreferredDeviceId, setPreferredDeviceIdSmart } from '@/lib/devices'
 import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 
 interface InterviewPreparePageProps {
@@ -95,6 +95,22 @@ enum ViewMode {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
+    // 当音频输入设备自动选择时，保存为默认选择
+    useEffect(() => {
+      const preferredMic = getPreferredDeviceId('audioinput')
+      if (!preferredMic && mic.activeDeviceId) {
+        void setPreferredDeviceIdSmart('audioinput', mic.activeDeviceId, mic.devices)
+      }
+    }, [mic.activeDeviceId, mic.devices])
+
+    // 当音频输出设备自动选择时，保存为默认选择
+    useEffect(() => {
+      const preferredSpk = getPreferredDeviceId('audiooutput')
+      if (!preferredSpk && spk.activeDeviceId) {
+        void setPreferredDeviceIdSmart('audiooutput', spk.activeDeviceId, spk.devices)
+      }
+    }, [spk.activeDeviceId, spk.devices])
+
     const statusText = (s: DeviceTestStatus) => {
       switch (s) {
         case DeviceTestStatus.Success:
@@ -150,7 +166,7 @@ enum ViewMode {
               value={spk.activeDeviceId}
               onValueChange={(v) => {
                 spk.setActiveMediaDevice(v)
-                setPreferredDeviceId('audiooutput', v)
+                void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
                 onSpkStatusChange(DeviceTestStatus.Testing)
                 setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
               }}
@@ -172,7 +188,7 @@ enum ViewMode {
               value={mic.activeDeviceId}
               onValueChange={(v) => {
                 mic.setActiveMediaDevice(v)
-                setPreferredDeviceId('audioinput', v)
+                void setPreferredDeviceIdSmart('audioinput', v, mic.devices)
                 onMicStatusChange(DeviceTestStatus.Testing)
                 setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
               }}
@@ -209,6 +225,14 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
   const [jobApplyId, setJobApplyId] = useState<number | string | null>(jobApplyIdFromRoute ?? null)
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
+
+  // 当视频设备自动选择时，保存为默认选择
+  useEffect(() => {
+    const preferred = getPreferredDeviceId('videoinput')
+    if (!preferred && cam.activeDeviceId) {
+      void setPreferredDeviceIdSmart('videoinput', cam.activeDeviceId, cam.devices)
+    }
+  }, [cam.activeDeviceId, cam.devices])
   const user = useAuthStore((s) => s.auth.user)
   const queryClient = useQueryClient()
   const { data: progressNodes, isLoading: isProgressLoading } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
@@ -393,7 +417,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     if (!cam.activeDeviceId && targetId) {
       triedCamAutoRef.current = true
       cam.setActiveMediaDevice(targetId)
-      if (targetId) setPreferredDeviceId('videoinput', targetId)
+      if (targetId) void setPreferredDeviceIdSmart('videoinput', targetId, cam.devices)
       setCameraStatus(DeviceTestStatus.Testing)
     }
   }, [viewMode, cam, firstCamId])
