@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 // import { Button } from '@/components/ui/button'
 // import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import moneySvg from '@/assets/images/money.svg'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -199,11 +200,12 @@ export default function JobsListPage() {
                                 </p>
                               </div>
                               <div className='flex items-center gap-2'>
-                                <Badge variant='outline'>
-                                  ￥{job.salary_min ?? 0} - ￥
-                                  {job.salary_max ?? 0} / 小时
+                                <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary'>
+                                  <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
+                                  ¥{job.salary_min ?? 0} - ¥{job.salary_max ?? 0} / 小时
                                 </Badge>
-                                <Badge variant='emphasis'>
+                                
+                                <Badge variant='default' className='opacity-50 rounded-full px-3 py-1.5 '>
                                   {job.job_type === 'part_time'
                                     ? '兼职'
                                     : '全职'}
