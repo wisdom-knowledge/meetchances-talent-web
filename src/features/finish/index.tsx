@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { IconStar, IconStarFilled } from '@tabler/icons-react'
 import { handleServerError } from '@/utils/handle-server-error'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -10,6 +9,8 @@ import SupportDialog from '@/components/support-dialog'
 import { fetchForHelp } from '../home/api'
 import { FeedbackParams, fetchFeedback } from './api'
 import { toast } from 'sonner'
+import emptyStar from '@/assets/images/empty-start.svg'
+import filledStar from '@/assets/images/full-start.svg'
 
 
 export default function FinishPage() {
@@ -163,11 +164,7 @@ export default function FinishPage() {
                     onClick={() => setRating(value)}
                     className='transition-transform hover:scale-105'
                   >
-                    {filled ? (
-                      <IconStarFilled className='h-10 w-10 text-[#4E02E4]' />
-                    ) : (
-                      <IconStar className='h-10 w-10 text-[#4E02E4]' />
-                    )}
+                    <img src={filled ? filledStar : emptyStar} alt={filled ? 'filled-star' : 'empty-star'} className='h-10 w-10' />
                   </button>
                 )
               })}
