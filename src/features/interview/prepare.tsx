@@ -866,6 +866,27 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         </SheetContent>
       </Sheet>
 
+      {/* 悬浮客服按钮（固定在右下角） */}
+      <div className='fixed bottom-[104px] right-6 z-50 group'>
+        <button
+          type='button'
+          aria-label='联系客服'
+          onClick={() => setSupportOpen(true)}
+          className='h-12 w-12 rounded-full bg-white shadow-lg ring-1 ring-black/5 flex items-center justify-center hover:shadow-xl transition-shadow'
+        >
+          <svg viewBox='0 0 1024 1024' className='h-6 w-6 fill-current text-muted-foreground group-hover:text-primary transition-colors'>
+            <path d='M966.5 345.4c-30.3-91.7-89.1-173.9-166.6-232.4-83.5-63-183-96.3-287.9-96.3S307.6 50 224.1 113C146.6 171.4 87.8 253.6 57.5 345.4c-34 13-57.5 46-57.5 83.1v133.6c0 41.7 29.6 78.3 70.4 87 6.2 1.3 12.4 2 18.6 2 49.1 0 89-39.9 89-89V428.5c0-43.2-31-79.3-71.9-87.3 63.3-166.2 226-280 405.8-280s342.5 113.7 405.8 280c-40.9 8-71.9 44.1-71.9 87.3v133.6c0 39 25.2 72.1 60.2 84.1C847.8 772.1 732.3 863 596.3 889.8c-11.8-35.5-45.1-60.7-84.3-60.7-49.1 0-89 39.9-89 89s39.9 89 89 89c43.5 0 79.7-31.4 87.5-72.7 158.1-29.2 291.6-136.8 353.9-285.5h0.2c40.8-8.8 70.4-45.4 70.4-87V428.5c0-37.1-23.5-70.1-57.5-83.1z m-832.9 83.1v133.6c0 24.6-20 44.5-44.5 44.5-3.1 0-6.2-0.3-9.3-1-20.4-4.4-35.2-22.7-35.2-43.5V428.5c0-20.8 14.8-39.1 35.2-43.5 3.1-0.7 6.2-1 9.3-1 24.5 0 44.5 20 44.5 44.5zM512 962.8c-24.5 0-44.5-20-44.5-44.5s20-44.5 44.5-44.5c23.9 0 43.4 18.8 44.4 42.7 0 0.6 0.1 1.1 0.1 1.8 0 24.5-20 44.5-44.5 44.5z m467.5-400.7c0 20.8-14.8 39.1-35.2 43.5-2.2 0.5-4.6 0.8-7.5 0.9-0.6 0-1.2 0.1-1.8 0.1-24.5 0-44.5-20-44.5-44.5V428.5c0-24.5 20-44.5 44.5-44.5 3.1 0 6.2 0.3 9.3 1 20.4 4.4 35.2 22.7 35.2 43.5v133.6z' />
+            <path d='M682.7 656.6c9.2-8.2 9.9-22.3 1.7-31.4-8.2-9.2-22.3-9.9-31.4-1.7-149.1 133.5-275.2 6.9-280.7 1.2-8.5-8.9-22.6-9.2-31.5-0.7-8.9 8.5-9.2 22.6-0.7 31.5 1.1 1.1 72.2 73.6 173.3 73.6 50.6-0.1 108.7-18.3 169.3-72.5z' />
+          </svg>
+        </button>
+        {/* 悬停展示的提示图片 */}
+        <img
+          src={'https://dnu-cdn.xpertiise.com/common/cb31d746-033b-45a0-92a7-63f89c8c169d.png'}
+          alt='客服说明'
+          className='pointer-events-none absolute right-16 bottom-0 mb-1 w-[60px] max-w-none rounded bg-white shadow-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-transform duration-300 origin-bottom-right scale-100 group-hover:scale-[4]'
+        />
+      </div>
+
       {/* Drawer: 简历预览 */}
       <Sheet open={resumeOpen} onOpenChange={setResumeOpen}>
         <SheetContent className='flex w-full sm:max-w-none md:w-[85vw] lg:w-[60vw] xl:w-[50vw] flex-col px-4 md:px-5'>
