@@ -453,13 +453,13 @@ export function LocalCameraPreview({
               {isPlayingTestAudio && lottieData ? (
                 <>
                   {/* Left */}
-                  <div className='pointer-events-none absolute inset-y-0 -left-18 flex items-center'>
-                    <Lottie animationData={lottieData} loop autoplay className='h-[235px]' />
+                  <div className='pointer-events-none absolute inset-y-0 left-[-73px] flex items-center'>
+                    <Lottie animationData={lottieData} loop autoplay className=' h-[240px] w-[240px]' />
                   </div>
                   {/* Right (mirrored) */}
-                  <div className='pointer-events-none absolute inset-y-0 -right-18 flex items-center'>
+                  <div className='pointer-events-none absolute inset-y-0 right-[-73px] flex items-center'>
                     <div className='-scale-x-100'>
-                      <Lottie animationData={lottieData} loop autoplay className='h-[235px]' />
+                      <Lottie animationData={lottieData} loop autoplay className=' h-[240px] w-[240px]' />
                     </div>
                   </div>
                 </>
