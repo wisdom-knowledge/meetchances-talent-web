@@ -89,8 +89,8 @@ initApm()
   const { user, inviteInfo, accessToken } = useAuthStore.getState().auth
   setApmAuth({ user, inviteInfo, accessToken })
   const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
-  setApmContext({ app_env: appEnv })
-  setApmContext({ app_name: 'talent' })
+  setApmContext({ env: appEnv })
+  setApmContext({ app: 'talent' })
   if (user) startApm()
 }
 
@@ -99,8 +99,8 @@ useAuthStore.subscribe((state) => {
   const { user, inviteInfo, accessToken } = state.auth
   setApmAuth({ user, inviteInfo, accessToken })
   const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
-  setApmContext({ app_env: appEnv })
-  setApmContext({ app_name: 'talent' })
+  setApmContext({ env: appEnv })
+  setApmContext({ app: 'talent' })
   if (user && !isApmStarted()) startApm()
 })
 
