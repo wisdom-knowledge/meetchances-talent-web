@@ -606,13 +606,15 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 camDevices={cam.devices}
                 onCamChange={(v) => {
                   cam.setActiveMediaDevice(v)
-                  setCameraStatus(DeviceTestStatus.Testing)
+                  if (v !== cam.activeDeviceId) {
+                    setCameraStatus(DeviceTestStatus.Testing)
+                  }
                 }}
                 cameraStatus={cameraStatus}
                 micStatus={micStatus}
                 spkStatus={spkStatus}
-                onMicStatusChange={setMicStatus}
-                onSpkStatusChange={setSpkStatus}
+                onMicStatusChange={()=>{}}
+                onSpkStatusChange={()=>{}}
               />
             </div>
 
