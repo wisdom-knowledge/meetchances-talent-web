@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { DeviceTestStatus } from '@/types/device'
 import { Button } from '@/components/ui/button'
-import { IconPlayerRecordFilled, IconPlayerPlayFilled } from '@tabler/icons-react'
+import { IconPlayerRecordFilled, IconPlayerPlayFilled, IconPlayerPauseFilled } from '@tabler/icons-react'
 import Lottie from 'lottie-react'
 import { MicVisualizer } from '@/features/interview/components/mic-visualizer'
 import { motion } from 'framer-motion'
@@ -228,6 +228,7 @@ export function LocalCameraPreview({
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
   const [playbackProgress, setPlaybackProgress] = useState<number>(0)
   const [micPermissionDenied, setMicPermissionDenied] = useState<boolean>(false)
+  const [isPlaybackPlaying, setIsPlaybackPlaying] = useState<boolean>(false)
   const PROGRESS_WIDTH_CLASSES = useMemo(
     () => [
       'w-[0%]','w-[2%]','w-[4%]','w-[6%]','w-[8%]','w-[10%]','w-[12%]','w-[14%]','w-[16%]','w-[18%]',
@@ -333,7 +334,7 @@ export function LocalCameraPreview({
     }
   }, [shouldShowMicUI, micMode])
 
-  // autoplay playback and track progress
+  // setup playback audio and track progress (don't autoplay)
   useEffect(() => {
     if (!shouldShowMicUI || micMode !== 'playback' || !playbackUrl) return
     const audio = new Audio(playbackUrl)
@@ -345,22 +346,72 @@ export function LocalCameraPreview({
     }
     const onEnded = () => {
       setPlaybackProgress(100)
+      setIsPlaybackPlaying(false)
+    }
+    const onPlay = () => {
+      setIsPlaybackPlaying(true)
+    }
+    const onPause = () => {
+      setIsPlaybackPlaying(false)
     }
     audio.addEventListener('timeupdate', onTime)
     audio.addEventListener('ended', onEnded)
+    audio.addEventListener('play', onPlay)
+    audio.addEventListener('pause', onPause)
+    
+    // Auto-play the first time
     void audio.play().catch(() => undefined)
+    
     return () => {
       audio.removeEventListener('timeupdate', onTime)
       audio.removeEventListener('ended', onEnded)
+      audio.removeEventListener('play', onPlay)
+      audio.removeEventListener('pause', onPause)
       try {
         audio.pause()
       } catch {
         // ignore
       }
+      setIsPlaybackPlaying(false)
       micPlaybackAudioRef.current = null
       // keep playbackUrl for replays until retake
     }
   }, [shouldShowMicUI, micMode, playbackUrl])
+
+  const handlePlaybackToggle = () => {
+    const audio = micPlaybackAudioRef.current
+    if (!audio) return
+    
+    try {
+      if (isPlaybackPlaying) {
+        audio.pause()
+      } else {
+        // If audio ended, restart from beginning
+        if (audio.ended) {
+          audio.currentTime = 0
+          setPlaybackProgress(0)
+        }
+        void audio.play().catch(() => undefined)
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const handleMicConfirmed = () => {
+    // Restart playback when confirming
+    const audio = micPlaybackAudioRef.current
+    if (audio) {
+      try {
+        audio.currentTime = 0
+        setPlaybackProgress(0)
+        void audio.play().catch(() => undefined)
+      } catch {
+        // ignore
+      }
+    }
+    onMicConfirmed?.()
+  }
 
   const handleRetake = () => {
     // cleanup playback
@@ -377,6 +428,7 @@ export function LocalCameraPreview({
       setPlaybackUrl(null)
     }
     setPlaybackProgress(0)
+    setIsPlaybackPlaying(false)
     setMicMode('recording')
   }
 
@@ -466,13 +518,24 @@ export function LocalCameraPreview({
                 ) : (
                   <div className='w-full flex items-center justify-center gap-2'>
                     <div className='flex items-center gap-3'>
-                      <IconPlayerPlayFilled className='h-5 w-5 text-white' />
-                      <div className='relative h-2 w-[360px] rounded-full bg-primary/20 overflow-hidden'>
+                      <Button
+                        size='sm'
+                        variant='ghost'
+                        className='h-8 w-8 p-0 hover:bg-white/20'
+                        onClick={handlePlaybackToggle}
+                      >
+                        {isPlaybackPlaying ? (
+                          <IconPlayerPauseFilled className='h-5 w-5 text-white' />
+                        ) : (
+                          <IconPlayerPlayFilled className='h-5 w-5 text-white' />
+                        )}
+                      </Button>
+                      <div className='relative h-2 w-[320px] rounded-full bg-primary/20 overflow-hidden'>
                         <div className={cn('absolute left-0 top-0 h-2 rounded-full bg-primary', progressWidthClass)} />
                       </div>
                     </div>
                     <Button size='sm' variant='secondary' onClick={handleRetake}>重录</Button>
-                    <Button size='sm' variant='default' onClick={onMicConfirmed}>确认音质正常</Button>
+                    <Button size='sm' variant='default' onClick={handleMicConfirmed}>确认音质正常</Button>
                   </div>
                 )}
               </div>
