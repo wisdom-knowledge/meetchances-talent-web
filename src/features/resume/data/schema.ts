@@ -23,7 +23,11 @@ export const resumeSchema = z.object({
         })
         .superRefine((val, ctx) => {
           if (val?.name && !val?.level) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: '请选择熟练程度', path: ['level'] })
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: '请填写熟练程度',
+              path: ['level'],
+            })
           }
         })
     )

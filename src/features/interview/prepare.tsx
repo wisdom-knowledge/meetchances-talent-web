@@ -219,6 +219,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [uploadedThisVisit, setUploadedThisVisit] = useState(false)
   const [resumeOpen, setResumeOpen] = useState(false)
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
+  const [hadResumeBefore, setHadResumeBefore] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Job)
   const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
@@ -285,12 +286,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
   const handleConfirmResumeClick = useCallback(async () => {
     if (uploadingResume || !resumeValues) return
-    if (uploadedThisVisit) {
+    if (uploadedThisVisit && hadResumeBefore) {
       setConfirmOpen(true)
       return
     }
     await proceedAfterResumeConfirm()
-  }, [uploadingResume, resumeValues, uploadedThisVisit, proceedAfterResumeConfirm])
+  }, [uploadingResume, resumeValues, uploadedThisVisit, hadResumeBefore, proceedAfterResumeConfirm])
 
   // 确保在离开页面前主动释放媒体资源，避免设备权限长期占用
   const releaseAllMediaStreams = useCallback(() => {
@@ -360,6 +361,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         if (si && (si.basic_info || si.experience)) {
           const mapped = mapStructInfoToResumeFormValues(si)
           setResumeValues(mapped)
+          setHadResumeBefore(true)
+        } else {
+          setHadResumeBefore(false)
         }
       })
     }
