@@ -51,30 +51,6 @@ export function getAudioOutputSupportInfo() {
   }
 }
 
-/**
- * 优化设备名称显示
- * @param device MediaDeviceInfo 对象
- * @returns 格式化后的设备名称
- */
-export function formatDeviceName(device: MediaDeviceInfo): string {
-  if (!device.label) {
-    return device.deviceId === 'default' ? '系统默认' : device.deviceId
-  }
-  
-  let name = device.label
-  
-  // 移除常见的冗余前缀
-  name = name.replace(/^默认\s*-\s*/, '')
-  name = name.replace(/^Default\s*-\s*/i, '')
-  
-  // 如果是默认设备，添加标识
-  if (device.deviceId === 'default') {
-    name = `${name} (默认)`
-  }
-  
-  return name
-}
-
 export function getPreferredDeviceId(kind: SupportedMediaDeviceKind): string | null {
   if (typeof window === 'undefined') return null
   try {

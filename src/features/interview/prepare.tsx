@@ -31,7 +31,7 @@ import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, 
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
-import { getPreferredDeviceId, setPreferredDeviceIdSmart, getAudioOutputSupportInfo, formatDeviceName } from '@/lib/devices'
+import { getPreferredDeviceId, setPreferredDeviceIdSmart, getAudioOutputSupportInfo } from '@/lib/devices'
 import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 import { useIsMobile } from '@/hooks/use-mobile'
 
@@ -61,6 +61,26 @@ enum ViewMode {
    * @param param0
    * @returns
    */
+  // 格式化设备名称的本地函数
+  const formatDeviceName = (device: MediaDeviceInfo): string => {
+    if (!device.label) {
+      return device.deviceId === 'default' ? '系统默认' : device.deviceId
+    }
+    
+    let name = device.label
+    
+    // 移除常见的冗余前缀
+    name = name.replace(/^默认\s*-\s*/, '')
+    name = name.replace(/^Default\s*-\s*/i, '')
+    
+    // 如果是默认设备，添加标识
+    if (device.deviceId === 'default') {
+      name = `${name} (默认)`
+    }
+    
+    return name
+  }
+
   function DeviceSelectorsRow({
     camActiveDeviceId,
     camDevices,
@@ -99,8 +119,22 @@ enum ViewMode {
         // 只在支持的浏览器中真正切换设备
         if (audioOutputSupportInfo.isSupported) {
           spk.setActiveMediaDevice(preferredSpk)
+        } else {
+          // 在不支持的浏览器（如 Safari）中，手动设置 activeDeviceId 以保持 UI 状态
+          // 这样用户看到的选择会保持，但实际音频走系统默认输出
+          const device = spk.devices.find(d => d.deviceId === preferredSpk)
+          if (device) {
+            // 直接更新内部状态，不触发实际设备切换
+            spk.activeDeviceId = preferredSpk
+          }
         }
-        // UI 状态总是保持用户的选择
+      } else if (!audioOutputSupportInfo.isSupported && !preferredSpk && spk.devices.length > 0) {
+        // Safari 中如果没有保存的偏好，默认选择第一个可用设备（通常是 default）
+        const defaultDevice = spk.devices.find(d => d.deviceId === 'default') || spk.devices[0]
+        if (defaultDevice) {
+          spk.activeDeviceId = defaultDevice.deviceId
+          void setPreferredDeviceIdSmart('audiooutput', defaultDevice.deviceId, spk.devices)
+        }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -201,7 +235,11 @@ enum ViewMode {
                     setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
                   }
                 }}
-                placeholder='选择输出设备（耳机/扬声器）'
+                placeholder={
+                  !audioOutputSupportInfo.isSupported && spk.devices.length > 0
+                    ? formatDeviceName(spk.devices.find(d => d.deviceId === 'default') || spk.devices[0])
+                    : '选择输出设备（耳机/扬声器）'
+                }
                 className='h-9 flex-1 overflow-x-hidden truncate'
                 useFormControl={false}
                 items={spk.devices.map((d) => ({ 
