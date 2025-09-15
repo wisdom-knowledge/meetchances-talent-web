@@ -98,6 +98,8 @@ export async function resolveRealDeviceId(
 
     // 方法1: 通过设备名称匹配
     const nameMatchedId = await resolveDefaultDeviceByName(kind, devices)
+    // eslint-disable-next-line no-console
+    console.log('nameMatchedId', nameMatchedId)
     if (nameMatchedId) {
       return nameMatchedId
     }
@@ -157,6 +159,8 @@ export async function setPreferredDeviceIdSmart(
   // 如果是 'default'，尝试获取真实的设备ID
   if (deviceId === 'default') {
     const realId = await resolveRealDeviceId(kind, devices)
+    // eslint-disable-next-line no-console
+    console.log('realId 实际设备ID', realId)
     const finalId = realId || deviceId
     setPreferredDeviceId(kind, finalId)
   } else {

@@ -130,6 +130,7 @@ enum ViewMode {
       const preferredSpk = getPreferredDeviceId('audiooutput')
       if (!preferredSpk && spk.activeDeviceId) {
         void setPreferredDeviceIdSmart('audiooutput', spk.activeDeviceId, spk.devices)
+        setDisplaySpkDeviceId(getPreferredDeviceId('audiooutput') || '')
       }
     }, [spk.activeDeviceId, spk.devices])
 
@@ -187,6 +188,8 @@ enum ViewMode {
               isControlled
               value={displaySpkDeviceId}
               onValueChange={(v) => {
+                // eslint-disable-next-line no-console
+                console.log('切换设置扬声器设备', v)
                 // 立即更新显示值
                 setDisplaySpkDeviceId(v)
                 
