@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
-import { markInterviewStart, reportInterviewConnected } from '@/lib/apm'
+import { markInterviewStart, reportInterviewConnected, reportRecordFail } from '@/lib/apm'
 import { toast } from 'sonner'
 
 interface InterviewPageProps {
@@ -121,6 +121,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
   const roomName = (data as { roomName?: string } | undefined)?.roomName
   // 延迟 10s 后调用两次；默认不启用自动轮询
   const { data: recordStatus, refetch: refetchRecordStatus } = useInterviewRecordStatus(roomName, false, false)
+  const reportedRecordFailRef = useRef(false)
   useEffect(() => {
     if (!roomName) return
     const timer = setTimeout(() => {
@@ -134,6 +135,16 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
       clearTimeout(timer)
     }
   }, [roomName, refetchRecordStatus])
+
+  // 录制状态为 0（失败/未开始）时上报一次 APM 事件
+  useEffect(() => {
+    if (!roomName) return
+    const status = typeof recordStatus?.status === 'number' ? recordStatus.status : undefined
+    if (status === 0 && !reportedRecordFailRef.current) {
+      reportedRecordFailRef.current = true
+      reportRecordFail(roomName)
+    }
+  }, [recordStatus?.status, roomName])
 
   // 面试断开或有参与者断开时，结束面试：跳转 finish 页面（replace），带上 interview_id
   useEffect(() => {

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { reportApiBusinessError } from '@/lib/apm'
 import { Talent, TalentParams } from '@/stores/authStore'
 import { noTalentMeRoutes } from '@/components/layout/data/sidebar-data'
 
@@ -59,6 +60,17 @@ api.interceptors.response.use(
     if (status_code === 0) {
       return data
     }
+
+    // 业务错误上报
+    const { config } = response
+    reportApiBusinessError({
+      path: String(config?.url ?? ''),
+      method: String((config?.method ?? '').toUpperCase()),
+      status_code,
+      status_msg,
+      payload: config?.data,
+      query: (config as unknown as { params?: unknown })?.params,
+    })
 
     return Promise.reject({ status_code, status_msg })
   },

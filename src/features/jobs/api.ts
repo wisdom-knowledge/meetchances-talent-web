@@ -122,3 +122,44 @@ export async function generateInviteToken(payload: GenerateInviteTokenPayload): 
   const token = (res as { invite_token?: string })?.invite_token
   return token ?? null
 }
+
+// --- Job Apply Status ---
+export enum JobApplyStatus {
+  NotApplied = 0,
+  Applied = 10,
+}
+
+export interface JobApplyStatusItem {
+  job_apply_id: number | string
+  job_apply_status: JobApplyStatus
+}
+
+export type JobApplyStatusMap = Record<string, JobApplyStatusItem>
+
+export async function fetchJobApplyStatus(jobIds: Array<string | number>): Promise<JobApplyStatusMap> {
+  const ids = (jobIds || []).map((v) => String(v)).filter(Boolean)
+  if (!ids.length) return {}
+  const res = await api.get('/talent/job_apply_status', { params: { job_ids: ids.join(',') } })
+  const data = (res as { data?: unknown })?.data ?? res
+  const map = (data as unknown as Record<string, unknown>) || {}
+  const result: JobApplyStatusMap = {}
+  for (const [k, v] of Object.entries(map)) {
+    const obj = (v ?? {}) as { job_apply_id?: number | string; job_apply_status?: number | string }
+    const statusNum = typeof obj.job_apply_status === 'number' ? obj.job_apply_status : parseInt(String(obj.job_apply_status ?? '0'), 10)
+    result[k] = {
+      job_apply_id: (typeof obj.job_apply_id === 'number' || typeof obj.job_apply_id === 'string') ? obj.job_apply_id : 0,
+      job_apply_status: statusNum as JobApplyStatus,
+    }
+  }
+  return result
+}
+
+export function useJobApplyStatus(jobIds: Array<string | number> | null, enabled = true) {
+  const key = Array.isArray(jobIds) ? jobIds.map((v) => String(v)).join(',') : ''
+  return useQuery<JobApplyStatusMap>({
+    queryKey: ['job-apply-status', key],
+    queryFn: () => fetchJobApplyStatus((jobIds as Array<string | number>) || []),
+    enabled: Boolean(jobIds && jobIds.length > 0) && enabled,
+    staleTime: 10_000,
+  })
+}
