@@ -84,14 +84,14 @@ enum ViewMode {
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
     
     // 用于显示的扬声器设备ID，当设备切换失败时保持用户选择的值
-    const [displaySpkDeviceId, setDisplaySpkDeviceId] = useState<string>(spk.activeDeviceId || '')
+    const [displaySpkDeviceId, setDisplaySpkDeviceId] = useState<string>('')
 
     // 同步实际设备ID到显示设备ID
     useEffect(() => {
-      if (spk.activeDeviceId) {
+      if (spk.activeDeviceId && displaySpkDeviceId !== spk.activeDeviceId) {
         setDisplaySpkDeviceId(spk.activeDeviceId)
       }
-    }, [spk.activeDeviceId])
+    }, [spk.activeDeviceId, displaySpkDeviceId])
 
     // eslint-disable-next-line no-console
     console.log('spk', spk, spk.activeDeviceId)
@@ -103,13 +103,19 @@ enum ViewMode {
       }
       const preferredSpk = getPreferredDeviceId('audiooutput')
       if (preferredSpk && preferredSpk !== spk.activeDeviceId) {
+        // 设置显示值为首选设备
+        setDisplaySpkDeviceId(preferredSpk)
         spk.setActiveMediaDevice(preferredSpk).then((res) => {
           // eslint-disable-next-line no-console
           console.warn('初始化设置扬声器设备成功', res)
         }).catch((err) => {
           // eslint-disable-next-line no-console
           console.warn('初始化设置扬声器设备失败', err)
+          // 初始化失败时，显示值保持为首选设备ID
         })
+      } else if (spk.activeDeviceId && !displaySpkDeviceId) {
+        // 如果没有首选设备但有当前激活设备，则设置显示值
+        setDisplaySpkDeviceId(spk.activeDeviceId)
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
