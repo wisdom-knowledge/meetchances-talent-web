@@ -86,13 +86,6 @@ enum ViewMode {
     // 用于显示的扬声器设备ID，当设备切换失败时保持用户选择的值
     const [displaySpkDeviceId, setDisplaySpkDeviceId] = useState<string>('')
 
-    // 同步实际设备ID到显示设备ID
-    useEffect(() => {
-      if (spk.activeDeviceId && displaySpkDeviceId !== spk.activeDeviceId) {
-        setDisplaySpkDeviceId(spk.activeDeviceId)
-      }
-    }, [spk.activeDeviceId, displaySpkDeviceId])
-
     // eslint-disable-next-line no-console
     console.log('spk', spk, spk.activeDeviceId)
     // 首次挂载时，应用本地存储的设备偏好
