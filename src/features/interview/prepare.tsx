@@ -82,7 +82,8 @@ enum ViewMode {
   }) {
     const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
-
+    // eslint-disable-next-line no-console
+    console.log('spk', spk, spk.activeDeviceId)
     // 首次挂载时，应用本地存储的设备偏好
     useEffect(() => {
       const preferredMic = getPreferredDeviceId('audioinput')
