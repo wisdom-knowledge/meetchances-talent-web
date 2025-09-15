@@ -6,6 +6,75 @@ const DEVICE_KEY_MAP: Record<SupportedMediaDeviceKind, string> = {
   videoinput: 'mc_pref_videoinput',
 }
 
+/**
+ * 检查浏览器是否支持音频输出设备切换
+ * @returns 是否支持 setSinkId API
+ */
+export function isAudioOutputSupported(): boolean {
+  if (typeof window === 'undefined') return false
+
+  // 检查 HTMLMediaElement 是否支持 setSinkId 方法
+  const audio = document.createElement('audio')
+  return typeof audio.setSinkId === 'function'
+}
+
+/**
+ * 获取当前浏览器和平台的音频输出支持信息
+ * @returns 包含支持信息和建议的对象
+ */
+export function getAudioOutputSupportInfo() {
+  const isSupported = isAudioOutputSupported()
+  const userAgent = navigator.userAgent.toLowerCase()
+
+  let browserName = 'Unknown'
+  let recommendation = ''
+
+  if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
+    browserName = 'Chrome'
+    recommendation = isSupported ? '' : '请确保使用 Chrome 66+ 版本并在 HTTPS 环境下访问'
+  } else if (userAgent.includes('firefox')) {
+    browserName = 'Firefox'
+    recommendation = '音频输出设备切换在 Firefox 中支持有限，建议使用 Chrome'
+  } else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
+    browserName = 'Safari'
+    recommendation = 'Safari 不支持音频输出设备切换，建议使用 Chrome 或 Edge'
+  } else if (userAgent.includes('edg')) {
+    browserName = 'Edge'
+    recommendation = isSupported ? '' : '请确保使用 Edge 79+ 版本并在 HTTPS 环境下访问'
+  }
+
+  return {
+    isSupported,
+    browserName,
+    recommendation,
+    isMobile: /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent)
+  }
+}
+
+/**
+ * 优化设备名称显示
+ * @param device MediaDeviceInfo 对象
+ * @returns 格式化后的设备名称
+ */
+export function formatDeviceName(device: MediaDeviceInfo): string {
+  if (!device.label) {
+    return device.deviceId === 'default' ? '系统默认' : device.deviceId
+  }
+  
+  let name = device.label
+  
+  // 移除常见的冗余前缀
+  name = name.replace(/^默认\s*-\s*/, '')
+  name = name.replace(/^Default\s*-\s*/i, '')
+  
+  // 如果是默认设备，添加标识
+  if (device.deviceId === 'default') {
+    name = `${name} (默认)`
+  }
+  
+  return name
+}
+
 export function getPreferredDeviceId(kind: SupportedMediaDeviceKind): string | null {
   if (typeof window === 'undefined') return null
   try {
