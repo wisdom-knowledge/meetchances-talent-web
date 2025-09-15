@@ -1,11 +1,15 @@
 import { z } from 'zod'
 
 export const resumeSchema = z.object({
-  name: z.string().optional(),
-  gender: z
-    .string()
-    .optional(),
-  phone: z.string().optional(),
+  name: z.preprocess(
+    (v) => (v == null ? '' : (typeof v === 'string' ? v.trim() : v)),
+    z.string().min(1, '姓名为必填项')
+  ),
+  gender: z.string().optional(),
+  phone: z.preprocess(
+    (v) => (v == null ? '' : (typeof v === 'string' ? v.trim() : v)),
+    z.string().min(1, '电话为必填项')
+  ),
   email: z.string().email('请输入有效邮箱地址').optional().or(z.literal('')),
   city: z.string().optional(),
   origin: z.string().optional(),
@@ -59,17 +63,35 @@ export const resumeSchema = z.object({
   education: z
     .array(
       z.object({
-        institution: z.string().optional(),
-        major: z.string().optional(),
-        degreeType: z.string().optional(),
-        degreeStatus: z.string().optional(),
+        institution: z.preprocess(
+          (v) => (v == null ? '' : (typeof v === 'string' ? v.trim() : v)),
+          z.string().min(1, '学校/机构为必填项')
+        ),
+        major: z.preprocess(
+          (v) => (v == null ? '' : (typeof v === 'string' ? v.trim() : v)),
+          z.string().min(1, '专业为必填项')
+        ),
+        degreeType: z.preprocess(
+          (v) => (v == null ? '' : (typeof v === 'string' ? v.trim() : v)),
+          z.string().min(1, '学历/学位为必填项')
+        ),
+        degreeStatus: z.preprocess(
+          (v) => (v == null ? '' : (typeof v === 'string' ? v.trim() : v)),
+          z.string().min(1, '学业状态为必填项')
+        ),
         city: z.string().optional(),
-        startDate: z.string().optional(),
-        endDate: z.string().optional(),
+        startDate: z.preprocess(
+          (v) => (v == null ? '' : (typeof v === 'string' ? v.trim() : v)),
+          z.string().min(1, '开始时间为必填项')
+        ),
+        endDate: z.preprocess(
+          (v) => (v == null ? '' : (typeof v === 'string' ? v.trim() : v)),
+          z.string().min(1, '结束时间为必填项')
+        ),
         achievements: z.string().optional(),
       })
     )
-    .optional(),
+    .min(1, '请添加教育经历'),
   // 附加资质：奖励
   awards: z
     .array(
