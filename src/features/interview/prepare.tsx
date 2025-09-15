@@ -883,7 +883,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         </button>
         {/* 悬停展示的提示图片 */}
         <img
-          src={'https://dnu-cdn.xpertiise.com/common/cb31d746-033b-45a0-92a7-63f89c8c169d.png'}
+          src={'https://dnu-cdn.xpertiise.com/common/4c9d2d04-912e-4bde-ad30-af123145be94.jpeg'}
           alt='客服说明'
           className='pointer-events-none absolute right-16 bottom-0 mb-1 w-[60px] max-w-none rounded bg-white shadow-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-transform duration-300 origin-bottom-right scale-100 group-hover:scale-[4]'
         />
