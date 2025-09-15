@@ -30,13 +30,13 @@ export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null):
   }))
 
   const education = (exp?.education ?? []).map((e) => ({
-    institution: e?.institution ?? undefined,
-    major: e?.major ?? undefined,
-    degreeType: e?.degree_type ?? undefined,
-    degreeStatus: e?.degree_status ?? undefined,
+    institution: e?.institution ?? '',
+    major: e?.major ?? '',
+    degreeType: e?.degree_type ?? '',
+    degreeStatus: e?.degree_status ?? '',
     city: e?.city ?? undefined,
-    startDate: e?.start_date ?? undefined,
-    endDate: e?.end_date ?? undefined,
+    startDate: e?.start_date ?? '',
+    endDate: e?.end_date ?? '',
     achievements: joinAchievements(e?.achievements ?? undefined),
   }))
 
@@ -78,8 +78,8 @@ export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null):
   }))
 
   const values: ResumeFormValues = {
-    name: basic?.name ?? undefined,
-    phone: basic?.phone ?? undefined,
+    name: basic?.name ?? '',
+    phone: basic?.phone ?? '',
     email: basic?.email ?? undefined,
     gender: (basic?.gender as ResumeFormValues['gender']) ?? undefined,
     city: basic?.city ?? undefined,
@@ -87,7 +87,7 @@ export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null):
     selfEvaluation: sa?.summary ?? undefined,
     workExperience: workExperience.length ? workExperience : undefined,
     projectExperience: projectExperience.length ? projectExperience : undefined,
-    education: education.length ? education : undefined,
+    education: education.length ? education : [],
     awards: awards.length ? awards : undefined,
     publications: publications.length ? publications : undefined,
     repositories: repositories.length ? repositories : undefined,
