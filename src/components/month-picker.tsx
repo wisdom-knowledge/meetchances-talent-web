@@ -4,8 +4,10 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { RefCallBack } from 'react-hook-form'
 
 interface MonthPickerProps {
+  ref?: RefCallBack
   value?: string // 格式: YYYY/MM，例如 2025/03
   onChange?: (value: string) => void
   placeholder?: string
@@ -25,7 +27,7 @@ function parseYearMonth(input?: string): { year: number; month: number } {
   return { year, month }
 }
 
-export function MonthPicker({ value, onChange, placeholder, disabled, className, allowPresent }: MonthPickerProps) {
+export function MonthPicker({ value, onChange, placeholder, disabled, className, allowPresent, ref }: MonthPickerProps) {
   const [{ year }, setYm] = useState(() => ({ year: parseYearMonth(value).year }))
   const { year: selectedYear, month: selectedMonth } = useMemo(() => parseYearMonth(value), [value])
   const [mode, setMode] = useState<'month' | 'year'>('month')
@@ -62,6 +64,7 @@ export function MonthPicker({ value, onChange, placeholder, disabled, className,
           type='button'
           variant='outline'
           role='combobox'
+          ref={ref}
           disabled={disabled}
           className={cn('justify-between gap-2 overflow-hidden h-9 w-full', className)}
           aria-label='选择月份'
