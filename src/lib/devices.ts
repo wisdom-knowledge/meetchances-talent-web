@@ -98,8 +98,6 @@ export async function resolveRealDeviceId(
 
     // 方法1: 通过设备名称匹配
     const nameMatchedId = await resolveDefaultDeviceByName(kind, devices)
-    // eslint-disable-next-line no-console
-    console.log('nameMatchedId', nameMatchedId)
     if (nameMatchedId) {
       return nameMatchedId
     }
@@ -121,8 +119,6 @@ export async function resolveRealDeviceId(
           stream.getTracks().forEach(track => track.stop())
 
           if (actualDeviceId && actualDeviceId !== 'default') {
-            // eslint-disable-next-line no-console
-            console.log('actualDeviceId 实际设备ID', actualDeviceId)
             return actualDeviceId
           }
         }
@@ -134,8 +130,6 @@ export async function resolveRealDeviceId(
     // 方法3: fallback 到第一个可用设备
     const firstRealDevice = devices.find(device => device.deviceId && device.deviceId !== 'default')
     const fallbackId = firstRealDevice?.deviceId || null
-    // eslint-disable-next-line no-console
-    console.log('fallbackId 第一个可用设备ID', fallbackId, devices)
     return fallbackId
   } catch (_e) {
     return null
@@ -153,8 +147,6 @@ export async function setPreferredDeviceIdSmart(
   deviceId: string | null | undefined,
   devices?: MediaDeviceInfo[]
 ) {
-  // eslint-disable-next-line no-console
-  console.log('setPreferredDeviceIdSmart', kind, deviceId, devices)
   if (!deviceId) {
     setPreferredDeviceId(kind, deviceId)
     return
@@ -163,8 +155,6 @@ export async function setPreferredDeviceIdSmart(
   // 如果是 'default'，尝试获取真实的设备ID
   if (deviceId === 'default') {
     const realId = await resolveRealDeviceId(kind, devices)
-    // eslint-disable-next-line no-console
-    console.log('realId 实际设备ID', realId)
     const finalId = realId || deviceId
     setPreferredDeviceId(kind, finalId)
   } else {
