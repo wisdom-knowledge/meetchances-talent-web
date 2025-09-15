@@ -222,3 +222,30 @@ export function reportApiBusinessError(params: ApiBusinessErrorParams): void {
   })
 }
 
+type ApiResponseEventParams = {
+  path: string
+  method?: string
+  request_payload?: unknown
+  request_params?: unknown
+  request_query?: unknown
+  response?: unknown
+}
+
+export function reportApiResponse(params: ApiResponseEventParams): void {
+  if (!apmClient) return
+  const { path, method, request_payload, request_params, request_query, response } = params
+  apmClient('sendEvent', {
+    name: 'api_response',
+    categories: {
+      page: 'api',
+      path: String(path || ''),
+      method: String((method || '').toUpperCase()),
+      request_payload: stringifyForCategory(request_payload),
+      request_params: stringifyForCategory(request_params),
+      request_query: stringifyForCategory(request_query),
+      response: stringifyForCategory(response),
+    },
+    type: 'event',
+  })
+}
+
