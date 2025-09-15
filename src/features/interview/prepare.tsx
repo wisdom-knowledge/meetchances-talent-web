@@ -124,7 +124,7 @@ enum ViewMode {
       const preferredSpk = getPreferredDeviceId('audiooutput')
       // eslint-disable-next-line no-console
       console.log('preferredSpk', preferredSpk, spk.activeDeviceId)
-      if (!preferredSpk && spk.activeDeviceId) {
+      if (!preferredSpk && spk.activeDeviceId && spk.devices.length > 0) {
         void setPreferredDeviceIdSmart('audiooutput', spk.activeDeviceId, spk.devices)
       }
     }, [spk.activeDeviceId, spk.devices])
