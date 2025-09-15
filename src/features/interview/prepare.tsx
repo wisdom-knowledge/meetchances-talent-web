@@ -105,6 +105,9 @@ enum ViewMode {
     
     // 检查音频输出设备支持情况
     const [audioOutputSupportInfo] = useState(() => getAudioOutputSupportInfo())
+    
+    // 在Safari中，使用本地状态来管理选中的扬声器设备ID
+    const [safariSelectedSpkId, setSafariSelectedSpkId] = useState<string | undefined>(undefined)
 
     // 首次挂载时，应用本地存储的设备偏好
     useEffect(() => {
@@ -120,19 +123,14 @@ enum ViewMode {
         if (audioOutputSupportInfo.isSupported) {
           spk.setActiveMediaDevice(preferredSpk)
         } else {
-          // 在不支持的浏览器（如 Safari）中，手动设置 activeDeviceId 以保持 UI 状态
-          // 这样用户看到的选择会保持，但实际音频走系统默认输出
-          const device = spk.devices.find(d => d.deviceId === preferredSpk)
-          if (device) {
-            // 直接更新内部状态，不触发实际设备切换
-            spk.activeDeviceId = preferredSpk
-          }
+          // 在不支持的浏览器（如 Safari）中，使用本地状态管理选中的设备
+          setSafariSelectedSpkId(preferredSpk)
         }
       } else if (!audioOutputSupportInfo.isSupported && !preferredSpk && spk.devices.length > 0) {
         // Safari 中如果没有保存的偏好，默认选择第一个可用设备（通常是 default）
         const defaultDevice = spk.devices.find(d => d.deviceId === 'default') || spk.devices[0]
         if (defaultDevice) {
-          spk.activeDeviceId = defaultDevice.deviceId
+          setSafariSelectedSpkId(defaultDevice.deviceId)
           void setPreferredDeviceIdSmart('audiooutput', defaultDevice.deviceId, spk.devices)
         }
       }
@@ -210,7 +208,7 @@ enum ViewMode {
             <IconVolume className='h-4 w-4' />
               <SelectDropdown
                 isControlled
-                value={spk.activeDeviceId}
+                value={!audioOutputSupportInfo.isSupported ? safariSelectedSpkId : spk.activeDeviceId}
                 onValueChange={(v) => {
                   // UI 层面的完美体验：总是显示切换成功
                   onSpkStatusChange(DeviceTestStatus.Testing)
@@ -222,9 +220,11 @@ enum ViewMode {
                     // 在支持的浏览器中尝试真正切换设备
                     if (audioOutputSupportInfo.isSupported) {
                       spk.setActiveMediaDevice(v)
+                    } else {
+                      // 在不支持的浏览器（如 Safari）中，使用本地状态管理选中的设备
+                      // 这样 SelectDropdown 就能正确显示用户选择的设备
+                      setSafariSelectedSpkId(v)
                     }
-                    // 注意：在不支持的浏览器（如 Safari）中，我们不调用 setActiveMediaDevice
-                    // 但 UI 上仍然显示用户选择的设备，实际音频走系统默认输出
                     
                     // UI 上总是显示成功，提供流畅的用户体验
                     setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
@@ -238,7 +238,7 @@ enum ViewMode {
                 placeholder={
                   !audioOutputSupportInfo.isSupported && spk.devices.length > 0
                     ? formatDeviceName(spk.devices.find(d => d.deviceId === 'default') || spk.devices[0])
-                    : '选择输出设备（耳机/扬声器）'
+                    : '选择输出设备（耳机|扬声器）'
                 }
                 className='h-9 flex-1 overflow-x-hidden truncate'
                 useFormControl={false}
