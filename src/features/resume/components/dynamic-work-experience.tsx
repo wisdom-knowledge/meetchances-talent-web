@@ -104,6 +104,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                           {f.component === 'input' && (f.key === 'startDate' || f.key === 'endDate' || f.key === 'date') ? (
                             <FormControl>
                               <MonthPicker
+                                ref={field.ref}
                                 value={typeof field.value === 'string' ? field.value : undefined}
                                 onChange={field.onChange}
                                 placeholder={f.placeholder ?? '选择月份'}
@@ -141,6 +142,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
                           {f.component === 'select' && (
                             <SelectDropdown
                               isControlled
+                              ref={field.ref}
                               value={(field.value as string) ?? undefined}
                               onValueChange={field.onChange}
                               placeholder={f.placeholder}
