@@ -210,13 +210,16 @@ enum ViewMode {
                 isControlled
                 value={!audioOutputSupportInfo.isSupported ? safariSelectedSpkId : spk.activeDeviceId}
                 onValueChange={(v) => {
+                  // eslint-disable-next-line no-console
+                  console.warn('v', v)
                   // UI 层面的完美体验：总是显示切换成功
                   onSpkStatusChange(DeviceTestStatus.Testing)
                   
                   try {
                     // 保存用户的选择偏好（UI 状态）
                     void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
-                    
+                    // eslint-disable-next-line no-console
+                    console.warn(audioOutputSupportInfo.isSupported)
                     // 在支持的浏览器中尝试真正切换设备
                     if (audioOutputSupportInfo.isSupported) {
                       spk.setActiveMediaDevice(v)
@@ -238,7 +241,7 @@ enum ViewMode {
                 placeholder={
                   !audioOutputSupportInfo.isSupported && spk.devices.length > 0
                     ? formatDeviceName(spk.devices.find(d => d.deviceId === 'default') || spk.devices[0])
-                    : '选择输出设备（耳机|扬声器）'
+                    : '选择输出设备（耳机/扬声器）'
                 }
                 className='h-9 flex-1 overflow-x-hidden truncate'
                 useFormControl={false}
