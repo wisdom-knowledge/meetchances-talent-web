@@ -5,10 +5,14 @@ import Lottie from 'lottie-react'
 import { BarVisualizer, type TrackReference } from '@livekit/components-react'
 import microphoneLottie from '@/lotties/microphone-lottie.json'
 
-export function RecordingIndicator({ micTrackRef, className }: { micTrackRef: TrackReference | undefined; className?: string }) {
+export function RecordingIndicator({ micTrackRef, isListening = true, className }: { micTrackRef: TrackReference | undefined; isListening?: boolean; className?: string }) {
   const [isRecording, setIsRecording] = useState(false)
 
   useEffect(() => {
+    if (!isListening) {
+      setIsRecording(false)
+      return
+    }
     if (!micTrackRef?.publication?.track) return
     const track = micTrackRef.publication.track
     if (!track.mediaStreamTrack) return
@@ -51,7 +55,7 @@ export function RecordingIndicator({ micTrackRef, className }: { micTrackRef: Tr
       if (raf) cancelAnimationFrame(raf)
       if (audioContext && audioContext.state !== 'closed') audioContext.close()
     }
-  }, [micTrackRef])
+  }, [micTrackRef, isListening])
 
   if (!micTrackRef) return null
 
@@ -63,7 +67,7 @@ export function RecordingIndicator({ micTrackRef, className }: { micTrackRef: Tr
         </BarVisualizer>
       </div>
       <div className='w-80'>
-        <Lottie animationData={microphoneLottie} loop={isRecording} autoplay={isRecording} className='h-full w-full' />
+        <Lottie animationData={microphoneLottie} loop={isRecording && isListening} autoplay={isRecording && isListening} className='h-full w-full' />
       </div>
     </div>
   )

@@ -168,7 +168,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
 
             {/* 中：录音指示器（居中） */}
             <div className='flex flex-1 justify-center -mb-10'>
-              <RecordingIndicator micTrackRef={micTrack} />
+              <RecordingIndicator micTrackRef={micTrack} isListening={agentState === 'listening'} />
             </div>
 
             {/* 右：控制条（可点击） */}
