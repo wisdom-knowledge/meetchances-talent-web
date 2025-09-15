@@ -91,7 +91,13 @@ enum ViewMode {
       }
       const preferredSpk = getPreferredDeviceId('audiooutput')
       if (preferredSpk && preferredSpk !== spk.activeDeviceId) {
-        spk.setActiveMediaDevice(preferredSpk)
+        spk.setActiveMediaDevice(preferredSpk).then((res) => {
+          // eslint-disable-next-line no-console
+          console.warn('初始化设置扬声器设备成功', res)
+        }).catch((err) => {
+          // eslint-disable-next-line no-console
+          console.warn('初始化设置扬声器设备失败', err)
+        })
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -166,10 +172,16 @@ enum ViewMode {
               isControlled
               value={spk.activeDeviceId}
               onValueChange={(v) => {
-                spk.setActiveMediaDevice(v)
-                void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
-                onSpkStatusChange(DeviceTestStatus.Testing)
-                setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
+                spk.setActiveMediaDevice(v).then((res) => {
+                  // eslint-disable-next-line no-console
+                  console.log('切换设置扬声器设备成功', res)
+                  void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
+                  onSpkStatusChange(DeviceTestStatus.Testing)
+                  setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
+                }).catch((err) => {
+                  // eslint-disable-next-line no-console
+                  console.log('切换设置扬声器设备失败', err)
+                })
               }}
               placeholder='选择输出设备（耳机/扬声器）'
               className='h-9 flex-1 overflow-x-hidden truncate'
