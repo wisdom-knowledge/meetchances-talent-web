@@ -79,7 +79,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
             <div key={fieldItem.id} className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
               <div className='mb-4 flex items-center justify-between'>
                 <div className='text-sm text-muted-foreground'>{(arraySection.itemTitlePrefix ?? '工作经历') + ' ' + (index + 1)}</div>
-                {!readOnly && (
+                {!readOnly && !(sectionKey === 'education' && index === 0) && (
                   <Button
                     variant='ghost'
                     size='sm'

@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { useForm, type FieldPath, type Resolver, type SubmitHandler } from 'react-hook-form'
 import { useEffect, useMemo } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@/components/ui/form'
@@ -17,16 +17,37 @@ type InviteContext = {
   link?: string
 }
 
-type Props = { values: ResumeFormValues; inviteContext?: InviteContext; readOnly?: boolean; onSave?: (values: ResumeFormValues) => void }
+type Props = { values: ResumeFormValues; inviteContext?: InviteContext; readOnly?: boolean; onSave?: (values: ResumeFormValues) => void; initialFocusField?: string }
 
-export default function TalentResumePreview({ values, inviteContext, readOnly = true, onSave }: Props) {
-  const form = useForm<ResumeFormValues>({ resolver: zodResolver(resumeSchema), defaultValues: values, mode: 'onChange' })
+export default function TalentResumePreview({ values, inviteContext, readOnly = true, onSave, initialFocusField }: Props) {
+  const resolver = zodResolver(resumeSchema) as unknown as Resolver<ResumeFormValues>
+  const form = useForm<ResumeFormValues>({ resolver, defaultValues: values as ResumeFormValues, mode: 'onChange' })
   const user = useAuthStore((s) => s.auth.user)
 
   // 当外部传入的简历值变化时，重置表单，避免保留上一次的内容
   useEffect(() => {
-    form.reset(values)
+    form.reset(values as ResumeFormValues)
   }, [values, form])
+
+  // 若传入初始聚焦字段，则触发校验并尝试聚焦
+  useEffect(() => {
+    if (!initialFocusField) return
+    const unsub = setTimeout(() => {
+      form.trigger().then(() => {
+        try {
+          // 优先使用 setFocus
+          form.setFocus(initialFocusField as FieldPath<ResumeFormValues>, { shouldSelect: true })
+        } catch {
+          // 兜底：滚动到包含该字段名的元素
+          const el = document.querySelector(`[name$="${CSS.escape(initialFocusField)}"]`) as HTMLElement | null
+          el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          el?.focus?.()
+        }
+      })
+    }, 50)
+    return () => clearTimeout(unsub)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFocusField])
 
   const headhunterName = useMemo(() => {
     if (inviteContext?.headhunterName) return inviteContext.headhunterName
@@ -116,9 +137,8 @@ export default function TalentResumePreview({ values, inviteContext, readOnly = 
             <button
               type='button'
               onClick={() => {
-                const vals = form.getValues()
-                onSave?.(vals)
-                toast.success('已保存更新')
+                const handler: SubmitHandler<ResumeFormValues> = (vals) => { onSave?.(vals) }
+                form.handleSubmit(handler)()
               }}
               className='inline-flex items-center rounded-md bg-primary px-4 py-2 text-primary-foreground text-sm font-medium shadow hover:opacity-90 disabled:opacity-60'
             >
