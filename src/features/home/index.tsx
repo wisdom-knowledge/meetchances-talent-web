@@ -181,7 +181,7 @@ export default function HomeViewPage() {
                         const total = item.total_step ?? 0
                         return {
                           text: `未完成（${progress}/${total}）`,
-                          classes: 'bg-amber-200 text-amber-900',
+                          classes: 'bg-[#FFF6BC] text-[#B28300]',
                         }
                       }
                     })()
