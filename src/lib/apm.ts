@@ -57,6 +57,28 @@ export function reportRecordFail(roomName: string): void {
   })
 }
 
+// Report when WebSocket (LiveKit) connection takes too long in initial connect
+export function reportWsConnectTimeout(durationMs: number, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'ws_connect_timeout',
+    metrics: { duration_ms: Math.max(0, Math.round(durationMs)) },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
+// Report when WebSocket (LiveKit) reconnection takes too long
+export function reportWsReconnectTimeout(durationMs: number, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'ws_reconnect_timeout',
+    metrics: { duration_ms: Math.max(0, Math.round(durationMs)) },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
 export function initApm(): void {
   if (initialized) return
 
