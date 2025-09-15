@@ -56,7 +56,7 @@ export async function resolveDefaultDeviceByName(
     )
 
 
-    return matchedDevice?.deviceId || null
+    return matchedDevice?.deviceId || devices[0]?.deviceId || null
   } catch (_e) {
     return null
   }
