@@ -87,13 +87,7 @@ enum ViewMode {
     useEffect(() => {
       const preferredMic = getPreferredDeviceId('audioinput')
       if (preferredMic && preferredMic !== mic.activeDeviceId) {
-        mic.setActiveMediaDevice(preferredMic).then(res => {
-          // eslint-disable-next-line no-console
-          console.warn('初始化切换音频输入设备成功', res)
-        }).catch(err => {
-          // eslint-disable-next-line no-console
-          console.warn('初始化切换音频输入设备失败', err)
-        })
+        mic.setActiveMediaDevice(preferredMic)
       }
       const preferredSpk = getPreferredDeviceId('audiooutput')
       if (preferredSpk && preferredSpk !== spk.activeDeviceId) {
@@ -172,16 +166,10 @@ enum ViewMode {
               isControlled
               value={spk.activeDeviceId}
               onValueChange={(v) => {
-                spk.setActiveMediaDevice(v).then(res => {
-                  // eslint-disable-next-line no-console
-                  console.warn('切换音频输出设备成功', res)
-                  void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
-                  onSpkStatusChange(DeviceTestStatus.Testing)
-                  setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
-                }).catch(err => {
-                  // eslint-disable-next-line no-console
-                  console.warn('切换音频输出设备失败', err)
-                })
+                spk.setActiveMediaDevice(v)
+                void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
+                onSpkStatusChange(DeviceTestStatus.Testing)
+                setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
               }}
               placeholder='选择输出设备（耳机/扬声器）'
               className='h-9 flex-1 overflow-x-hidden truncate'
@@ -942,4 +930,3 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     </>
   )
 }
-

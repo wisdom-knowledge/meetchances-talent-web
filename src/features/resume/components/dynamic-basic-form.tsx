@@ -60,6 +60,7 @@ export default function DynamicBasicForm(props: Props) {
                 )}
                 {field.component === 'select' && (
                   <SelectDropdown
+                    ref={rhfField.ref}
                     isControlled
                     value={(rhfField.value as string) ?? undefined}
                     onValueChange={rhfField.onChange}
