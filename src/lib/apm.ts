@@ -57,6 +57,22 @@ export function reportRecordFail(roomName: string): void {
   })
 }
 
+/**
+ * Report a single thinking duration for the interview session.
+ * Event name format: thinking_<round>_ms, metrics.value_ms = duration in ms
+ */
+export function reportThinkingDuration(round: number, durationMs: number, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  const safeRound = Math.max(1, Math.floor(round))
+  const safeDuration = Math.max(0, Math.round(durationMs))
+  apmClient('sendEvent', {
+    name: `thinking_${safeRound}_ms`,
+    metrics: { value_ms: safeDuration },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
 export function initApm(): void {
   if (initialized) return
 
