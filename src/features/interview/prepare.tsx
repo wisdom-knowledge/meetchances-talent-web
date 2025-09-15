@@ -121,10 +121,10 @@ enum ViewMode {
     // 当音频输出设备自动选择时，保存为默认选择
     useEffect(() => {
       const preferredSpk = getPreferredDeviceId('audiooutput')
+      // eslint-disable-next-line no-console
+      console.log('preferredSpk', preferredSpk, spk.activeDeviceId)
       if (!preferredSpk && spk.activeDeviceId) {
-        void setPreferredDeviceIdSmart('audiooutput', spk.activeDeviceId, spk.devices).then(() => {
-          setDisplaySpkDeviceId(getPreferredDeviceId('audiooutput') || '')
-        })
+        void setPreferredDeviceIdSmart('audiooutput', spk.activeDeviceId, spk.devices)
       }
     }, [spk.activeDeviceId, spk.devices])
 
