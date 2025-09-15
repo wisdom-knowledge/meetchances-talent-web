@@ -1,10 +1,13 @@
 import axios from 'axios'
+import { reportApiBusinessError, reportApiResponse } from '@/lib/apm'
 import { Talent, TalentParams } from '@/stores/authStore'
 import { noTalentMeRoutes } from '@/components/layout/data/sidebar-data'
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
   'https://service-dev.meetchances.com/api/v1'
+
+const TARGETED_API_KEYWORDS = ['connection_details', 'interview_record_status', '/node/action'] as const
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -25,6 +28,11 @@ api.interceptors.response.use(
   (response) => {
     const { status } = response
     const payload = response.data
+    const { config } = response
+    const urlStr = String(config?.url ?? '')
+    const methodStr = String((config?.method ?? '').toUpperCase())
+    const paramsUnknown = (config as unknown as { params?: unknown })?.params
+    const dataUnknown = config?.data
     // 明确处理未登录/登录失效
     if (status === 401) {
       const isSpecialPage = noTalentMeRoutes.includes(window.location.pathname)
@@ -42,6 +50,17 @@ api.interceptors.response.use(
     ) {
       // 对于非 2xx 的 HTTP 状态，抛出错误；否则返回数据
       if (status >= 200 && status < 300) {
+        // 针对特定接口：成功也上报响应
+        if (TARGETED_API_KEYWORDS.some((k) => urlStr.includes(k))) {
+          reportApiResponse({
+            path: urlStr,
+            method: methodStr,
+            request_payload: dataUnknown,
+            request_params: paramsUnknown,
+            request_query: paramsUnknown,
+            response: payload,
+          })
+        }
         return payload
       }
       return Promise.reject({
@@ -57,7 +76,40 @@ api.interceptors.response.use(
     }
 
     if (status_code === 0) {
+      // 针对特定接口：成功也上报响应
+      if (TARGETED_API_KEYWORDS.some((k) => urlStr.includes(k))) {
+        reportApiResponse({
+          path: urlStr,
+          method: methodStr,
+          request_payload: dataUnknown,
+          request_params: paramsUnknown,
+          request_query: paramsUnknown,
+          response: payload,
+        })
+      }
       return data
+    }
+
+    // 业务错误上报
+    reportApiBusinessError({
+      path: urlStr,
+      method: methodStr,
+      status_code,
+      status_msg,
+      payload: dataUnknown,
+      query: paramsUnknown,
+    })
+
+    // 针对特定接口：失败也上报响应
+    if (TARGETED_API_KEYWORDS.some((k) => urlStr.includes(k))) {
+      reportApiResponse({
+        path: urlStr,
+        method: methodStr,
+        request_payload: dataUnknown,
+        request_params: paramsUnknown,
+        request_query: paramsUnknown,
+        response: payload,
+      })
     }
 
     return Promise.reject({ status_code, status_msg })
