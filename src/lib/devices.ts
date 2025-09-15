@@ -121,6 +121,8 @@ export async function resolveRealDeviceId(
           stream.getTracks().forEach(track => track.stop())
 
           if (actualDeviceId && actualDeviceId !== 'default') {
+            // eslint-disable-next-line no-console
+            console.log('actualDeviceId 实际设备ID', actualDeviceId)
             return actualDeviceId
           }
         }
@@ -132,7 +134,8 @@ export async function resolveRealDeviceId(
     // 方法3: fallback 到第一个可用设备
     const firstRealDevice = devices.find(device => device.deviceId && device.deviceId !== 'default')
     const fallbackId = firstRealDevice?.deviceId || null
-
+    // eslint-disable-next-line no-console
+    console.log('fallbackId 第一个可用设备ID', fallbackId, devices)
     return fallbackId
   } catch (_e) {
     return null
