@@ -122,8 +122,9 @@ enum ViewMode {
     useEffect(() => {
       const preferredSpk = getPreferredDeviceId('audiooutput')
       if (!preferredSpk && spk.activeDeviceId) {
-        void setPreferredDeviceIdSmart('audiooutput', spk.activeDeviceId, spk.devices)
-        setDisplaySpkDeviceId(getPreferredDeviceId('audiooutput') || '')
+        void setPreferredDeviceIdSmart('audiooutput', spk.activeDeviceId, spk.devices).then(() => {
+          setDisplaySpkDeviceId(getPreferredDeviceId('audiooutput') || '')
+        })
       }
     }, [spk.activeDeviceId, spk.devices])
 

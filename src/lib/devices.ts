@@ -153,7 +153,8 @@ export async function setPreferredDeviceIdSmart(
   deviceId: string | null | undefined,
   devices?: MediaDeviceInfo[]
 ) {
-
+  // eslint-disable-next-line no-console
+  console.log('setPreferredDeviceIdSmart', kind, deviceId, devices)
   if (!deviceId) {
     setPreferredDeviceId(kind, deviceId)
     return
