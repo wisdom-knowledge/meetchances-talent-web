@@ -47,6 +47,16 @@ export function reportInterviewFirstToken(extra?: Record<string, string>): void 
   })
 }
 
+// Report when interview record status indicates failure
+export function reportRecordFail(roomName: string): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'record_fail',
+    categories: { page: 'session', roomName: String(roomName) },
+    type: 'event',
+  })
+}
+
 export function initApm(): void {
   if (initialized) return
 

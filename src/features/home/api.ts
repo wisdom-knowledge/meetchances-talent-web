@@ -64,7 +64,7 @@ export async function fetchImportantTasks(): Promise<ImportantTaskItem[]> {
       actionText: '去查看',
       closable: true,
       handleClick: () => {
-        const url = 'https://dnu-cdn.xpertiise.com/common/fd57793e-5af3-4ddc-8da8-2e8bb06506a4.pdf'
+        const url = 'https://dnu-cdn.xpertiise.com/common/366b8dd4-f449-4beb-b468-ad82f262362a.pdf'
         window.open(url, '_blank', 'noopener,noreferrer')
       },
     },

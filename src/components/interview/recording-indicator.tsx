@@ -23,7 +23,10 @@ export function RecordingIndicator({ micTrackRef, className }: { micTrackRef: Tr
       try {
         audioContext = new AudioContext()
         analyser = audioContext.createAnalyser()
-        analyser.fftSize = 256
+        analyser.fftSize = 512 // 增加 FFT 大小以提高频率分辨率
+        analyser.smoothingTimeConstant = 0.2 // 降低平滑常数以提高响应速度
+        analyser.minDecibels = -90 // 设置更低的最小分贝值以提高敏感度
+        analyser.maxDecibels = -10 // 设置最大分贝值
         const bufferLength = analyser.frequencyBinCount
         dataArray = new Uint8Array(bufferLength)
         const stream = new MediaStream([track.mediaStreamTrack])
@@ -31,8 +34,10 @@ export function RecordingIndicator({ micTrackRef, className }: { micTrackRef: Tr
         microphone.connect(analyser)
         const tick = () => {
           analyser!.getByteFrequencyData(dataArray)
-          const average = dataArray.reduce((sum, v) => sum + v, 0) / dataArray.length
-          const isActive = average > 10 && !track.isMuted
+          // 使用 RMS 计算更准确的音量
+          const rms = Math.sqrt(dataArray.reduce((sum, value) => sum + value * value, 0) / dataArray.length)
+          // 降低激活阈值并增加敏感度
+          const isActive = rms > 3 && !track.isMuted // 从 10 降低到 3
           setIsRecording(isActive)
           raf = requestAnimationFrame(tick)
         }
