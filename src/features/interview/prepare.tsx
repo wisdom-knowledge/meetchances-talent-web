@@ -210,19 +210,21 @@ enum ViewMode {
                 isControlled
                 value={!audioOutputSupportInfo.isSupported ? safariSelectedSpkId : spk.activeDeviceId}
                 onValueChange={(v) => {
-                  // eslint-disable-next-line no-console
-                  console.warn('v', v)
                   // UI 层面的完美体验：总是显示切换成功
                   onSpkStatusChange(DeviceTestStatus.Testing)
                   
                   try {
                     // 保存用户的选择偏好（UI 状态）
                     void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
-                    // eslint-disable-next-line no-console
-                    console.warn(audioOutputSupportInfo.isSupported)
                     // 在支持的浏览器中尝试真正切换设备
                     if (audioOutputSupportInfo.isSupported) {
-                      spk.setActiveMediaDevice(v)
+                      spk.setActiveMediaDevice(v).then(res => {
+                        // eslint-disable-next-line no-console
+                        console.log('切换音频输出设备成功', res)
+                      }).catch(err => {
+                        // eslint-disable-next-line no-console
+                        console.warn('切换音频输出设备失败', err)
+                      })
                     } else {
                       // 在不支持的浏览器（如 Safari）中，使用本地状态管理选中的设备
                       // 这样 SelectDropdown 就能正确显示用户选择的设备

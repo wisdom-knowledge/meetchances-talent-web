@@ -23,24 +23,32 @@ export function isAudioOutputSupported(): boolean {
  * @returns 包含支持信息和建议的对象
  */
 export function getAudioOutputSupportInfo() {
-  const isSupported = isAudioOutputSupported()
   const userAgent = navigator.userAgent.toLowerCase()
-
   let browserName = 'Unknown'
   let recommendation = ''
+  let isSupported = false
 
   if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
     browserName = 'Chrome'
+    isSupported = isAudioOutputSupported()
     recommendation = isSupported ? '' : '请确保使用 Chrome 66+ 版本并在 HTTPS 环境下访问'
   } else if (userAgent.includes('firefox')) {
     browserName = 'Firefox'
+    // Firefox 对音频输出设备切换支持有限
+    isSupported = false
     recommendation = '音频输出设备切换在 Firefox 中支持有限，建议使用 Chrome'
   } else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
     browserName = 'Safari'
+    // Safari 即使有 setSinkId API 也不能真正切换音频输出设备
+    isSupported = false
     recommendation = 'Safari 不支持音频输出设备切换，建议使用 Chrome 或 Edge'
   } else if (userAgent.includes('edg')) {
     browserName = 'Edge'
+    isSupported = isAudioOutputSupported()
     recommendation = isSupported ? '' : '请确保使用 Edge 79+ 版本并在 HTTPS 环境下访问'
+  } else {
+    // 其他浏览器，尝试检测 API 支持
+    isSupported = isAudioOutputSupported()
   }
 
   return {
