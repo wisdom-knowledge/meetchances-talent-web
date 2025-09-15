@@ -5,8 +5,10 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { FormControl } from '@/components/ui/form'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { RefCallBack } from 'react-hook-form'
 
 interface SelectDropdownProps {
+  ref?: RefCallBack
   onValueChange?: (value: string) => void
   value?: string
   defaultValue?: string
@@ -21,6 +23,7 @@ interface SelectDropdownProps {
 }
 
 export function SelectDropdown({
+  ref,
   value,
   defaultValue,
   onValueChange,
@@ -64,6 +67,7 @@ export function SelectDropdown({
               variant='outline'
               role='combobox'
               disabled={disabled}
+              ref={ref}
               className={cn('justify-between gap-2 overflow-hidden', className)}
             >
               {prefix ? <span className='shrink-0 inline-flex items-center'>{prefix}</span> : null}
@@ -78,6 +82,7 @@ export function SelectDropdown({
             type='button'
             variant='outline'
             role='combobox'
+            ref={ref}
             disabled={disabled}
             className={cn('justify-between gap-2 overflow-hidden', className)}
           >
