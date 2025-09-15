@@ -113,18 +113,7 @@ enum ViewMode {
           console.warn('初始化设置扬声器设备失败', err)
           // 初始化失败时，显示值保持为首选设备ID
         })
-      } else if (spk.activeDeviceId && !displaySpkDeviceId) {
-        // 如果没有首选设备但有当前激活设备，则设置显示值
-        // 如果activeDeviceId是default但devices中没有对应项，则使用第一个设备
-        if (spk.activeDeviceId === 'default' && !spk.devices.find(d => d.deviceId === 'default')) {
-          const firstDevice = spk.devices[0]
-          if (firstDevice) {
-            setDisplaySpkDeviceId(firstDevice.deviceId)
-          }
-        } else {
-          setDisplaySpkDeviceId(spk.activeDeviceId)
-        }
-      }
+      } 
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
