@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Track, type Room } from 'livekit-client'
 import Lottie from 'lottie-react';
@@ -21,6 +21,7 @@ import { ChatMessageView } from '@/components/livekit/chat/chat-message-view'
 import voiceLottie from '@/lotties/voice-lottie.json';
 import { AgentControlBar } from '@/components/livekit/agent-control-bar'
 import { getPreferredDeviceId } from '@/lib/devices'
+import { reportThinkingDuration } from '@/lib/apm'
 
 function useLocalTrackRef(source: Track.Source) {
   const { localParticipant } = useLocalParticipant()
@@ -38,14 +39,98 @@ export interface SessionViewProps extends React.ComponentProps<'main'> {
   onRequestEnd?: () => void
   onDisconnect?: () => void
   recordingStatus?: number
+  interviewId?: string | number
 }
 
-export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, recordingStatus, ...props }: SessionViewProps) {
+export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, recordingStatus, interviewId, ...props }: SessionViewProps) {
   const { state: agentState } = useVoiceAssistant()
   const { messages } = useChatAndTranscription()
   const room = useRoomContext() as Room | undefined
   const micTrack = useLocalTrackRef(Track.Source.Microphone)
   const cameraTrack = useLocalTrackRef(Track.Source.Camera)
+
+  // thinking 轮次与起止时间
+  const [thinkingRound, setThinkingRound] = useState<number>(0)
+  const thinkingStartRef = useRef<number | null>(null)
+
+  // 会话回合序号（从0开始）；当 "agent start talk" 发生时 +1
+  const currentRoundRef = useRef<number>(0)
+  const prevAgentStateRef = useRef<AgentState | undefined>(undefined)
+
+  function formatTimeHmsMs(d: Date): string {
+    const pad = (n: number, w = 2) => String(n).padStart(w, '0')
+    const HH = pad(d.getHours())
+    const mm = pad(d.getMinutes())
+    const ss = pad(d.getSeconds())
+    const SSS = pad(d.getMilliseconds(), 3)
+    return `${HH}:${mm}:${ss}.${SSS}`
+  }
+
+  const printRoundEvent = useCallback((round: number, event: string): void => {
+    const nowStr = formatTimeHmsMs(new Date())
+    // eslint-disable-next-line no-console
+    console.log(`========== 第[${round}]轮==========`)
+    // eslint-disable-next-line no-console
+    console.log(`- 事件：${event}`)
+    // eslint-disable-next-line no-console
+    console.log(`- 时间点：${nowStr}`)
+    // eslint-disable-next-line no-console
+    console.log('=========================')
+  }, [])
+
+  // 监听 agentState 切换，计算 thinking 耗时 + 打印轮次事件
+  useEffect(() => {
+    if (!sessionStarted) {
+      // 重置会话内统计
+      setThinkingRound(0)
+      thinkingStartRef.current = null
+      currentRoundRef.current = 0
+      prevAgentStateRef.current = undefined
+      return
+    }
+
+    // 轮次与事件：
+    // - agent start talk：当 agent 进入 speaking 时，当前回合 +1，并打印事件
+    // - thinking start / end：打印事件，使用当前回合号（不改变回合号）
+
+    const prev = prevAgentStateRef.current
+    const curr = agentState
+
+    // thinking start（不改变回合号）
+    if (curr === 'thinking' && prev !== 'thinking') {
+      const roundToPrint = currentRoundRef.current
+      printRoundEvent(roundToPrint, 'thinking start')
+      if (thinkingStartRef.current == null) {
+        thinkingStartRef.current = performance.now()
+        setThinkingRound((prevRound) => prevRound + 1)
+      }
+    }
+
+    // thinking end（不改变回合号）
+    if (prev === 'thinking' && curr !== 'thinking') {
+      const roundToPrint = currentRoundRef.current
+      printRoundEvent(roundToPrint, 'thinking end')
+      if (thinkingStartRef.current != null) {
+        const duration = performance.now() - thinkingStartRef.current
+        const round = currentRoundRef.current
+        const extra = interviewId != null ? { Interview_id: String(interviewId) } : undefined
+        reportThinkingDuration(round, duration, extra)
+        thinkingStartRef.current = null
+      }
+    }
+
+    // agent start talk：当 agent 进入 speaking，当前回合 +1 并记录事件
+    if (curr === 'speaking' && prev !== 'speaking') {
+      currentRoundRef.current = currentRoundRef.current + 1
+      const roundToPrint = currentRoundRef.current
+      printRoundEvent(roundToPrint, 'agent start talk')
+    }
+
+    // 用户说话结束：当 agent 从 speaking 转变为 listening/thinking，不再改变回合号
+
+    prevAgentStateRef.current = curr
+    // 在会话状态与 agentState 变化时响应
+  }, [agentState, sessionStarted, thinkingRound, interviewId, printRoundEvent])
 
   // 只显示最新的一条Agent消息
   const latestAgentMessage = useMemo(() => {
