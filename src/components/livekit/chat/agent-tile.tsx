@@ -57,12 +57,17 @@ export const AgentTile = ({
         className={cn('relative h-60 w-60', {
           'scale-125': isSpeaking,
         })}
-        initial={{ opacity: 0, scale: isThinking ? 0.96 : isSpeaking ? 1.04 : 1.02 }}
+        initial={{ opacity: 0, scale: isThinking ? 0.86 : isSpeaking ? 1.04 : 1.02 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
         {/* 常驻：voice 动画（listening/speaking） */}
-        <div className={cn('absolute inset-0', { hidden: isThinking })}>
+        <motion.div
+          className="absolute inset-0"
+          initial={false}
+          animate={{ opacity: isThinking ? 0 : 1, scale: isThinking ? 0.88 : 1 }}
+          transition={{ duration: 0.28, ease: 'easeOut' }}
+        >
           <Lottie
             lottieRef={voiceLottieRef}
             animationData={voiceLottie}
@@ -70,10 +75,15 @@ export const AgentTile = ({
             autoplay={false}
             className="h-full w-full"
           />
-        </div>
+        </motion.div>
 
         {/* 常驻：thinking 动画 */}
-        <div className={cn('absolute inset-0', { hidden: !isThinking })}>
+        <motion.div
+          className="absolute inset-0"
+          initial={false}
+          animate={{ opacity: isThinking ? 1 : 0, scale: isThinking ? 1 : 1.02 }}
+          transition={{ duration: 0.28, ease: 'easeOut' }}
+        >
           <Lottie
             lottieRef={thinkingLottieRef}
             animationData={agentThinkingLottie}
@@ -81,7 +91,7 @@ export const AgentTile = ({
             autoplay={false}
             className="h-full w-full"
           />
-        </div>
+        </motion.div>
       </motion.div>
     </div>
   );
