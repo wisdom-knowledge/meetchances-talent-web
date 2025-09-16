@@ -85,12 +85,11 @@ export function reportWsReconnectTimeout(durationMs: number, extra?: Record<stri
  */
 export function reportThinkingDuration(round: number, durationMs: number, extra?: Record<string, string>): void {
   if (!apmClient) return
-  const safeRound = Math.max(1, Math.floor(round))
   const safeDuration = Math.max(0, Math.round(durationMs))
   apmClient('sendEvent', {
-    name: `thinking_${safeRound}_ms`,
+    name: `thinking_duration`,
     metrics: { value_ms: safeDuration },
-    categories: { page: 'session', ...(extra ?? {}) },
+    categories: { page: 'session', round: String(round), ...(extra ?? {}) },
     type: 'event',
   })
 }
