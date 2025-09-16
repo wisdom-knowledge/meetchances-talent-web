@@ -57,6 +57,43 @@ export function reportRecordFail(roomName: string): void {
   })
 }
 
+// Report when WebSocket (LiveKit) connection takes too long in initial connect
+export function reportWsConnectTimeout(durationMs: number, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'ws_connect_timeout',
+    metrics: { duration_ms: Math.max(0, Math.round(durationMs)) },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
+// Report when WebSocket (LiveKit) reconnection takes too long
+export function reportWsReconnectTimeout(durationMs: number, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'ws_reconnect_timeout',
+    metrics: { duration_ms: Math.max(0, Math.round(durationMs)) },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
+/**
+ * Report a single thinking duration for the interview session.
+ * Event name format: thinking_<round>_ms, metrics.value_ms = duration in ms
+ */
+export function reportThinkingDuration(round: number, durationMs: number, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  const safeDuration = Math.max(0, Math.round(durationMs))
+  apmClient('sendEvent', {
+    name: `thinking_duration`,
+    metrics: { value_ms: safeDuration },
+    categories: { page: 'session', round: String(round), ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
 export function initApm(): void {
   if (initialized) return
 
@@ -217,6 +254,33 @@ export function reportApiBusinessError(params: ApiBusinessErrorParams): void {
       payload: stringifyForCategory(payload),
       query: stringifyForCategory(query),
       page: 'api',
+    },
+    type: 'event',
+  })
+}
+
+type ApiResponseEventParams = {
+  path: string
+  method?: string
+  request_payload?: unknown
+  request_params?: unknown
+  request_query?: unknown
+  response?: unknown
+}
+
+export function reportApiResponse(params: ApiResponseEventParams): void {
+  if (!apmClient) return
+  const { path, method, request_payload, request_params, request_query, response } = params
+  apmClient('sendEvent', {
+    name: 'api_response',
+    categories: {
+      page: 'api',
+      path: String(path || ''),
+      method: String((method || '').toUpperCase()),
+      request_payload: stringifyForCategory(request_payload),
+      request_params: stringifyForCategory(request_params),
+      request_query: stringifyForCategory(request_query),
+      response: stringifyForCategory(response),
     },
     type: 'event',
   })

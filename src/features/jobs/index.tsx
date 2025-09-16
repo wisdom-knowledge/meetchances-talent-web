@@ -14,7 +14,7 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 // import { TopNav } from '@/components/layout/top-nav'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
- 
+
 // import { ExploreJobs } from './mockData.ts'
 import {
   useJobsQuery,

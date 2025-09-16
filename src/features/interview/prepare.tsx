@@ -83,7 +83,7 @@ enum ViewMode {
   }) {
     const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
-    
+
     // 用于显示的扬声器设备ID，当设备切换失败时保持用户选择的值
     const [displaySpkDeviceId, setDisplaySpkDeviceId] = useState<string>('')
 
@@ -102,7 +102,7 @@ enum ViewMode {
         }).catch(() => {
           // 初始化失败时，显示值保持为首选设备ID
         })
-      } 
+      }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -182,7 +182,7 @@ enum ViewMode {
               onValueChange={(v) => {
                 // 立即更新显示值
                 setDisplaySpkDeviceId(v)
-                
+
                 spk.setActiveMediaDevice(v).then(() => {
                   void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
                   onSpkStatusChange(DeviceTestStatus.Testing)
@@ -749,7 +749,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               </div>
               <h2 className='text-2xl font-bold tracking-tight mb-2'>审核中</h2>
               <p className='text-muted-foreground text-center max-w-[560px]'>
-                感谢您完成面试，我们正在审核您的材料，预计48小时内通知您，请等待通知
+                感谢您完成面试，我们正在审核您的材料，请等待通知
               </p>
               {interviewNodeStatus === JobApplyNodeStatus.CompletedPendingReview && (
                 <div className='my-8'>
@@ -873,9 +873,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             <Button disabled={!reinterviewReason} onClick={async () => {
               setReinterviewOpen(false)
               if (interviewNodeId != null) {
-                await postNodeAction({ 
-                  node_id: interviewNodeId, 
-                  trigger: NodeActionTrigger.Retake, 
+                await postNodeAction({
+                  node_id: interviewNodeId,
+                  trigger: NodeActionTrigger.Retake,
                   result_data: {}
                 })
                 location.reload()
@@ -954,7 +954,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         </button>
         {/* 悬停展示的提示图片 */}
         <img
-          src={'https://dnu-cdn.xpertiise.com/common/cb31d746-033b-45a0-92a7-63f89c8c169d.png'}
+          src={'https://dnu-cdn.xpertiise.com/common/4c9d2d04-912e-4bde-ad30-af123145be94.jpeg'}
           alt='客服说明'
           className='pointer-events-none absolute right-16 bottom-0 mb-1 w-[60px] max-w-none rounded bg-white shadow-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-transform duration-300 origin-bottom-right scale-100 group-hover:scale-[4]'
         />
