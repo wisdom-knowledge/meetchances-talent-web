@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Track, type Room } from 'livekit-client'
-import Lottie from 'lottie-react';
+import Lottie, { type LottieRefCurrentProps } from 'lottie-react';
 import {
   type AgentState,
   type TrackReference,
@@ -48,6 +48,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
   const room = useRoomContext() as Room | undefined
   const micTrack = useLocalTrackRef(Track.Source.Microphone)
   const cameraTrack = useLocalTrackRef(Track.Source.Camera)
+  const connectingLottieRef = useRef<LottieRefCurrentProps>(null)
 
   // thinking 轮次与起止时间
   const [thinkingRound, setThinkingRound] = useState<number>(0)
@@ -167,6 +168,15 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
     } catch (_e) { /* ignore */ }
   }, [room, sessionStarted])
 
+  // 连接期间的 Lottie 静态帧（例如 60%）
+  useEffect(() => {
+    if (sessionStarted && !isAgentAvailable(agentState)) {
+      const totalFrames = ((voiceLottie as unknown as { op?: number }).op ?? 100) | 0
+      const frame = Math.floor(totalFrames * 0.6)
+      connectingLottieRef.current?.goToAndStop(frame, true)
+    }
+  }, [sessionStarted, agentState])
+
   return (
     <main inert={disabled} className={`relative h-[80vh] w-full overflow-hidden ${className ?? ''}`} {...props}>
       {/* 左上：连接状态 */}
@@ -222,6 +232,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
         <div className="fixed inset-0 z-20 flex items-center justify-center">
           <div className="animate-slow-spin h-60 w-60">
             <Lottie
+              lottieRef={connectingLottieRef}
               animationData={voiceLottie}
               loop={false}
               autoplay={false}
