@@ -122,17 +122,21 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
   // 延迟 10s 后调用两次；默认不启用自动轮询
   const { data: recordStatus, refetch: refetchRecordStatus } = useInterviewRecordStatus(roomName, false, false)
   const reportedRecordFailRef = useRef(false)
+  const timer2Ref = useRef<NodeJS.Timeout | null>(null)
+  
   useEffect(() => {
     if (!roomName) return
     const timer = setTimeout(() => {
       void refetchRecordStatus()
       // 第二次调用稍作间隔，确保两次请求均发送
-      const timer2 = setTimeout(() => { void refetchRecordStatus() }, 600)
-      // 清理第二个定时器
-      ;(timer2 as unknown as { __cleanup?: boolean }).__cleanup = true
+      timer2Ref.current = setTimeout(() => { void refetchRecordStatus() }, 600)
     }, 10_000)
     return () => {
       clearTimeout(timer)
+      if (timer2Ref.current) {
+        clearTimeout(timer2Ref.current)
+        timer2Ref.current = null
+      }
     }
   }, [roomName, refetchRecordStatus])
 

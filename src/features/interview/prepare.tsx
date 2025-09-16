@@ -83,6 +83,9 @@ enum ViewMode {
   }) {
     const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
+    
+    // 用于显示的扬声器设备ID，当设备切换失败时保持用户选择的值
+    const [displaySpkDeviceId, setDisplaySpkDeviceId] = useState<string>('')
 
     // 首次挂载时，应用本地存储的设备偏好
     useEffect(() => {
@@ -92,14 +95,14 @@ enum ViewMode {
       }
       const preferredSpk = getPreferredDeviceId('audiooutput')
       if (preferredSpk && preferredSpk !== spk.activeDeviceId) {
-        spk.setActiveMediaDevice(preferredSpk).then((res) => {
-          // eslint-disable-next-line no-console
-          console.warn('初始化设置扬声器设备成功', res)
-        }).catch((err) => {
-          // eslint-disable-next-line no-console
-          console.warn('初始化设置扬声器设备失败', err)
+        // 设置显示值为首选设备
+        setDisplaySpkDeviceId(preferredSpk)
+        spk.setActiveMediaDevice(preferredSpk).then(() => {
+          // 初始化成功
+        }).catch(() => {
+          // 初始化失败时，显示值保持为首选设备ID
         })
-      }
+      } 
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -114,10 +117,14 @@ enum ViewMode {
     // 当音频输出设备自动选择时，保存为默认选择
     useEffect(() => {
       const preferredSpk = getPreferredDeviceId('audiooutput')
-      if (!preferredSpk && spk.activeDeviceId) {
-        void setPreferredDeviceIdSmart('audiooutput', spk.activeDeviceId, spk.devices)
+      if (!preferredSpk && spk.activeDeviceId && spk.devices.length > 0) {
+        void setPreferredDeviceIdSmart('audiooutput', spk.activeDeviceId, spk.devices).then(() => {
+          if (!displaySpkDeviceId) {
+            setDisplaySpkDeviceId(getPreferredDeviceId('audiooutput') || '')
+          }
+        })
       }
-    }, [spk.activeDeviceId, spk.devices])
+    }, [spk.activeDeviceId, spk.devices, displaySpkDeviceId])
 
     const statusText = (s: DeviceTestStatus) => {
       switch (s) {
@@ -171,17 +178,17 @@ enum ViewMode {
             <IconVolume className='h-4 w-4' />
             <SelectDropdown
               isControlled
-              value={spk.activeDeviceId}
+              value={displaySpkDeviceId}
               onValueChange={(v) => {
-                spk.setActiveMediaDevice(v).then((res) => {
-                  // eslint-disable-next-line no-console
-                  console.log('切换设置扬声器设备成功', res)
+                // 立即更新显示值
+                setDisplaySpkDeviceId(v)
+                
+                spk.setActiveMediaDevice(v).then(() => {
                   void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
                   onSpkStatusChange(DeviceTestStatus.Testing)
                   setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
-                }).catch((err) => {
-                  // eslint-disable-next-line no-console
-                  console.log('切换设置扬声器设备失败', err)
+                }).catch(() => {
+                  // 设备切换失败
                 })
               }}
               placeholder='选择输出设备（耳机/扬声器）'
@@ -589,7 +596,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
             {/* 右：上传简历 */}
             <div className='col-span-5 flex flex-col h-full min-h-0 justify-center'>
-              <div className='p-4 sticky relative my-8 pl-[36px]'>
+              <div className='p-4 relative my-8 pl-[36px]'>
                 <UploadArea
                   className='my-4 min-w-[420px]'
                   uploader={uploadTalentResume}

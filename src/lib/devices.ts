@@ -56,7 +56,7 @@ export async function resolveDefaultDeviceByName(
     )
 
 
-    return matchedDevice?.deviceId || null
+    return matchedDevice?.deviceId || devices[0]?.deviceId || null
   } catch (_e) {
     return null
   }
@@ -130,7 +130,6 @@ export async function resolveRealDeviceId(
     // 方法3: fallback 到第一个可用设备
     const firstRealDevice = devices.find(device => device.deviceId && device.deviceId !== 'default')
     const fallbackId = firstRealDevice?.deviceId || null
-
     return fallbackId
   } catch (_e) {
     return null
@@ -148,7 +147,6 @@ export async function setPreferredDeviceIdSmart(
   deviceId: string | null | undefined,
   devices?: MediaDeviceInfo[]
 ) {
-
   if (!deviceId) {
     setPreferredDeviceId(kind, deviceId)
     return
