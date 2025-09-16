@@ -27,7 +27,7 @@ import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import { handleServerError } from '@/utils/handle-server-error'
 import { useAuthStore } from '@/stores/authStore'
-import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, getInterviewNodeId } from '@/features/interview/api'
+import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, getInterviewNodeId, fetchInterviewConnectionDetails, saveInterviewConnectionToStorage } from '@/features/interview/api'
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
@@ -230,6 +230,7 @@ enum ViewMode {
 
 export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute }: InterviewPreparePageProps) {
   const navigate = useNavigate()
+  const [connecting, setConnecting] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -313,8 +314,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       }
       setViewMode(ViewMode.InterviewPrepare)
     } else {
-      if (!interviewNodeId) return
-      navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
+      // 不再自动跳转会话页；改为等待用户在设备确认页点击“确认设备，下一步”
+      // 这里仅切换视图
+      setViewMode(ViewMode.InterviewPrepare)
     }
   }, [viewMode, jobApplyId, workflow, queryClient, interviewNodeId, jobId, navigate])
 
@@ -352,6 +354,32 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       }
     } catch { /* ignore */ }
   }, [])
+
+  const onStartInterviewClick = useCallback(async () => {
+    if (!jobId || !interviewNodeId || connecting) return
+    setConnecting(true)
+    try {
+      const details = await fetchInterviewConnectionDetails(jobId)
+      if (!details?.interviewId) {
+        toast.error('创建面试房间失败，请稍后再试')
+        setConnecting(false)
+        return
+      }
+      saveInterviewConnectionToStorage(details)
+      navigate({
+        to: '/interview/session',
+        search: {
+          interview_id: details.interviewId,
+          job_id: jobId ?? undefined,
+          job_apply_id: jobApplyId ?? undefined,
+          interview_node_id: interviewNodeId ?? undefined,
+        },
+      })
+    } catch (_e) {
+      toast.error('网络不稳定，请重试')
+      setConnecting(false)
+    }
+  }, [jobId, interviewNodeId, connecting, navigate, jobApplyId])
 
   function nodeNameToViewMode(name: string): ViewMode {
     if (name.includes('简历分析')) return ViewMode.Job
@@ -722,12 +750,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     || micStatus !== DeviceTestStatus.Success
                     || spkStatus !== DeviceTestStatus.Success
                     || !interviewNodeId
+                    || connecting
                   }
-                  className='w-full' onClick={async () => {
-                    if (!interviewNodeId) return
-                    navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
-                  }}>
-                  确认设备，下一步
+                  className='w-full' onClick={onStartInterviewClick}>
+                  {connecting ? '面试间连接中…' : '确认设备，下一步'}
                 </Button>
                 <p className='text-xs text-muted-foreground mt-4'>请在安静、独立的空间进行本次AI面试，确保评估效果最佳</p>
               </div>
