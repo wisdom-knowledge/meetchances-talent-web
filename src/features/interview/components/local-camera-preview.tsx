@@ -9,6 +9,7 @@ import { IconPlayerRecordFilled, IconPlayerPlayFilled, IconPlayerPauseFilled } f
 import Lottie from 'lottie-react'
 import { MicVisualizer } from '@/features/interview/components/mic-visualizer'
 import { motion } from 'framer-motion'
+import { useCameraStatusDetection } from '@/hooks/use-camera-status-detection'
 
 type DeviceStage = 'headphone' | 'mic' | 'camera'
 
@@ -40,11 +41,31 @@ export function LocalCameraPreview({
   ...props
 }: LocalCameraPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const stopTimerRef = useRef<number | null>(null)
   const [isPlayingTestAudio, setIsPlayingTestAudio] = useState(false)
   const [lottieData, setLottieData] = useState<object | null>(null)
+
+  // 使用优化的摄像头状态检测 hook
+  const { hasIssue, startDetection, stopDetection } = useCameraStatusDetection(videoRef, streamRef, {
+    enabled: stage === 'camera',
+    useCanvasDetection: true, // 启用 Canvas 检测，确保能检测到黑屏
+    checkInterval: 200, // 进一步提高检测频率，快速响应
+    brightnessThreshold: 20 // 进一步提高亮度阈值，减少误判
+  })
+
+  // 当检测状态变化时，通知父组件更新摄像头状态
+  useEffect(() => {
+    if (stage === 'camera') {
+      if (hasIssue) {
+        onStatusChange?.(DeviceTestStatus.Failed) // 有问题时设为失败，禁用按钮
+      } else {
+        onStatusChange?.(DeviceTestStatus.Testing) // 检测通过时设为测试中，允许用户确认
+      }
+    }
+  }, [hasIssue, stage, onStatusChange])
 
   const shouldShowHeadphoneUI = stage === 'headphone'
   const shouldShowMicUI = stage === 'mic'
@@ -84,6 +105,7 @@ export function LocalCameraPreview({
         if (!s) throw lastErr ?? new Error('getUserMedia failed')
         setStream((prev) => {
           prev?.getTracks().forEach((t) => t.stop())
+          streamRef.current = s // 同时更新 ref
           return s
         })
         if (videoRef.current) {
@@ -98,7 +120,7 @@ export function LocalCameraPreview({
         } catch {
           // ignore
         }
-        // onStatusChange?.(DeviceTestStatus.Success)
+        onStatusChange?.(DeviceTestStatus.Success)
       } catch (_e) {
         // eslint-disable-next-line no-console
         console.error('getUserMedia error', _e)
@@ -110,6 +132,7 @@ export function LocalCameraPreview({
       const prev = stream
       prev?.getTracks().forEach((t) => t.stop())
       setStream(null)
+      streamRef.current = null // 同时清理 ref
       onStatusChange?.(DeviceTestStatus.Idle)
       // stop audio test if any
       if (stopTimerRef.current) {
@@ -130,6 +153,15 @@ export function LocalCameraPreview({
     // only re-run when deviceId changes to avoid flicker
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId])
+
+  // 管理黑屏检测的启动和停止
+  useEffect(() => {
+    if (stage === 'camera' && stream) {
+      startDetection()
+    } else {
+      stopDetection()
+    }
+  }, [stage, stream, startDetection, stopDetection])
 
   // Prefetch lottie animation when we are in headphone stage
   useEffect(() => {
@@ -446,6 +478,7 @@ export function LocalCameraPreview({
             disablePictureInPicture
           />
 
+
           {/* Headphone stage overlay */}
           {shouldShowHeadphoneUI ? (
             <>
@@ -550,7 +583,7 @@ export function LocalCameraPreview({
               transition={{ duration: 0.2 }}
               className='absolute inset-x-0 bottom-3 flex items-center justify-center'
             >
-              <Button size='sm' variant='default' onClick={onCameraConfirmed} disabled={disableCameraConfirm}>确认摄像头状态正常</Button>
+              <Button size='sm' variant='default' onClick={onCameraConfirmed} disabled={disableCameraConfirm || hasIssue}>确认摄像头状态正常</Button>
             </motion.div>
           ) : null}
         </div>
