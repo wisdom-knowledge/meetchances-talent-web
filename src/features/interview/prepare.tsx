@@ -21,7 +21,7 @@ import { useMediaDeviceSelect } from '@livekit/components-react'
 import { DeviceTestStatus } from '@/types/device'
 import { uploadTalentResume, fetchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import TalentResumePreview from '@/features/talent-pool/components/talent-resume-preview'
-import type { ResumeFormValues } from '@/features/resume/data/schema'
+import { resumeSchema, type ResumeFormValues } from '@/features/resume/data/schema'
 import { mapStructInfoToResumeFormValues, mapResumeFormValuesToStructInfo } from '@/features/resume/data/struct-mapper'
 import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
@@ -34,6 +34,7 @@ import searchPng from '@/assets/images/search.png'
 import { getPreferredDeviceId, setPreferredDeviceIdSmart } from '@/lib/devices'
 import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { toast } from 'sonner'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -231,6 +232,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [uploadedThisVisit, setUploadedThisVisit] = useState(false)
   const [resumeOpen, setResumeOpen] = useState(false)
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
+  const [resumeFocusField, setResumeFocusField] = useState<string | undefined>(undefined)
   const [hadResumeBefore, setHadResumeBefore] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Job)
   const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
@@ -258,6 +260,19 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     const ai = nodes.find((n) => n.node_name.includes('AI 面试'))
     return ai?.node_status
   }, [progressNodes])
+
+  // 统一的简历校验 + 打开抽屉并定位首个错误字段
+  // const validateResumeAndOpenIfInvalid = useCallback((vals: ResumeFormValues): boolean => {
+  //   const parsed = resumeSchema.safeParse(vals)
+  //   if (!parsed.success) {
+  //     const firstErr = parsed.error.issues?.[0]
+  //     const pathStr = Array.isArray(firstErr?.path) && firstErr.path.length > 0 ? firstErr.path.join('.') : undefined
+  //     setResumeFocusField(pathStr)
+  //     setResumeOpen(true)
+  //     return false
+  //   }
+  //   return true
+  // }, [])
 
   // 将确认后的后续动作抽取为独立方法，供不同入口复用
   const proceedAfterResumeConfirm = useCallback(async () => {
@@ -298,6 +313,15 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
   const handleConfirmResumeClick = useCallback(async () => {
     if (uploadingResume || !resumeValues) return
+    // 先进行简历校验（与“保存更新”一致）。失败则打开抽屉并定位。
+    const parsed = resumeSchema.safeParse(resumeValues)
+    if (!parsed.success) {
+      const firstErr = parsed.error.issues[0]
+      const pathStr = Array.isArray(firstErr?.path) && firstErr.path.length > 0 ? firstErr.path.join('.') : undefined
+      setResumeFocusField(pathStr)
+      setResumeOpen(true)
+      return
+    }
     if (uploadedThisVisit && hadResumeBefore) {
       setConfirmOpen(true)
       return
@@ -577,6 +601,16 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     const mapped = mapStructInfoToResumeFormValues(si)
                     setResumeValues(mapped)
                     setUploadedThisVisit(true)
+                    // 新简历解析后立即做校验；打开抽屉，失败则定位到首个错误
+                    const parsed = resumeSchema.safeParse(mapped)
+                    if (!parsed.success) {
+                      const firstErr = parsed.error.issues?.[0]
+                      const pathStr = Array.isArray(firstErr?.path) && firstErr.path.length > 0 ? firstErr.path.join('.') : undefined
+                      setResumeFocusField(pathStr)
+                    } else {
+                      setResumeFocusField(undefined)
+                    }
+                    setResumeOpen(true)
                   }}
                 >
                   {resumeValues && !uploadingResume && (
@@ -930,10 +964,17 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             <TalentResumePreview
               values={resumeValues}
               readOnly={false}
+              initialFocusField={resumeFocusField}
               onSave={async (vals) => {
                 setResumeValues(vals)
                 const struct = mapResumeFormValuesToStructInfo(vals)
-                await patchTalentResumeDetail(struct as unknown as StructInfo)
+                const res = await patchTalentResumeDetail(struct as unknown as StructInfo)
+                if (res.success) {
+                  toast.success('保存成功')
+                  setResumeOpen(false)
+                } else {
+                  toast.error('保存失败')
+                }
               }}
             />
           )}

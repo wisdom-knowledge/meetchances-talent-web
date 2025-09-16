@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 // import { Button } from '@/components/ui/button'
 // import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { mapCurrentNodeStatusToPill } from '@/utils/apply-pill'
 import moneySvg from '@/assets/images/money.svg'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -22,7 +23,6 @@ import {
   JobsSortBy,
   JobsSortOrder,
   useJobApplyStatus,
-  JobApplyStatus,
 } from './api'
 // import { useNavigate } from '@tanstack/react-router'
 import JobDetailDrawer from './components/job-detail-drawer'
@@ -212,15 +212,23 @@ export default function JobsListPage() {
                                 </p>
                               </div>
                               <div className='mt-2 sm:mt-0 flex items-center gap-2 sm:justify-end'>
+                                {(() => {
+                                  const statusItem = applyStatusMap?.[String(job.id)]
+                                  if (!statusItem) return null
+                                  const pill = mapCurrentNodeStatusToPill(statusItem.current_node_status, statusItem.progress, statusItem.total_step)
+                                  return (
+                                    <span className={
+                                      'inline-flex w-28 items-center justify-center py-1 gap-2 rounded-full leading-[1.6] tracking-[0.35px] text-xs ' +
+                                      pill.classes
+                                    }>
+                                      {pill.text}
+                                    </span>
+                                  )
+                                })()}
                                 <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal'>
                                   <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   ¥{job.salary_min ?? 0} - ¥{job.salary_max ?? 0} / 小时
                                 </Badge>
-                                {applyStatusMap?.[String(job.id)]?.job_apply_status === JobApplyStatus.Applied && (
-                                  <span className='inline-flex items-center justify-center px-3 py-1 gap-2 rounded-2xl bg-[rgba(78,2,228,0.10)] text-[#4E02E4] text-xs h-[30px]'>
-                                    已申请
-                                  </span>
-                                )}
                               </div>
                             </div>
                           </div>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
+import { Resolver, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -31,7 +31,7 @@ export default function ResumePage() {
   const defaultGender = undefined
 
   const form = useForm<ResumeFormValues>({
-    resolver: zodResolver(resumeSchema),
+    resolver: zodResolver(resumeSchema) as unknown as Resolver<ResumeFormValues>,
     defaultValues: {
       name: '',
       phone: '',
@@ -154,8 +154,8 @@ export default function ResumePage() {
     }
   }
 
-  async function onSubmit(values: ResumeFormValues) {
-    const struct = mapResumeFormValuesToStructInfo(values)
+  async function onSubmit(values: unknown) {
+    const struct = mapResumeFormValuesToStructInfo(values as ResumeFormValues)
     const res = await patchTalentResumeDetail(struct as unknown as StructInfo)
     if (res.success) {
       toast.success('保存成功')
