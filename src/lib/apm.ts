@@ -57,18 +57,39 @@ export function reportRecordFail(roomName: string): void {
   })
 }
 
+// Report when WebSocket (LiveKit) connection takes too long in initial connect
+export function reportWsConnectTimeout(durationMs: number, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'ws_connect_timeout',
+    metrics: { duration_ms: Math.max(0, Math.round(durationMs)) },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
+// Report when WebSocket (LiveKit) reconnection takes too long
+export function reportWsReconnectTimeout(durationMs: number, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'ws_reconnect_timeout',
+    metrics: { duration_ms: Math.max(0, Math.round(durationMs)) },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
 /**
  * Report a single thinking duration for the interview session.
  * Event name format: thinking_<round>_ms, metrics.value_ms = duration in ms
  */
 export function reportThinkingDuration(round: number, durationMs: number, extra?: Record<string, string>): void {
   if (!apmClient) return
-  const safeRound = Math.max(1, Math.floor(round))
   const safeDuration = Math.max(0, Math.round(durationMs))
   apmClient('sendEvent', {
-    name: `thinking_${safeRound}_ms`,
+    name: `thinking_duration`,
     metrics: { value_ms: safeDuration },
-    categories: { page: 'session', ...(extra ?? {}) },
+    categories: { page: 'session', round: String(round), ...(extra ?? {}) },
     type: 'event',
   })
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Main } from '@/components/layout/main'
 import { RoomAudioRenderer, RoomContext } from '@livekit/components-react'
 import { RoomEvent, Room, type RemoteParticipant } from 'livekit-client'
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
-import { markInterviewStart, reportInterviewConnected, reportRecordFail } from '@/lib/apm'
+import { markInterviewStart, reportInterviewConnected, reportRecordFail, reportWsConnectTimeout, reportWsReconnectTimeout } from '@/lib/apm'
 import { toast } from 'sonner'
 
 interface InterviewPageProps {
@@ -29,6 +29,77 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
   const navigatedRef = useRef(false)
   const endedRef = useRef(false)
   const [confirmEndOpen, setConfirmEndOpen] = useState(false)
+  // 可配置的连接/重连超时（单位ms）
+  const CONNECT_TIMEOUT_MS = Number((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_INTERVIEW_CONNECT_TIMEOUT_MS ?? 20_000)
+  const RECONNECT_TIMEOUT_MS = Number((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_INTERVIEW_RECONNECT_TIMEOUT_MS ?? 15_000)
+  const debugEnabled = Boolean(import.meta.env?.DEV)
+  // 连接与重连超时计时器
+  const connectStartAtRef = useRef<number | null>(null)
+  const connectTimeoutRef = useRef<number | null>(null)
+  const reconnectStartAtRef = useRef<number | null>(null)
+  const reconnectTimeoutRef = useRef<number | null>(null)
+  const startConnectTimeout = useCallback(() => {
+    connectStartAtRef.current = performance.now()
+    if (connectTimeoutRef.current) {
+      try { clearTimeout(connectTimeoutRef.current) } catch { /* noop */ }
+    }
+    if (debugEnabled) {
+      /* eslint-disable-next-line no-console */
+      console.error('[Interview] startConnectTimeout', { timeoutMs: CONNECT_TIMEOUT_MS })
+    }
+    connectTimeoutRef.current = window.setTimeout(() => {
+      const start = connectStartAtRef.current ?? performance.now()
+      const cost = performance.now() - start
+      if (debugEnabled) {
+        /* eslint-disable-next-line no-console */
+        console.error('[Interview] connect timeout fired', { cost })
+      }
+      toast.error('请检查网络，关闭VPN等代理工具')
+      reportWsConnectTimeout(cost, { stage: 'initial', server: 'livekit' })
+    }, Math.max(0, CONNECT_TIMEOUT_MS))
+  }, [CONNECT_TIMEOUT_MS, debugEnabled])
+  const stopConnectTimeout = useCallback(() => {
+    if (connectTimeoutRef.current) {
+      try { clearTimeout(connectTimeoutRef.current) } catch { /* noop */ }
+    }
+    if (debugEnabled) {
+      /* eslint-disable-next-line no-console */
+      console.error('[Interview] stopConnectTimeout')
+    }
+    connectTimeoutRef.current = null
+    connectStartAtRef.current = null
+  }, [debugEnabled])
+  const startReconnectTimeout = useCallback(() => {
+    reconnectStartAtRef.current = performance.now()
+    if (reconnectTimeoutRef.current) {
+      try { clearTimeout(reconnectTimeoutRef.current) } catch { /* noop */ }
+    }
+    if (debugEnabled) {
+      /* eslint-disable-next-line no-console */
+      console.error('[Interview] startReconnectTimeout', { timeoutMs: RECONNECT_TIMEOUT_MS })
+    }
+    reconnectTimeoutRef.current = window.setTimeout(() => {
+      const start = reconnectStartAtRef.current ?? performance.now()
+      const cost = performance.now() - start
+      if (debugEnabled) {
+        /* eslint-disable-next-line no-console */
+        console.error('[Interview] reconnect timeout fired', { cost })
+      }
+      toast.error('请检查网络，关闭VPN等代理工具')
+      reportWsReconnectTimeout(cost, { stage: 'reconnecting', server: 'livekit' })
+    }, Math.max(0, RECONNECT_TIMEOUT_MS))
+  }, [RECONNECT_TIMEOUT_MS, debugEnabled])
+  const stopReconnectTimeout = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      try { clearTimeout(reconnectTimeoutRef.current) } catch { /* noop */ }
+    }
+    if (debugEnabled) {
+      /* eslint-disable-next-line no-console */
+      console.error('[Interview] stopReconnectTimeout')
+    }
+    reconnectTimeoutRef.current = null
+    reconnectStartAtRef.current = null
+  }, [debugEnabled])
   
   // 页面进入即标记 start（仅记录时间点，不触发上报）
   useEffect(() => {
@@ -90,6 +161,14 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
           // 已经结束，不再建立或恢复设备
           return
         }
+        // 初次连接超时监控
+        if (room.state === 'disconnected') {
+          if (debugEnabled) {
+            /* eslint-disable-next-line no-console */
+            console.error('[Interview] initial connect begin')
+          }
+          startConnectTimeout()
+        }
         if (room.state === 'disconnected') {
           await room.connect(data.serverUrl, data.token)
         }
@@ -109,13 +188,17 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
         hasEverConnectedRef.current = true
         // 上报“连接耗时”指标（连接成功 = connect + 设备启用成功）
         reportInterviewConnected({ server: 'livekit' })
+        stopConnectTimeout()
       } catch (_e) {
-        /* ignore */
+        if (debugEnabled) {
+          /* eslint-disable-next-line no-console */
+          console.error('[Interview] initial connect error')
+        }
       }
     }
     void connect()
     // no cleanup disconnect here; handled by dedicated handlers
-  }, [data?.serverUrl, data?.token])
+  }, [data?.serverUrl, data?.token, startConnectTimeout, stopConnectTimeout, debugEnabled])
 
   // 获取录制状态（基于 connection_details 返回的 roomName）
   const roomName = (data as { roomName?: string } | undefined)?.roomName
@@ -225,10 +308,18 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
       void handleDisconnected()
     }
     const handleReconnecting = () => {
-      // Reconnecting logic if needed
+      if (debugEnabled) {
+        /* eslint-disable-next-line no-console */
+        console.error('[Interview] RoomEvent.Reconnecting')
+      }
+      startReconnectTimeout()
     }
     const handleReconnected = () => {
-      // Reconnected logic if needed
+      if (debugEnabled) {
+        /* eslint-disable-next-line no-console */
+        console.error('[Interview] RoomEvent.Reconnected')
+      }
+      stopReconnectTimeout()
     }
     const handleConnChanged = () => {
       // Connection state changed logic if needed
@@ -239,13 +330,15 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
     room.on(RoomEvent.ConnectionStateChanged, handleConnChanged)
     room.on(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected)
     return () => {
+      stopConnectTimeout()
+      stopReconnectTimeout()
       room.off(RoomEvent.Disconnected, handleDisconnected)
       room.off(RoomEvent.Reconnecting, handleReconnecting)
       room.off(RoomEvent.Reconnected, handleReconnected)
       room.off(RoomEvent.ConnectionStateChanged, handleConnChanged)
       room.off(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected)
     }
-  }, [navigate, data, jobApplyId, interviewNodeId, jobId])
+  }, [navigate, data, jobApplyId, interviewNodeId, jobId, startReconnectTimeout, stopReconnectTimeout, stopConnectTimeout, debugEnabled])
 
   // 记录页面可见性与网络状态，辅助定位生产环境切后台后的断开
   useEffect(() => {
