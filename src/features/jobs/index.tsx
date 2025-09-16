@@ -217,7 +217,7 @@ export default function JobsListPage() {
                                   ¥{job.salary_min ?? 0} - ¥{job.salary_max ?? 0} / 小时
                                 </Badge>
                                 {applyStatusMap?.[String(job.id)]?.job_apply_status === JobApplyStatus.Applied && (
-                                  <span className='inline-flex items-center justify-center px-4 py-1 gap-2 rounded-2xl bg-[rgba(78,2,228,0.10)] text-[#4E02E4] text-[14px] leading-[1.6] tracking-[0.35px] font-medium'>
+                                  <span className='inline-flex items-center justify-center px-3 py-1 gap-2 rounded-2xl bg-[rgba(78,2,228,0.10)] text-[#4E02E4] text-sm font-medium max-h-[28px]'>
                                     已申请
                                   </span>
                                 )}
