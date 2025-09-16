@@ -54,7 +54,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
         /* eslint-disable-next-line no-console */
         console.error('[Interview] connect timeout fired', { cost })
       }
-      toast.error('请检查网络，关闭VPN等代理工具')
+      toast.error('请检查网络，关闭VPN等代理工具', { position: 'top-center' })
       reportWsConnectTimeout(cost, { stage: 'initial', server: 'livekit' })
     }, Math.max(0, CONNECT_TIMEOUT_MS))
   }, [CONNECT_TIMEOUT_MS, debugEnabled])
@@ -85,7 +85,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
         /* eslint-disable-next-line no-console */
         console.error('[Interview] reconnect timeout fired', { cost })
       }
-      toast.error('请检查网络，关闭VPN等代理工具')
+      toast.error('请检查网络，关闭VPN等代理工具', { position: 'top-center' })
       reportWsReconnectTimeout(cost, { stage: 'reconnecting', server: 'livekit' })
     }, Math.max(0, RECONNECT_TIMEOUT_MS))
   }, [RECONNECT_TIMEOUT_MS, debugEnabled])
