@@ -10,7 +10,7 @@ export interface InterviewConnectionDetails {
 
 type UnknownRecord = Record<string, unknown>
 
-function normalizeConnectionDetails(raw: unknown): InterviewConnectionDetails {
+export function normalizeConnectionDetails(raw: unknown): InterviewConnectionDetails {
   const obj = (raw ?? {}) as UnknownRecord
   const serverUrl =
     (obj.serverUrl as string) ||
@@ -36,7 +36,7 @@ function normalizeConnectionDetails(raw: unknown): InterviewConnectionDetails {
   return { serverUrl, token, roomName, interviewId }
 }
 
-async function fetchInterviewConnectionDetails(jobId: string | number): Promise<InterviewConnectionDetails> {
+export async function fetchInterviewConnectionDetails(jobId: string | number): Promise<InterviewConnectionDetails> {
   const raw = await api.get('/interview/connection-details', { params: { job_id: jobId } })
   return normalizeConnectionDetails(raw)
 }
@@ -48,6 +48,37 @@ export function useInterviewConnectionDetails(jobId: string | number | null, ena
     enabled: Boolean(jobId) && enabled,
     retry: false,
   })
+}
+
+// LocalStorage helpers for interview connection details
+export const INTERVIEW_CONN_STORAGE_PREFIX = 'interview:connection:v1:'
+
+export function makeInterviewConnStorageKey(interviewId: string | number): string {
+  return `${INTERVIEW_CONN_STORAGE_PREFIX}${String(interviewId)}`
+}
+
+export function saveInterviewConnectionToStorage(details: InterviewConnectionDetails): void {
+  try {
+    const interviewId = details?.interviewId
+    if (interviewId == null) return
+    const key = makeInterviewConnStorageKey(interviewId)
+    const json = JSON.stringify(details)
+    window.localStorage.setItem(key, json)
+  } catch (_e) {
+    // ignore storage errors (e.g., private mode)
+  }
+}
+
+export function loadInterviewConnectionFromStorage(interviewId: string | number): InterviewConnectionDetails | null {
+  try {
+    const key = makeInterviewConnStorageKey(interviewId)
+    const raw = window.localStorage.getItem(key)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as unknown
+    return normalizeConnectionDetails(parsed)
+  } catch (_e) {
+    return null
+  }
 }
 
 // Interview record status
