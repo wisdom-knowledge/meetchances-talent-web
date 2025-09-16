@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Track, type Room } from 'livekit-client'
 import Lottie from 'lottie-react';
@@ -21,6 +21,7 @@ import { ChatMessageView } from '@/components/livekit/chat/chat-message-view'
 import voiceLottie from '@/lotties/voice-lottie.json';
 import { AgentControlBar } from '@/components/livekit/agent-control-bar'
 import { getPreferredDeviceId } from '@/lib/devices'
+import { reportThinkingDuration } from '@/lib/apm'
 
 function useLocalTrackRef(source: Track.Source) {
   const { localParticipant } = useLocalParticipant()
@@ -38,14 +39,47 @@ export interface SessionViewProps extends React.ComponentProps<'main'> {
   onRequestEnd?: () => void
   onDisconnect?: () => void
   recordingStatus?: number
+  interviewId?: string | number
 }
 
-export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, recordingStatus, ...props }: SessionViewProps) {
+export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, recordingStatus, interviewId, ...props }: SessionViewProps) {
   const { state: agentState } = useVoiceAssistant()
   const { messages } = useChatAndTranscription()
   const room = useRoomContext() as Room | undefined
   const micTrack = useLocalTrackRef(Track.Source.Microphone)
   const cameraTrack = useLocalTrackRef(Track.Source.Camera)
+
+  // thinking 轮次与起止时间
+  const [thinkingRound, setThinkingRound] = useState<number>(0)
+  const thinkingStartRef = useRef<number | null>(null)
+
+  // 监听 agentState 切换，计算 thinking 耗时
+  useEffect(() => {
+    if (!sessionStarted) {
+      // 重置会话内统计
+      setThinkingRound(0)
+      thinkingStartRef.current = null
+      return
+    }
+
+    if (agentState === 'thinking') {
+      // 进入 thinking：记录开始时间与轮次递增
+      if (thinkingStartRef.current == null) {
+        thinkingStartRef.current = performance.now()
+        setThinkingRound((prev) => prev + 1)
+      }
+    } else {
+      // 离开 thinking：若存在开始时间则上报
+      if (thinkingStartRef.current != null) {
+        const duration = performance.now() - thinkingStartRef.current
+        const round = thinkingRound > 0 ? thinkingRound : 1
+        const extra = interviewId != null ? { Interview_id: String(interviewId) } : undefined
+        reportThinkingDuration(round, duration, extra)
+        thinkingStartRef.current = null
+      }
+    }
+    // 在会话状态与 agentState 变化时响应
+  }, [agentState, sessionStarted, thinkingRound, interviewId])
 
   // 只显示最新的一条Agent消息
   const latestAgentMessage = useMemo(() => {
