@@ -125,7 +125,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
     // 提交当前节点结果，确保后端状态更新
     try {
       if (interviewNodeId) {
-        await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
+        // await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
       }
     } catch { /* ignore */ }
     if (interviewId) {
@@ -382,7 +382,13 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
             <div className='h-full'>
               <RoomContext.Provider value={roomRef.current}>
                 <RoomAudioRenderer />
-                <SessionView disabled={false} sessionStarted className='h-full' onRequestEnd={() => setConfirmEndOpen(true)} onDisconnect={performEndInterview} recordingStatus={recordStatus?.status} interviewId={data?.interviewId} />
+                <SessionView
+                  disabled={false}
+                  sessionStarted className='h-full'
+                  onRequestEnd={() => setConfirmEndOpen(true)}
+                  onDisconnect={performEndInterview}
+                  recordingStatus={recordStatus?.status}
+                  interviewId={data?.interviewId} />
               </RoomContext.Provider>
             </div>
           ) : (
