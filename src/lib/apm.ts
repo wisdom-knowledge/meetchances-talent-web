@@ -57,6 +57,22 @@ export function reportRecordFail(roomName: string): void {
   })
 }
 
+/**
+ * Report a single thinking duration for the interview session.
+ * Event name format: thinking_<round>_ms, metrics.value_ms = duration in ms
+ */
+export function reportThinkingDuration(round: number, durationMs: number, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  const safeRound = Math.max(1, Math.floor(round))
+  const safeDuration = Math.max(0, Math.round(durationMs))
+  apmClient('sendEvent', {
+    name: `thinking_${safeRound}_ms`,
+    metrics: { value_ms: safeDuration },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
 export function initApm(): void {
   if (initialized) return
 
@@ -183,4 +199,69 @@ export function setApmContext(context: Record<string, unknown>): void {
   }
 }
 
+
+type ApiBusinessErrorParams = {
+  path: string
+  method?: string
+  status_code: number
+  status_msg?: string
+  payload?: unknown
+  query?: unknown
+}
+
+function stringifyForCategory(value: unknown): string {
+  if (value == null) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  try {
+    return JSON.stringify(value)
+  } catch {
+    return '[unserializable]'
+  }
+}
+
+export function reportApiBusinessError(params: ApiBusinessErrorParams): void {
+  if (!apmClient) return
+  const { path, method, status_code, status_msg, payload, query } = params
+  apmClient('sendEvent', {
+    name: 'api_business_error',
+    metrics: { status_code: Number(status_code) },
+    categories: {
+      path: String(path || ''),
+      method: String((method || '').toUpperCase()),
+      status_msg: String(status_msg || ''),
+      payload: stringifyForCategory(payload),
+      query: stringifyForCategory(query),
+      page: 'api',
+    },
+    type: 'event',
+  })
+}
+
+type ApiResponseEventParams = {
+  path: string
+  method?: string
+  request_payload?: unknown
+  request_params?: unknown
+  request_query?: unknown
+  response?: unknown
+}
+
+export function reportApiResponse(params: ApiResponseEventParams): void {
+  if (!apmClient) return
+  const { path, method, request_payload, request_params, request_query, response } = params
+  apmClient('sendEvent', {
+    name: 'api_response',
+    categories: {
+      page: 'api',
+      path: String(path || ''),
+      method: String((method || '').toUpperCase()),
+      request_payload: stringifyForCategory(request_payload),
+      request_params: stringifyForCategory(request_params),
+      request_query: stringifyForCategory(request_query),
+      response: stringifyForCategory(response),
+    },
+    type: 'event',
+  })
+}
 

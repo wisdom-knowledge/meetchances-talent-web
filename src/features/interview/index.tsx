@@ -289,7 +289,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
             <div className='h-full'>
               <RoomContext.Provider value={roomRef.current}>
                 <RoomAudioRenderer />
-                <SessionView disabled={false} sessionStarted className='h-full' onRequestEnd={() => setConfirmEndOpen(true)} onDisconnect={performEndInterview} recordingStatus={recordStatus?.status} />
+                <SessionView disabled={false} sessionStarted className='h-full' onRequestEnd={() => setConfirmEndOpen(true)} onDisconnect={performEndInterview} recordingStatus={recordStatus?.status} interviewId={data?.interviewId} />
               </RoomContext.Provider>
             </div>
           ) : (
