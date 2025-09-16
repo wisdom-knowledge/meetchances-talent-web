@@ -4,7 +4,7 @@ import { RoomAudioRenderer, RoomContext } from '@livekit/components-react'
 import { RoomEvent, Room, type RemoteParticipant } from 'livekit-client'
 // AgentControlBar moved into SessionView
 import '@livekit/components-styles'
-import { useInterviewConnectionDetails, postNodeAction, NodeActionTrigger, useInterviewRecordStatus } from '@/features/interview/api'
+import { loadInterviewConnectionFromStorage, postNodeAction, NodeActionTrigger, useInterviewRecordStatus, type InterviewConnectionDetails } from '@/features/interview/api'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -14,16 +14,18 @@ import { markInterviewStart, reportInterviewConnected, reportRecordFail, reportW
 import { toast } from 'sonner'
 
 interface InterviewPageProps {
-  jobId: string | number
+  interviewId: string | number
+  jobId?: string | number
   jobApplyId?: string | number
   interviewNodeId?: string | number
 }
 
-export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: InterviewPageProps) {
+export default function InterviewPage({ interviewId, jobId, jobApplyId, interviewNodeId }: InterviewPageProps) {
   const navigate = useNavigate()
 
   // const identity = useMemo(() => `user-${Date.now()}`, [])
-  const { data, isLoading, isError, error } = useInterviewConnectionDetails(jobId, true)
+  const [data, setData] = useState<InterviewConnectionDetails | null>(() => loadInterviewConnectionFromStorage(interviewId))
+  const isError = !data || !data.token || !data.serverUrl
   const roomRef = useRef<Room>(new Room())
   const hasEverConnectedRef = useRef(false)
   const navigatedRef = useRef(false)
@@ -54,7 +56,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
         /* eslint-disable-next-line no-console */
         console.error('[Interview] connect timeout fired', { cost })
       }
-      toast.error('请检查网络，关闭VPN等代理工具')
+      toast.error('请检查网络，关闭VPN等代理工具', { position: 'top-center' })
       reportWsConnectTimeout(cost, { stage: 'initial', server: 'livekit' })
     }, Math.max(0, CONNECT_TIMEOUT_MS))
   }, [CONNECT_TIMEOUT_MS, debugEnabled])
@@ -85,7 +87,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
         /* eslint-disable-next-line no-console */
         console.error('[Interview] reconnect timeout fired', { cost })
       }
-      toast.error('请检查网络，关闭VPN等代理工具')
+      toast.error('请检查网络，关闭VPN等代理工具', { position: 'top-center' })
       reportWsReconnectTimeout(cost, { stage: 'reconnecting', server: 'livekit' })
     }, Math.max(0, RECONNECT_TIMEOUT_MS))
   }, [RECONNECT_TIMEOUT_MS, debugEnabled])
@@ -106,17 +108,11 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
     markInterviewStart()
   }, [])
   
-  // 发生错误时使用 toast 提示
+  // 进入页面后再次尝试从存储读取（防止刷新后初始状态为 null）
   useEffect(() => {
-    if (!isError) return
-    const maybe = error as { status_code?: number; status_msg?: string } | undefined
-    const code = maybe?.status_code
-    if (code === 100001) {
-      // 屏幕中心展示，不使用 toast
-      return
-    }
-    toast.error('网络不给力，请稍后再试~')
-  }, [isError, error])
+    const details = loadInterviewConnectionFromStorage(interviewId)
+    if (details) setData(details)
+  }, [interviewId])
   const performEndInterview = async () => {
     if (navigatedRef.current) return
     const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
@@ -125,7 +121,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
     // 提交当前节点结果，确保后端状态更新
     try {
       if (interviewNodeId) {
-        await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
+        // await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
       }
     } catch { /* ignore */ }
     if (interviewId) {
@@ -133,7 +129,7 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
         const params = new URLSearchParams()
         const current = new URLSearchParams(window.location.search)
         params.set('interview_id', String(interviewId))
-        params.set('job_id', String(jobId))
+        if (jobId != null) params.set('job_id', String(jobId))
         if (jobApplyId) params.set('job_apply_id', String(jobApplyId))
         if (interviewNodeId) params.set('interview_node_id', String(interviewNodeId))
         const invite = current.get('invite_token')
@@ -365,16 +361,9 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
     <>
       <Main className='bg-[#F1E3FD]'>
         <div className='h-[80vh] relative bg-[#F1E3FD]'>
-          {isLoading && (
-            <div className='absolute inset-0 grid place-items-center text-sm text-muted-foreground'>正在连接面试房间…</div>
-          )}
           {isError && (
             <div className='absolute inset-0 z-50 grid place-items-center'>
-              {((error as { status_code?: number } | undefined)?.status_code === 100001) ? (
-                <div className='text-sm text-primary'>抱歉，现在面试过于火爆，请15分钟后再试，我们期待与您结识。</div>
-              ) : (
-                <>  </>
-              )}
+              <div className='text-sm text-primary'>未找到会话信息，请返回上一步重新进入。</div>
             </div>
           )}
 
@@ -382,7 +371,13 @@ export default function InterviewPage({ jobId, jobApplyId, interviewNodeId }: In
             <div className='h-full'>
               <RoomContext.Provider value={roomRef.current}>
                 <RoomAudioRenderer />
-                <SessionView disabled={false} sessionStarted className='h-full' onRequestEnd={() => setConfirmEndOpen(true)} onDisconnect={performEndInterview} recordingStatus={recordStatus?.status} interviewId={data?.interviewId} />
+                <SessionView
+                  disabled={false}
+                  sessionStarted className='h-full'
+                  onRequestEnd={() => setConfirmEndOpen(true)}
+                  onDisconnect={performEndInterview}
+                  recordingStatus={recordStatus?.status}
+                  interviewId={data?.interviewId} />
               </RoomContext.Provider>
             </div>
           ) : (
