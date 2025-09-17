@@ -48,7 +48,18 @@ export default function ResumePage() {
       selfEvaluation: '',
       workExperience: [],
       projectExperience: [],
-      education: [],
+      education: [
+        {
+          institution: '',
+          major: '',
+          degreeType: '',
+          degreeStatus: '',
+          city: undefined,
+          startDate: '',
+          endDate: '',
+          achievements: undefined,
+        },
+      ],
       awards: [],
       publications: [],
       repositories: [],
@@ -57,6 +68,27 @@ export default function ResumePage() {
     },
     mode: 'onChange',
   })
+
+  // 确保教育经历至少一条（本页面为可编辑场景，进入/回显/上传后统一兜底）
+  function ensureEducation(values: ResumeFormValues): ResumeFormValues {
+    const hasEdu = Array.isArray(values.education) && values.education.length > 0
+    if (hasEdu) return values
+    return {
+      ...values,
+      education: [
+        {
+          institution: '',
+          major: '',
+          degreeType: '',
+          degreeStatus: '',
+          city: undefined,
+          startDate: '',
+          endDate: '',
+          achievements: undefined,
+        },
+      ],
+    }
+  }
 
   const [uploadingResume, setUploadingResume] = useState(false)
 
@@ -70,7 +102,7 @@ export default function ResumePage() {
     const si = (resumeDetail?.item?.backend?.struct_info ?? null) as StructInfo | null
     if (si) {
       const mapped = mapStructInfoToResumeFormValues(si)
-      form.reset({ ...form.getValues(), ...mapped })
+      form.reset(ensureEducation({ ...form.getValues(), ...mapped }))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeDetail?.item?.backend?.struct_info])
@@ -156,7 +188,7 @@ export default function ResumePage() {
           work_count: String(mapped.workExperience?.length ?? 0),
           project_count: String(mapped.projectExperience?.length ?? 0),
         })
-        form.reset({ ...form.getValues(), ...mapped })
+        form.reset(ensureEducation({ ...form.getValues(), ...mapped }))
       }
     } finally {
       // 清空选择，便于下次重新选择同名文件

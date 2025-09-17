@@ -24,6 +24,7 @@ import {
   JobsSortBy,
   JobsSortOrder,
   useJobApplyStatus,
+  JobApplyStatus,
 } from './api'
 // import { useNavigate } from '@tanstack/react-router'
 import JobDetailDrawer from './components/job-detail-drawer'
@@ -216,7 +217,7 @@ export default function JobsListPage() {
                               <div className='mt-2 sm:mt-0 flex items-center gap-2 sm:justify-end'>
                                 {(() => {
                                   const statusItem = applyStatusMap?.[String(job.id)]
-                                  if (!statusItem) return null
+                                  if (!statusItem || statusItem.job_apply_status !== JobApplyStatus.Applied) return null
                                   const pill = mapCurrentNodeStatusToPill(statusItem.current_node_status, statusItem.progress, statusItem.total_step)
                                   return (
                                     <span className={
