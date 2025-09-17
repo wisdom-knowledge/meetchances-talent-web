@@ -36,15 +36,14 @@ function isAgentAvailable(agentState: AgentState) {
 export interface SessionViewProps extends React.ComponentProps<'main'> {
   disabled: boolean
   sessionStarted: boolean
-  onRequestEnd?: () => void
-  onDisconnect?: () => void
+  onQuitButtonClick?: () => void
   recordingStatus?: number
   interviewId?: string | number
   jobId?: string | number
   jobApplyId?: string | number
 }
 
-export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, recordingStatus, interviewId, jobId, jobApplyId, ...props }: SessionViewProps) {
+export function SessionView({ disabled, sessionStarted, className, onQuitButtonClick, recordingStatus, interviewId, jobId, jobApplyId, ...props }: SessionViewProps) {
   const { state: agentState } = useVoiceAssistant()
   const { messages } = useChatAndTranscription()
   const room = useRoomContext() as Room | undefined
@@ -286,7 +285,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
 
             {/* 右：控制条（可点击） */}
             <div className='flex flex-1 justify-end pointer-events-auto mb-4'>
-              <AgentControlBar onRequestEnd={onRequestEnd} onDisconnect={onDisconnect} />
+              <AgentControlBar onQuitButtonClick={onQuitButtonClick} />
             </div>
           </div>
         </div>

@@ -39,18 +39,27 @@ export default function FinishPage() {
     return Number.isNaN(n) ? (nodeId as string) : (n as number)
   }, [])
 
+  // 是否来自主动退出（用于跳过补偿上报）
+  const isQuit = useMemo(() => {
+    const sp = new URLSearchParams(window.location.search)
+    const v = sp.get('is_quit')
+    if (!v) return false
+    const raw = v.toLowerCase()
+    return !(raw === '' || raw === '0' || raw === 'false' || raw === 'no' || raw === 'off')
+  }, [])
+
   // 进入页面即进行一次补偿上报（submit），失败不阻塞流程
   useEffect(() => {
     ;(async () => {
       try {
-        if (interviewNodeId != null) {
+        if (!isQuit && interviewNodeId != null) {
           await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
         }
       } catch (_e) {
         // ignore
       }
     })()
-  }, [interviewNodeId])
+  }, [interviewNodeId, isQuit])
 
   // 把 prepare 页面的参数原样透传回去，便于返回时延续上下文
   const prepareSearch = useMemo(() => {

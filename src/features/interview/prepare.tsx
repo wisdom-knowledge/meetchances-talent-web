@@ -323,7 +323,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
   const handleConfirmResumeClick = useCallback(async () => {
     if (uploadingResume || !resumeValues) return
-    userEvent('resume_confirmed', '确认简历，下一步', { page: 'interview_prepare',job_apply_id: jobApplyId ?? undefined,job_id: jobId ?? undefined })
+    userEvent('resume_confirmed', '确认简历_下一步', { page: 'interview_prepare',job_apply_id: jobApplyId ?? undefined,job_id: jobId ?? undefined })
     // 先进行简历校验（与“保存更新”一致）。失败则打开抽屉并定位。
     const parsed = resumeSchema.safeParse(resumeValues)
     if (!parsed.success) {
@@ -369,7 +369,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         return
       }
       saveInterviewConnectionToStorage(details)
-      userEvent('interview_started', '点击开始面试(确认设备，下一步)', { 
+      userEvent('interview_started', '点击开始面试(确认设备_下一步)', { 
         job_id: job?.id,
         job_apply_id: jobApplyId ?? undefined,
         interview_id: details.interviewId ?? undefined,

@@ -113,7 +113,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     const details = loadInterviewConnectionFromStorage(interviewId)
     if (details) setData(details)
   }, [interviewId])
-  const performEndInterview = async () => {
+  const performQuitInterview = async () => {
     if (navigatedRef.current) return
     const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
     endedRef.current = true
@@ -143,10 +143,12 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
         if (skip) params.set('isSkipConfirm', skip)
         const dataStr = current.get('data')
         if (dataStr) params.set('data', dataStr)
+        // 主动放弃：标记 is_quit=true，供 finish 页面跳过补偿上报
+        params.set('is_quit', 'true')
         window.location.replace(`/finish?${params.toString()}`)
       }, 1000)
     } else {
-      navigate({ to: '/finish', replace: true })
+      navigate({ to: '/finish', search: { is_quit: 'true' } as unknown as Record<string, unknown>, replace: true })
     }
   }
 
@@ -385,8 +387,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
                 <SessionView
                   disabled={false}
                   sessionStarted className='h-full'
-                  onRequestEnd={() => setConfirmEndOpen(true)}
-                  onDisconnect={performEndInterview}
+                  onQuitButtonClick={() => setConfirmEndOpen(true)}
                   recordingStatus={recordStatus?.status}
                   interviewId={data?.interviewId}
                   jobId={jobId}
@@ -413,7 +414,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
             <Button onClick={() => setConfirmEndOpen(false)}>继续面试</Button>
             <Button variant='outline' onClick={() => {
               setConfirmEndOpen(false)
-              performEndInterview()
+              performQuitInterview()
             }}>确定放弃</Button>
           </DialogFooter>
         </DialogContent>
