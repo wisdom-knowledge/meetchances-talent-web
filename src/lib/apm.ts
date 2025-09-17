@@ -94,6 +94,24 @@ export function reportThinkingDuration(round: number, durationMs: number, extra?
   })
 }
 
+// 用户自定义事件上报
+export function userEvent(eventName: string, desc?: string, extra?: Record<string, unknown>): void {
+  if (!apmClient) return
+  if (typeof eventName !== 'string' || eventName.trim().length === 0) return
+  const categories: Record<string, string> = { e_name: eventName, e_desc: desc ?? '' }
+  if (extra) {
+    for (const [k, v] of Object.entries(extra)) {
+      categories[k] = stringifyForCategory(v)
+    }
+  }
+  apmClient('sendEvent', {
+    name: 'user_event',
+    categories,
+    metrics: { },
+    type: 'event',
+  })
+}
+
 export function initApm(): void {
   if (initialized) return
 
@@ -172,6 +190,7 @@ export function setApmAuth(params: {
     if (user.email) ctx.user_email = String(user.email)
     if (user.username) ctx.user_username = String(user.username)
     if (user.full_name) ctx.user_full_name = String(user.full_name)
+    if (user.phone_number) ctx.user_phone_number = String(user.phone_number)
     if (typeof user.is_active === 'boolean') ctx.user_is_active = String(user.is_active)
     if (typeof user.is_superuser === 'boolean') ctx.user_is_superuser = String(user.is_superuser)
     if (typeof user.is_onboard === 'boolean') ctx.user_is_onboard = String(user.is_onboard)

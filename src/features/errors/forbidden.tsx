@@ -1,9 +1,20 @@
+import { useEffect } from 'react'
 import { useNavigate, useRouter } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
+import { userEvent } from '@/lib/apm'
 
 export default function ForbiddenError() {
   const navigate = useNavigate()
   const { history } = useRouter()
+  useEffect(() => {
+    const extras = {
+      status_code: '403',
+      path: window.location.pathname + window.location.search,
+      referrer: document.referrer || '',
+      user_agent: navigator.userAgent || '',
+    }
+    userEvent('error_403_view', '403 禁止访问错误页', extras)
+  }, [])
   return (
     <div className='h-svh'>
       <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>

@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
-import { markInterviewStart, reportInterviewConnected, reportRecordFail, reportWsConnectTimeout, reportWsReconnectTimeout } from '@/lib/apm'
+import { markInterviewStart, reportInterviewConnected, reportRecordFail, reportWsConnectTimeout, reportWsReconnectTimeout, userEvent } from '@/lib/apm'
 import { toast } from 'sonner'
 
 interface InterviewPageProps {
@@ -119,6 +119,11 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     endedRef.current = true
     navigatedRef.current = true
     // 提交当前节点结果，确保后端状态更新
+    userEvent('interview_user_terminated', '用户主动中断面试', {
+      job_id: jobId,
+      interview_id: interviewId,
+      job_apply_id: jobApplyId,
+    })
     try {
       if (interviewNodeId) {
         // await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
@@ -201,21 +206,15 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
   // 延迟 10s 后调用两次；默认不启用自动轮询
   const { data: recordStatus, refetch: refetchRecordStatus } = useInterviewRecordStatus(roomName, false, false)
   const reportedRecordFailRef = useRef(false)
-  const timer2Ref = useRef<NodeJS.Timeout | null>(null)
+  const reportedRecordStartedRef = useRef(false)
   
   useEffect(() => {
     if (!roomName) return
     const timer = setTimeout(() => {
       void refetchRecordStatus()
-      // 第二次调用稍作间隔，确保两次请求均发送
-      timer2Ref.current = setTimeout(() => { void refetchRecordStatus() }, 600)
     }, 10_000)
     return () => {
       clearTimeout(timer)
-      if (timer2Ref.current) {
-        clearTimeout(timer2Ref.current)
-        timer2Ref.current = null
-      }
     }
   }, [roomName, refetchRecordStatus])
 
@@ -226,8 +225,15 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     if (status === 0 && !reportedRecordFailRef.current) {
       reportedRecordFailRef.current = true
       reportRecordFail(roomName)
+    } else if (typeof status === 'number' && status !== 0 && !reportedRecordStartedRef.current) {
+      reportedRecordStartedRef.current = true
+      userEvent('interview_recording_started', '面试录制成功开启', {
+        job_id: jobId,
+        interview_id: interviewId,
+        job_apply_id: jobApplyId,
+      })
     }
-  }, [recordStatus?.status, roomName])
+  }, [recordStatus?.status, roomName, jobId, interviewId, jobApplyId])
 
   // 面试断开或有参与者断开时，结束面试：跳转 finish 页面（replace），带上 interview_id
   useEffect(() => {
@@ -251,6 +257,11 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
       const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
       try {
         if (interviewNodeId) {
+          userEvent('interview_completed', '面试正常结束', {
+            job_id: jobId,
+            interview_id: interviewId,
+            job_apply_id: jobApplyId,
+          })
           await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
         }
       } catch { /* ignore */ }
@@ -377,13 +388,16 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
                   onRequestEnd={() => setConfirmEndOpen(true)}
                   onDisconnect={performEndInterview}
                   recordingStatus={recordStatus?.status}
-                  interviewId={data?.interviewId} />
+                  interviewId={data?.interviewId}
+                  jobId={jobId}
+                  jobApplyId={jobApplyId}
+                />
               </RoomContext.Provider>
             </div>
           ) : (
             <div className='h-full'>
               <RoomContext.Provider value={roomRef.current}>
-                <SessionView disabled={false} sessionStarted={false} className='h-full' />
+                <SessionView disabled={false} sessionStarted={false} className='h-full' jobId={jobId} jobApplyId={jobApplyId} />
               </RoomContext.Provider>
             </div>
           )}
