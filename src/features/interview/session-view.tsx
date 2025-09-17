@@ -201,12 +201,6 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
 
   return (
     <main inert={disabled} className={`relative h-[80vh] w-full overflow-hidden ${className ?? ''}`} {...props}>
-      {/* 左上：连接状态 */}
-      {sessionStarted && (
-        <div className='fixed top-20 left-6 z-50'>
-          <ConnectionStatus />
-        </div>
-      )}
 
       {/* 右上：计时器 + 网络状态（使用 LiveKit 组件） */}
       <div className='fixed top-20 right-6 z-50 flex items-center gap-3'>
@@ -228,7 +222,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
           <div className="col-span-1 flex h-full flex-col justify-center px-8">
             <div className="max-w-md space-y-3">
               {/* Agent消息显示区域 */}
-              <div className="overflow-y-auto whitespace-pre-wrap">
+              <div className="overflow-y-auto whitespace-pre-wrap px-1">
                 <AnimatePresence>
                   {latestAgentMessage.map((message: ReceivedChatMessage) => (
                     <motion.div
@@ -242,6 +236,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
                     </motion.div>
                   ))}
                 </AnimatePresence>
+                <ConnectionStatus />
               </div>
             </div>
           </div>
