@@ -35,6 +35,7 @@ import { getPreferredDeviceId, setPreferredDeviceIdSmart } from '@/lib/devices'
 import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
+import { userEvent } from '@/lib/apm'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -322,6 +323,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
   const handleConfirmResumeClick = useCallback(async () => {
     if (uploadingResume || !resumeValues) return
+    userEvent('resume_confirmed', '确认简历，下一步', { page: 'interview_prepare',job_apply_id: jobApplyId ?? undefined,job_id: jobId ?? undefined })
     // 先进行简历校验（与“保存更新”一致）。失败则打开抽屉并定位。
     const parsed = resumeSchema.safeParse(resumeValues)
     if (!parsed.success) {
@@ -358,6 +360,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const onStartInterviewClick = useCallback(async () => {
     if (!jobId || !interviewNodeId || connecting) return
     setConnecting(true)
+
     try {
       const details = await fetchInterviewConnectionDetails(jobId)
       if (!details?.interviewId) {
@@ -366,6 +369,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         return
       }
       saveInterviewConnectionToStorage(details)
+      userEvent('interview_started', '点击开始面试(确认设备，下一步)', { 
+        job_id: job?.id,
+        job_apply_id: jobApplyId ?? undefined,
+        interview_id: details.interviewId ?? undefined,
+      })
       navigate({
         to: '/interview/session',
         search: {
@@ -630,6 +638,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   uploader={uploadTalentResume}
                   onUploadingChange={setUploadingResume}
                   onUploadComplete={(results) => {
+                    userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare', action: resumeValues ? 'update' : 'upload',job_id: jobId ?? undefined,job_apply_id: jobApplyId ?? undefined })
                     const first = results.find((r) => r.success)
                     if (!first) return
                     const si = (first.backend?.struct_info ?? {}) as StructInfo
@@ -637,6 +646,17 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     setResumeValues(mapped)
                     setUploadedThisVisit(true)
                     // 新简历解析后立即做校验；打开抽屉，失败则定位到首个错误
+                    userEvent('resume_parsed_success', '简历解析成功', {
+                      page: 'interview_prepare',
+                      name: mapped.name ?? '',
+                      phone: mapped.phone ?? '',
+                      email: mapped.email ?? '',
+                      education_count: String(mapped.education?.length ?? 0),
+                      work_count: String(mapped.workExperience?.length ?? 0),
+                      project_count: String(mapped.projectExperience?.length ?? 0),
+                      job_id: jobId ?? undefined,
+                      job_apply_id: jobApplyId ?? undefined,
+                    })
                     const parsed = resumeSchema.safeParse(mapped)
                     if (!parsed.success) {
                       const firstErr = parsed.error.issues?.[0]
@@ -659,12 +679,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   )}
 
                   {resumeValues ? (
-                    <Button size='sm' variant='secondary'>
+                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare', trigger: 'button_click', action: 'update', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
                       <IconUpload className='h-4 w-4' />
                       更新简历
                     </Button>
                   ) : (
-                    <Button size='sm' variant='secondary'>
+                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare', trigger: 'button_click', action: 'upload', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
                       <IconUpload className='h-4 w-4' />
                       上传简历
                     </Button>
@@ -705,6 +725,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onHeadphoneConfirm={() => {
                   setSpkStatus(DeviceTestStatus.Success)
                   setStage('mic')
+                  userEvent('speaker_status_confirmed', '确认扬声器状态正常', { 
+                    job_id: job?.id,
+                    job_apply_id: jobApplyId ?? undefined,
+                    interview_node_id: interviewNodeId ?? undefined, 
+                  })
                 }}
                 onStatusChange={setCameraStatus}
                 deviceId={cam.activeDeviceId}
@@ -716,9 +741,19 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onCameraConfirmed={() => {
                   setCameraStatus(DeviceTestStatus.Success)
                   setStage('headphone')
+                  userEvent('camera_status_confirmed', '确认摄像头状态正常', { 
+                    job_id: job?.id,
+                    job_apply_id: jobApplyId ?? undefined,
+                    interview_node_id: interviewNodeId ?? undefined, 
+                  })
                 }}
                 onMicConfirmed={() => {
                   setMicStatus(DeviceTestStatus.Success)
+                  userEvent('microphone_status_confirmed', '确认麦克风状态正常', { 
+                    job_id: job?.id,
+                    job_apply_id: jobApplyId ?? undefined,
+                    interview_node_id: interviewNodeId ?? undefined, 
+                  })
                 }}
                 disableCameraConfirm={cameraStatus === DeviceTestStatus.Failed}
               />
@@ -1003,6 +1038,15 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 const struct = mapResumeFormValuesToStructInfo(vals)
                 const res = await patchTalentResumeDetail(struct as unknown as StructInfo)
                 if (res.success) {
+                  userEvent('resume_save', '简历保存', {
+                    page: 'interview_prepare',
+                    name: vals.name ?? '',
+                    phone: vals.phone ?? '',
+                    email: vals.email ?? '',
+                    education_count: vals.education?.length ?? 0,
+                    work_count: vals.workExperience?.length ?? 0,
+                    project_count: vals.projectExperience?.length ?? 0,
+                  })
                   toast.success('保存成功')
                   setResumeOpen(false)
                 } else {

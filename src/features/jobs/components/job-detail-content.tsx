@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { RichText } from '@/components/ui/rich-text'
 import JobTitleAndTags from './job-title-and-tags'
 import PublisherSection from './publisher-section'
+import { userEvent } from '@/lib/apm'
 
 export interface JobDetailContentProps {
   job: ApiJob
@@ -68,6 +69,7 @@ export default function JobDetailContent({
   }, [isMobile, job?.id])
 
   const applyJob = async () => {
+    userEvent('position_apply_clicked', '点击立即申请岗位', { job_id: job.id })
     let params = `data=job_id${job.id}`
     if (inviteToken) {
       params = `${params}andinvite_token${inviteToken}`

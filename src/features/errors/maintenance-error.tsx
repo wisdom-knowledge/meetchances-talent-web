@@ -1,6 +1,17 @@
+import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import { userEvent } from '@/lib/apm'
 
 export default function MaintenanceError() {
+  useEffect(() => {
+    const extras = {
+      status_code: '503',
+      path: window.location.pathname + window.location.search,
+      referrer: document.referrer || '',
+      user_agent: navigator.userAgent || '',
+    }
+    userEvent('error_503_view', '503 维护页面', extras)
+  }, [])
   return (
     <div className='h-svh'>
       <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
