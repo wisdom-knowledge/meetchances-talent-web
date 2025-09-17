@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { useNavigate, useRouter } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { userEvent } from '@/lib/apm'
 
 interface GeneralErrorProps extends React.HTMLAttributes<HTMLDivElement> {
   minimal?: boolean
@@ -12,6 +14,15 @@ export default function GeneralError({
 }: GeneralErrorProps) {
   const navigate = useNavigate()
   const { history } = useRouter()
+  useEffect(() => {
+    const extras = {
+      status_code: '500',
+      path: window.location.pathname + window.location.search,
+      referrer: document.referrer || '',
+      user_agent: navigator.userAgent || '',
+    }
+    userEvent('error_500_view', '500 通用错误页', extras)
+  }, [])
   return (
     <div className={cn('h-svh w-full', className)}>
       <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
