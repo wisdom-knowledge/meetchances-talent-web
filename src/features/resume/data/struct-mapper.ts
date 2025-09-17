@@ -80,7 +80,7 @@ export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null):
   const values: ResumeFormValues = {
     name: basic?.name ?? '',
     phone: basic?.phone ?? '',
-    email: basic?.email ?? undefined,
+    email: basic?.email ?? '',
     gender: (basic?.gender as ResumeFormValues['gender']) ?? undefined,
     city: basic?.city ?? undefined,
     // 自我评价
