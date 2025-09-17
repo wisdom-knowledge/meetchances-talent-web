@@ -28,7 +28,7 @@ export function AgentControlBar({ className, onDisconnect, onRequestEnd, onSendM
   return (
     <div className={`flex flex-col rounded-[31px]  ${className ?? ''}`} {...props}>
       <div className='flex flex-row justify-end gap-1'>
-        <Button variant='default' onClick={onLeave} className='font-mono'>结束面试</Button>
+        <Button variant='default' onClick={onLeave} className='font-mono'>放弃面试</Button>
       </div>
     </div>
   )
