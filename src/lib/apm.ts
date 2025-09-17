@@ -98,7 +98,7 @@ export function reportThinkingDuration(round: number, durationMs: number, extra?
 export function userEvent(eventName: string, desc?: string, extra?: Record<string, unknown>): void {
   if (!apmClient) return
   if (typeof eventName !== 'string' || eventName.trim().length === 0) return
-  const categories: Record<string, string> = { event_name: eventName, event_desc: desc ?? '' }
+  const categories: Record<string, string> = { e_name: eventName, e_desc: desc ?? '' }
   if (extra) {
     for (const [k, v] of Object.entries(extra)) {
       categories[k] = stringifyForCategory(v)
