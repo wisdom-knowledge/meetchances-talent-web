@@ -297,6 +297,10 @@
   background-color: rgba(78, 2, 228, 0.2); /* Fallback using --color-blue-600 */
 }
 
+.bg-primary\/30 {
+  background-color: rgba(78, 2, 228, 0.3); /* Fallback using --color-blue-600 */
+}
+
 .border-border {
   border-color: #e2e8f0; /* Fallback */
 }
@@ -313,6 +317,10 @@
   background-color: rgba(226, 232, 240, 0.2); /* Dark mode fallback */
 }
 
+.dark .bg-primary\/30 {
+  background-color: rgba(226, 232, 240, 0.3); /* Dark mode fallback */
+}
+
 .dark .border-border {
   border-color: rgba(255, 255, 255, 0.1); /* Dark mode fallback */
 }
@@ -325,6 +333,10 @@
   
   .bg-primary\/20 {
     background-color: oklch(0.208 0.042 265.755 / 0.2); /* Primary color with 20% opacity */
+  }
+  
+  .bg-primary\/30 {
+    background-color: oklch(0.208 0.042 265.755 / 0.3); /* Primary color with 30% opacity */
   }
   
   .border-border {
@@ -342,5 +354,9 @@
   
   .dark .bg-primary\/20 {
     background-color: oklch(0.929 0.013 255.508 / 0.2); /* Dark mode primary with 20% opacity */
+  }
+  
+  .dark .bg-primary\/30 {
+    background-color: oklch(0.929 0.013 255.508 / 0.3); /* Dark mode primary with 30% opacity */
   }
 }
