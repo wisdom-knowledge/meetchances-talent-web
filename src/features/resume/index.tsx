@@ -17,6 +17,7 @@ import { fetchTalentResumeDetail, patchTalentResumeDetail, uploadTalentResume } 
 import { mapStructInfoToResumeFormValues, mapResumeFormValuesToStructInfo } from '@/features/resume/data/struct-mapper'
 import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 import { toast } from 'sonner'
+import { userEvent } from '@/lib/apm'
 // import { options } from './data/config'
 import SectionNav, { type SectionNavItem } from './components/section-nav'
 import DynamicBasicForm from './components/dynamic-basic-form'
@@ -145,6 +146,16 @@ export default function ResumePage() {
       const si = (first?.backend?.struct_info ?? null) as StructInfo | null
       if (si) {
         const mapped = mapStructInfoToResumeFormValues(si)
+        // 上报解析成功（仅上报必要概要字段）
+        userEvent('resume_parsed_success', '简历解析成功', {
+          page: 'resume',
+          name: mapped.name ?? '',
+          phone: mapped.phone ?? '',
+          email: mapped.email ?? '',
+          education_count: String(mapped.education?.length ?? 0),
+          work_count: String(mapped.workExperience?.length ?? 0),
+          project_count: String(mapped.projectExperience?.length ?? 0),
+        })
         form.reset({ ...form.getValues(), ...mapped })
       }
     } finally {
@@ -155,9 +166,19 @@ export default function ResumePage() {
   }
 
   async function onSubmit(values: unknown) {
-    const struct = mapResumeFormValuesToStructInfo(values as ResumeFormValues)
+    const v = values as ResumeFormValues
+    const struct = mapResumeFormValuesToStructInfo(v)
     const res = await patchTalentResumeDetail(struct as unknown as StructInfo)
     if (res.success) {
+      userEvent('resume_save', '简历保存', {
+        page: 'resume',
+        name: v.name ?? '',
+        phone: v.phone ?? '',
+        email: v.email ?? '',
+        education_count: v.education?.length ?? 0,
+        work_count: v.workExperience?.length ?? 0,
+        project_count: v.projectExperience?.length ?? 0,
+      })
       toast.success('保存成功')
     } else {
       toast.error('保存失败')
@@ -218,7 +239,11 @@ export default function ResumePage() {
                       />
                       <Button
                         variant='outline'
-                        onClick={() => !uploadingResume && fileInputRef.current?.click()}
+                        onClick={() => {
+                          if (uploadingResume) return
+                          userEvent('resume_uploaded', '简历上传', { page: 'resume', trigger: 'button_click' })
+                          fileInputRef.current?.click()
+                        }}
                         className='h-10 px-4 py-2'
                         disabled={uploadingResume}
                       >
