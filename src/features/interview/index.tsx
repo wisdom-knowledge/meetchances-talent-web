@@ -392,15 +392,15 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
       <Dialog open={confirmEndOpen} onOpenChange={setConfirmEndOpen}>
         <DialogContent className='sm:max-w-md'>
           <DialogHeader className='text-left'>
-            <DialogTitle>确认要提前结束面试吗？</DialogTitle>
-            <DialogDescription>提前结束面试将影响您的面试结果评估</DialogDescription>
+            <DialogTitle>确认要放弃面试吗？</DialogTitle>
+            <DialogDescription>放弃面试将没有面试结果，若需要请重新面试</DialogDescription>
           </DialogHeader>
           <DialogFooter className='gap-2'>
             <Button onClick={() => setConfirmEndOpen(false)}>继续面试</Button>
             <Button variant='outline' onClick={() => {
               setConfirmEndOpen(false)
               performEndInterview()
-            }}>确定结束</Button>
+            }}>确定放弃</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
