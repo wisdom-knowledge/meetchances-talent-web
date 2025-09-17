@@ -21,7 +21,7 @@ import { ChatMessageView } from '@/components/livekit/chat/chat-message-view'
 import voiceLottie from '@/lotties/voice-lottie.json';
 import { AgentControlBar } from '@/components/livekit/agent-control-bar'
 import { getPreferredDeviceId } from '@/lib/devices'
-import { reportThinkingDuration } from '@/lib/apm'
+import { reportThinkingDuration, userEvent } from '@/lib/apm'
 
 function useLocalTrackRef(source: Track.Source) {
   const { localParticipant } = useLocalParticipant()
@@ -40,9 +40,11 @@ export interface SessionViewProps extends React.ComponentProps<'main'> {
   onDisconnect?: () => void
   recordingStatus?: number
   interviewId?: string | number
+  jobId?: string | number
+  jobApplyId?: string | number
 }
 
-export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, recordingStatus, interviewId, ...props }: SessionViewProps) {
+export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, recordingStatus, interviewId, jobId, jobApplyId, ...props }: SessionViewProps) {
   const { state: agentState } = useVoiceAssistant()
   const { messages } = useChatAndTranscription()
   const room = useRoomContext() as Room | undefined
@@ -57,6 +59,8 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
   // 会话回合序号（从0开始）；当 "agent start talk" 发生时 +1
   const currentRoundRef = useRef<number>(0)
   const prevAgentStateRef = useRef<AgentState | undefined>(undefined)
+  const reportedRound2ReachedRef = useRef<boolean>(false)
+  const reportedRound5ReachedRef = useRef<boolean>(false)
 
   function formatTimeHmsMs(d: Date): string {
     const pad = (n: number, w = 2) => String(n).padStart(w, '0')
@@ -101,6 +105,24 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
     if (curr === 'thinking' && prev !== 'thinking') {
       const roundToPrint = currentRoundRef.current
       printRoundEvent(roundToPrint, 'thinking start')
+      // 用户超过两轮对话（达到第3轮时）上报一次事件
+      if (!reportedRound2ReachedRef.current && currentRoundRef.current === 2) {
+        reportedRound2ReachedRef.current = true
+        userEvent('interview_rounds_2_reached', '面试问答超过2轮', {
+          job_id: jobId,
+          interview_id: interviewId,
+          job_apply_id: jobApplyId,
+        })
+      }
+      // 用户达到第5轮对话时上报一次事件
+      if (!reportedRound5ReachedRef.current && currentRoundRef.current === 5) {
+        reportedRound5ReachedRef.current = true
+        userEvent('interview_rounds_5_reached', '面试问答5轮', {
+          job_id: jobId,
+          interview_id: interviewId,
+          job_apply_id: jobApplyId,
+        })
+      }
       if (thinkingStartRef.current == null) {
         thinkingStartRef.current = performance.now()
         setThinkingRound((prevRound) => prevRound + 1)
@@ -131,7 +153,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
 
     prevAgentStateRef.current = curr
     // 在会话状态与 agentState 变化时响应
-  }, [agentState, sessionStarted, thinkingRound, interviewId, printRoundEvent])
+  }, [agentState, sessionStarted, thinkingRound, interviewId, jobId, jobApplyId, printRoundEvent])
 
   // 只显示最新的一条Agent消息
   const latestAgentMessage = useMemo(() => {
