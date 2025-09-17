@@ -10,6 +10,7 @@ export interface AuthUser {
   full_name: string
   username?: string
   avatar_url?: string
+  phone_number?: string
   is_active: boolean
   is_superuser: boolean
   is_onboard: boolean

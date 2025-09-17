@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
-import { markInterviewStart, reportInterviewConnected, reportRecordFail, reportWsConnectTimeout, reportWsReconnectTimeout } from '@/lib/apm'
+import { markInterviewStart, reportInterviewConnected, reportRecordFail, reportWsConnectTimeout, reportWsReconnectTimeout, userEvent } from '@/lib/apm'
 import { toast } from 'sonner'
 
 interface InterviewPageProps {
@@ -119,6 +119,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     endedRef.current = true
     navigatedRef.current = true
     // 提交当前节点结果，确保后端状态更新
+    userEvent('interview_user_terminated', '用户主动中断面试')
     try {
       if (interviewNodeId) {
         // await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
