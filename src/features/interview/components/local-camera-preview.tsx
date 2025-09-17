@@ -120,7 +120,6 @@ export function LocalCameraPreview({
         } catch {
           // ignore
         }
-        onStatusChange?.(DeviceTestStatus.Success)
       } catch (_e) {
         // eslint-disable-next-line no-console
         console.error('getUserMedia error', _e)
