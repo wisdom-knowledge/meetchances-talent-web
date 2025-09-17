@@ -35,6 +35,7 @@ import { getPreferredDeviceId, setPreferredDeviceIdSmart } from '@/lib/devices'
 import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
+import { userEvent } from '@/lib/apm'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -358,6 +359,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const onStartInterviewClick = useCallback(async () => {
     if (!jobId || !interviewNodeId || connecting) return
     setConnecting(true)
+
     try {
       const details = await fetchInterviewConnectionDetails(jobId)
       if (!details?.interviewId) {
@@ -366,6 +368,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         return
       }
       saveInterviewConnectionToStorage(details)
+      userEvent('interview_started', '点击开始面试(确认设备，下一步)', { 
+        job_id: job?.id,
+        job_apply_id: jobApplyId ?? undefined,
+        interview_id: details.interviewId ?? undefined,
+      })
       navigate({
         to: '/interview/session',
         search: {
@@ -705,6 +712,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onHeadphoneConfirm={() => {
                   setSpkStatus(DeviceTestStatus.Success)
                   setStage('mic')
+                  userEvent('speaker_status_confirmed', '确认扬声器状态正常', { 
+                    job_id: job?.id,
+                    job_apply_id: jobApplyId ?? undefined,
+                    interview_node_id: interviewNodeId ?? undefined, 
+                  })
                 }}
                 onStatusChange={setCameraStatus}
                 deviceId={cam.activeDeviceId}
@@ -716,9 +728,19 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onCameraConfirmed={() => {
                   setCameraStatus(DeviceTestStatus.Success)
                   setStage('headphone')
+                  userEvent('camera_status_confirmed', '确认摄像头状态正常', { 
+                    job_id: job?.id,
+                    job_apply_id: jobApplyId ?? undefined,
+                    interview_node_id: interviewNodeId ?? undefined, 
+                  })
                 }}
                 onMicConfirmed={() => {
                   setMicStatus(DeviceTestStatus.Success)
+                  userEvent('microphone_status_confirmed', '确认麦克风状态正常', { 
+                    job_id: job?.id,
+                    job_apply_id: jobApplyId ?? undefined,
+                    interview_node_id: interviewNodeId ?? undefined, 
+                  })
                 }}
                 disableCameraConfirm={cameraStatus === DeviceTestStatus.Failed}
               />
