@@ -21,12 +21,34 @@ type Props = { values: ResumeFormValues; inviteContext?: InviteContext; readOnly
 
 export default function TalentResumePreview({ values, inviteContext, readOnly = true, onSave, initialFocusField }: Props) {
   const resolver = zodResolver(resumeSchema) as unknown as Resolver<ResumeFormValues>
-  const form = useForm<ResumeFormValues>({ resolver, defaultValues: values as ResumeFormValues, mode: 'onChange' })
+
+  const ensureEducation = (v: ResumeFormValues): ResumeFormValues => {
+    if (readOnly) return v
+    const hasEdu = Array.isArray(v.education) && v.education.length > 0
+    if (hasEdu) return v
+    return {
+      ...v,
+      education: [
+        {
+          institution: '',
+          major: '',
+          degreeType: '',
+          degreeStatus: '',
+          city: undefined,
+          startDate: '',
+          endDate: '',
+          achievements: undefined,
+        },
+      ],
+    }
+  }
+
+  const form = useForm<ResumeFormValues>({ resolver, defaultValues: ensureEducation(values as ResumeFormValues), mode: 'onChange' })
   const user = useAuthStore((s) => s.auth.user)
 
   // 当外部传入的简历值变化时，重置表单，避免保留上一次的内容
   useEffect(() => {
-    form.reset(values as ResumeFormValues)
+    form.reset(ensureEducation(values as ResumeFormValues))
   }, [values, form])
 
   // 若传入初始聚焦字段，则触发校验并尝试聚焦

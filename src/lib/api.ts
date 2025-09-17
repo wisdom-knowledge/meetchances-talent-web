@@ -7,7 +7,7 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
   'https://service-dev.meetchances.com/api/v1'
 
-const TARGETED_API_KEYWORDS = ['connection-details', 'interview_record_status', '/node/action'] as const
+const TARGETED_API_KEYWORDS = ['connection-details', 'interview_record_status', '/node/action', 'job_apply_progress'] as const
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
