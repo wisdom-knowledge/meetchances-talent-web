@@ -10,12 +10,15 @@ import Lottie from 'lottie-react'
 import { MicVisualizer } from '@/features/interview/components/mic-visualizer'
 import { motion } from 'framer-motion'
 import { useCameraStatusDetection } from '@/hooks/use-camera-status-detection'
+import { setAudioSinkId } from '@/lib/devices'
 
 type DeviceStage = 'headphone' | 'mic' | 'camera'
 
 interface LocalCameraPreviewProps extends React.HTMLAttributes<HTMLDivElement> {
   onStatusChange?: (status: DeviceTestStatus) => void
   deviceId?: string | null
+  speakerDeviceId?: string
+  micDeviceId?: string
   stage?: DeviceStage
   onHeadphoneConfirm?: () => void
   testAudioDurationMs?: number
@@ -30,6 +33,8 @@ export function LocalCameraPreview({
   className,
   onStatusChange,
   deviceId,
+  speakerDeviceId,
+  micDeviceId,
   stage = 'camera',
   onHeadphoneConfirm,
   testAudioDurationMs = 5500,
@@ -66,6 +71,25 @@ export function LocalCameraPreview({
       }
     }
   }, [hasIssue, stage, onStatusChange])
+
+  // 当扬声器设备切换时，更新现有音频元素的sinkId
+  useEffect(() => {
+    const updateAudioSinkId = async () => {
+      if (!speakerDeviceId) return
+
+      // 更新扬声器测试音频的播放设备
+      if (audioRef.current) {
+        await setAudioSinkId(audioRef.current, speakerDeviceId)
+      }
+
+      // 更新麦克风回放音频的播放设备
+      if (micPlaybackAudioRef.current) {
+        await setAudioSinkId(micPlaybackAudioRef.current, speakerDeviceId)
+      }
+    }
+
+    void updateAudioSinkId()
+  }, [speakerDeviceId])
 
   const shouldShowHeadphoneUI = stage === 'headphone'
   const shouldShowMicUI = stage === 'mic'
@@ -199,6 +223,11 @@ export function LocalCameraPreview({
         audio.onended = () => setIsPlayingTestAudio(false)
         audio.onerror = () => setIsPlayingTestAudio(false)
         audioRef.current = audio
+        
+        // 设置音频播放设备
+        if (speakerDeviceId) {
+          void setAudioSinkId(audio, speakerDeviceId)
+        }
       }
 
       const audio = audioRef.current
@@ -284,12 +313,19 @@ export function LocalCameraPreview({
     const initMic = async () => {
       try {
         // Request mic stream
+        const audioConstraints: MediaTrackConstraints = {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        }
+        
+        // 如果指定了麦克风设备ID，则使用该设备
+        if (micDeviceId && micDeviceId !== 'default') {
+          audioConstraints.deviceId = { exact: micDeviceId }
+        }
+        
         const micStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
+          audio: audioConstraints,
           video: false,
         })
         if (isCancelled) return
@@ -363,13 +399,18 @@ export function LocalCameraPreview({
         micPlaybackAudioRef.current = null
       }
     }
-  }, [shouldShowMicUI, micMode])
+  }, [shouldShowMicUI, micMode, micDeviceId])
 
   // setup playback audio and track progress (don't autoplay)
   useEffect(() => {
     if (!shouldShowMicUI || micMode !== 'playback' || !playbackUrl) return
     const audio = new Audio(playbackUrl)
     micPlaybackAudioRef.current = audio
+    
+    // 设置音频播放设备
+    if (speakerDeviceId) {
+      void setAudioSinkId(audio, speakerDeviceId)
+    }
     const onTime = () => {
       if (!audio.duration || Number.isNaN(audio.duration)) return
       const pct = Math.max(0, Math.min(100, (audio.currentTime / audio.duration) * 100))
@@ -407,7 +448,7 @@ export function LocalCameraPreview({
       micPlaybackAudioRef.current = null
       // keep playbackUrl for replays until retake
     }
-  }, [shouldShowMicUI, micMode, playbackUrl])
+  }, [shouldShowMicUI, micMode, playbackUrl, speakerDeviceId])
 
   const handlePlaybackToggle = () => {
     const audio = micPlaybackAudioRef.current
@@ -504,10 +545,10 @@ export function LocalCameraPreview({
                 transition={{ duration: 0.2 }}
                 className='absolute inset-x-0 bottom-3 flex items-center justify-center gap-3 px-4'
               >
-                <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio} className='disabled:backdrop-blur-[20px]'>
+                <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio || !speakerDeviceId} className='disabled:backdrop-blur-[20px]'>
                   播放测试音频
                 </Button>
-                <Button size='sm' variant='secondary' onClick={handleHeadphoneConfirmClick} disabled={disableHeadphoneActions}>
+                <Button size='sm' variant='secondary' onClick={handleHeadphoneConfirmClick} disabled={disableHeadphoneActions || !speakerDeviceId}>
                   我能听到
                 </Button>
               </motion.div>

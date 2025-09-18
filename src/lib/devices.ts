@@ -116,6 +116,35 @@ export async function resolveDefaultDeviceByName(
 }
 
 /**
+ * 设置音频元素的播放设备
+ * @param audioElement HTML音频元素
+ * @param deviceId 设备ID
+ * @returns Promise<boolean> 是否设置成功
+ */
+export async function setAudioSinkId(audioElement: HTMLAudioElement, deviceId: string): Promise<boolean> {
+  try {
+    // 检查浏览器是否支持 setSinkId
+    if (typeof audioElement.setSinkId !== 'function') {
+      // eslint-disable-next-line no-console
+      console.warn('setSinkId is not supported in this browser')
+      return false
+    }
+
+    // 跳过默认设备或空设备ID
+    if (!deviceId || deviceId === 'default' || deviceId === '') {
+      return true
+    }
+
+    await audioElement.setSinkId(deviceId)
+    return true
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Failed to set audio sink ID:', error)
+    return false
+  }
+}
+
+/**
  * 获取当前实际使用的默认设备ID
  * 优先通过设备名称匹配，fallback到媒体流检测
  * @param kind 设备类型
@@ -212,6 +241,21 @@ export async function setPreferredDeviceIdSmart(
     setPreferredDeviceId(kind, finalId)
   } else {
     setPreferredDeviceId(kind, deviceId)
+  }
+}
+
+/**
+ * 清除所有设备偏好设置
+ * 用于防止设备被拔掉后出现问题
+ */
+export function clearAllPreferredDevices() {
+  if (typeof window === 'undefined') return
+  try {
+    Object.values(DEVICE_KEY_MAP).forEach(key => {
+      localStorage.removeItem(key)
+    })
+  } catch (_e) {
+    // ignore storage errors
   }
 }
 
