@@ -133,15 +133,15 @@ export function CandidateInfoCard({ data }: Props) {
 
         {/* 面试详细信息 - 网格布局 */}
         <div className='grid grid-cols-3 gap-8 text-sm'>
-          <div className='flex flex-col gap-1'>
+          <div className='flex gap-1'>
             <span className='font-medium text-gray-500'>面试岗位:</span>
             <span className='font-semibold text-gray-900'>前端专家</span>
           </div>
-          <div className='flex flex-col gap-1'>
+          <div className='flex gap-1'>
             <span className='font-medium text-gray-500'>面试时长:</span>
             <span className='font-semibold text-gray-900'>{duration}</span>
           </div>
-          <div className='flex flex-col gap-1'>
+          <div className='flex gap-1'>
             <span className='font-medium text-gray-500'>面试时间:</span>
             <span className='font-semibold text-gray-900'>{date}</span>
           </div>
