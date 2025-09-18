@@ -12,7 +12,7 @@ export interface ScoreCardItem {
 export interface InterviewScoreSection {
   score: number // 得分
   full_mark: number // 满分
-  reason?: string // 原因
+  reason?: string | null // 原因
 }
 
 export interface ScoreItem {
@@ -36,9 +36,9 @@ export interface AiInterviewSection {
       t_sec?: number
     }
   }>
-  skill_match: InterviewScoreSection // 技能匹配
-  soft_skill: InterviewScoreSection // 软技能
-  motivation: InterviewScoreSection // 动机态度
+  skill_match?: InterviewScoreSection // 技能匹配（可选）
+  soft_skill?: InterviewScoreSection // 软技能（可选）
+  motivation?: InterviewScoreSection // 动机态度（可选）
 }
 
 export interface ResumeMatchScoreSection extends Omit<InterviewScoreSection, 'reason'> {
