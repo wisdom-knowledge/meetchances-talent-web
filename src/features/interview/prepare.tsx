@@ -31,7 +31,7 @@ import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, 
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
-import { getPreferredDeviceId, setPreferredDeviceIdSmart } from '@/lib/devices'
+import { getPreferredDeviceId, setPreferredDeviceIdSmart, clearAllPreferredDevices } from '@/lib/devices'
 import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
@@ -73,6 +73,7 @@ enum ViewMode {
     onMicStatusChange,
     onSpkStatusChange,
     onSpkDeviceChange,
+    onMicDeviceChange,
   }: {
     camActiveDeviceId?: string
     camDevices: Array<{ deviceId: string; label: string }>
@@ -83,6 +84,7 @@ enum ViewMode {
     onMicStatusChange: (_s: DeviceTestStatus) => void
     onSpkStatusChange: (_s: DeviceTestStatus) => void
     onSpkDeviceChange?: (deviceId: string) => void
+    onMicDeviceChange?: (deviceId: string) => void
   }) {
     const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
@@ -216,10 +218,17 @@ enum ViewMode {
               isControlled
               value={mic.activeDeviceId}
               onValueChange={(v) => {
-                mic.setActiveMediaDevice(v)
-                void setPreferredDeviceIdSmart('audioinput', v, mic.devices)
-                onMicStatusChange(DeviceTestStatus.Testing)
-                setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
+                mic.setActiveMediaDevice(v).then(() => {
+                  void setPreferredDeviceIdSmart('audioinput', v, mic.devices)
+                  onMicStatusChange(DeviceTestStatus.Testing)
+                  
+                  // 通知父组件麦克风设备已切换
+                  onMicDeviceChange?.(v)
+                  
+                  setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
+                }).catch(() => {
+                  // 设备切换失败
+                })
               }}
               placeholder='选择麦克风'
               className='h-9 flex-1 overflow-x-hidden truncate'
@@ -257,6 +266,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
   const [jobApplyId, setJobApplyId] = useState<number | string | null>(jobApplyIdFromRoute ?? null)
   const [currentSpkDeviceId, setCurrentSpkDeviceId] = useState<string>('')
+  const [currentMicDeviceId, setCurrentMicDeviceId] = useState<string>('')
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
 
   // 当视频设备自动选择时，保存为默认选择
@@ -277,6 +287,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     const ai = nodes.find((n) => n.node_name.includes('AI 面试'))
     return ai?.node_status
   }, [progressNodes])
+
+  // 页面挂载时清除之前存储的设备偏好，防止设备被拔掉后出现问题
+  useEffect(() => {
+    clearAllPreferredDevices()
+  }, [])
 
   // 统一的简历校验 + 打开抽屉并定位首个错误字段
   // const validateResumeAndOpenIfInvalid = useCallback((vals: ResumeFormValues): boolean => {
@@ -742,6 +757,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onStatusChange={setCameraStatus}
                 deviceId={cam.activeDeviceId}
                 speakerDeviceId={currentSpkDeviceId}
+                micDeviceId={currentMicDeviceId}
                 onCameraDeviceResolved={(resolvedId) => {
                   if (resolvedId && resolvedId !== cam.activeDeviceId) {
                     cam.setActiveMediaDevice(resolvedId)
@@ -783,6 +799,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onMicStatusChange={()=>{}}
                 onSpkStatusChange={()=>{}}
                 onSpkDeviceChange={setCurrentSpkDeviceId}
+                onMicDeviceChange={setCurrentMicDeviceId}
               />
             </div>
 

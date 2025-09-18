@@ -191,4 +191,19 @@ export async function setPreferredDeviceIdSmart(
   }
 }
 
+/**
+ * 清除所有设备偏好设置
+ * 用于防止设备被拔掉后出现问题
+ */
+export function clearAllPreferredDevices() {
+  if (typeof window === 'undefined') return
+  try {
+    Object.values(DEVICE_KEY_MAP).forEach(key => {
+      localStorage.removeItem(key)
+    })
+  } catch (_e) {
+    // ignore storage errors
+  }
+}
+
 

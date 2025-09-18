@@ -18,6 +18,7 @@ interface LocalCameraPreviewProps extends React.HTMLAttributes<HTMLDivElement> {
   onStatusChange?: (status: DeviceTestStatus) => void
   deviceId?: string | null
   speakerDeviceId?: string
+  micDeviceId?: string
   stage?: DeviceStage
   onHeadphoneConfirm?: () => void
   testAudioDurationMs?: number
@@ -33,6 +34,7 @@ export function LocalCameraPreview({
   onStatusChange,
   deviceId,
   speakerDeviceId,
+  micDeviceId,
   stage = 'camera',
   onHeadphoneConfirm,
   testAudioDurationMs = 5500,
@@ -311,12 +313,19 @@ export function LocalCameraPreview({
     const initMic = async () => {
       try {
         // Request mic stream
+        const audioConstraints: MediaTrackConstraints = {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        }
+        
+        // 如果指定了麦克风设备ID，则使用该设备
+        if (micDeviceId && micDeviceId !== 'default') {
+          audioConstraints.deviceId = { exact: micDeviceId }
+        }
+        
         const micStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
+          audio: audioConstraints,
           video: false,
         })
         if (isCancelled) return
@@ -390,7 +399,7 @@ export function LocalCameraPreview({
         micPlaybackAudioRef.current = null
       }
     }
-  }, [shouldShowMicUI, micMode])
+  }, [shouldShowMicUI, micMode, micDeviceId])
 
   // setup playback audio and track progress (don't autoplay)
   useEffect(() => {
