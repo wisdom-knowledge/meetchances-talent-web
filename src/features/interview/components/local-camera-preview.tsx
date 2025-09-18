@@ -545,10 +545,10 @@ export function LocalCameraPreview({
                 transition={{ duration: 0.2 }}
                 className='absolute inset-x-0 bottom-3 flex items-center justify-center gap-3 px-4'
               >
-                <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio} className='disabled:backdrop-blur-[20px]'>
+                <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio || !speakerDeviceId} className='disabled:backdrop-blur-[20px]'>
                   播放测试音频
                 </Button>
-                <Button size='sm' variant='secondary' onClick={handleHeadphoneConfirmClick} disabled={disableHeadphoneActions}>
+                <Button size='sm' variant='secondary' onClick={handleHeadphoneConfirmClick} disabled={disableHeadphoneActions || !speakerDeviceId}>
                   我能听到
                 </Button>
               </motion.div>

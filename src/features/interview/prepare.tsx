@@ -103,10 +103,15 @@ enum ViewMode {
         // 设置显示值为首选设备
         setDisplaySpkDeviceId(preferredSpk)
         spk.setActiveMediaDevice(preferredSpk).then(() => {
-          // 初始化成功
+          // 初始化成功，通知父组件
+          onSpkDeviceChange?.(preferredSpk)
         }).catch(() => {
           // 初始化失败时，显示值保持为首选设备ID
         })
+      } else if (spk.activeDeviceId) {
+        // 如果没有首选设备但已有活跃设备，使用活跃设备
+        setDisplaySpkDeviceId(spk.activeDeviceId)
+        onSpkDeviceChange?.(spk.activeDeviceId)
       } 
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -130,6 +135,13 @@ enum ViewMode {
         })
       }
     }, [spk.activeDeviceId, spk.devices, displaySpkDeviceId])
+
+    // 当扬声器设备初始化完成时，通知父组件
+    useEffect(() => {
+      if (spk.activeDeviceId && displaySpkDeviceId) {
+        onSpkDeviceChange?.(displaySpkDeviceId)
+      }
+    }, [spk.activeDeviceId, displaySpkDeviceId, onSpkDeviceChange])
 
     const statusText = (s: DeviceTestStatus) => {
       switch (s) {
