@@ -88,7 +88,7 @@ enum ViewMode {
   }) {
     const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
-    
+
     // 用于显示的扬声器设备ID，当设备切换失败时保持用户选择的值
     const [displaySpkDeviceId, setDisplaySpkDeviceId] = useState<string>('')
 
@@ -1099,4 +1099,3 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     </>
   )
 }
-
