@@ -72,6 +72,7 @@ enum ViewMode {
     spkStatus,
     onMicStatusChange,
     onSpkStatusChange,
+    onSpkDeviceChange,
   }: {
     camActiveDeviceId?: string
     camDevices: Array<{ deviceId: string; label: string }>
@@ -81,6 +82,7 @@ enum ViewMode {
     spkStatus: DeviceTestStatus
     onMicStatusChange: (_s: DeviceTestStatus) => void
     onSpkStatusChange: (_s: DeviceTestStatus) => void
+    onSpkDeviceChange?: (deviceId: string) => void
   }) {
     const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
@@ -184,9 +186,14 @@ enum ViewMode {
                 // 立即更新显示值
                 setDisplaySpkDeviceId(v)
                 
-                spk.setActiveMediaDevice(v).then(() => {
+                spk.setActiveMediaDevice(v).then(async () => {
                   void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
                   onSpkStatusChange(DeviceTestStatus.Testing)
+                  
+                  // 通知父组件扬声器设备已切换，让它更新音频元素的sinkId
+                  onSpkDeviceChange?.(v)
+                  
+                  // 给一些时间让音频元素更新sinkId
                   setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
                 }).catch(() => {
                   // 设备切换失败
@@ -249,6 +256,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
   const [jobApplyId, setJobApplyId] = useState<number | string | null>(jobApplyIdFromRoute ?? null)
+  const [currentSpkDeviceId, setCurrentSpkDeviceId] = useState<string>('')
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
 
   // 当视频设备自动选择时，保存为默认选择
@@ -733,6 +741,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 }}
                 onStatusChange={setCameraStatus}
                 deviceId={cam.activeDeviceId}
+                speakerDeviceId={currentSpkDeviceId}
                 onCameraDeviceResolved={(resolvedId) => {
                   if (resolvedId && resolvedId !== cam.activeDeviceId) {
                     cam.setActiveMediaDevice(resolvedId)
@@ -773,6 +782,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 spkStatus={spkStatus}
                 onMicStatusChange={()=>{}}
                 onSpkStatusChange={()=>{}}
+                onSpkDeviceChange={setCurrentSpkDeviceId}
               />
             </div>
 
