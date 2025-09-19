@@ -66,11 +66,15 @@ function PrepareRouteComponent() {
     invite_token?: string
     isSkipConfirm?: boolean
     job_apply_id?: string | number
+    report?: boolean | string
   }
 
   if (isMobile) {
     return <MobileFullscreenMask open={true} />
   }
+
+  // 检查是否需要上报页面刷新事件
+  const shouldReport = search?.report === true || search?.report === 'true'
 
   if (search?.data) {
     const { jobId, inviteToken, isSkipConfirm, jobApplyId: jobApplyIdFromData } = parseDataString(search?.data)
@@ -81,6 +85,7 @@ function PrepareRouteComponent() {
         inviteToken={inviteToken}
         isSkipConfirm={isSkipConfirm}
         jobApplyIdFromRoute={jobApplyId}
+        shouldReportPageRefresh={shouldReport}
       />
     )
   }
@@ -91,6 +96,7 @@ function PrepareRouteComponent() {
       inviteToken={search?.invite_token}
       isSkipConfirm={search?.isSkipConfirm}
       jobApplyIdFromRoute={search?.job_apply_id}
+      shouldReportPageRefresh={shouldReport}
     />
   )
 }

@@ -81,6 +81,15 @@ export function loadInterviewConnectionFromStorage(interviewId: string | number)
   }
 }
 
+export function removeInterviewConnectionFromStorage(interviewId: string | number): void {
+  try {
+    const key = makeInterviewConnStorageKey(interviewId)
+    window.localStorage.removeItem(key)
+  } catch (_e) {
+    // ignore storage errors (e.g., private mode)
+  }
+}
+
 // Interview record status
 export interface InterviewRecordStatusData {
   status: number

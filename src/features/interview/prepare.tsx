@@ -35,13 +35,14 @@ import { getPreferredDeviceId, setPreferredDeviceIdSmart, clearAllPreferredDevic
 import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
-import { userEvent } from '@/lib/apm'
+import { userEvent, reportSessionPageRefresh } from '@/lib/apm'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
   inviteToken?: string
   isSkipConfirm?: boolean
   jobApplyIdFromRoute?: string | number
+  shouldReportPageRefresh?: boolean
 }
 
 enum ViewMode {
@@ -257,7 +258,7 @@ enum ViewMode {
     )
   }
 
-export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute }: InterviewPreparePageProps) {
+export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute, shouldReportPageRefresh = false }: InterviewPreparePageProps) {
   const navigate = useNavigate()
   const [connecting, setConnecting] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -304,6 +305,16 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   useEffect(() => {
     clearAllPreferredDevices()
   }, [])
+
+  const hasReportedPageRefresh = useRef(false)
+
+  // 当页面 URL 中包含 report=true 时，上报页面刷新事件
+  useEffect(() => {
+    if (shouldReportPageRefresh && !hasReportedPageRefresh.current) {
+      reportSessionPageRefresh()
+      hasReportedPageRefresh.current = true
+    }
+  }, [shouldReportPageRefresh])
 
   // 统一的简历校验 + 打开抽屉并定位首个错误字段
   // const validateResumeAndOpenIfInvalid = useCallback((vals: ResumeFormValues): boolean => {
@@ -976,7 +987,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 await postNodeAction({
                   node_id: interviewNodeId,
                   trigger: NodeActionTrigger.Retake,
-                  result_data: {}
+                  result_data: { reason: reinterviewReason }
                 })
                 location.reload()
                 // navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })
