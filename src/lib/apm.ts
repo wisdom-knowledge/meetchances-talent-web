@@ -107,7 +107,7 @@ export function userEvent(eventName: string, desc?: string, extra?: Record<strin
   apmClient('sendEvent', {
     name: 'user_event',
     categories,
-    metrics: { },
+    metrics: {},
     type: 'event',
   })
 }
@@ -319,6 +319,27 @@ export function reportRoomConnectError(error: Error): void {
   apmClient('sendEvent', {
     name: 'room_connect_error',
     categories: { page: 'session', error: String(error) },
+    type: 'event',
+  })
+}
+
+// 上报session页面停留15秒事件
+export function reportSessionStay15s(extra?: Record<string, string>): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'session_stay_15s',
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
+// 上报没有details时的页面刷新事件
+export function reportSessionPageRefresh(extra?: Record<string, string>): void {
+  if (!apmClient) return
+
+  apmClient('sendEvent', {
+    name: 'session_page_refresh',
+    categories: { page: 'session', ...(extra ?? {}) },
     type: 'event',
   })
 }
