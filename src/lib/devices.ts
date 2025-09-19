@@ -6,6 +6,59 @@ const DEVICE_KEY_MAP: Record<SupportedMediaDeviceKind, string> = {
   videoinput: 'mc_pref_videoinput',
 }
 
+/**
+ * 检查浏览器是否支持音频输出设备切换
+ * @returns 是否支持 setSinkId API
+ */
+export function isAudioOutputSupported(): boolean {
+  if (typeof window === 'undefined') return false
+
+  // 检查 HTMLMediaElement 是否支持 setSinkId 方法
+  const audio = document.createElement('audio')
+  return typeof audio.setSinkId === 'function'
+}
+
+/**
+ * 获取当前浏览器和平台的音频输出支持信息
+ * @returns 包含支持信息和建议的对象
+ */
+export function getAudioOutputSupportInfo() {
+  const userAgent = navigator.userAgent.toLowerCase()
+  let browserName = 'Unknown'
+  let recommendation = ''
+  let isSupported = false
+
+  if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
+    browserName = 'Chrome'
+    isSupported = isAudioOutputSupported()
+    recommendation = isSupported ? '' : '请确保使用 Chrome 66+ 版本并在 HTTPS 环境下访问'
+  } else if (userAgent.includes('firefox')) {
+    browserName = 'Firefox'
+    // Firefox 对音频输出设备切换支持有限
+    isSupported = false
+    recommendation = '音频输出设备切换在 Firefox 中支持有限，建议使用 Chrome'
+  } else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
+    browserName = 'Safari'
+    // Safari 即使有 setSinkId API 也不能真正切换音频输出设备
+    isSupported = false
+    recommendation = 'Safari 不支持音频输出设备切换，建议使用 Chrome 或 Edge'
+  } else if (userAgent.includes('edg')) {
+    browserName = 'Edge'
+    isSupported = isAudioOutputSupported()
+    recommendation = isSupported ? '' : '请确保使用 Edge 79+ 版本并在 HTTPS 环境下访问'
+  } else {
+    // 其他浏览器，尝试检测 API 支持
+    isSupported = isAudioOutputSupported()
+  }
+
+  return {
+    isSupported,
+    browserName,
+    recommendation,
+    isMobile: /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent)
+  }
+}
+
 export function getPreferredDeviceId(kind: SupportedMediaDeviceKind): string | null {
   if (typeof window === 'undefined') return null
   try {
@@ -59,6 +112,35 @@ export async function resolveDefaultDeviceByName(
     return matchedDevice?.deviceId || devices[0]?.deviceId || null
   } catch (_e) {
     return null
+  }
+}
+
+/**
+ * 设置音频元素的播放设备
+ * @param audioElement HTML音频元素
+ * @param deviceId 设备ID
+ * @returns Promise<boolean> 是否设置成功
+ */
+export async function setAudioSinkId(audioElement: HTMLAudioElement, deviceId: string): Promise<boolean> {
+  try {
+    // 检查浏览器是否支持 setSinkId
+    if (typeof audioElement.setSinkId !== 'function') {
+      // eslint-disable-next-line no-console
+      console.warn('setSinkId is not supported in this browser')
+      return false
+    }
+
+    // 跳过默认设备或空设备ID
+    if (!deviceId || deviceId === 'default' || deviceId === '') {
+      return true
+    }
+
+    await audioElement.setSinkId(deviceId)
+    return true
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Failed to set audio sink ID:', error)
+    return false
   }
 }
 
@@ -159,6 +241,21 @@ export async function setPreferredDeviceIdSmart(
     setPreferredDeviceId(kind, finalId)
   } else {
     setPreferredDeviceId(kind, deviceId)
+  }
+}
+
+/**
+ * 清除所有设备偏好设置
+ * 用于防止设备被拔掉后出现问题
+ */
+export function clearAllPreferredDevices() {
+  if (typeof window === 'undefined') return
+  try {
+    Object.values(DEVICE_KEY_MAP).forEach(key => {
+      localStorage.removeItem(key)
+    })
+  } catch (_e) {
+    // ignore storage errors
   }
 }
 

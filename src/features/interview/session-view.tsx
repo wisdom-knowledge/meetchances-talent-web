@@ -167,7 +167,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
     if (!sessionStarted) {
       try {
         room.localParticipant.setCameraEnabled(false)
-        room.localParticipant.setMicrophoneEnabled(false)
+        // room.localParticipant.setMicrophoneEnabled(false)
       } catch (_e) {
         // ignore
       }

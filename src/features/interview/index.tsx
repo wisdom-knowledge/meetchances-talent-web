@@ -248,7 +248,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     const room = roomRef.current
     const handleDisconnected = async (_reason?: unknown) => {
       // 断开后立即释放本地设备与媒体轨道，尽快归还权限
-      try { await room.localParticipant.setMicrophoneEnabled(false) } catch { /* noop */ }
+      // try { await room.localParticipant.setMicrophoneEnabled(false) } catch { /* noop */ }
       try { await room.localParticipant.setCameraEnabled(false) } catch { /* noop */ }
       room.localParticipant.getTrackPublications().forEach((pub) => {
         try {
@@ -308,7 +308,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     }
     const handleParticipantDisconnected = async (_participant?: RemoteParticipant) => {
       // 明确释放本地设备并断开，以触发统一的 Disconnected 处理
-      try { await room.localParticipant.setMicrophoneEnabled(false) } catch { /* noop */ }
+      // try { await room.localParticipant.setMicrophoneEnabled(false) } catch { /* noop */ }
       try { await room.localParticipant.setCameraEnabled(false) } catch { /* noop */ }
       room.localParticipant.getTrackPublications().forEach((pub) => {
         try {
