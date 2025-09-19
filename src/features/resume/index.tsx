@@ -178,6 +178,10 @@ export default function ResumePage() {
       if (si) {
         const mapped = mapStructInfoToResumeFormValues(si)
         form.reset(ensureEducation({ ...form.getValues(), ...mapped }))
+        toast.success('上传成功')
+      } else {
+        const msg = res.statusMsg || first?.error || '上传失败'
+        toast.error(msg)
       }
     } finally {
       // 清空选择，便于下次重新选择同名文件
