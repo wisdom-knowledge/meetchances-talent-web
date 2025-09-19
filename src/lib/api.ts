@@ -1,13 +1,19 @@
 import axios from 'axios'
-import { reportApiBusinessError, reportApiResponse } from '@/lib/apm'
+import { toast } from 'sonner'
 import { Talent, TalentParams } from '@/stores/authStore'
+import { reportApiBusinessError, reportApiResponse } from '@/lib/apm'
 import { noTalentMeRoutes } from '@/components/layout/data/sidebar-data'
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
   'https://service-dev.meetchances.com/api/v1'
 
-const TARGETED_API_KEYWORDS = ['connection-details', 'interview_record_status', '/node/action', 'job_apply_progress'] as const
+const TARGETED_API_KEYWORDS = [
+  'connection-details',
+  'interview_record_status',
+  '/node/action',
+  'job_apply_progress',
+] as const
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -63,6 +69,7 @@ api.interceptors.response.use(
         }
         return payload
       }
+      toast.error('上传失败')
       return Promise.reject({
         status_code: status,
         status_msg: 'Request failed',
@@ -77,6 +84,7 @@ api.interceptors.response.use(
 
     if (status_code === 0) {
       // 针对特定接口：成功也上报响应
+      toast.success('上传成功')
       if (TARGETED_API_KEYWORDS.some((k) => urlStr.includes(k))) {
         reportApiResponse({
           path: urlStr,
@@ -90,6 +98,12 @@ api.interceptors.response.use(
       return data
     }
 
+    // 业务错误提示 + 上报
+    if (status_msg) {
+      toast.error(String(status_msg))
+    } else {
+      toast.error('上传失败')
+    }
     // 业务错误上报
     reportApiBusinessError({
       path: urlStr,
@@ -117,6 +131,12 @@ api.interceptors.response.use(
   (error) => {
     // HTTP 层错误或后端直接返回非 2xx
     // 跳转到第三方登录（区分环境）
+    try {
+      const statusMsg = (error as { status_msg?: string })?.status_msg
+      if (statusMsg) toast.error(String(statusMsg))
+    } catch {
+      // ignore
+    }
     return Promise.reject(error)
   }
 )
@@ -128,8 +148,6 @@ export interface CurrentUserResponse {
   full_name: string
   id: number
 }
-
-
 
 export async function fetchTalentMe(): Promise<Talent> {
   return api.get('/talent/me') as unknown as Promise<Talent>
