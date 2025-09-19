@@ -176,7 +176,7 @@ export default function ResumePage() {
       const res = await uploadTalentResume(fd)
       const first = res.data?.[0]
       const si = (first?.backend?.struct_info ?? null) as StructInfo | null
-      if (si) {
+      if (si && res.success) {
         const mapped = mapStructInfoToResumeFormValues(si)
         // 上报解析成功（仅上报必要概要字段）
         userEvent('resume_parsed_success', '简历解析成功', {
@@ -189,6 +189,10 @@ export default function ResumePage() {
           project_count: String(mapped.projectExperience?.length ?? 0),
         })
         form.reset(ensureEducation({ ...form.getValues(), ...mapped }))
+        toast.success('上传成功')
+      } else {
+        const msg = res.statusMsg || first?.error || '上传失败'
+        toast.error(msg)
       }
     } finally {
       // 清空选择，便于下次重新选择同名文件
