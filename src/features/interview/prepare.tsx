@@ -306,10 +306,13 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     clearAllPreferredDevices()
   }, [])
 
+  const hasReportedPageRefresh = useRef(false)
+
   // 当页面 URL 中包含 report=true 时，上报页面刷新事件
   useEffect(() => {
-    if (shouldReportPageRefresh) {
+    if (shouldReportPageRefresh && !hasReportedPageRefresh.current) {
       reportSessionPageRefresh()
+      hasReportedPageRefresh.current = true
     }
   }, [shouldReportPageRefresh])
 
