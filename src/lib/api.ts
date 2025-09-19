@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { toast } from 'sonner'
 import { Talent, TalentParams } from '@/stores/authStore'
 import { reportApiBusinessError, reportApiResponse } from '@/lib/apm'
 import { noTalentMeRoutes } from '@/components/layout/data/sidebar-data'
@@ -69,7 +68,6 @@ api.interceptors.response.use(
         }
         return payload
       }
-      toast.error('请求失败')
       return Promise.reject({
         status_code: status,
         status_msg: 'Request failed',
@@ -97,12 +95,6 @@ api.interceptors.response.use(
       return data
     }
 
-    // 业务错误提示 + 上报
-    if (status_msg) {
-      toast.error(String(status_msg))
-    } else {
-      toast.error('请求失败')
-    }
     // 业务错误上报
     reportApiBusinessError({
       path: urlStr,
