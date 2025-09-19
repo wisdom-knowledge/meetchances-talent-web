@@ -175,7 +175,7 @@ export default function ResumePage() {
       const res = await uploadTalentResume(fd)
       const first = res.data?.[0]
       const si = (first?.backend?.struct_info ?? null) as StructInfo | null
-      if (si) {
+      if (si && res.success) {
         const mapped = mapStructInfoToResumeFormValues(si)
         form.reset(ensureEducation({ ...form.getValues(), ...mapped }))
         toast.success('上传成功')

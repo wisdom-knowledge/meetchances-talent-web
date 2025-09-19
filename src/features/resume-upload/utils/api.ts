@@ -112,11 +112,11 @@ export async function uploadTalentResume(
     const payload = (res as { data?: unknown })?.data ?? res
     const detail = (payload as { resume_detail?: BackendItem })?.resume_detail
     if (!detail) {
-      return { success: false, data: [], statusMsg: (payload as { status_msg?: string })?.status_msg }
+      return { success: false, data: [], statusMsg: (res as { status_msg?: string })?.status_msg }
     }
-    return { success: true, data: mapBackendItems([detail]), statusMsg: (payload as { status_msg?: string })?.status_msg }
-  } catch (_e) {
-    return { success: false, data: [] }
+    return { success: true, data: mapBackendItems([detail]), statusMsg: (res as { status_msg?: string })?.status_msg }
+  } catch (e) {
+    return { success: false, data: [], statusMsg: (e as { status_msg?: string })?.status_msg, }
   }
 }
 
