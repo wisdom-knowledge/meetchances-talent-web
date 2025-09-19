@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
-import { markInterviewStart, reportInterviewConnected, reportRecordFail, reportWsConnectTimeout, reportWsReconnectTimeout, userEvent } from '@/lib/apm'
+import { markInterviewStart, reportInterviewDeviceInfo, reportInterviewConnected, reportRecordFail, reportWsConnectTimeout, reportWsReconnectTimeout, userEvent, reportRoomConnectError } from '@/lib/apm'
 import { toast } from 'sonner'
 
 interface InterviewPageProps {
@@ -152,7 +152,6 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
 
   // 直接使用 URL 传入的 interview_node_id
 
-  // 当拿到 token/serverUrl 时，连接房间；离开时断开
   useEffect(() => {
     if (!data?.token || !data?.serverUrl) return
     const room = roomRef.current
@@ -190,7 +189,16 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
         // 上报“连接耗时”指标（连接成功 = connect + 设备启用成功）
         reportInterviewConnected({ server: 'livekit' })
         stopConnectTimeout()
+        reportInterviewDeviceInfo({
+          audioinput: room.localParticipant.activeDeviceMap.get('audioinput'),
+          audiooutput: room.localParticipant.activeDeviceMap.get('audiooutput'),
+          videoinput: room.localParticipant.activeDeviceMap.get('videoinput'),
+          isMicrophoneEnabled: room.localParticipant.isMicrophoneEnabled, 
+          lastCameraError: room.localParticipant.lastCameraError,
+          lastMicrophoneError: room.localParticipant.lastMicrophoneError,
+        })
       } catch (_e) {
+        reportRoomConnectError(_e as Error)
         if (debugEnabled) {
           /* eslint-disable-next-line no-console */
           console.error('[Interview] initial connect error')
