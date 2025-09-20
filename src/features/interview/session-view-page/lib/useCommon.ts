@@ -45,7 +45,7 @@ export const useDeviceState = () => {
   const isScreenPublished = localUser.publishScreen;
   const queryDevices = async (type: MediaType) => {
     const mediaDevices = await RtcClient.getDevices({
-      audio: type === MediaType.AUDIO,
+      audio: true,
       video: true,
     });
     if (type === MediaType.AUDIO) {
@@ -70,15 +70,16 @@ export const useDeviceState = () => {
   };
 
   const switchCamera = async (controlPublish = true) => {
+    console.log('>>> switchCamera', controlPublish)
     if (controlPublish) {
       await (!isVideoPublished
         ? RtcClient.publishStream(MediaType.VIDEO)
         : RtcClient.unpublishStream(MediaType.VIDEO));
     }
-    queryDevices(MediaType.VIDEO);
+    // queryDevices(MediaType.VIDEO);
     await (!isVideoPublished ? RtcClient.startVideoCapture() : RtcClient.stopVideoCapture());
-    RtcClient.startVideoCapture();
-    RtcClient.publishStream(MediaType.AUDIO_AND_VIDEO)
+    
+    // RtcClient.publishStream(MediaType.AUDIO_AND_VIDEO)
     roomActions.updateLocalUser({ publishVideo: !isVideoPublished })
   };
 

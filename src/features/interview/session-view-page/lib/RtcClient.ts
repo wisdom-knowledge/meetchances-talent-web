@@ -31,7 +31,7 @@ import { toast } from 'sonner';
 import { startVoiceChat, stopVoiceChat } from '../../api';
 
 export interface IEventListener {
-  handleError: (e: { errorCode: any }) => void;
+  handleError: (e: { errorCode: string | number }) => void;
   handleUserJoin: (e: onUserJoinedEvent) => void;
   handleUserLeave: (e: onUserLeaveEvent) => void;
   handleTrackEnded: (e: { kind: string; isScreen: boolean }) => void;
@@ -88,8 +88,6 @@ export class RTCClient {
   updateBasicInfo = (basicInfo: BasicBody) => {
     this.basicInfo = basicInfo;
   };
-
-  update
 
   /**
    * 创建引擎
@@ -164,9 +162,6 @@ export class RTCClient {
    */
   joinRoom = () => {
     const { room_id, token, user_id } = this.basicInfo;
-    console.log('----------- basicInfo -----------')
-    console.log(this.basicInfo)
-    console.log('----------- basicInfo -----------')
     return this.engine.joinRoom(
       token!,
       room_id,
@@ -272,7 +267,6 @@ export class RTCClient {
    * @param camera 
    */
   startVideoCapture = async (camera?: string) => {
-    console.log('>>>>>>>>> startVideoCapture', camera)
     await this.engine.startVideoCapture(camera || this._videoCaptureDevice);
   };
 

@@ -1,5 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { use, useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { useDeviceState } from '../lib/useCommon'
+import RtcClient from '../lib/RtcClient'
+import { MediaType, VideoRenderMode } from '@volcengine/rtc';
+import useRoomStore from '@/stores/interview/room'
+import { is } from 'date-fns/locale';
 
 interface LocalVideoTileProps extends React.HTMLAttributes<HTMLDivElement> {
   stream?: MediaStream | null
@@ -7,32 +12,34 @@ interface LocalVideoTileProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export default function LocalVideoTile({ stream, recordingStatus, className, ...props }: LocalVideoTileProps) {
-  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const rtcConnectionInfo = useRoomStore((s) => s.rtcConnectionInfo)
+  const { isVideoPublished, switchCamera } = useDeviceState()
+  const userId = rtcConnectionInfo?.user_id
+
   useEffect(() => {
-    const el = videoRef.current
-    if (!el) return
-    try {
-      el.srcObject = stream ?? null
-      el.muted = true
-      el.playsInline = true
-      el.autoplay = true
-      el.controls = false
-      el.setAttribute('controlsList', 'nodownload noplaybackrate noremoteplayback')
-      el.setAttribute('disablepictureinpicture', 'true')
-      const play = () => el.play().catch(() => undefined)
-      play()
-    } catch {}
-  }, [stream])
-  const isRecording = recordingStatus === 10
-  const isKnown = recordingStatus === 0 || recordingStatus === 10
+    switchCamera(true)
+  }, [])
+  const setVideoPlayer = async () => {
+    // 先移除之前的player
+    RtcClient.removeVideoPlayer(userId!)
+    // 开启推流
+    await RtcClient.publishStream(MediaType.AUDIO_AND_VIDEO)
+    // 设置新的player
+    RtcClient.setLocalVideoPlayer(
+      userId!,
+      'local-video-player',
+      false,
+      VideoRenderMode.RENDER_MODE_FILL
+    )
+  }
+
+  useEffect(() => {
+    if (isVideoPublished) {
+      setVideoPlayer()
+    } 
+  }, [isVideoPublished])
   return (
-    <div className={cn('relative', className)} {...props}>
-      <video ref={videoRef} className='h-full w-full object-cover bg-black' />
-      {isKnown ? (
-        <div className={`pointer-events-none absolute right-2 top-2 h-3 w-3 rounded-full ${isRecording? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`} />
-      ) : (
-        <div className='pointer-events-none absolute right-2 top-2 text-xs font-semibold text-white/80'>-</div>
-      )}
+    <div className={cn('relative', className)} {...props} id="local-video-player">
     </div>
   )
 }
