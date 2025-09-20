@@ -24,12 +24,12 @@ import { useRoomStore, type IUser } from '@/stores/interview/room';
 import RtcClient, { IEventListener } from './RtcClient';
 
 import { useDeviceStore } from '@/stores/interview/device';
-// import { useMessageHandler } from '@/utils/handler';
+import { useMessageHandler } from '@/features/interview/session-view-page/lib/handler';
 
 const useRtcListeners = (): IEventListener => {
   const roomStore = useRoomStore();
   const deviceStore = useDeviceStore();
-  // const { parser } = useMessageHandler();
+  const { parser } = useMessageHandler();
   const playStatus = useRef<{ [key: string]: { audio: boolean; video: boolean } }>({});
 
   const handleTrackEnded = async (event: { kind: string; isScreen: boolean }) => {
@@ -185,8 +185,9 @@ const useRtcListeners = (): IEventListener => {
     });
   };
 
-  const handleRoomBinaryMessageReceived = (_event: { userId: string; message: ArrayBuffer }) => {
-    // TODO: hook up message parser when available in this project
+  const handleRoomBinaryMessageReceived = (event: { userId: string; message: ArrayBuffer }) => {
+    const { message } = event;
+    parser(message);
   };
 
   return {

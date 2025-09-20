@@ -4,16 +4,13 @@ import { motion } from 'framer-motion'
 import agentThinkingLottie from '@/lotties/agent-thinking.json'
 import voiceLottie from '@/lotties/voice-lottie.json'
 import { cn } from '@/lib/utils'
+import { useRoomStore } from '@/stores/interview/room'
 
-export type LiteAgentState = 'listening' | 'thinking' | 'speaking'
-
-interface LiteAgentTileProps extends React.ComponentProps<'div'> {
-  state: LiteAgentState
-}
-
-export default function LiteAgentTile({ state, className, ...props }: LiteAgentTileProps) {
-  const isSpeaking = state === 'speaking'
-  const isThinking = state === 'thinking'
+export default function LiteAgentTile({ className, ...props }: React.ComponentProps<'div'>) {
+  const isAITalking = useRoomStore((s) => s.isAITalking)
+  const isAIThinking = useRoomStore((s) => s.isAIThinking)
+  const isSpeaking = Boolean(isAITalking)
+  const isThinking = Boolean(isAIThinking)
   const isListening = !isSpeaking && !isThinking
 
   const voiceLottieRef = useRef<LottieRefCurrentProps>(null)
