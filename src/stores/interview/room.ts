@@ -251,7 +251,7 @@ export const useRoomStore = create<RoomState & RoomActions>()((set) => ({
       const { paragraph, definite } = payload
       const lastMsg = state.msgHistory[state.msgHistory.length - 1] || ({} as Msg)
       const fromBot = payload.user === state.sceneConfigMap[state.scene]?.botName
-      const lastMsgCompleted = fromBot ? lastMsg.definite : lastMsg.paragraph
+      const lastMsgCompleted = fromBot ? lastMsg.paragraph : lastMsg.definite
       if (state.msgHistory.length) {
         if (lastMsgCompleted) {
           return {

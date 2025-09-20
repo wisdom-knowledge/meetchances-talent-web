@@ -152,6 +152,7 @@ export const useMessageHandler = () => {
         if (win._debug_mode) logger.debug('handleRoomBinaryMessageReceived', data)
         logger.debug({ isAudioEnable, msg, definite, user, paragraph })
         if (isAudioEnable && typeof msg === 'string') {
+          console.log('>>> setHistoryMsg', msg, user, paragraph, definite)
           setHistoryMsg({ text: msg, user: String(user ?? ''), paragraph: Boolean(paragraph), definite: Boolean(definite) });
         }
       }

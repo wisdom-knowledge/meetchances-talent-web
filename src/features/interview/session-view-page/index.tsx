@@ -77,7 +77,7 @@ export default function InterviewSessionViewPage() {
           </div>
 
           {/* 右侧：字幕区域（保持结构一致） */}
-          <ChatMessageView className='fixed inset-0 z-40'>
+          <ChatMessageView className='fixed inset-0 z-40 border-red'>
             <div className='grid h-full w-full grid-cols-3'>
               <div className='col-span-2'></div>
               <div className='col-span-1 flex h-full flex-col justify-center px-8'>
@@ -92,7 +92,7 @@ export default function InterviewSessionViewPage() {
 
           {/* AgentTile 居中 */}
           <div className='fixed inset-0 z-20 flex items-center justify-center'>
-            <LiteAgentTile state={agentState} className='h-64 w-96' />
+            <LiteAgentTile className='h-64 w-96' />
           </div>
 
           {/* 底部：左本地视频 | 中录音指示器占位 | 右控制条 */}
