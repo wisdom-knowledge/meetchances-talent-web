@@ -8,10 +8,12 @@ import { useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
 import { getRtcConnectionInfo as fetchRtcConnectionInfo } from '@/features/interview/api'
 import { useRoomStore } from '@/stores/interview/room'
+import { useJoin } from "../session-view-page/lib/useCommon";
 
 export default function AntechamberPage() {
   const navigate = useNavigate()
   const setRtcConnectionInfo = useRoomStore((s) => s.setRtcConnectionInfo)
+  const [joining, triggerJoin] = useJoin()
   const rtcInfo = useRoomStore((s) => s.rtcConnectionInfo)
 
   const loadRtcConnectionInfo = useCallback(async () => {
@@ -26,6 +28,7 @@ export default function AntechamberPage() {
       }
       const info = await fetchRtcConnectionInfo({ job_id: jobId })
       setRtcConnectionInfo(info)
+      
     } catch (_e) {
       toast.error('获取面试连接信息失败，请稍后重试', { position: 'top-center' })
     }
@@ -35,6 +38,18 @@ export default function AntechamberPage() {
     // 每次页面初始化后
     void loadRtcConnectionInfo();
   }, [loadRtcConnectionInfo])
+
+  const handleJoin = async () => {
+    await triggerJoin()
+    navigate({
+      to: '/interview/session_view',
+      search: {
+        interview_id: rtcInfo?.interview_id,
+        room_id: rtcInfo?.room_id,
+      } as unknown as Record<string, unknown>,
+    })
+  }
+
   return (
     <>
       <Header fixed>
@@ -51,18 +66,14 @@ export default function AntechamberPage() {
         <Separator className='my-4 lg:my-6' />
 
         <div className='relative h-[60vh]'>
+          <p>room_id:{ rtcInfo?.room_id }</p>
+          <p>interview_id:{ rtcInfo?.interview_id }</p>
+          <p>joining: {joining}</p>
+          <p>typeof triggerJoin: {typeof triggerJoin}</p>
           <div className='absolute inset-0 flex items-center justify-center'>
             <Button
               size='lg'
-              onClick={() =>
-                navigate({
-                  to: '/interview/session_view',
-                  search: {
-                    interview_id: rtcInfo?.interview_id,
-                    room_id: rtcInfo?.room_id,
-                  } as unknown as Record<string, unknown>,
-                })
-              }
+              onClick={() => handleJoin()}
             >
               进入新版面试间
             </Button>

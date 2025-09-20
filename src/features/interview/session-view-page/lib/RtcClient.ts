@@ -26,9 +26,9 @@ import VERTC, {
 } from '@volcengine/rtc';
 import RTCAIAnsExtension from '@volcengine/rtc/extension-ainr';
 import { toast } from 'sonner';
-import { string2tlv } from '@/utils/utils';
-import { COMMAND, INTERRUPT_PRIORITY } from '@/utils/handler';
-import { startVoiceChat, stopVoiceChat } from '@/utils/api';
+// import { string2tlv } from '@/utils/rtc-utils';
+// import { COMMAND, INTERRUPT_PRIORITY } from '@/utils/handler';
+import { startVoiceChat, stopVoiceChat } from '../../api';
 
 export interface IEventListener {
   handleError: (e: { errorCode: any }) => void;
@@ -64,20 +64,6 @@ export interface BasicBody {
 
 
 /**
- * 连接信息接口定义
- * 数据来源于后端接口 /talent/vol-rtc-connection
- */
-export interface ConnectInfo {
-  room_id: string;
-  token: string;
-  user_id: string;
-  expire_at: number;
-  interview_id: number;
-  room_name: string;
-  server_url: string;
-}
-
-/**
  * @brief RTC Core Client
  * @notes Refer to official website documentation to get more information about the API.
  */
@@ -86,7 +72,6 @@ export class RTCClient {
 
   basicInfo!: BasicBody;
 
-  connectInfo!: {room_id: string, token: string, user_id: string};
 
   private _audioCaptureDevice?: string;
 
@@ -104,11 +89,13 @@ export class RTCClient {
     this.basicInfo = basicInfo;
   };
 
+  update
+
   /**
    * 创建引擎
    */
   createEngine = async () => {
-    this.engine = VERTC.createEngine(this.basicInfo.app_id);
+    this.engine = VERTC.createEngine(this.basicInfo.app_id || '68c7802af2dba90172caaa3a');
     try {
       const AIAnsExtension = new RTCAIAnsExtension();
       await this.engine.registerExtension(AIAnsExtension);
@@ -176,12 +163,12 @@ export class RTCClient {
    * 加入房间
    */
   joinRoom = () => {
-    const { room_id, token, user_id } = this.connectInfo;
-    console.log('----------- connectInfo -----------')
-    console.log(this.connectInfo)
-    console.log('----------- connectInfo -----------')
+    const { room_id, token, user_id } = this.basicInfo;
+    console.log('----------- basicInfo -----------')
+    console.log(this.basicInfo)
+    console.log('----------- basicInfo -----------')
     return this.engine.joinRoom(
-      token,
+      token!,
       room_id,
       {
         userId: user_id,
@@ -449,7 +436,7 @@ export class RTCClient {
     if (this.audioBotEnabled) {
       await this.stopAgent(scene);
     }
-    const roomId = this.connectInfo.room_id
+    const roomId = this.basicInfo.room_id
     await startVoiceChat({room_id: roomId})
 
     this.audioBotEnabled = true;
@@ -468,36 +455,36 @@ export class RTCClient {
     this.audioBotEnabled = false;
   };
 
-  /**
-   * @brief 命令 AIGC
-   */
-  commandAgent = ({
-    command,
-    agentName,
-    interruptMode = INTERRUPT_PRIORITY.NONE,
-    message = '',
-  }: {
-    command: COMMAND;
-    agentName: string;
-    interruptMode?: INTERRUPT_PRIORITY;
-    message?: string;
-  }) => {
-    if (this.audioBotEnabled) {
-      this.engine.sendUserBinaryMessage(
-        agentName,
-        string2tlv(
-          JSON.stringify({
-            Command: command,
-            InterruptMode: interruptMode,
-            Message: message,
-          }),
-          'ctrl'
-        )
-      );
-      return;
-    }
-    console.warn('Interrupt failed, bot not enabled.');
-  };
+  // /**
+  //  * @brief 命令 AIGC
+  //  */
+  // commandAgent = ({
+  //   command,
+  //   agentName,
+  //   interruptMode = INTERRUPT_PRIORITY.NONE,
+  //   message = '',
+  // }: {
+  //   command: COMMAND;
+  //   agentName: string;
+  //   interruptMode?: INTERRUPT_PRIORITY;
+  //   message?: string;
+  // }) => {
+  //   if (this.audioBotEnabled) {
+  //     this.engine.sendUserBinaryMessage(
+  //       agentName,
+  //       string2tlv(
+  //         JSON.stringify({
+  //           Command: command,
+  //           InterruptMode: interruptMode,
+  //           Message: message,
+  //         }),
+  //         'ctrl'
+  //       )
+  //     );
+  //     return;
+  //   }
+  //   console.warn('Interrupt failed, bot not enabled.');
+  // };
 
   /**
    * @brief 更新 AIGC 配置

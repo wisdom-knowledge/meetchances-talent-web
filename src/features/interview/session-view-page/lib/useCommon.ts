@@ -132,6 +132,7 @@ export const useGetDevicePermission = () => {
 export const useJoin = (): [boolean, () => Promise<void | boolean>] => {
   const devicePermissions = useDeviceStore((s) => s.devicePermissions)
   const room = useRoomStore()
+  const rtcInfo = useRoomStore((s) => s.rtcConnectionInfo)
 
   const { id } = useScene();
   const { switchMic } = useDeviceState();
@@ -161,6 +162,20 @@ export const useJoin = (): [boolean, () => Promise<void | boolean>] => {
     }
 
     setJoining(true);
+
+    // 0. 准备 RTC 基础信息（来自 roomStore.rtcConnectionInfo）
+    if (!rtcInfo?.room_id || !rtcInfo?.user_id || !rtcInfo?.token) {
+      toast.error('缺少会话连接信息，请返回上一步重试。', { position: 'top-center' })
+      setJoining(false)
+      return
+    }
+    RtcClient.updateBasicInfo({
+      app_id: '68c7802af2dba90172caaa3a',
+      room_id: rtcInfo.room_id,
+      user_id: rtcInfo.user_id,
+      token: rtcInfo.token,
+    })
+
 
     /** 1. Create RTC Engine */
     await RtcClient.createEngine();
