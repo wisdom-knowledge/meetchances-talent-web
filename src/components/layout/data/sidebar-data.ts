@@ -28,6 +28,11 @@ export const sidebarData: SidebarData = {
           url: '/resume',
           icon: IconId,
         },
+        {
+          title: 'Session View',
+          url: '/interview/antechamber',
+          icon: IconId,
+        },
       ],
     },
   ],
