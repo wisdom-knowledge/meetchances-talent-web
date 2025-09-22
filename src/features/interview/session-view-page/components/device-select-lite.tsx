@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
-export interface DeviceSelectLiteProps extends React.ComponentProps<typeof SelectTrigger> {
+export interface DeviceSelectLiteProps {
   kind: 'audioinput' | 'videoinput'
   value?: string
   onChange?: (deviceId: string) => void
+  className?: string
 }
 
-export default function DeviceSelectLite({ kind, value, onChange, className, ...props }: DeviceSelectLiteProps) {
+export default function DeviceSelectLite({ kind, value, onChange, className }: DeviceSelectLiteProps) {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function DeviceSelectLite({ kind, value, onChange, className, ...
 
   return (
     <Select value={value} onValueChange={(v) => onChange?.(v)}>
-      <SelectTrigger className={cn('w-[180px] rounded-full px-3 py-2 text-sm', className)} {...props}>
+      <SelectTrigger className={cn('w-[180px] rounded-full px-3 py-2 text-sm', className)}>
         <SelectValue placeholder={`选择 ${kind === 'audioinput' ? '麦克风' : '摄像头'}`} />
       </SelectTrigger>
       <SelectContent>

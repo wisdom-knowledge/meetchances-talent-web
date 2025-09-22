@@ -1,10 +1,9 @@
-import { use, useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { useDeviceState } from '../lib/useCommon'
 import RtcClient from '../lib/RtcClient'
 import { MediaType, VideoRenderMode } from '@volcengine/rtc';
 import useRoomStore from '@/stores/interview/room'
-import { is } from 'date-fns/locale';
 
 interface LocalVideoTileProps extends React.HTMLAttributes<HTMLDivElement> {
   stream?: MediaStream | null
@@ -17,6 +16,7 @@ export default function LocalVideoTile({ stream, recordingStatus, className, ...
   const userId = rtcConnectionInfo?.user_id
 
   useEffect(() => {
+    console.log('switchCamera', userId)
     switchCamera(true)
   }, [])
   const setVideoPlayer = async () => {
@@ -36,7 +36,7 @@ export default function LocalVideoTile({ stream, recordingStatus, className, ...
   useEffect(() => {
     if (isVideoPublished) {
       setVideoPlayer()
-    } 
+    }
   }, [isVideoPublished])
   return (
     <div className={cn('relative', className)} {...props} id="local-video-player">

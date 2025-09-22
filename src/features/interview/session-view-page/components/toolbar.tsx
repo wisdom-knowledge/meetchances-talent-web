@@ -3,7 +3,8 @@ import { useLocalParticipant, useRoomContext } from '@livekit/components-react'
 import { Track } from 'livekit-client'
 import { cn } from '@/lib/utils'
 import { TrackToggle } from '@/components/livekit/track-toggle'
-import { DeviceSelect } from '@/features/interview/session-view'
+// import { DeviceSelect } from '@/features/interview/session-view'
+import DeviceSelectLite from './device-select-lite'
 
 export interface ToolbarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -44,8 +45,8 @@ export default function Toolbar({ className, ...props }: ToolbarProps) {
       <TrackToggle source={Track.Source.Camera} pressed={camPressed} pending={pending === 'cam'} onPressedChange={toggleCam} />
       <TrackToggle source={Track.Source.Microphone} pressed={micPressed} pending={pending === 'mic'} onPressedChange={toggleMic} />
       <div className='mx-1 h-4 w-px bg-border' />
-      <DeviceSelect kind='videoinput' className='h-8 w-[180px]' />
-      <DeviceSelect kind='audioinput' className='h-8 w-[180px]' />
+      <DeviceSelectLite kind='videoinput' className='h-8 w-[180px]' />
+      <DeviceSelectLite kind='audioinput' className='h-8 w-[180px]' />
     </div>
   )
 }

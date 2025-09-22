@@ -162,7 +162,7 @@ export const useJoin = (): [boolean, () => Promise<void | boolean>] => {
     }
 
     setJoining(true);
-
+    console.log('>>> rtcInfo', rtcInfo)
     // 0. 准备 RTC 基础信息（来自 roomStore.rtcConnectionInfo）
     if (!rtcInfo?.room_id || !rtcInfo?.user_id || !rtcInfo?.token) {
       toast.error('缺少会话连接信息，请返回上一步重试。', { position: 'top-center' })

@@ -3,7 +3,7 @@
  * SPDX-license-identifier: BSD-3-Clause
  */
 
-import VERTC, {
+import {
   LocalAudioPropertiesInfo,
   RemoteAudioPropertiesInfo,
   LocalStreamStats,
@@ -22,6 +22,8 @@ import { useRef } from 'react';
 
 import { useRoomStore, type IUser } from '@/stores/interview/room';
 import RtcClient, { IEventListener } from './RtcClient';
+import { postNodeAction, NodeActionTrigger } from '@/features/interview/api'
+import { userEvent } from '@/lib/apm'
 
 import { useDeviceStore } from '@/stores/interview/device';
 import { useMessageHandler } from '@/features/interview/session-view-page/lib/handler';
@@ -49,13 +51,48 @@ const useRtcListeners = (): IEventListener => {
     roomStore.remoteUserJoin({ userId, username });
   };
 
-  const handleError = (_e: { errorCode: typeof VERTC.ErrorCode.DUPLICATE_LOGIN }) => {
+  const handleError = (_e: { errorCode: string | number }) => {
     // no-op for now; can add toast/report here
   };
 
-  const handleUserLeave = (e: onUserLeaveEvent) => {
+  const endedOnceRef = useRef(false)
+  const handleUserLeave = async (e: onUserLeaveEvent) => {
     roomStore.remoteUserLeave({ userId: e.userInfo.userId });
     roomStore.removeAutoPlayFail({ userId: e.userInfo.userId });
+
+    if (endedOnceRef.current) return
+    endedOnceRef.current = true
+    try { await RtcClient.stopAudioCapture() } catch { /* noop */ }
+    try { await RtcClient.stopVideoCapture() } catch { /* noop */ }
+    try { await RtcClient.leaveRoom() } catch { /* noop */ }
+
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const interviewId = roomStore.rtcConnectionInfo?.interview_id
+      if (interviewId != null) params.set('interview_id', String(interviewId))
+      // 保留已存在的 job_id / job_apply_id / interview_node_id
+      const jobId = params.get('job_id')
+      if (jobId) params.set('job_id', jobId)
+      const jobApplyId = params.get('job_apply_id')
+      if (jobApplyId) params.set('job_apply_id', jobApplyId)
+      const interviewNodeId = params.get('interview_node_id')
+
+      // 上报并提交节点
+      userEvent('interview_completed', '面试正常结束', {
+        job_id: jobId ?? undefined,
+        interview_id: interviewId ?? undefined,
+        job_apply_id: jobApplyId ?? undefined,
+      })
+      if (interviewNodeId) {
+        try {
+          await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
+        } catch { /* ignore */ }
+      }
+      // 跳转 finish（使用原生 replace 便于释放设备权限）
+      setTimeout(() => {
+        window.location.replace(`/finish?${params.toString()}`)
+      }, 300)
+    } catch { /* ignore */ }
   };
 
   const handleUserPublishStream = (e: { userId: string; mediaType: MediaType }) => {
