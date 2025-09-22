@@ -3,17 +3,14 @@ import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 
-interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
+interface HeaderProps {
+  className?: string
   fixed?: boolean
   ref?: React.Ref<HTMLElement>
+  children?: React.ReactNode
 }
 
-export const Header = ({
-  className,
-  fixed,
-  children,
-  ...props
-}: HeaderProps) => {
+export const Header = ({ className, fixed, children }: HeaderProps) => {
   const [offset, setOffset] = React.useState(0)
 
   React.useEffect(() => {
@@ -36,7 +33,6 @@ export const Header = ({
         offset > 10 && fixed ? 'shadow' : 'shadow-none',
         className
       )}
-      {...props}
     >
       <div
         className={cn(
