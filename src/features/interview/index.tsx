@@ -118,7 +118,6 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
   }, [])
   
   // 进入页面后再次尝试从存储读取（防止刷新后初始状态为 null）
-  // 进入页面后再次尝试从存储读取（防止刷新后初始状态为 null）
   const hasLoadedDetailsRef = useRef(false)
   
   useEffect(() => {
@@ -128,12 +127,12 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     const details = loadInterviewConnectionFromStorage(interviewId)
     if (details) {
       setData(details)
-      removeInterviewConnectionFromStorage(interviewId)
       hasLoadedDetailsRef.current = true
     } else {
-      let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrue&report=true`
+      setData(null)
+      let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrue&source=session_refresh`
       if (jobApplyId) url += `&job_apply_id=${jobApplyId}`
-      window.location.replace(url)
+      navigate({ to: url, replace: true })
     }
   }, [])
 
@@ -363,7 +362,11 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     const handleConnChanged = () => {
       // Connection state changed logic if needed
     }
-    room.on(RoomEvent.Disconnected, handleDisconnected)
+    const details = loadInterviewConnectionFromStorage(interviewId)
+    if (details?.token && details?.serverUrl) { 
+      room.on(RoomEvent.Disconnected, handleDisconnected)
+      removeInterviewConnectionFromStorage(interviewId)
+    }
     room.on(RoomEvent.Reconnecting, handleReconnecting)
     room.on(RoomEvent.Reconnected, handleReconnected)
     room.on(RoomEvent.ConnectionStateChanged, handleConnChanged)
