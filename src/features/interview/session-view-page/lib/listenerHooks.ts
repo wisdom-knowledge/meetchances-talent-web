@@ -57,6 +57,7 @@ const useRtcListeners = (): IEventListener => {
 
   const endedOnceRef = useRef(false)
   const handleUserLeave = async (e: onUserLeaveEvent) => {
+    const { userId } = e.userInfo;
     roomStore.remoteUserLeave({ userId: e.userInfo.userId });
     roomStore.removeAutoPlayFail({ userId: e.userInfo.userId });
 
@@ -67,6 +68,8 @@ const useRtcListeners = (): IEventListener => {
     try { await RtcClient.leaveRoom() } catch { /* noop */ }
 
     try {
+      // 如果不是Agent离开，则不触发后续流程
+      if (!/ChatBot/.test(userId)) return ;
       const params = new URLSearchParams(window.location.search)
       const interviewId = roomStore.rtcConnectionInfo?.interview_id
       if (interviewId != null) params.set('interview_id', String(interviewId))
