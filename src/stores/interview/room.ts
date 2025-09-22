@@ -86,6 +86,12 @@ export interface RoomState {
    * @brief AI 通话是否启用
    */
   isAIGCEnable: boolean;
+
+
+  /**
+   * @brief 候选人是否在房间
+   */
+  isCandidateInRoom: boolean;
   /**
    * @brief AI 是否正在说话
    */
@@ -164,6 +170,8 @@ const initialState: RoomState = {
   isUserTalking: false,
   networkQuality: NetworkQuality.UNKNOWN,
 
+  isCandidateInRoom: false,
+
   msgHistory: [],
   currentConversation: {},
   isShowSubtitle: true,
@@ -198,9 +206,11 @@ export interface RoomActions {
   updateFullScreen: (payload: { isFullScreen: boolean }) => void;
   updatecustomSceneName: (payload: { customSceneName: string }) => void;
   setRtcConnectionInfo: (payload?: RtcConnectionInfo) => void;
+  setCandidateInRoom: (inRoom: boolean) => void;
+  getCandidateInRoom: () => boolean;
 }
 
-export const useRoomStore = create<RoomState & RoomActions>()((set) => ({
+export const useRoomStore = create<RoomState & RoomActions>()((set, get) => ({
   ...initialState,
   localJoinRoom: ({ roomId, user }) =>
     set((state) => ({ ...state, roomId, localUser: { ...state.localUser, ...user }, isJoined: true })),
@@ -295,6 +305,8 @@ export const useRoomStore = create<RoomState & RoomActions>()((set) => ({
   updateFullScreen: ({ isFullScreen }) => set((state) => ({ ...state, isFullScreen })),
   updatecustomSceneName: ({ customSceneName }) => set((state) => ({ ...state, customSceneName })),
   setRtcConnectionInfo: (payload) => set((state) => ({ ...state, rtcConnectionInfo: payload })),
+  setCandidateInRoom: (inRoom: boolean) => set((state) => ({ ...state, isCandidateInRoom: inRoom })),
+  getCandidateInRoom: () => get().isCandidateInRoom,
 }))
 
 export default useRoomStore;

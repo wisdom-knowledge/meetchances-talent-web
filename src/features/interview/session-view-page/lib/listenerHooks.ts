@@ -65,10 +65,9 @@ const useRtcListeners = (): IEventListener => {
     try { await RtcClient.leaveRoom() } catch { /* noop */ }
 
     try {
-      console.log('>>> handleUserLeave', e.userInfo)
-      debugger
-      // 如果不是Agent离开，则不触发后续流程
-      if (/ChatBot/.test(userId)) {
+      const isCandidateInRoom = roomStore.getCandidateInRoom()
+      // 如果候选人在房间里，并且此时离开的是Agent。那么代表Agent是主动离开的，而不是由于候选人离开而离开的。
+      if (isCandidateInRoom && /ChatBot/.test(userId)) {
         const params = new URLSearchParams(window.location.search)
         const interviewId = roomStore.rtcConnectionInfo?.interview_id
         if (interviewId != null) params.set('interview_id', String(interviewId))
@@ -78,7 +77,7 @@ const useRtcListeners = (): IEventListener => {
         const jobApplyId = params.get('job_apply_id')
         if (jobApplyId) params.set('job_apply_id', jobApplyId)
         const interviewNodeId = params.get('interview_node_id')
-  
+
         // 上报并提交节点
         userEvent('interview_completed', '面试正常结束', {
           job_id: jobId ?? undefined,
