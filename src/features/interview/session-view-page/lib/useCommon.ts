@@ -77,7 +77,7 @@ export const useDeviceState = () => {
     }
     // queryDevices(MediaType.VIDEO);
     await (!isVideoPublished ? RtcClient.startVideoCapture() : RtcClient.stopVideoCapture());
-    
+
     // RtcClient.publishStream(MediaType.AUDIO_AND_VIDEO)
     roomActions.updateLocalUser({ publishVideo: !isVideoPublished })
   };
@@ -162,7 +162,9 @@ export const useJoin = (): [boolean, () => Promise<void | boolean>] => {
     }
 
     setJoining(true);
-    console.log('>>> rtcInfo', rtcInfo)
+
+    // 标记候选人进入房间
+    useRoomStore.getState().setCandidateInRoom(true)
     // 0. 准备 RTC 基础信息（来自 roomStore.rtcConnectionInfo）
     if (!rtcInfo?.room_id || !rtcInfo?.user_id || !rtcInfo?.token) {
       toast.error('缺少会话连接信息，请返回上一步重试。', { position: 'top-center' })
@@ -228,6 +230,8 @@ export const useLeave = () => {
     ]);
     await RtcClient.stopAgent(roomId ?? '');
     await RtcClient.leaveRoom();
+    // 标记候选人离开房间
+    useRoomStore.getState().setCandidateInRoom(false)
     const room = useRoomStore.getState()
     room.clearHistoryMsg()
     room.clearCurrentMsg()
