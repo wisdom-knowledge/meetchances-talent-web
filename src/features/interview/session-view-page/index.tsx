@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import InterviewTimer from './components/interview-timer'
@@ -26,6 +26,13 @@ export default function InterviewSessionViewPage() {
 
   const onLeave = useCallback(() => {
     setConfirmEndOpen(true)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      console.log('use effect >>> leave room')
+      leaveRoom()
+    }
   }, [])
 
 
