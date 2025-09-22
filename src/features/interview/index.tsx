@@ -293,7 +293,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
             interview_id: interviewId,
             job_apply_id: jobApplyId,
           })
-          await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {token: data?.token, serverUrl: data?.serverUrl} })
+          await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
         }
       } catch { /* ignore */ }
       if (interviewId) {
