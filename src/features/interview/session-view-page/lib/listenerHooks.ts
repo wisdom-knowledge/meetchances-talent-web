@@ -68,33 +68,35 @@ const useRtcListeners = (): IEventListener => {
     try { await RtcClient.leaveRoom() } catch { /* noop */ }
 
     try {
+      console.log('>>> handleUserLeave', e.userInfo)
       // 如果不是Agent离开，则不触发后续流程
-      if (!/ChatBot/.test(userId)) return ;
-      const params = new URLSearchParams(window.location.search)
-      const interviewId = roomStore.rtcConnectionInfo?.interview_id
-      if (interviewId != null) params.set('interview_id', String(interviewId))
-      // 保留已存在的 job_id / job_apply_id / interview_node_id
-      const jobId = params.get('job_id')
-      if (jobId) params.set('job_id', jobId)
-      const jobApplyId = params.get('job_apply_id')
-      if (jobApplyId) params.set('job_apply_id', jobApplyId)
-      const interviewNodeId = params.get('interview_node_id')
-
-      // 上报并提交节点
-      userEvent('interview_completed', '面试正常结束', {
-        job_id: jobId ?? undefined,
-        interview_id: interviewId ?? undefined,
-        job_apply_id: jobApplyId ?? undefined,
-      })
-      if (interviewNodeId) {
-        try {
-          await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
-        } catch { /* ignore */ }
+      if (/ChatBot/.test(userId)) {
+        const params = new URLSearchParams(window.location.search)
+        const interviewId = roomStore.rtcConnectionInfo?.interview_id
+        if (interviewId != null) params.set('interview_id', String(interviewId))
+        // 保留已存在的 job_id / job_apply_id / interview_node_id
+        const jobId = params.get('job_id')
+        if (jobId) params.set('job_id', jobId)
+        const jobApplyId = params.get('job_apply_id')
+        if (jobApplyId) params.set('job_apply_id', jobApplyId)
+        const interviewNodeId = params.get('interview_node_id')
+  
+        // 上报并提交节点
+        userEvent('interview_completed', '面试正常结束', {
+          job_id: jobId ?? undefined,
+          interview_id: interviewId ?? undefined,
+          job_apply_id: jobApplyId ?? undefined,
+        })
+        if (interviewNodeId) {
+          try {
+            await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
+          } catch { /* ignore */ }
+        }
+        // 跳转 finish（使用原生 replace 便于释放设备权限）
+        setTimeout(() => {
+          window.location.replace(`/finish?${params.toString()}`)
+        }, 300)
       }
-      // 跳转 finish（使用原生 replace 便于释放设备权限）
-      setTimeout(() => {
-        window.location.replace(`/finish?${params.toString()}`)
-      }, 300)
     } catch { /* ignore */ }
   };
 
