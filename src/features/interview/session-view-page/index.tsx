@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import InterviewTimer from './components/interview-timer'
@@ -5,11 +6,27 @@ import { ConnectionQualityBars } from '@/components/interview/connection-quality
 import { ChatMessageView } from './components/chat-message-view'
 import ConnectionStatus from './components/connection-status'
 import LiteAgentTile from './components/lite-agent-tile'
-import LiteControlBar from './components/lite-control-bar'
+import { Button } from '@/components/ui/button'
 import LocalVideoTile from './components/local-video-tile'
 import RecordingIndicator from './components/recording-indicator'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useLeave } from './lib/useCommon'
 
 export default function InterviewSessionViewPage() {
+
+  const [confirmEndOpen, setConfirmEndOpen] = useState(false)
+  const leaveRoom = useLeave()
+
+  const performEndInterview = useCallback(async () => {
+    await leaveRoom() 
+    setTimeout(() => {
+      window.location.replace('/finish')
+    }, 1000)
+  }, [leaveRoom])
+
+  const onLeave = useCallback(() => {
+    setConfirmEndOpen(true)
+  }, [])
 
 
   return (
@@ -46,12 +63,31 @@ export default function InterviewSessionViewPage() {
                 <RecordingIndicator />
               </div>
               <div className='flex flex-1 justify-end pointer-events-auto mb-4'>
-                <LiteControlBar />
+                <div className={`flex flex-col rounded-[31px]`}>
+                  <div className='flex flex-row justify-end gap-1'>
+                    <Button variant='default' onClick={onLeave} className='font-mono'>放弃面试</Button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </Main>
+      <Dialog open={confirmEndOpen} onOpenChange={setConfirmEndOpen}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader className='text-left'>
+            <DialogTitle>确认要放弃面试吗？</DialogTitle>
+            <DialogDescription>放弃面试将没有面试结果，若需要请重新面试</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className='gap-2'>
+            <Button onClick={() => setConfirmEndOpen(false)}>继续面试</Button>
+            <Button variant='outline' onClick={() => {
+              setConfirmEndOpen(false)
+              performEndInterview()
+            }}>确定放弃</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

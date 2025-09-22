@@ -70,7 +70,6 @@ export const useDeviceState = () => {
   };
 
   const switchCamera = async (controlPublish = true) => {
-    console.log('>>> switchCamera', controlPublish)
     if (controlPublish) {
       await (!isVideoPublished
         ? RtcClient.publishStream(MediaType.VIDEO)
@@ -219,7 +218,7 @@ export const useJoin = (): [boolean, () => Promise<void | boolean>] => {
 };
 
 export const useLeave = () => {
-  const { id } = useScene();
+  const roomId = useRoomStore((s) => s.rtcConnectionInfo?.room_id)
 
   return async function () {
     await Promise.all([
@@ -227,7 +226,7 @@ export const useLeave = () => {
       RtcClient.stopScreenCapture,
       RtcClient.stopVideoCapture,
     ]);
-    await RtcClient.stopAgent(id);
+    await RtcClient.stopAgent(roomId ?? '');
     await RtcClient.leaveRoom();
     const room = useRoomStore.getState()
     room.clearHistoryMsg()
