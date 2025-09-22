@@ -91,7 +91,7 @@ const useRtcListeners = (): IEventListener => {
         }
         // 跳转 finish（使用原生 replace 便于释放设备权限）
         setTimeout(() => {
-          // window.location.replace(`/finish?${params.toString()}`)
+          window.location.replace(`/finish?${params.toString()}`)
         }, 300)
       }
     } catch { /* ignore */ }
