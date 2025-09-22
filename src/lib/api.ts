@@ -1,13 +1,18 @@
 import axios from 'axios'
-import { reportApiBusinessError, reportApiResponse } from '@/lib/apm'
 import { Talent, TalentParams } from '@/stores/authStore'
+import { reportApiBusinessError, reportApiResponse } from '@/lib/apm'
 import { noTalentMeRoutes } from '@/components/layout/data/sidebar-data'
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
   'https://service-dev.meetchances.com/api/v1'
 
-const TARGETED_API_KEYWORDS = ['connection-details', 'interview_record_status', '/node/action', 'job_apply_progress'] as const
+const TARGETED_API_KEYWORDS = [
+  'connection-details',
+  'interview_record_status',
+  '/node/action',
+  'job_apply_progress',
+] as const
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -128,8 +133,6 @@ export interface CurrentUserResponse {
   full_name: string
   id: number
 }
-
-
 
 export async function fetchTalentMe(): Promise<Talent> {
   return api.get('/talent/me') as unknown as Promise<Talent>

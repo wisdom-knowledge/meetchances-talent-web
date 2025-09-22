@@ -32,7 +32,7 @@ import { useRoomStore } from '@/stores/interview/room'
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
-import { getPreferredDeviceId, setPreferredDeviceIdSmart } from '@/lib/devices'
+import { getPreferredDeviceId, setPreferredDeviceIdSmart, clearAllPreferredDevices } from '@/lib/devices'
 import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
@@ -74,6 +74,8 @@ enum ViewMode {
     spkStatus,
     onMicStatusChange,
     onSpkStatusChange,
+    onSpkDeviceChange,
+    onMicDeviceChange,
   }: {
     camActiveDeviceId?: string
     camDevices: Array<{ deviceId: string; label: string }>
@@ -83,10 +85,12 @@ enum ViewMode {
     spkStatus: DeviceTestStatus
     onMicStatusChange: (_s: DeviceTestStatus) => void
     onSpkStatusChange: (_s: DeviceTestStatus) => void
+    onSpkDeviceChange?: (deviceId: string) => void
+    onMicDeviceChange?: (deviceId: string) => void
   }) {
     const mic = useMediaDeviceSelect({ kind: 'audioinput', requestPermissions: true })
     const spk = useMediaDeviceSelect({ kind: 'audiooutput', requestPermissions: true })
-    
+
     // 用于显示的扬声器设备ID，当设备切换失败时保持用户选择的值
     const [displaySpkDeviceId, setDisplaySpkDeviceId] = useState<string>('')
 
@@ -101,10 +105,15 @@ enum ViewMode {
         // 设置显示值为首选设备
         setDisplaySpkDeviceId(preferredSpk)
         spk.setActiveMediaDevice(preferredSpk).then(() => {
-          // 初始化成功
+          // 初始化成功，通知父组件
+          onSpkDeviceChange?.(preferredSpk)
         }).catch(() => {
           // 初始化失败时，显示值保持为首选设备ID
         })
+      } else if (spk.activeDeviceId) {
+        // 如果没有首选设备但已有活跃设备，使用活跃设备
+        setDisplaySpkDeviceId(spk.activeDeviceId)
+        onSpkDeviceChange?.(spk.activeDeviceId)
       } 
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -128,6 +137,13 @@ enum ViewMode {
         })
       }
     }, [spk.activeDeviceId, spk.devices, displaySpkDeviceId])
+
+    // 当扬声器设备初始化完成时，通知父组件
+    useEffect(() => {
+      if (spk.activeDeviceId && displaySpkDeviceId) {
+        onSpkDeviceChange?.(displaySpkDeviceId)
+      }
+    }, [spk.activeDeviceId, displaySpkDeviceId, onSpkDeviceChange])
 
     const statusText = (s: DeviceTestStatus) => {
       switch (s) {
@@ -186,9 +202,14 @@ enum ViewMode {
                 // 立即更新显示值
                 setDisplaySpkDeviceId(v)
                 
-                spk.setActiveMediaDevice(v).then(() => {
+                spk.setActiveMediaDevice(v).then(async () => {
                   void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
                   onSpkStatusChange(DeviceTestStatus.Testing)
+                  
+                  // 通知父组件扬声器设备已切换，让它更新音频元素的sinkId
+                  onSpkDeviceChange?.(v)
+                  
+                  // 给一些时间让音频元素更新sinkId
                   setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
                 }).catch(() => {
                   // 设备切换失败
@@ -211,10 +232,17 @@ enum ViewMode {
               isControlled
               value={mic.activeDeviceId}
               onValueChange={(v) => {
-                mic.setActiveMediaDevice(v)
-                void setPreferredDeviceIdSmart('audioinput', v, mic.devices)
-                onMicStatusChange(DeviceTestStatus.Testing)
-                setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
+                mic.setActiveMediaDevice(v).then(() => {
+                  void setPreferredDeviceIdSmart('audioinput', v, mic.devices)
+                  onMicStatusChange(DeviceTestStatus.Testing)
+                  
+                  // 通知父组件麦克风设备已切换
+                  onMicDeviceChange?.(v)
+                  
+                  setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
+                }).catch(() => {
+                  // 设备切换失败
+                })
               }}
               placeholder='选择麦克风'
               className='h-9 flex-1 overflow-x-hidden truncate'
@@ -251,6 +279,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
   const [jobApplyId, setJobApplyId] = useState<number | string | null>(jobApplyIdFromRoute ?? null)
+  const [currentSpkDeviceId, setCurrentSpkDeviceId] = useState<string>('')
+  const [currentMicDeviceId, setCurrentMicDeviceId] = useState<string>('')
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const [_joining, triggerJoin] = useJoin()
   const setRtcConnectionInfo = useRoomStore((s) => s.setRtcConnectionInfo)
@@ -273,6 +303,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     const ai = nodes.find((n) => n.node_name.includes('AI 面试'))
     return ai?.node_status
   }, [progressNodes])
+
+  // 页面挂载时清除之前存储的设备偏好，防止设备被拔掉后出现问题
+  useEffect(() => {
+    clearAllPreferredDevices()
+  }, [])
 
   // 统一的简历校验 + 打开抽屉并定位首个错误字段
   // const validateResumeAndOpenIfInvalid = useCallback((vals: ResumeFormValues): boolean => {
@@ -778,6 +813,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 }}
                 onStatusChange={setCameraStatus}
                 deviceId={cam.activeDeviceId}
+                speakerDeviceId={currentSpkDeviceId}
+                micDeviceId={currentMicDeviceId}
                 onCameraDeviceResolved={(resolvedId) => {
                   if (resolvedId && resolvedId !== cam.activeDeviceId) {
                     cam.setActiveMediaDevice(resolvedId)
@@ -818,6 +855,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 spkStatus={spkStatus}
                 onMicStatusChange={()=>{}}
                 onSpkStatusChange={()=>{}}
+                onSpkDeviceChange={setCurrentSpkDeviceId}
+                onMicDeviceChange={setCurrentMicDeviceId}
               />
             </div>
 
@@ -1116,4 +1155,3 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     </>
   )
 }
-

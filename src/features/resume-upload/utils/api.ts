@@ -101,7 +101,9 @@ export async function uploadFiles(formData: FormData): Promise<{ success: boolea
 // 对接后端：/api/v1/talent/upload_resume（同步：上传+分析）
 // - 表单字段：file (单文件)
 // - 响应经拦截器解包后，期望返回 { data: { resume_id, status, status_msg, resume_detail } }
-export async function uploadTalentResume(formData: FormData): Promise<{ success: boolean; data: UploadResultItem[] }> {
+export async function uploadTalentResume(
+  formData: FormData
+): Promise<{ success: boolean; data: UploadResultItem[]; statusMsg?: string }> {
   try {
     const res = (await api.post('/talent/upload_resume', formData)) as
       | { data?: { resume_id?: number; status?: number; status_msg?: string; resume_detail?: BackendItem } }
@@ -110,11 +112,11 @@ export async function uploadTalentResume(formData: FormData): Promise<{ success:
     const payload = (res as { data?: unknown })?.data ?? res
     const detail = (payload as { resume_detail?: BackendItem })?.resume_detail
     if (!detail) {
-      return { success: false, data: [] }
+      return { success: false, data: [], statusMsg: (res as { status_msg?: string })?.status_msg }
     }
-    return { success: true, data: mapBackendItems([detail]) }
-  } catch (_e) {
-    return { success: false, data: [] }
+    return { success: true, data: mapBackendItems([detail]), statusMsg: (res as { status_msg?: string })?.status_msg }
+  } catch (e) {
+    return { success: false, data: [], statusMsg: (e as { status_msg?: string })?.status_msg, }
   }
 }
 

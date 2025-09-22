@@ -305,3 +305,20 @@ export function reportApiResponse(params: ApiResponseEventParams): void {
   })
 }
 
+export function reportInterviewDeviceInfo(deviceInfo: Record<string, unknown>): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'interview_device_info',
+    categories: { page: 'session', ...deviceInfo },
+    type: 'event',
+  })
+}
+
+export function reportRoomConnectError(error: Error): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'room_connect_error',
+    categories: { page: 'session', error: String(error) },
+    type: 'event',
+  })
+}
