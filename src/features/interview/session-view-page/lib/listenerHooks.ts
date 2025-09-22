@@ -66,6 +66,8 @@ const useRtcListeners = (): IEventListener => {
 
     try {
       const isCandidateInRoom = roomStore.getCandidateInRoom()
+      console.log('>>> isCandidateInRoom', isCandidateInRoom)
+      debugger
       // 如果候选人在房间里，并且此时离开的是Agent。那么代表Agent是主动离开的，而不是由于候选人离开而离开的。
       if (isCandidateInRoom && /ChatBot/.test(userId)) {
         const params = new URLSearchParams(window.location.search)
