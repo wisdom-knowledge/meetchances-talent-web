@@ -221,6 +221,7 @@ export const useJoin = (): [boolean, () => Promise<void | boolean>] => {
 
 export const useLeave = () => {
   const roomId = useRoomStore((s) => s.rtcConnectionInfo?.room_id)
+  const setCandidateInRoom = useRoomStore((s) => s.setCandidateInRoom)
 
   return async function () {
     await Promise.all([
@@ -229,9 +230,10 @@ export const useLeave = () => {
       RtcClient.stopVideoCapture,
     ]);
     await RtcClient.stopAgent(roomId ?? '');
+    await setCandidateInRoom(false)
     await RtcClient.leaveRoom();
     // 标记候选人离开房间
-    useRoomStore.getState().setCandidateInRoom(false)
+    
     const room = useRoomStore.getState()
     room.clearHistoryMsg()
     room.clearCurrentMsg()
