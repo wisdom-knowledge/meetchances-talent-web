@@ -55,20 +55,18 @@ const useRtcListeners = (): IEventListener => {
     // no-op for now; can add toast/report here
   };
 
-  const endedOnceRef = useRef(false)
   const handleUserLeave = async (e: onUserLeaveEvent) => {
     const { userId } = e.userInfo;
     roomStore.remoteUserLeave({ userId: e.userInfo.userId });
     roomStore.removeAutoPlayFail({ userId: e.userInfo.userId });
 
-    if (endedOnceRef.current) return
-    endedOnceRef.current = true
     try { await RtcClient.stopAudioCapture() } catch { /* noop */ }
     try { await RtcClient.stopVideoCapture() } catch { /* noop */ }
     try { await RtcClient.leaveRoom() } catch { /* noop */ }
 
     try {
       console.log('>>> handleUserLeave', e.userInfo)
+      debugger
       // 如果不是Agent离开，则不触发后续流程
       if (/ChatBot/.test(userId)) {
         const params = new URLSearchParams(window.location.search)
@@ -94,7 +92,7 @@ const useRtcListeners = (): IEventListener => {
         }
         // 跳转 finish（使用原生 replace 便于释放设备权限）
         setTimeout(() => {
-          window.location.replace(`/finish?${params.toString()}`)
+          // window.location.replace(`/finish?${params.toString()}`)
         }, 300)
       }
     } catch { /* ignore */ }
