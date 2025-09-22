@@ -27,7 +27,7 @@ interface ChatProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string
 }
 
-export const ChatMessageView = ({ className, ...props }: ChatProps) => {
+export const ChatMessageView = ({ className, children, ...props }: ChatProps) => {
   const scrollContentRef = useRef<HTMLDivElement>(null)
   useAutoScroll(scrollContentRef)
   const messages = useRoomStore((s) => s.msgHistory)
@@ -68,6 +68,7 @@ export const ChatMessageView = ({ className, ...props }: ChatProps) => {
                   </li>
                 ))}
               </ul>
+              {children}
             </div>
           </div>
         </div>
