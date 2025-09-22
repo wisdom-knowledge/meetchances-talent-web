@@ -42,7 +42,7 @@ interface InterviewPreparePageProps {
   inviteToken?: string
   isSkipConfirm?: boolean
   jobApplyIdFromRoute?: string | number
-  shouldReportPageRefresh?: boolean
+  isFromSessionRefresh?: boolean
 }
 
 enum ViewMode {
@@ -258,7 +258,7 @@ enum ViewMode {
     )
   }
 
-export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute, shouldReportPageRefresh = false }: InterviewPreparePageProps) {
+export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute, isFromSessionRefresh = false }: InterviewPreparePageProps) {
   const navigate = useNavigate()
   const [connecting, setConnecting] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -306,15 +306,15 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     clearAllPreferredDevices()
   }, [])
 
-  const hasReportedPageRefresh = useRef(false)
+  const hasReportedSessionRefresh = useRef(false)
 
-  // 当页面 URL 中包含 report=true 时，上报页面刷新事件
+  // 当页面来源为 session 页面刷新时，上报页面刷新事件
   useEffect(() => {
-    if (shouldReportPageRefresh && !hasReportedPageRefresh.current) {
+    if (isFromSessionRefresh && !hasReportedSessionRefresh.current) {
       reportSessionPageRefresh()
-      hasReportedPageRefresh.current = true
+      hasReportedSessionRefresh.current = true
     }
-  }, [shouldReportPageRefresh])
+  }, [isFromSessionRefresh])
 
   // 统一的简历校验 + 打开抽屉并定位首个错误字段
   // const validateResumeAndOpenIfInvalid = useCallback((vals: ResumeFormValues): boolean => {
@@ -594,7 +594,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
                 if (
                   viewMode === ViewMode.InterviewPendingReview ||
-                  isExternalReferrer
+                  isExternalReferrer || isFromSessionRefresh
                 ) {
                   // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
                   window.location.replace('/home')
