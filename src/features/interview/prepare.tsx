@@ -27,7 +27,8 @@ import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import { handleServerError } from '@/utils/handle-server-error'
 import { useAuthStore } from '@/stores/authStore'
-import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, getInterviewNodeId, fetchInterviewConnectionDetails, saveInterviewConnectionToStorage } from '@/features/interview/api'
+import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, getInterviewNodeId, fetchInterviewConnectionDetails, saveInterviewConnectionToStorage, getRtcConnectionInfo } from '@/features/interview/api'
+import { useRoomStore } from '@/stores/interview/room'
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
@@ -36,6 +37,7 @@ import { ConnectionQualityBarsStandalone } from '@/components/interview/connecti
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
 import { userEvent, reportSessionPageRefresh } from '@/lib/apm'
+import { useJoin } from '@/features/interview/session-view-page/lib/useCommon'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -113,7 +115,7 @@ enum ViewMode {
         // 如果没有首选设备但已有活跃设备，使用活跃设备
         setDisplaySpkDeviceId(spk.activeDeviceId)
         onSpkDeviceChange?.(spk.activeDeviceId)
-      } 
+      }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -200,14 +202,14 @@ enum ViewMode {
               onValueChange={(v) => {
                 // 立即更新显示值
                 setDisplaySpkDeviceId(v)
-                
+
                 spk.setActiveMediaDevice(v).then(async () => {
                   void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
                   onSpkStatusChange(DeviceTestStatus.Testing)
-                  
+
                   // 通知父组件扬声器设备已切换，让它更新音频元素的sinkId
                   onSpkDeviceChange?.(v)
-                  
+
                   // 给一些时间让音频元素更新sinkId
                   setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
                 }).catch(() => {
@@ -234,10 +236,10 @@ enum ViewMode {
                 mic.setActiveMediaDevice(v).then(() => {
                   void setPreferredDeviceIdSmart('audioinput', v, mic.devices)
                   onMicStatusChange(DeviceTestStatus.Testing)
-                  
+
                   // 通知父组件麦克风设备已切换
                   onMicDeviceChange?.(v)
-                  
+
                   setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
                 }).catch(() => {
                   // 设备切换失败
@@ -281,7 +283,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [currentSpkDeviceId, setCurrentSpkDeviceId] = useState<string>('')
   const [currentMicDeviceId, setCurrentMicDeviceId] = useState<string>('')
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
-
+  const [_joining, triggerJoin] = useJoin()
+  const setRtcConnectionInfo = useRoomStore((s) => s.setRtcConnectionInfo)
+  const rtcInfo = useRoomStore((s) => s.rtcConnectionInfo)
   // 当视频设备自动选择时，保存为默认选择
   useEffect(() => {
     const preferred = getPreferredDeviceId('videoinput')
@@ -415,7 +419,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         return
       }
       saveInterviewConnectionToStorage(details)
-      userEvent('interview_started', '点击开始面试(确认设备，下一步)', { 
+      userEvent('interview_started', '点击开始面试(确认设备，下一步)', {
         job_id: job?.id,
         job_apply_id: jobApplyId ?? undefined,
         interview_id: details.interviewId ?? undefined,
@@ -434,6 +438,47 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       setConnecting(false)
     }
   }, [jobId, interviewNodeId, connecting, navigate, jobApplyId])
+
+  const loadRtcConnectionInfo = useCallback(async () => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      // FIXME 暂时用4做兜底
+      const jobIdStr = params.get('job_id') || "2"
+      const jobId = jobIdStr ? Number(jobIdStr) : NaN
+      if (!jobIdStr || Number.isNaN(jobId)) {
+        toast.error('缺少或无效的 job_id 参数', { position: 'top-center' })
+        return
+      }
+      const info = await getRtcConnectionInfo({ job_id: jobId })
+      setRtcConnectionInfo(info)
+
+    } catch (_e) {
+      toast.error('获取面试连接信息失败，请稍后重试', { position: 'top-center' })
+    }
+  }, [setRtcConnectionInfo])
+
+  useEffect(() => {
+    // 每次页面初始化后
+    void loadRtcConnectionInfo();
+  }, [loadRtcConnectionInfo])
+  /**
+   * - session-view-page: interview_id=2181&job_id=2&job_apply_id=169&interview_node_id=795
+   * - finish: ?interview_id=2181&job_id=2&job_apply_id=169&interview_node_id=795
+  */
+  // 新版面试间
+  const onStartNewInterviewClick = async() => {
+    await triggerJoin()
+    navigate({
+      to: '/interview/session_view',
+      search: {
+        interview_id: rtcInfo?.interview_id,
+        job_id: jobId ?? undefined,
+        job_apply_id: jobApplyId ?? undefined,
+        interview_node_id: interviewNodeId ?? undefined,
+        room_id: rtcInfo?.room_id,
+      } as unknown as Record<string, unknown>,
+    })
+  }
 
   function nodeNameToViewMode(name: string): ViewMode {
     if (name.includes('简历分析')) return ViewMode.Job
@@ -771,10 +816,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onHeadphoneConfirm={() => {
                   setSpkStatus(DeviceTestStatus.Success)
                   setStage('mic')
-                  userEvent('speaker_status_confirmed', '确认扬声器状态正常', { 
+                  userEvent('speaker_status_confirmed', '确认扬声器状态正常', {
                     job_id: job?.id,
                     job_apply_id: jobApplyId ?? undefined,
-                    interview_node_id: interviewNodeId ?? undefined, 
+                    interview_node_id: interviewNodeId ?? undefined,
                   })
                 }}
                 onStatusChange={setCameraStatus}
@@ -789,18 +834,18 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onCameraConfirmed={() => {
                   setCameraStatus(DeviceTestStatus.Success)
                   setStage('headphone')
-                  userEvent('camera_status_confirmed', '确认摄像头状态正常', { 
+                  userEvent('camera_status_confirmed', '确认摄像头状态正常', {
                     job_id: job?.id,
                     job_apply_id: jobApplyId ?? undefined,
-                    interview_node_id: interviewNodeId ?? undefined, 
+                    interview_node_id: interviewNodeId ?? undefined,
                   })
                 }}
                 onMicConfirmed={() => {
                   setMicStatus(DeviceTestStatus.Success)
-                  userEvent('microphone_status_confirmed', '确认麦克风状态正常', { 
+                  userEvent('microphone_status_confirmed', '确认麦克风状态正常', {
                     job_id: job?.id,
                     job_apply_id: jobApplyId ?? undefined,
-                    interview_node_id: interviewNodeId ?? undefined, 
+                    interview_node_id: interviewNodeId ?? undefined,
                   })
                 }}
                 disableCameraConfirm={cameraStatus === DeviceTestStatus.Failed}
@@ -839,6 +884,17 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   }
                   className='w-full' onClick={onStartInterviewClick}>
                   {connecting ? '面试间连接中…' : '确认设备，下一步'}
+                </Button>
+                <Button
+                  disabled={
+                    cameraStatus !== DeviceTestStatus.Success
+                    || micStatus !== DeviceTestStatus.Success
+                    || spkStatus !== DeviceTestStatus.Success
+                    || !interviewNodeId
+                    || connecting
+                  }
+                  className='w-full mt-4' onClick={onStartNewInterviewClick}>
+                  {connecting ? '面试间连接中…' : '确认设备，下一步（新版）'}
                 </Button>
                 <p className='text-xs text-muted-foreground mt-4'>请在安静、独立的空间进行本次AI面试，确保评估效果最佳</p>
               </div>
