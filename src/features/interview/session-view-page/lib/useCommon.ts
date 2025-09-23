@@ -9,6 +9,8 @@ import RtcClient from '@/features/interview/session-view-page/lib/RtcClient';
 import useRtcListeners from '@/features/interview/session-view-page/lib/listenerHooks';
 import { useRoomStore } from '@/stores/interview/room';
 import { useDeviceStore } from '@/stores/interview/device';
+import { userEvent } from '@/lib/apm'
+import { postNodeAction, NodeActionTrigger } from '@/features/interview/api'
 // logger removed; use toast for user-facing notices
 
 export const ABORT_VISIBILITY_CHANGE = 'abortVisibilityChange';
@@ -245,16 +247,50 @@ export const useLeave = () => {
   };
 };
 
-export const useAutoLeaveOnAgentExit = () => {
+/**
+ * 处理面试结束的流程
+ */
+export const useInterviewFinish = () => {
   const isAITalking = useRoomStore((s) => s.isAITalking)
   const isAIThinking = useRoomStore((s) => s.isAIThinking)
   const isAgentLeaving = useRoomStore((s) => s.isAgentLeaving)
   const leave = useLeave()
   const triggeredRef = useRef(false)
 
+  const beforeLeave = async () => {
+    const params = new URLSearchParams(window.location.search)
+    const roomStore = useRoomStore.getState()
+    const interviewId = roomStore.rtcConnectionInfo?.interview_id
+    if (interviewId != null) params.set('interview_id', String(interviewId))
+    // 保留已存在的 job_id / job_apply_id / interview_node_id
+    const jobId = params.get('job_id')
+    if (jobId) params.set('job_id', jobId)
+    const jobApplyId = params.get('job_apply_id')
+    if (jobApplyId) params.set('job_apply_id', jobApplyId)
+    const interviewNodeId = params.get('interview_node_id')
+
+    // 上报并提交节点
+    userEvent('interview_completed', '面试正常结束', {
+      job_id: jobId ?? undefined,
+      interview_id: interviewId ?? undefined,
+      job_apply_id: jobApplyId ?? undefined,
+    })
+    if (interviewNodeId) {
+      try {
+        await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
+      } catch { /* ignore */ }
+    }
+    // 跳转 finish（使用原生 replace 便于释放设备权限）
+    setTimeout(() => {
+      window.location.replace(`/finish?${params.toString()}`)
+    }, 300)
+  }
+
   useEffect(() => {
+    // 当收到了 Agent 的离开事件，并且 Agent 没有说话和思考，则代表正常完成面试了
     if (!isAITalking && !isAIThinking && isAgentLeaving && !triggeredRef.current) {
       triggeredRef.current = true
+      void beforeLeave()
       void leave()
     }
   }, [isAITalking, isAIThinking, isAgentLeaving, leave])
