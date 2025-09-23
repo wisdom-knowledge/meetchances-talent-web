@@ -23,7 +23,7 @@ import { useRef } from 'react';
 import { useRoomStore, type IUser } from '@/stores/interview/room';
 import RtcClient, { IEventListener } from './RtcClient';
 import { postNodeAction, NodeActionTrigger } from '@/features/interview/api'
-import { userEvent } from '@/lib/apm'
+import { userEvent, reportRtcMessageReceived } from '@/lib/apm'
 
 import { useDeviceStore } from '@/stores/interview/device';
 import { useMessageHandler } from '@/features/interview/session-view-page/lib/handler';
@@ -233,7 +233,9 @@ const useRtcListeners = (): IEventListener => {
   };
 
   const roomMessageReceived = (event: { userId: string; message: string }) => {
-    const { message } = event;
+    const { userId, message } = event;
+    // 上报自定义RTC消息事件
+    reportRtcMessageReceived(String(userId), String(message))
     try {
       const obj = JSON.parse(message) as { type?: string; reason?: string };
       if (obj?.type === 'room_destoryed' && obj?.reason === 'session_end') {

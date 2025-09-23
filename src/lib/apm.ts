@@ -321,6 +321,22 @@ export function reportApiResponse(params: ApiResponseEventParams): void {
   })
 }
 
+/**
+ * RTC 文本消息接收事件上报
+ */
+export function reportRtcMessageReceived(userId: string, message: string, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'rtc_message_received',
+    categories: {
+      rtc_event_user_id: String(userId ?? ''),
+      rtc_event_message: String(message ?? ''),
+      ...(extra ?? {}),
+    },
+    type: 'event',
+  })
+}
+
 export function reportInterviewDeviceInfo(deviceInfo: Record<string, unknown>): void {
   if (!apmClient) return
   apmClient('sendEvent', {
