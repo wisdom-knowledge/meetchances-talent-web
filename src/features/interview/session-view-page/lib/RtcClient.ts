@@ -24,7 +24,6 @@ import VERTC, {
   VideoRenderMode,
   ScreenEncoderConfig,
 } from '@volcengine/rtc';
-import RTCAIAnsExtension from '@volcengine/rtc/extension-ainr';
 import { toast } from 'sonner';
 // import { string2tlv } from '@/utils/rtc-utils';
 // import { COMMAND, INTERRUPT_PRIORITY } from '@/utils/handler';
@@ -96,6 +95,7 @@ export class RTCClient {
   createEngine = async () => {
     this.engine = VERTC.createEngine(this.basicInfo.app_id || '68c7802af2dba90172caaa3a');
     try {
+      const { default: RTCAIAnsExtension } = await import('@volcengine/rtc/extension-ainr');
       const AIAnsExtension = new RTCAIAnsExtension();
       await this.engine.registerExtension(AIAnsExtension);
       AIAnsExtension.enable();

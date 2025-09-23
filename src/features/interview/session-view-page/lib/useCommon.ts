@@ -4,7 +4,6 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import VERTC, { MediaType } from '@volcengine/rtc';
 import { toast } from 'sonner';
 import RtcClient from '@/features/interview/session-view-page/lib/RtcClient';
 import useRtcListeners from '@/features/interview/session-view-page/lib/listenerHooks';
@@ -43,12 +42,12 @@ export const useDeviceState = () => {
   const isAudioPublished = localUser.publishAudio;
   const isVideoPublished = localUser.publishVideo;
   const isScreenPublished = localUser.publishScreen;
-  const queryDevices = async (type: MediaType) => {
+  const queryDevices = async (type: 'audio' | 'video') => {
     const mediaDevices = await RtcClient.getDevices({
       audio: true,
       video: true,
     });
-    if (type === MediaType.AUDIO) {
+    if (type === 'audio') {
       deviceActions.updateMediaInputs({ audioInputs: mediaDevices.audioInputs })
       deviceActions.updateSelectedDevice({ selectedMicrophone: mediaDevices.audioInputs[0]?.deviceId })
     } else {
@@ -59,23 +58,25 @@ export const useDeviceState = () => {
   };
 
   const switchMic = async (controlPublish = true) => {
+    const { MediaType } = await import('@volcengine/rtc');
     if (controlPublish) {
       await (!isAudioPublished
         ? RtcClient.publishStream(MediaType.AUDIO)
         : RtcClient.unpublishStream(MediaType.AUDIO));
     }
-    queryDevices(MediaType.AUDIO);
+    void queryDevices('audio');
     await (!isAudioPublished ? RtcClient.startAudioCapture() : RtcClient.stopAudioCapture());
     roomActions.updateLocalUser({ publishAudio: !isAudioPublished })
   };
 
   const switchCamera = async (controlPublish = true) => {
+    const { MediaType } = await import('@volcengine/rtc');
     if (controlPublish) {
       await (!isVideoPublished
         ? RtcClient.publishStream(MediaType.VIDEO)
         : RtcClient.unpublishStream(MediaType.VIDEO));
     }
-    // queryDevices(MediaType.VIDEO);
+    // void queryDevices('video');
     await (!isVideoPublished ? RtcClient.startVideoCapture() : RtcClient.stopVideoCapture());
 
     // RtcClient.publishStream(MediaType.AUDIO_AND_VIDEO)
@@ -84,6 +85,7 @@ export const useDeviceState = () => {
 
   const switchScreenCapture = async (controlPublish = true) => {
     try {
+      const { MediaType } = await import('@volcengine/rtc');
       if (!isScreenPublished) {
         sessionStorage.setItem(ABORT_VISIBILITY_CHANGE, 'true')
       } else {
@@ -155,6 +157,7 @@ export const useJoin = (): [boolean, () => Promise<void | boolean>] => {
       return;
     }
 
+    const { default: VERTC } = await import('@volcengine/rtc');
     const isSupported = await VERTC.isSupported();
     if (!isSupported) {
       toast.error('您的浏览器可能不支持 RTC 功能，请更换或升级后重试。', { position: 'top-center' })
