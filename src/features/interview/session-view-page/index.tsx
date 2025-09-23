@@ -10,15 +10,16 @@ import { Button } from '@/components/ui/button'
 import LocalVideoTile from './components/local-video-tile'
 import RecordingIndicator from './components/recording-indicator'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { useLeave } from './lib/useCommon'
+import { useLeave, useAutoLeaveOnAgentExit } from './lib/useCommon'
 
 export default function InterviewSessionViewPage() {
 
   const [confirmEndOpen, setConfirmEndOpen] = useState(false)
   const leaveRoom = useLeave()
+  useAutoLeaveOnAgentExit()
 
   const performEndInterview = useCallback(async () => {
-    await leaveRoom() 
+    await leaveRoom()
     setTimeout(() => {
       window.location.replace('/finish')
     }, 1000)
