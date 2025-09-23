@@ -12,6 +12,8 @@ import RecordingIndicator from './components/recording-indicator'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useLeave, useInterviewFinish } from './lib/useCommon'
 import useAgentApm from './lib/useAgentApm'
+import { userEvent } from '@/lib/apm'
+import { useRoomStore } from '@/stores/interview/room'
 
 export default function InterviewSessionViewPage() {
 
@@ -21,6 +23,19 @@ export default function InterviewSessionViewPage() {
   useAgentApm()
 
   const performEndInterview = useCallback(async () => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const jobId = params.get('job_id') ?? undefined
+      const jobApplyId = params.get('job_apply_id') ?? undefined
+      const storeInterviewId = useRoomStore.getState().rtcConnectionInfo?.interview_id
+      const interviewId = storeInterviewId ?? params.get('interview_id') ?? undefined
+      userEvent('interview_user_terminated', '用户主动中断面试', {
+        job_id: jobId,
+        interview_id: interviewId,
+        job_apply_id: jobApplyId,
+      })
+    } catch { /* ignore */ }
+
     await leaveRoom()
     setTimeout(() => {
       window.location.replace('/finish')
@@ -36,7 +51,7 @@ export default function InterviewSessionViewPage() {
       console.log('use effect >>> leave room')
       leaveRoom()
     }
-  }, [])
+  }, [leaveRoom])
 
 
   return (
