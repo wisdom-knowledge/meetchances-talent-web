@@ -105,6 +105,10 @@ export interface RoomState {
    */
   isUserTalking: boolean;
   /**
+   * @brief 是否 Agent 正要离开
+   */
+  isAgentLeaving: boolean;
+  /**
    * @brief 网络质量
    */
   networkQuality: NetworkQuality;
@@ -168,6 +172,7 @@ const initialState: RoomState = {
   isAIThinking: false,
   isAITalking: false,
   isUserTalking: false,
+  isAgentLeaving: false,
   networkQuality: NetworkQuality.UNKNOWN,
 
   isCandidateInRoom: false,
@@ -208,6 +213,7 @@ export interface RoomActions {
   setRtcConnectionInfo: (payload?: RtcConnectionInfo) => void;
   setCandidateInRoom: (inRoom: boolean) => void;
   getCandidateInRoom: () => boolean;
+  updateAgentLeavingState: (payload: { isAgentLeaving: boolean }) => void;
 }
 
 export const useRoomStore = create<RoomState & RoomActions>()((set, get) => ({
@@ -222,6 +228,7 @@ export const useRoomStore = create<RoomState & RoomActions>()((set, get) => ({
       localUser: { publishAudio: false, publishVideo: false, publishScreen: false },
       remoteUsers: [],
       isJoined: false,
+      isAgentLeaving: false,
     })),
   remoteUserJoin: (payload) => set((state) => ({ ...state, remoteUsers: [...state.remoteUsers, payload] })),
   remoteUserLeave: ({ userId }) =>
@@ -307,6 +314,7 @@ export const useRoomStore = create<RoomState & RoomActions>()((set, get) => ({
   setRtcConnectionInfo: (payload) => set((state) => ({ ...state, rtcConnectionInfo: payload })),
   setCandidateInRoom: (inRoom: boolean) => set((state) => ({ ...state, isCandidateInRoom: inRoom })),
   getCandidateInRoom: () => get().isCandidateInRoom,
+  updateAgentLeavingState: ({ isAgentLeaving }) => set((state) => ({ ...state, isAgentLeaving })),
 }))
 
 export default useRoomStore;

@@ -27,12 +27,14 @@ import { userEvent } from '@/lib/apm'
 
 import { useDeviceStore } from '@/stores/interview/device';
 import { useMessageHandler } from '@/features/interview/session-view-page/lib/handler';
+// logger is not required here after removing debug prints
 
 const useRtcListeners = (): IEventListener => {
   const roomStore = useRoomStore();
   const deviceStore = useDeviceStore();
   const { parser } = useMessageHandler();
   const playStatus = useRef<{ [key: string]: { audio: boolean; video: boolean } }>({});
+  
 
   const handleTrackEnded = async (event: { kind: string; isScreen: boolean }) => {
     const { kind, isScreen } = event;
@@ -230,6 +232,16 @@ const useRtcListeners = (): IEventListener => {
     parser(message);
   };
 
+  const roomMessageReceived = (event: { userId: string; message: string }) => {
+    const { message } = event;
+    try {
+      const obj = JSON.parse(message) as { type?: string; reason?: string };
+      if (obj?.type === 'room_destoryed' && obj?.reason === 'session_end') {
+        roomStore.updateAgentLeavingState({ isAgentLeaving: true });
+      }
+    } catch { /* ignore */ }
+  };
+
   return {
     handleError,
     handleUserJoin,
@@ -246,6 +258,7 @@ const useRtcListeners = (): IEventListener => {
     handlePlayerEvent,
     handleRoomBinaryMessageReceived,
     handleNetworkQuality,
+    roomMessageReceived,
   };
 };
 

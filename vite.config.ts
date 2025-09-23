@@ -35,4 +35,17 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      external: [
+        '@volcengine/rtc',
+        '@volcengine/rtc/extension-ainr',
+      ],
+      output: {
+        globals: {
+          '@volcengine/rtc': 'VERTC',
+        },
+      },
+    },
+  },
 })

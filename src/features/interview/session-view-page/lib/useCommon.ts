@@ -3,7 +3,7 @@
  * SPDX-license-identifier: BSD-3-Clause
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import VERTC, { MediaType } from '@volcengine/rtc';
 import { toast } from 'sonner';
 import RtcClient from '@/features/interview/session-view-page/lib/RtcClient';
@@ -241,3 +241,18 @@ export const useLeave = () => {
     room.updateAIGCState({ isAIGCEnable: false })
   };
 };
+
+export const useAutoLeaveOnAgentExit = () => {
+  const isAITalking = useRoomStore((s) => s.isAITalking)
+  const isAIThinking = useRoomStore((s) => s.isAIThinking)
+  const isAgentLeaving = useRoomStore((s) => s.isAgentLeaving)
+  const leave = useLeave()
+  const triggeredRef = useRef(false)
+
+  useEffect(() => {
+    if (!isAITalking && !isAIThinking && isAgentLeaving && !triggeredRef.current) {
+      triggeredRef.current = true
+      void leave()
+    }
+  }, [isAITalking, isAIThinking, isAgentLeaving, leave])
+}

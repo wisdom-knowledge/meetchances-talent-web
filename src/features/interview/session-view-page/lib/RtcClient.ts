@@ -53,6 +53,7 @@ export interface IEventListener {
     uplinkNetworkQuality: NetworkQuality,
     downlinkNetworkQuality: NetworkQuality
   ) => void;
+  roomMessageReceived: (e: { userId: string; message: string }) => void;
 }
 
 export interface BasicBody {
@@ -98,10 +99,13 @@ export class RTCClient {
       const AIAnsExtension = new RTCAIAnsExtension();
       await this.engine.registerExtension(AIAnsExtension);
       AIAnsExtension.enable();
-    } catch (error) {
-      console.warn(
-        `当前环境不支持 AI 降噪, 此错误可忽略, 不影响实际使用, e: ${(error as any).message}`
-      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      // 调试信息：AI 降噪扩展不可用时忽略
+      // 使用 logger 而非 console 避免违反 ESLint 规则
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      import('@/utils/logger').then((m) => m.default.debug(`AI 降噪不可用: ${message}`));
     }
   };
 
@@ -139,6 +143,7 @@ export class RTCClient {
     handlePlayerEvent,
     handleRoomBinaryMessageReceived,
     handleNetworkQuality,
+    roomMessageReceived,
   }: IEventListener) => {
     this.engine.on(VERTC.events.onError, handleError);
     this.engine.on(VERTC.events.onUserJoined, handleUserJoin);
@@ -155,6 +160,7 @@ export class RTCClient {
     this.engine.on(VERTC.events.onPlayerEvent, handlePlayerEvent);
     this.engine.on(VERTC.events.onRoomBinaryMessageReceived, handleRoomBinaryMessageReceived);
     this.engine.on(VERTC.events.onNetworkQuality, handleNetworkQuality);
+    this.engine.on(VERTC.events.onRoomMessageReceived, roomMessageReceived);
   };
 
   /**
