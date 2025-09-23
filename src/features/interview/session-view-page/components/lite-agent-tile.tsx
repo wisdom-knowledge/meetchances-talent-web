@@ -5,6 +5,7 @@ import agentThinkingLottie from '@/lotties/agent-thinking.json'
 import voiceLottie from '@/lotties/voice-lottie.json'
 import { cn } from '@/lib/utils'
 import { useRoomStore } from '@/stores/interview/room'
+// APM 相关逻辑已上移至页面级调用
 
 export default function LiteAgentTile({ className, ...props }: React.ComponentProps<'div'>) {
   const isAITalking = useRoomStore((s) => s.isAITalking)
@@ -17,6 +18,8 @@ export default function LiteAgentTile({ className, ...props }: React.ComponentPr
   const thinkingLottieRef = useRef<LottieRefCurrentProps>(null)
   const totalFrames = ((voiceLottie as unknown as { op?: number }).op ?? 100) | 0
   const listeningFrame = Math.floor(totalFrames * 0.6)
+
+  // 组件仅负责渲染，不再承担上报逻辑
 
   useEffect(() => {
     if (isListening) {

@@ -44,7 +44,6 @@ export const ChatMessageView = ({ className, children, ...props }: ChatProps) =>
   useEffect(() => {
     const prev = prevRef.current
     if (prev.thinking && isTalking) {
-      console.log('>>> clearHistoryMsg')
       clearHistoryMsg()
     }
     prevRef.current = { thinking: isThinking, talking: isTalking }

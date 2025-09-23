@@ -47,6 +47,22 @@ export function reportInterviewFirstToken(extra?: Record<string, string>): void 
   })
 }
 
+/**
+ * Decoupled API: report a first token duration value directly.
+ * This does not depend on markInterviewStart / internal flags,
+ * and will not mutate previous flow's state.
+ */
+export function reportFirstTokenDuration(durationMs: number, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  const safe = Math.max(0, Math.round(durationMs))
+  apmClient('sendEvent', {
+    name: 'first_token_time',
+    metrics: { value_ms: safe },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
 // Report when interview record status indicates failure
 export function reportRecordFail(roomName: string): void {
   if (!apmClient) return
@@ -126,8 +142,46 @@ export function initApm(): void {
   client('init', { aid, token })
 
   apmClient = client
+  // 需要忽略上报的 fetch 目标，例如 RTC SDK 的日志上报接口
+  const IGNORED_FETCH_URLS: RegExp[] = [
+    /^https?:\/\/web-log-report\.rtc\.volcvideo\.com\/video\/v1\/webrtc_log\/?$/, // https://web-log-report.rtc.volcvideo.com/video/v1/webrtc_log/
+  ]
+  type GenericEvent = {
+    url?: string
+    path?: string
+    request?: { url?: string }
+    data?: { request?: { url?: string } }
+    categories?: { url?: string; path?: string }
+    detail?: { url?: string }
+    [key: string]: unknown
+  }
+  const shouldIgnoreEvent = (ev: unknown): boolean => {
+    const e = ev as GenericEvent | null | undefined
+    if (!e) return false
+    const uCandidates: Array<unknown> = []
+    // 常见字段位点（不同事件结构可能不同）
+    uCandidates.push(e.url)
+    uCandidates.push(e.path)
+    uCandidates.push(e.request?.url)
+    uCandidates.push(e.data?.request?.url)
+    uCandidates.push(e.categories?.url)
+    uCandidates.push(e.categories?.path)
+    uCandidates.push(e.detail?.url)
+    for (const c of uCandidates) {
+      const url = typeof c === 'string' ? c : undefined
+      if (!url) continue
+      for (const re of IGNORED_FETCH_URLS) {
+        if (re.test(url)) return true
+      }
+    }
+    return false
+  }
   // 在上报前将自定义上下文合并到 common.context
   apmClient('on', 'beforeReport', (ev: unknown) => {
+    if (shouldIgnoreEvent(ev)) {
+      // 丢弃此次事件
+      return null as unknown as undefined
+    }
     const e = ev as { extra?: { context?: Record<string, string> } }
     const extra = (e.extra = e.extra || {})
     const ctx = (extra.context = extra.context || {})
@@ -137,6 +191,10 @@ export function initApm(): void {
   })
   // 在发出前直接写入 sendEvent.common.context，确保可见
   apmClient('on', 'beforeSend', (sendEv: unknown) => {
+    if (shouldIgnoreEvent(sendEv)) {
+      // 丢弃此次事件
+      return null as unknown as undefined
+    }
     const s = sendEv as { common?: { context?: Record<string, string> } }
     const common = (s.common = s.common || {})
     const ctx = (common.context = common.context || {})
@@ -300,6 +358,22 @@ export function reportApiResponse(params: ApiResponseEventParams): void {
       request_params: stringifyForCategory(request_params),
       request_query: stringifyForCategory(request_query),
       response: stringifyForCategory(response),
+    },
+    type: 'event',
+  })
+}
+
+/**
+ * RTC 文本消息接收事件上报
+ */
+export function reportRtcMessageReceived(userId: string, message: string, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'rtc_message_received',
+    categories: {
+      rtc_event_user_id: String(userId ?? ''),
+      rtc_event_message: String(message ?? ''),
+      ...(extra ?? {}),
     },
     type: 'event',
   })
