@@ -47,6 +47,22 @@ export function reportInterviewFirstToken(extra?: Record<string, string>): void 
   })
 }
 
+/**
+ * Decoupled API: report a first token duration value directly.
+ * This does not depend on markInterviewStart / internal flags,
+ * and will not mutate previous flow's state.
+ */
+export function reportFirstTokenDuration(durationMs: number, extra?: Record<string, string>): void {
+  if (!apmClient) return
+  const safe = Math.max(0, Math.round(durationMs))
+  apmClient('sendEvent', {
+    name: 'first_token_time',
+    metrics: { value_ms: safe },
+    categories: { page: 'session', ...(extra ?? {}) },
+    type: 'event',
+  })
+}
+
 // Report when interview record status indicates failure
 export function reportRecordFail(roomName: string): void {
   if (!apmClient) return

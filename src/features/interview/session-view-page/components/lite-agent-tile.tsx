@@ -5,6 +5,7 @@ import agentThinkingLottie from '@/lotties/agent-thinking.json'
 import voiceLottie from '@/lotties/voice-lottie.json'
 import { cn } from '@/lib/utils'
 import { useRoomStore } from '@/stores/interview/room'
+import { reportFirstTokenDuration, reportThinkingDuration } from '@/lib/apm'
 
 export default function LiteAgentTile({ className, ...props }: React.ComponentProps<'div'>) {
   const isAITalking = useRoomStore((s) => s.isAITalking)
@@ -18,7 +19,38 @@ export default function LiteAgentTile({ className, ...props }: React.ComponentPr
   const totalFrames = ((voiceLottie as unknown as { op?: number }).op ?? 100) | 0
   const listeningFrame = Math.floor(totalFrames * 0.6)
 
+  // 面试回合（从0开始）；当进入 speaking 时 +1
+  const currentRoundRef = useRef<number>(0)
+  // thinking 起始时间戳
+  const thinkingStartRef = useRef<number | null>(null)
+  // first_token_time：组件挂载时间作为起点，首次 speaking 作为终点
+  const mountTimeRef = useRef<number>(performance.now())
+  const firstTokenReportedRef = useRef<boolean>(false)
+
   useEffect(() => {
+    // thinking start（不改变回合号）
+    if (isThinking && thinkingStartRef.current == null) {
+      thinkingStartRef.current = performance.now()
+    }
+
+    // thinking end（不改变回合号），上报本轮 thinking_duration
+    if (!isThinking && thinkingStartRef.current != null) {
+      const duration = performance.now() - thinkingStartRef.current
+      reportThinkingDuration(currentRoundRef.current, duration)
+      thinkingStartRef.current = null
+    }
+
+    // agent start talk：进入 speaking 时，当前回合 +1
+    if (isSpeaking) {
+      currentRoundRef.current = currentRoundRef.current + 1
+      // 首次 speaking 上报 first_token_time
+      if (!firstTokenReportedRef.current) {
+        firstTokenReportedRef.current = true
+        const duration = performance.now() - mountTimeRef.current
+        reportFirstTokenDuration(duration)
+      }
+    }
+
     if (isListening) {
       voiceLottieRef.current?.stop()
       voiceLottieRef.current?.goToAndStop(listeningFrame, true)

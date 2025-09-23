@@ -32,7 +32,7 @@ export default function InterviewSessionViewPage() {
   useEffect(() => {
     return () => {
       console.log('use effect >>> leave room')
-      leaveRoom()
+      // leaveRoom()
     }
   }, [])
 
