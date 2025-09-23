@@ -37,13 +37,19 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: [
-        '@volcengine/rtc',
-        '@volcengine/rtc/extension-ainr',
-      ],
       output: {
-        globals: {
-          '@volcengine/rtc': 'VERTC',
+        manualChunks(id) {
+          // 将体积较大的 SDK 与其扩展拆分为独立 chunk
+          if (id.includes('@volcengine/rtc/extension-ainr')) return 'volc-rtc-ainr';
+          if (id.includes('@volcengine/rtc')) return 'volc-rtc';
+
+          // 将常见大型依赖做基础分包，避免单包过大
+          if (id.includes('node_modules')) {
+            if (id.includes('@tanstack/')) return 'tanstack';
+            if (id.includes('react')) return 'react-vendor';
+            if (id.includes('lucide-react') || id.includes('@tabler/icons-react')) return 'icons';
+            if (id.includes('zustand')) return 'zustand';
+          }
         },
       },
     },
