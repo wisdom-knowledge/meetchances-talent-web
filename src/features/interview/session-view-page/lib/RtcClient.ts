@@ -90,6 +90,18 @@ export class RTCClient {
   };
 
   /**
+   * 检查当前环境是否支持 RTC
+   */
+  isSupported = async (): Promise<boolean> => {
+    try {
+      const { default: VERTC } = await import('@volcengine/rtc');
+      return await VERTC.isSupported();
+    } catch {
+      return false;
+    }
+  };
+
+  /**
    * 创建引擎
    */
   createEngine = async () => {

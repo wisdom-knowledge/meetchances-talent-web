@@ -159,8 +159,7 @@ export const useJoin = (): [boolean, () => Promise<void | boolean>] => {
       return;
     }
 
-    const { default: VERTC } = await import('@volcengine/rtc');
-    const isSupported = await VERTC.isSupported();
+    const isSupported = await RtcClient.isSupported();
     if (!isSupported) {
       toast.error('您的浏览器可能不支持 RTC 功能，请更换或升级后重试。', { position: 'top-center' })
       return;
