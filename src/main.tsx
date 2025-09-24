@@ -91,6 +91,20 @@ initApm()
   const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
   setApmContext({ env: appEnv })
   setApmContext({ app: 'talent' })
+  // 初始化 APM context.fr：首次进入页面时读取 `_fr`
+  try {
+    let fr: string | null = null
+    fr = localStorage.getItem('_fr')
+    if (!fr) {
+      const sp = new URLSearchParams(window.location.search)
+      const fromUrl = sp.get('_fr')
+      if (fromUrl && fromUrl.trim()) {
+        fr = fromUrl.trim()
+        localStorage.setItem('_fr', fr)
+      }
+    }
+    if (fr) setApmContext({ fr })
+  } catch (_e) {}
   if (user) startApm()
 }
 
