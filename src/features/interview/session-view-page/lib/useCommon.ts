@@ -136,7 +136,6 @@ export const useGetDevicePermission = () => {
 export const useJoin = (): [boolean, () => Promise<void | boolean>] => {
   const devicePermissions = useDeviceStore((s) => s.devicePermissions)
   const room = useRoomStore()
-  const rtcInfo = useRoomStore((s) => s.rtcConnectionInfo)
 
   const { id } = useScene();
   const { switchMic } = useDeviceState();
@@ -169,7 +168,8 @@ export const useJoin = (): [boolean, () => Promise<void | boolean>] => {
 
     // 标记候选人进入房间
     useRoomStore.getState().setCandidateInRoom(true)
-    // 0. 准备 RTC 基础信息（来自 roomStore.rtcConnectionInfo）
+    // 0. 准备 RTC 基础信息（执行时读取最新 store，避免闭包读取旧值）
+    const rtcInfo = useRoomStore.getState().rtcConnectionInfo
     if (!rtcInfo?.room_id || !rtcInfo?.user_id || !rtcInfo?.token) {
       toast.error('缺少会话连接信息，请返回上一步重试。', { position: 'top-center' })
       setJoining(false)
