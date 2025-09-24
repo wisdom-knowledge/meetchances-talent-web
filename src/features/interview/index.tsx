@@ -18,9 +18,10 @@ interface InterviewPageProps {
   jobId?: string | number
   jobApplyId?: string | number
   interviewNodeId?: string | number
+  isMock?: boolean
 }
 
-export default function InterviewPage({ interviewId, jobId, jobApplyId, interviewNodeId }: InterviewPageProps) {
+export default function InterviewPage({ interviewId, jobId, jobApplyId, interviewNodeId, isMock }: InterviewPageProps) {
   const navigate = useNavigate()
 
   // const identity = useMemo(() => `user-${Date.now()}`, [])
@@ -121,6 +122,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     // 提交当前节点结果，确保后端状态更新
     userEvent('interview_user_terminated', '用户主动中断面试', {
       job_id: jobId,
+      is_mock: isMock,
       interview_id: interviewId,
       job_apply_id: jobApplyId,
     })
@@ -137,6 +139,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
         if (jobId != null) params.set('job_id', String(jobId))
         if (jobApplyId) params.set('job_apply_id', String(jobApplyId))
         if (interviewNodeId) params.set('interview_node_id', String(interviewNodeId))
+        params.set('is_mock', String(Boolean(isMock)))
         const invite = current.get('invite_token')
         if (invite) params.set('invite_token', invite)
         const skip = current.get('isSkipConfirm')
@@ -146,7 +149,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
         window.location.replace(`/finish?${params.toString()}`)
       }, 1000)
     } else {
-      navigate({ to: '/finish', replace: true })
+      navigate({ to: '/finish', search: { is_mock: isMock } as unknown as Record<string, unknown>, replace: true })
     }
   }
 
@@ -237,11 +240,12 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
       reportedRecordStartedRef.current = true
       userEvent('interview_recording_started', '面试录制成功开启', {
         job_id: jobId,
+        isMock: isMock,
         interview_id: interviewId,
         job_apply_id: jobApplyId,
       })
     }
-  }, [recordStatus?.status, roomName, jobId, interviewId, jobApplyId])
+  }, [recordStatus?.status, roomName, jobId, interviewId, jobApplyId, isMock])
 
   // 面试断开或有参与者断开时，结束面试：跳转 finish 页面（replace），带上 interview_id
   useEffect(() => {
@@ -267,6 +271,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
         if (interviewNodeId) {
           userEvent('interview_completed', '面试正常结束', {
             job_id: jobId,
+            is_mock: isMock,
             interview_id: interviewId,
             job_apply_id: jobApplyId,
           })
@@ -282,6 +287,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
           params.set('job_id', String(jobId))
           if (jobApplyId) params.set('job_apply_id', String(jobApplyId))
           if (interviewNodeId) params.set('interview_node_id', String(interviewNodeId))
+          params.set('is_mock', String(Boolean(isMock)))
           const invite = current.get('invite_token')
           if (invite) params.set('invite_token', invite)
           const skip = current.get('isSkipConfirm')
@@ -301,6 +307,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
             invite_token: current.get('invite_token') ?? undefined,
             isSkipConfirm: current.get('isSkipConfirm') ?? undefined,
             data: current.get('data') ?? undefined,
+            is_mock: isMock,
           } as unknown as Record<string, unknown>,
           replace: true,
         })
@@ -399,13 +406,14 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
                   interviewId={data?.interviewId}
                   jobId={jobId}
                   jobApplyId={jobApplyId}
+                  isMock={isMock}
                 />
               </RoomContext.Provider>
             </div>
           ) : (
             <div className='h-full'>
               <RoomContext.Provider value={roomRef.current}>
-                <SessionView disabled={false} sessionStarted={false} className='h-full' jobId={jobId} jobApplyId={jobApplyId} />
+                <SessionView disabled={false} sessionStarted={false} className='h-full' jobId={jobId} jobApplyId={jobApplyId} isMock={isMock} />
               </RoomContext.Provider>
             </div>
           )}

@@ -41,13 +41,21 @@ export interface AiInterviewSection {
   motivation?: InterviewScoreSection // 动机态度（可选）
 }
 
-export interface ResumeMatchScoreSection extends Omit<InterviewScoreSection, 'reason'> {
+export interface ResumeMatchScoreSection
+  extends Omit<InterviewScoreSection, 'reason'> {
   reason?: string[] // 原因（多条）
 }
 
 export interface ResumeMatchSection {
   section_score: ResumeMatchScoreSection
   extra_info: unknown
+  video_url: string
+  avatar_url: string
+}
+
+export interface PosterInfo {
+  name: string
+  jobName: string
 }
 
 export interface InterviewReportData {
@@ -56,8 +64,7 @@ export interface InterviewReportData {
   applicant_brief: string
   education_brief: string
   experience_brief: string
-  video_url: string
-  avatar_url: string
   ai_interview: AiInterviewSection
   resume_match: ResumeMatchSection
+  poster_info: PosterInfo
 }

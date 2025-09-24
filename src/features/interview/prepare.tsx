@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { UploadArea } from '@/features/resume-upload/upload-area'
 import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
-import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled, IconUpload } from '@tabler/icons-react'
+import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled, IconUpload, IconEdit } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { IconLoader2 } from '@tabler/icons-react'
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
@@ -42,6 +42,7 @@ interface InterviewPreparePageProps {
   inviteToken?: string
   isSkipConfirm?: boolean
   jobApplyIdFromRoute?: string | number
+  isMock?: boolean
 }
 
 enum ViewMode {
@@ -257,7 +258,7 @@ enum ViewMode {
     )
   }
 
-export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute }: InterviewPreparePageProps) {
+export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute, isMock }: InterviewPreparePageProps) {
   const navigate = useNavigate()
   const [connecting, setConnecting] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -357,8 +358,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   }, [viewMode, jobApplyId, workflow, queryClient, interviewNodeId, jobId, navigate])
 
   const handleConfirmResumeClick = useCallback(async () => {
-    if (uploadingResume || !resumeValues) return
-    userEvent('resume_confirmed', '确认简历，下一步', { page: 'interview_prepare',job_apply_id: jobApplyId ?? undefined,job_id: jobId ?? undefined })
+    if (uploadingResume) return
+    if (!resumeValues) return
+    userEvent('resume_confirmed', '确认简历，下一步', { page: 'interview_prepare',isMock: isMock,job_apply_id: jobApplyId ?? undefined,job_id: jobId ?? undefined })
     // 先进行简历校验（与“保存更新”一致）。失败则打开抽屉并定位。
     const parsed = resumeSchema.safeParse(resumeValues)
     if (!parsed.success) {
@@ -373,7 +375,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       return
     }
     await proceedAfterResumeConfirm()
-  }, [uploadingResume, resumeValues, uploadedThisVisit, hadResumeBefore, proceedAfterResumeConfirm])
+  }, [uploadingResume, resumeValues, uploadedThisVisit, hadResumeBefore, proceedAfterResumeConfirm, jobApplyId, jobId, isMock])
 
   // 确保在离开页面前主动释放媒体资源，避免设备权限长期占用
   const releaseAllMediaStreams = useCallback(() => {
@@ -406,6 +408,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       saveInterviewConnectionToStorage(details)
       userEvent('interview_started', '点击开始面试(确认设备，下一步)', { 
         job_id: job?.id,
+        isMock: isMock,
         job_apply_id: jobApplyId ?? undefined,
         interview_id: details.interviewId ?? undefined,
       })
@@ -415,6 +418,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           interview_id: details.interviewId,
           job_id: jobId ?? undefined,
           job_apply_id: jobApplyId ?? undefined,
+          is_mock: isMock ?? undefined,
           interview_node_id: interviewNodeId ?? undefined,
         },
       })
@@ -484,7 +488,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     return () => {
       mounted = false
     }
-  }, [viewMode])
+  }, [viewMode, isMock])
 
   // 根据进度切换视图
   useEffect(() => {
@@ -673,7 +677,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   uploader={uploadTalentResume}
                   onUploadingChange={setUploadingResume}
                   onUploadComplete={(results) => {
-                    userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare', action: resumeValues ? 'update' : 'upload',job_id: jobId ?? undefined,job_apply_id: jobApplyId ?? undefined })
+                    userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare',isMock: isMock, action: resumeValues ? 'update' : 'upload',job_id: jobId ?? undefined,job_apply_id: jobApplyId ?? undefined })
                     const first = results.find((r) => r.success)
                     if (!first) return
                     const si = (first.backend?.struct_info ?? {}) as StructInfo
@@ -684,6 +688,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     userEvent('resume_parsed_success', '简历解析成功', {
                       page: 'interview_prepare',
                       name: mapped.name ?? '',
+                      isMock: isMock,
                       phone: mapped.phone ?? '',
                       email: mapped.email ?? '',
                       education_count: String(mapped.education?.length ?? 0),
@@ -714,12 +719,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   )}
 
                   {resumeValues ? (
-                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare', trigger: 'button_click', action: 'update', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
+                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare',isMock: isMock ,trigger: 'button_click', action: 'update', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
                       <IconUpload className='h-4 w-4' />
                       更新简历
                     </Button>
                   ) : (
-                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare', trigger: 'button_click', action: 'upload', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
+                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare',isMock: isMock ,trigger: 'button_click', action: 'upload', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
                       <IconUpload className='h-4 w-4' />
                       上传简历
                     </Button>
@@ -734,6 +739,19 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={handleConfirmResumeClick}>
                     {uploadingResume ? '正在分析简历…' : '确认简历，下一步'}
                   </Button>
+                  {isMock && !resumeValues && (
+                    <div className='mt-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground'>
+                      <span>没有简历？</span>
+                      <button
+                        type='button'
+                        onClick={() => setResumeOpen(true)}
+                        className='inline-flex items-center gap-1 text-primary hover:underline underline-offset-2'
+                      >
+                        <IconEdit className='h-3.5 w-3.5' /> 手动填写
+                      </button>
+                      <span className='text-primary'>»</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* 遮罩交给 UploadArea 内部处理，这里不再渲染 */}
@@ -762,6 +780,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   setStage('mic')
                   userEvent('speaker_status_confirmed', '确认扬声器状态正常', { 
                     job_id: job?.id,
+                    isMock: isMock,
                     job_apply_id: jobApplyId ?? undefined,
                     interview_node_id: interviewNodeId ?? undefined, 
                   })
@@ -780,6 +799,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   setStage('headphone')
                   userEvent('camera_status_confirmed', '确认摄像头状态正常', { 
                     job_id: job?.id,
+                    isMock: isMock,
                     job_apply_id: jobApplyId ?? undefined,
                     interview_node_id: interviewNodeId ?? undefined, 
                   })
@@ -788,6 +808,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   setMicStatus(DeviceTestStatus.Success)
                   userEvent('microphone_status_confirmed', '确认麦克风状态正常', { 
                     job_id: job?.id,
+                    isMock: isMock,
                     job_apply_id: jobApplyId ?? undefined,
                     interview_node_id: interviewNodeId ?? undefined, 
                   })
@@ -1079,6 +1100,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 if (res.success) {
                   userEvent('resume_save', '简历保存', {
                     page: 'interview_prepare',
+                    isMock: isMock,
                     name: vals.name ?? '',
                     phone: vals.phone ?? '',
                     email: vals.email ?? '',

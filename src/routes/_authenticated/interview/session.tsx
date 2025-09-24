@@ -8,6 +8,7 @@ export const Route = createFileRoute('/_authenticated/interview/session')({
     const interviewId = search?.interview_id
     const jobId = search?.job_id
     const jobApplyId = search?.job_apply_id
+    const isMock = search?.is_mock
     const interviewNodeId = search?.interview_node_id
     if (interviewId === undefined || interviewId === null || interviewId === '') {
       throw redirect({ to: '/interview/prepare' })
@@ -16,6 +17,7 @@ export const Route = createFileRoute('/_authenticated/interview/session')({
       interview_id: interviewId as string | number,
       job_id: (jobId as string | number | undefined),
       job_apply_id: jobApplyId as string | number | undefined,
+      is_mock: isMock as boolean | undefined,
       interview_node_id: interviewNodeId as string | number | undefined,
     }
   },
@@ -25,13 +27,13 @@ export const Route = createFileRoute('/_authenticated/interview/session')({
 
 function InterviewSessionRouteComponent() {
   const isMobile = useIsMobile()
-  const search = Route.useSearch() as { interview_id: string | number; job_id?: string | number; job_apply_id?: string | number; interview_node_id?: string | number }
+  const search = Route.useSearch() as { interview_id: string | number; job_id?: string | number; job_apply_id?: string | number; interview_node_id?: string | number; is_mock?: boolean }
   
   if (isMobile) {
     return <MobileFullscreenMask open={true} />
   }
 
-  return <InterviewPage interviewId={search.interview_id} jobId={search.job_id} jobApplyId={search.job_apply_id} interviewNodeId={search.interview_node_id} />
+  return <InterviewPage interviewId={search.interview_id} jobId={search.job_id} isMock={search.is_mock} jobApplyId={search.job_apply_id} interviewNodeId={search.interview_node_id} />
 }
 
 

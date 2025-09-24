@@ -42,9 +42,10 @@ export interface SessionViewProps extends React.ComponentProps<'main'> {
   interviewId?: string | number
   jobId?: string | number
   jobApplyId?: string | number
+  isMock?: boolean
 }
 
-export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, recordingStatus, interviewId, jobId, jobApplyId, ...props }: SessionViewProps) {
+export function SessionView({ disabled, sessionStarted, className, onRequestEnd, onDisconnect, recordingStatus, interviewId, jobId, isMock, jobApplyId, ...props }: SessionViewProps) {
   const { state: agentState } = useVoiceAssistant()
   const { messages } = useChatAndTranscription()
   const room = useRoomContext() as Room | undefined
@@ -110,6 +111,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
         reportedRound2ReachedRef.current = true
         userEvent('interview_rounds_2_reached', '面试问答超过2轮', {
           job_id: jobId,
+          is_mock: isMock,
           interview_id: interviewId,
           job_apply_id: jobApplyId,
         })
@@ -119,6 +121,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
         reportedRound5ReachedRef.current = true
         userEvent('interview_rounds_5_reached', '面试问答5轮', {
           job_id: jobId,
+          is_mock: isMock,
           interview_id: interviewId,
           job_apply_id: jobApplyId,
         })

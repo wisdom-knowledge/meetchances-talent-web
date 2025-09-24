@@ -9,6 +9,7 @@ const parseDataString = (
   jobId?: string | number
   inviteToken?: string
   isSkipConfirm?: boolean
+  isMock?: boolean
   jobApplyId?: string | number
 } => {
   // and为拼接关键词
@@ -17,6 +18,7 @@ const parseDataString = (
     jobId?: string | number
     inviteToken?: string
     isSkipConfirm?: boolean
+    isMock?: boolean
     jobApplyId?: string | number
   } = {}
   const parts = data.split('and').filter(Boolean)
@@ -49,6 +51,15 @@ const parseDataString = (
         // 其它任意非空值（例如 333）默认视为 true
         result.isSkipConfirm = true
       }
+    } else if (part.startsWith('isMock')) {
+      const raw = part.slice('isMock'.length).trim().toLowerCase()
+      if (raw === '' || raw === '0' || raw === 'false' || raw === 'no' || raw === 'off') {
+        result.isMock = false
+      } else if (raw === '1' || raw === 'true' || raw === 'yes' || raw === 'on') {
+        result.isMock = true
+      } else {
+        result.isMock = true
+      }
     } else if (part.startsWith('job_apply_id')) {
       const val = part.slice('job_apply_id'.length)
       const num = Number(val)
@@ -66,6 +77,7 @@ function PrepareRouteComponent() {
     invite_token?: string
     isSkipConfirm?: boolean
     job_apply_id?: string | number
+    isMock?: boolean
   }
 
   if (isMobile) {
@@ -73,7 +85,7 @@ function PrepareRouteComponent() {
   }
 
   if (search?.data) {
-    const { jobId, inviteToken, isSkipConfirm, jobApplyId: jobApplyIdFromData } = parseDataString(search?.data)
+    const { jobId, inviteToken, isSkipConfirm, jobApplyId: jobApplyIdFromData,isMock } = parseDataString(search?.data)
     const jobApplyId = jobApplyIdFromData ?? search?.job_apply_id
     return (
       <InterviewPreparePage
@@ -81,6 +93,7 @@ function PrepareRouteComponent() {
         inviteToken={inviteToken}
         isSkipConfirm={isSkipConfirm}
         jobApplyIdFromRoute={jobApplyId}
+        isMock={isMock}
       />
     )
   }
@@ -91,6 +104,7 @@ function PrepareRouteComponent() {
       inviteToken={search?.invite_token}
       isSkipConfirm={search?.isSkipConfirm}
       jobApplyIdFromRoute={search?.job_apply_id}
+      isMock={search?.isMock}
     />
   )
 }
