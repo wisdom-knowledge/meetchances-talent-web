@@ -20,7 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import type { PosterInfo } from '../data/interview-report-types'
 
 interface SharePosterProps {
   open: boolean
@@ -30,8 +29,7 @@ interface SharePosterProps {
   jobName: string
   date: string
   userName?: string
-  interviewId?: string
-  posterInfo?: PosterInfo
+  jobId?: string
 }
 
 export function SharePoster({
@@ -42,8 +40,7 @@ export function SharePoster({
   jobName,
   date,
   userName,
-  interviewId,
-  posterInfo: _posterInfo,
+  jobId,
 }: SharePosterProps) {
   const posterRef = useRef<HTMLDivElement>(null)
   // 预览固定宽度（与外层 wrapper 保持一致）
@@ -60,7 +57,7 @@ export function SharePoster({
   const downloadPoster = async () => {
     try {
       userEvent('install_poster', '下载海报', {
-        interviewId: interviewId,
+        jobId: jobId,
         jobName: jobName,
         score: score,
       })

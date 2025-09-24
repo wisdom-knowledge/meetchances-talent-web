@@ -283,16 +283,16 @@ export function AiInterviewSection({ data, videoUrl }: Props) {
       {/* 标题和节点评分 */}
 
       {/* 能力分析与建议 */}
-      <div className=''>
+      <div>
         <div className='mb-4 flex items-center gap-2'>
           <h3 className='font-medium text-gray-900'>能力分析与建议</h3>
         </div>
 
-        {Array.isArray(data.section_scores) &&
-        data.section_scores.length > 0 ? (
-          data.section_scores.map((s, idx) => {
+        {Array.isArray(data.talent_interview_evaluation) &&
+        data.talent_interview_evaluation.length > 0 ? (
+          data.talent_interview_evaluation.map((s, idx) => {
             const score = s.score_item?.score ?? 0
-            const feedbacks = s.score_item?.feedback ?? []
+            const feedbacks = s.score_item?.feedback_for_user ?? []
             const level = getSkillLevel(score, s.section_name)
             const skillName =
               s.section_name === 'soft_skill' ? '软技能' : s.section_name
@@ -320,7 +320,7 @@ export function AiInterviewSection({ data, videoUrl }: Props) {
                 </div>
 
                 {/* 千识点评 - 平铺展示 */}
-                {feedbacks.length > 0 && (
+                {Array.isArray(feedbacks) && feedbacks.length > 0 && (
                   <div className='rounded-lg border border-gray-100 bg-gray-50 p-4'>
                     <h4 className='mb-3 text-sm font-medium text-gray-900'>
                       千识点评
@@ -341,18 +341,25 @@ export function AiInterviewSection({ data, videoUrl }: Props) {
                   </div>
                 )}
 
-                {/* 提升建议 - 新增区域，目前为空 */}
+                {/* 提升建议 */}
                 <div className='mt-4 rounded-lg border border-gray-100 bg-gray-50 p-4'>
                   <h4 className='mb-3 text-sm font-medium text-gray-900'>
                     提升建议
                   </h4>
-                  <ul className='space-y-2'>
-                    {/* 这里后续补充提升建议内容 */}
-                    <li className='flex items-start gap-2 text-sm text-gray-500'>
-                      <span className='mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-300'></span>
-                      <span>暂无提升建议，后续补充</span>
-                    </li>
-                  </ul>
+                  {Array.isArray(s.score_item?.suggestions_for_user) && s.score_item!.suggestions_for_user!.length > 0 ? (
+                    <ul className='space-y-2'>
+                      {s.score_item!.suggestions_for_user!.map((sg, i) => (
+                        <li key={i} className='flex items-start gap-2 text-sm text-gray-600'>
+                          <span className='mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400'></span>
+                          <span className='leading-relaxed whitespace-pre-wrap'>
+                            {sg}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className='text-sm text-gray-500'>暂无提升建议</div>
+                  )}
                 </div>
               </div>
             )

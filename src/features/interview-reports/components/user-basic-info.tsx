@@ -38,9 +38,7 @@ export function CandidateInfoSkeleton() {
 }
 
 export function CandidateInfoCard({ data }: Props) {
-  // 从 applicant_brief 中提取姓名（去掉"的申请报告"后缀）
-  const candidateName =
-    data.applicant_brief?.replace(/的申请报告$/, '') || '候选人'
+  const candidateName = data.resume_name || '候选人'
 
   // 获取姓名的第一个字符作为头像显示
   const avatarText = candidateName.charAt(0)
@@ -135,7 +133,7 @@ export function CandidateInfoCard({ data }: Props) {
         <div className='grid grid-cols-3 gap-8 text-sm'>
           <div className='flex gap-1'>
             <span className='font-medium text-gray-500'>面试岗位:</span>
-            <span className='font-semibold text-gray-900'>前端专家</span>
+            <span className='font-semibold text-gray-900'>{data.job_name || '—'}</span>
           </div>
           <div className='flex gap-1'>
             <span className='font-medium text-gray-500'>面试时长:</span>

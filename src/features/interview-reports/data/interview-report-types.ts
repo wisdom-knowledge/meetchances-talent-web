@@ -16,8 +16,10 @@ export interface InterviewScoreSection {
 }
 
 export interface ScoreItem {
-  feedback: string[]
+  feedback: string[] | null
   score: number
+  feedback_for_user?: string[]
+  suggestions_for_user?: string[]
 }
 
 export interface SectionScoresItem {
@@ -27,7 +29,7 @@ export interface SectionScoresItem {
 
 export interface AiInterviewSection {
   section_score: InterviewScoreSection
-  section_scores: SectionScoresItem[]
+  section_scores?: SectionScoresItem[]
   detail_text: Array<{
     role: 'assistant' | 'user' | string
     content: string
@@ -36,9 +38,7 @@ export interface AiInterviewSection {
       t_sec?: number
     }
   }>
-  skill_match?: InterviewScoreSection // 技能匹配（可选）
-  soft_skill?: InterviewScoreSection // 软技能（可选）
-  motivation?: InterviewScoreSection // 动机态度（可选）
+  talent_interview_evaluation?: SectionScoresItem[]
 }
 
 export interface ResumeMatchScoreSection
@@ -53,18 +53,13 @@ export interface ResumeMatchSection {
   avatar_url: string
 }
 
-export interface PosterInfo {
-  name: string
-  jobName: string
-}
-
 export interface InterviewReportData {
   title: string
+  video_url: string
   overall_score: InterviewScoreSection
-  applicant_brief: string
-  education_brief: string
-  experience_brief: string
   ai_interview: AiInterviewSection
   resume_match: ResumeMatchSection
-  poster_info: PosterInfo
+  avatar_url: string
+  resume_name: string
+  job_name: string
 }

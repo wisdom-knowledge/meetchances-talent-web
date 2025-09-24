@@ -27,9 +27,8 @@ export default function InterviewReports() {
   })
 
   const report = useMemo(() => data ?? null, [data])
-  const candidateName = report?.data?.applicant_brief?.replace(/的申请报告$/, '') || '候选人'
-  const score = report?.data?.overall_score?.score || 0
-  
+  const score = report?.overall_score?.score || 0
+
   // 首次进入带 job_id 的报告时自动打开分享海报（记录到 localStorage，后续不再自动打开）
   useEffect(() => {
     try {
@@ -52,7 +51,7 @@ export default function InterviewReports() {
 
   // 计算面试时间
   const getInterviewDate = () => {
-    const detailText = report?.data?.ai_interview?.detail_text
+    const detailText = report?.ai_interview?.detail_text
     if (!detailText || detailText.length === 0) return '--'
     
     const firstTimestamp = detailText[0]?.metadata?.ts
@@ -116,10 +115,10 @@ export default function InterviewReports() {
 
         {/* 页面主体内容 */}
         <div className='space-y-6'>
-          {report ? <CandidateInfoCard data={report.data} /> : null}
+          {report ? <CandidateInfoCard data={report} /> : null}
           <AiInterviewSection
-            data={report?.data?.ai_interview}
-            videoUrl={report?.data?.resume_match.avatar_url || ''}
+            data={report?.ai_interview}
+            videoUrl={report?.avatar_url || ''}
           />
         </div>
       </Main>
@@ -128,13 +127,12 @@ export default function InterviewReports() {
       <SharePoster
         open={showSharePoster}
         onOpenChange={setShowSharePoster}
-        candidateName={candidateName}
+        candidateName={report?.resume_name || '候选人'}
         score={score}
-        jobName={report?.data?.poster_info?.jobName ?? ''}
+        jobName={report?.job_name ?? ''}
         date={getInterviewDate()}
-        posterInfo={report?.data?.poster_info}
-        userName={report?.data?.poster_info?.name}
-        interviewId={String(search?.job_id ?? '')}
+        userName={report?.resume_name}
+        jobId={String(search?.job_id ?? '')}
       />
     </>
   )
