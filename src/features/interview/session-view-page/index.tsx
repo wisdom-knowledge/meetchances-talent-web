@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import InterviewTimer from './components/interview-timer'
@@ -14,6 +14,7 @@ import { useLeave, useInterviewFinish } from './lib/useCommon'
 import useAgentApm from './lib/useAgentApm'
 import { userEvent } from '@/lib/apm'
 import { useRoomStore } from '@/stores/interview/room'
+import { useNavigate } from '@tanstack/react-router'
 
 export default function InterviewSessionViewPage() {
 
@@ -21,7 +22,7 @@ export default function InterviewSessionViewPage() {
   const leaveRoom = useLeave()
   useInterviewFinish()
   useAgentApm()
-
+  const navigate = useNavigate()
   const performEndInterview = useCallback(async () => {
     try {
       const params = new URLSearchParams(window.location.search)
@@ -52,6 +53,27 @@ export default function InterviewSessionViewPage() {
       leaveRoom()
     }
   }, [leaveRoom])
+
+  // 判断是否为刷新的逻辑
+    // 进入页面后再次尝试从存储读取（防止刷新后初始状态为 null）
+    const hasLoadedDetailsRef = useRef(false)
+    useEffect(() => {
+      // 防止严格模式下重复执行
+      if (hasLoadedDetailsRef.current) return
+      const interviewId = new URLSearchParams(window.location.search).get('interview_id')
+      const jobId = new URLSearchParams(window.location.search).get('job_id')
+      const jobApplyId = new URLSearchParams(window.location.search).get('job_apply_id')
+      const details = localStorage.getItem(`rtc_connection_info:v1:${interviewId}`)
+
+      if (details) {
+        hasLoadedDetailsRef.current = true
+        localStorage.removeItem(`rtc_connection_info:v1:${interviewId}`)
+      } else {
+        let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrue&source=session_refresh`
+        if (jobApplyId) url += `&job_apply_id=${jobApplyId}`
+        navigate({ to: url, replace: true })
+      }
+    }, [])
 
 
   return (
