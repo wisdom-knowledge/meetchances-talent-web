@@ -285,7 +285,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const [_joining, triggerJoin] = useJoin()
   const setRtcConnectionInfo = useRoomStore((s) => s.setRtcConnectionInfo)
-  const rtcInfo = useRoomStore((s) => s.rtcConnectionInfo)
   // 当视频设备自动选择时，保存为默认选择
   useEffect(() => {
     const preferred = getPreferredDeviceId('videoinput')
@@ -439,47 +438,40 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     }
   }, [jobId, interviewNodeId, connecting, navigate, jobApplyId])
 
-  // 获取RTC的连接信息并更新至local Storage中
-  const loadRtcConnectionInfo = useCallback(async () => {
-    try {
-      const params = new URLSearchParams(window.location.search)
-      // FIXME 暂时用4做兜底
-      const jobIdStr = params.get('job_id') || "2"
-      const jobId = jobIdStr ? Number(jobIdStr) : NaN
-      if (!jobIdStr || Number.isNaN(jobId)) {
-        toast.error('缺少或无效的 job_id 参数', { position: 'top-center' })
-        return
-      }
-      const info = await getRtcConnectionInfo({ job_id: jobId })
-      setRtcConnectionInfo(info)
-// 更新至local Storage中
-      localStorage.setItem(`rtc_connection_info:v1:${info.interview_id}`, JSON.stringify(info))
-    } catch (_e) {
-      toast.error('获取面试连接信息失败，请稍后重试', { position: 'top-center' })
-    }
-  }, [setRtcConnectionInfo])
+  // 旧逻辑：页面初始化即加载 RTC 连接信息（已废弃，改为点击时加载）
 
-  useEffect(() => {
-    // 每次页面初始化后
-    void loadRtcConnectionInfo();
-  }, [loadRtcConnectionInfo])
+  // 需求调整：不在初始化时加载 RTC 连接信息，改为点击时再加载
   /**
    * - session-view-page: interview_id=2181&job_id=2&job_apply_id=169&interview_node_id=795
    * - finish: ?interview_id=2181&job_id=2&job_apply_id=169&interview_node_id=795
   */
   // 新版面试间
-  const onStartNewInterviewClick = async() => {
-    await triggerJoin()
-    navigate({
-      to: '/interview/session_view',
-      search: {
-        interview_id: rtcInfo?.interview_id,
-        job_id: jobId ?? undefined,
-        job_apply_id: jobApplyId ?? undefined,
-        interview_node_id: interviewNodeId ?? undefined,
-        room_id: rtcInfo?.room_id,
-      } as unknown as Record<string, unknown>,
-    })
+  const onStartNewInterviewClick = async () => {
+    if (!jobId || !interviewNodeId || connecting) return
+    setConnecting(true)
+    try {
+      // 1) 点击时实时获取最新的 RTC 连接信息
+      const info = await getRtcConnectionInfo({ job_id: Number(jobId ?? 0) })
+      // 2) 写入全局 store，并持久化到 localStorage，避免依赖异步 state 读取旧值
+      setRtcConnectionInfo(info)
+      localStorage.setItem(`rtc_connection_info:v1:${info.interview_id}`, JSON.stringify(info))
+      // 3) 加入房间
+      await triggerJoin()
+      // 4) 使用刚拿到的 info 进行跳转，避免读取尚未更新的 store
+      navigate({
+        to: '/interview/session_view',
+        search: {
+          interview_id: info.interview_id,
+          job_id: jobId ?? undefined,
+          job_apply_id: jobApplyId ?? undefined,
+          interview_node_id: interviewNodeId ?? undefined,
+          room_id: info.room_id,
+        } as unknown as Record<string, unknown>,
+      })
+    } catch (_e) {
+      toast.error('获取面试连接信息失败，请稍后重试', { position: 'top-center' })
+      setConnecting(false)
+    }
   }
 
   function nodeNameToViewMode(name: string): ViewMode {

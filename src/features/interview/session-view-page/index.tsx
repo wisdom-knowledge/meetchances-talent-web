@@ -52,28 +52,28 @@ export default function InterviewSessionViewPage() {
       console.log('use effect >>> leave room')
       leaveRoom()
     }
-  }, [leaveRoom])
+  }, [])
 
   // 判断是否为刷新的逻辑
-    // 进入页面后再次尝试从存储读取（防止刷新后初始状态为 null）
-    const hasLoadedDetailsRef = useRef(false)
-    useEffect(() => {
-      // 防止严格模式下重复执行
-      if (hasLoadedDetailsRef.current) return
-      const interviewId = new URLSearchParams(window.location.search).get('interview_id')
-      const jobId = new URLSearchParams(window.location.search).get('job_id')
-      const jobApplyId = new URLSearchParams(window.location.search).get('job_apply_id')
-      const details = localStorage.getItem(`rtc_connection_info:v1:${interviewId}`)
+  // 进入页面后再次尝试从存储读取（防止刷新后初始状态为 null）
+  const hasLoadedDetailsRef = useRef(false)
+  useEffect(() => {
+    // 防止严格模式下重复执行
+    if (hasLoadedDetailsRef.current) return
+    const interviewId = new URLSearchParams(window.location.search).get('interview_id')
+    const jobId = new URLSearchParams(window.location.search).get('job_id')
+    const jobApplyId = new URLSearchParams(window.location.search).get('job_apply_id')
+    const details = localStorage.getItem(`rtc_connection_info:v1:${interviewId}`)
 
-      if (details) {
-        hasLoadedDetailsRef.current = true
-        localStorage.removeItem(`rtc_connection_info:v1:${interviewId}`)
-      } else {
-        let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrue&source=session_refresh`
-        if (jobApplyId) url += `&job_apply_id=${jobApplyId}`
-        navigate({ to: url, replace: true })
-      }
-    }, [])
+    if (details) {
+      hasLoadedDetailsRef.current = true
+      localStorage.removeItem(`rtc_connection_info:v1:${interviewId}`)
+    } else {
+      let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrue&source=session_refresh`
+      if (jobApplyId) url += `&job_apply_id=${jobApplyId}`
+      navigate({ to: url, replace: true })
+    }
+  }, [])
 
 
   return (
@@ -138,5 +138,4 @@ export default function InterviewSessionViewPage() {
     </>
   )
 }
-
 
