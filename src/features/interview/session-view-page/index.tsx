@@ -35,11 +35,19 @@ export default function InterviewSessionViewPage() {
         interview_id: interviewId,
         job_apply_id: jobApplyId,
       })
+      if (storeInterviewId != null) params.set('interview_id', String(storeInterviewId))
     } catch { /* ignore */ }
 
     await leaveRoom()
     setTimeout(() => {
-      window.location.replace('/finish')
+      try {
+        const params = new URLSearchParams(window.location.search)
+        const storeInterviewId = useRoomStore.getState().rtcConnectionInfo?.interview_id
+        if (storeInterviewId != null) params.set('interview_id', String(storeInterviewId))
+        window.location.replace(`/finish?${params.toString()}`)
+      } catch {
+        window.location.replace('/finish')
+      }
     }, 1000)
   }, [leaveRoom])
 
