@@ -17,7 +17,7 @@ import { useAuthStore } from '@/stores/authStore'
 export default function InterviewReports() {
   const [showSharePoster, setShowSharePoster] = useState(false)
   const navigate = useNavigate()
-  const search = useSearch({ from: '//_authenticated/interview-reports/' as any }) as { job_id?: number | string }
+  const search = useSearch({ from: '/_authenticated/interview-reports/' }) as { job_id?: number | string }
   const user = useAuthStore((s) => s.auth.user)
 
   const { data } = useQuery({
