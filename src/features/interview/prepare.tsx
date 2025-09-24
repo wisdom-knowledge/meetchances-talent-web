@@ -36,7 +36,7 @@ import { getPreferredDeviceId, setPreferredDeviceIdSmart, clearAllPreferredDevic
 import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
-import { userEvent } from '@/lib/apm'
+import { userEvent, reportSessionPageRefresh } from '@/lib/apm'
 import { useJoin } from '@/features/interview/session-view-page/lib/useCommon'
 
 interface InterviewPreparePageProps {
@@ -44,6 +44,7 @@ interface InterviewPreparePageProps {
   inviteToken?: string
   isSkipConfirm?: boolean
   jobApplyIdFromRoute?: string | number
+  isFromSessionRefresh?: boolean
 }
 
 enum ViewMode {
@@ -114,7 +115,7 @@ enum ViewMode {
         // 如果没有首选设备但已有活跃设备，使用活跃设备
         setDisplaySpkDeviceId(spk.activeDeviceId)
         onSpkDeviceChange?.(spk.activeDeviceId)
-      } 
+      }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -201,14 +202,14 @@ enum ViewMode {
               onValueChange={(v) => {
                 // 立即更新显示值
                 setDisplaySpkDeviceId(v)
-                
+
                 spk.setActiveMediaDevice(v).then(async () => {
                   void setPreferredDeviceIdSmart('audiooutput', v, spk.devices)
                   onSpkStatusChange(DeviceTestStatus.Testing)
-                  
+
                   // 通知父组件扬声器设备已切换，让它更新音频元素的sinkId
                   onSpkDeviceChange?.(v)
-                  
+
                   // 给一些时间让音频元素更新sinkId
                   setTimeout(() => onSpkStatusChange(DeviceTestStatus.Success), 500)
                 }).catch(() => {
@@ -235,10 +236,10 @@ enum ViewMode {
                 mic.setActiveMediaDevice(v).then(() => {
                   void setPreferredDeviceIdSmart('audioinput', v, mic.devices)
                   onMicStatusChange(DeviceTestStatus.Testing)
-                  
+
                   // 通知父组件麦克风设备已切换
                   onMicDeviceChange?.(v)
-                  
+
                   setTimeout(() => onMicStatusChange(DeviceTestStatus.Success), 500)
                 }).catch(() => {
                   // 设备切换失败
@@ -259,7 +260,7 @@ enum ViewMode {
     )
   }
 
-export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute }: InterviewPreparePageProps) {
+export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute, isFromSessionRefresh = false }: InterviewPreparePageProps) {
   const navigate = useNavigate()
   const [connecting, setConnecting] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -308,6 +309,16 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   useEffect(() => {
     clearAllPreferredDevices()
   }, [])
+
+  const hasReportedSessionRefresh = useRef(false)
+
+  // 当页面来源为 session 页面刷新时，上报页面刷新事件
+  useEffect(() => {
+    if (isFromSessionRefresh && !hasReportedSessionRefresh.current) {
+      reportSessionPageRefresh()
+      hasReportedSessionRefresh.current = true
+    }
+  }, [isFromSessionRefresh])
 
   // 统一的简历校验 + 打开抽屉并定位首个错误字段
   // const validateResumeAndOpenIfInvalid = useCallback((vals: ResumeFormValues): boolean => {
@@ -408,7 +419,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         return
       }
       saveInterviewConnectionToStorage(details)
-      userEvent('interview_started', '点击开始面试(确认设备，下一步)', { 
+      userEvent('interview_started', '点击开始面试(确认设备，下一步)', {
         job_id: job?.id,
         job_apply_id: jobApplyId ?? undefined,
         interview_id: details.interviewId ?? undefined,
@@ -440,7 +451,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       }
       const info = await getRtcConnectionInfo({ job_id: jobId })
       setRtcConnectionInfo(info)
-      
+
     } catch (_e) {
       toast.error('获取面试连接信息失败，请稍后重试', { position: 'top-center' })
     }
@@ -628,7 +639,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
                 if (
                   viewMode === ViewMode.InterviewPendingReview ||
-                  isExternalReferrer
+                  isExternalReferrer || isFromSessionRefresh
                 ) {
                   // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
                   window.location.replace('/home')
@@ -805,10 +816,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onHeadphoneConfirm={() => {
                   setSpkStatus(DeviceTestStatus.Success)
                   setStage('mic')
-                  userEvent('speaker_status_confirmed', '确认扬声器状态正常', { 
+                  userEvent('speaker_status_confirmed', '确认扬声器状态正常', {
                     job_id: job?.id,
                     job_apply_id: jobApplyId ?? undefined,
-                    interview_node_id: interviewNodeId ?? undefined, 
+                    interview_node_id: interviewNodeId ?? undefined,
                   })
                 }}
                 onStatusChange={setCameraStatus}
@@ -823,18 +834,18 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 onCameraConfirmed={() => {
                   setCameraStatus(DeviceTestStatus.Success)
                   setStage('headphone')
-                  userEvent('camera_status_confirmed', '确认摄像头状态正常', { 
+                  userEvent('camera_status_confirmed', '确认摄像头状态正常', {
                     job_id: job?.id,
                     job_apply_id: jobApplyId ?? undefined,
-                    interview_node_id: interviewNodeId ?? undefined, 
+                    interview_node_id: interviewNodeId ?? undefined,
                   })
                 }}
                 onMicConfirmed={() => {
                   setMicStatus(DeviceTestStatus.Success)
-                  userEvent('microphone_status_confirmed', '确认麦克风状态正常', { 
+                  userEvent('microphone_status_confirmed', '确认麦克风状态正常', {
                     job_id: job?.id,
                     job_apply_id: jobApplyId ?? undefined,
-                    interview_node_id: interviewNodeId ?? undefined, 
+                    interview_node_id: interviewNodeId ?? undefined,
                   })
                 }}
                 disableCameraConfirm={cameraStatus === DeviceTestStatus.Failed}
@@ -1032,7 +1043,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 await postNodeAction({
                   node_id: interviewNodeId,
                   trigger: NodeActionTrigger.Retake,
-                  result_data: {}
+                  result_data: { reason: reinterviewReason }
                 })
                 location.reload()
                 // navigate({ to: '/interview/session', search: { job_id: (jobId as string | number) || '', job_apply_id: jobApplyId ?? undefined, interview_node_id: interviewNodeId } })

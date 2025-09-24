@@ -66,11 +66,15 @@ function PrepareRouteComponent() {
     invite_token?: string
     isSkipConfirm?: boolean
     job_apply_id?: string | number
+    source?: string
   }
 
   if (isMobile) {
     return <MobileFullscreenMask open={true} />
   }
+
+  // 检查来源是否为 session 页面刷新
+  const isFromSessionRefresh = search?.source === 'session_refresh'
 
   if (search?.data) {
     const { jobId, inviteToken, isSkipConfirm, jobApplyId: jobApplyIdFromData } = parseDataString(search?.data)
@@ -81,6 +85,7 @@ function PrepareRouteComponent() {
         inviteToken={inviteToken}
         isSkipConfirm={isSkipConfirm}
         jobApplyIdFromRoute={jobApplyId}
+        isFromSessionRefresh={isFromSessionRefresh}
       />
     )
   }
@@ -91,6 +96,7 @@ function PrepareRouteComponent() {
       inviteToken={search?.invite_token}
       isSkipConfirm={search?.isSkipConfirm}
       jobApplyIdFromRoute={search?.job_apply_id}
+      isFromSessionRefresh={isFromSessionRefresh}
     />
   )
 }
