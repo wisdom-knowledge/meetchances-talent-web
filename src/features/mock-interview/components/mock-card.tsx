@@ -61,7 +61,7 @@ export default function MockCard({ item, index }: MockCardProps) {
                 navigate({
                   to: '/interview/prepare',
                   search: {
-                    data: `job_id${item.interview_id}andisMock${true}`,
+                    data: `job_id${item.interview_id}andisMock${true}andcountdown${item.durationMinutes}`,
                   } as unknown as Record<string, unknown>,
                 }).catch(() => {})
               }}

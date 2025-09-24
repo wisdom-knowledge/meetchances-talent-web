@@ -43,6 +43,7 @@ interface InterviewPreparePageProps {
   isSkipConfirm?: boolean
   jobApplyIdFromRoute?: string | number
   isMock?: boolean
+  countdown?: string | number
 }
 
 enum ViewMode {
@@ -258,7 +259,7 @@ enum ViewMode {
     )
   }
 
-export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute, isMock }: InterviewPreparePageProps) {
+export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute, isMock, countdown }: InterviewPreparePageProps) {
   const navigate = useNavigate()
   const [connecting, setConnecting] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -420,13 +421,14 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           job_apply_id: jobApplyId ?? undefined,
           is_mock: isMock ?? undefined,
           interview_node_id: interviewNodeId ?? undefined,
+          countdown: countdown ?? undefined,
         },
       })
     } catch (_e) {
       toast.error('网络不稳定，请重试')
       setConnecting(false)
     }
-  }, [jobId, interviewNodeId, connecting, navigate, jobApplyId])
+  }, [jobId, interviewNodeId, connecting, navigate, jobApplyId, countdown])
 
   function nodeNameToViewMode(name: string): ViewMode {
     if (name.includes('简历分析')) return ViewMode.Job

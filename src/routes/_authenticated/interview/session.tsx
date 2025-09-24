@@ -10,6 +10,7 @@ export const Route = createFileRoute('/_authenticated/interview/session')({
     const jobApplyId = search?.job_apply_id
     const isMock = search?.is_mock
     const interviewNodeId = search?.interview_node_id
+    const countdown = search?.countdown
     if (interviewId === undefined || interviewId === null || interviewId === '') {
       throw redirect({ to: '/interview/prepare' })
     }
@@ -19,6 +20,7 @@ export const Route = createFileRoute('/_authenticated/interview/session')({
       job_apply_id: jobApplyId as string | number | undefined,
       is_mock: isMock as boolean | undefined,
       interview_node_id: interviewNodeId as string | number | undefined,
+      countdown: countdown as string | number | undefined,
     }
   },
   component: InterviewSessionRouteComponent,

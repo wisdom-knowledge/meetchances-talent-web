@@ -11,6 +11,7 @@ const parseDataString = (
   isSkipConfirm?: boolean
   isMock?: boolean
   jobApplyId?: string | number
+  countdown?: string | number
 } => {
   // and为拼接关键词
   if (!data || typeof data !== 'string') return {}
@@ -20,6 +21,7 @@ const parseDataString = (
     isSkipConfirm?: boolean
     isMock?: boolean
     jobApplyId?: string | number
+    countdown?: string | number
   } = {}
   const parts = data.split('and').filter(Boolean)
   for (const part of parts) {
@@ -64,6 +66,10 @@ const parseDataString = (
       const val = part.slice('job_apply_id'.length)
       const num = Number(val)
       result.jobApplyId = !Number.isNaN(num) && val.trim() !== '' ? num : val
+    } else if (part.startsWith('countdown')) {
+      const val = part.slice('countdown'.length)
+      const num = Number(val)
+      result.countdown = !Number.isNaN(num) && val.trim() !== '' ? num : val
     }
   }
   return result
@@ -78,6 +84,7 @@ function PrepareRouteComponent() {
     isSkipConfirm?: boolean
     job_apply_id?: string | number
     isMock?: boolean
+    countdown?: string | number
   }
 
   if (isMobile) {
@@ -85,7 +92,7 @@ function PrepareRouteComponent() {
   }
 
   if (search?.data) {
-    const { jobId, inviteToken, isSkipConfirm, jobApplyId: jobApplyIdFromData,isMock } = parseDataString(search?.data)
+    const { jobId, inviteToken, isSkipConfirm, jobApplyId: jobApplyIdFromData, isMock, countdown } = parseDataString(search?.data)
     const jobApplyId = jobApplyIdFromData ?? search?.job_apply_id
     return (
       <InterviewPreparePage
@@ -94,6 +101,7 @@ function PrepareRouteComponent() {
         isSkipConfirm={isSkipConfirm}
         jobApplyIdFromRoute={jobApplyId}
         isMock={isMock}
+        countdown={countdown}
       />
     )
   }
@@ -105,6 +113,7 @@ function PrepareRouteComponent() {
       isSkipConfirm={search?.isSkipConfirm}
       jobApplyIdFromRoute={search?.job_apply_id}
       isMock={search?.isMock}
+      countdown={search?.countdown}
     />
   )
 }

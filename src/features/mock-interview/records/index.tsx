@@ -90,7 +90,7 @@ export default function MockInterviewRecordsPage() {
                     item={it}
                     onReport={() => navigate({ to: '/interview-reports', search: { job_id: (it.job_id ?? 0) || idx + 1 } })}
                     onMore={() => {}}
-                    onReinterview={() => navigate({ to: '/interview/prepare', search: { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}` } as unknown as Record<string, unknown> })}
+                    onReinterview={() => navigate({ to: '/interview/prepare', search: { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}andcountdown${it.interview_duration_minutes}` } as unknown as Record<string, unknown> })}
                   />
                 ))}
               </div>
