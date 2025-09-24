@@ -204,7 +204,7 @@ const useRtcListeners = (): IEventListener => {
     reportRtcMessageReceived(String(userId), String(message))
     try {
       const obj = JSON.parse(message) as { type?: string; reason?: string };
-      if (obj?.type === 'room_destoryed' && obj?.reason === 'session_end') {
+      if (obj?.type === 'room_destroyed' && obj?.reason === 'session_end') {
         roomStore.updateAgentLeavingState({ isAgentLeaving: true });
       }
     } catch { /* ignore */ }
