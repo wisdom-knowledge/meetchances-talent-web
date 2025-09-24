@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import InterviewTimer from './components/interview-timer'
@@ -10,17 +10,33 @@ import { Button } from '@/components/ui/button'
 import LocalVideoTile from './components/local-video-tile'
 import RecordingIndicator from './components/recording-indicator'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { useLeave, useAutoLeaveOnAgentExit } from './lib/useCommon'
+import { useLeave, useInterviewFinish } from './lib/useCommon'
 import useAgentApm from './lib/useAgentApm'
+import { userEvent } from '@/lib/apm'
+import { useRoomStore } from '@/stores/interview/room'
+import { useNavigate } from '@tanstack/react-router'
 
 export default function InterviewSessionViewPage() {
 
   const [confirmEndOpen, setConfirmEndOpen] = useState(false)
   const leaveRoom = useLeave()
-  useAutoLeaveOnAgentExit()
+  useInterviewFinish()
   useAgentApm()
-
+  const navigate = useNavigate()
   const performEndInterview = useCallback(async () => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const jobId = params.get('job_id') ?? undefined
+      const jobApplyId = params.get('job_apply_id') ?? undefined
+      const storeInterviewId = useRoomStore.getState().rtcConnectionInfo?.interview_id
+      const interviewId = storeInterviewId ?? params.get('interview_id') ?? undefined
+      userEvent('interview_user_terminated', '用户主动中断面试', {
+        job_id: jobId,
+        interview_id: interviewId,
+        job_apply_id: jobApplyId,
+      })
+    } catch { /* ignore */ }
+
     await leaveRoom()
     setTimeout(() => {
       window.location.replace('/finish')
@@ -36,7 +52,28 @@ export default function InterviewSessionViewPage() {
       console.log('use effect >>> leave room')
       leaveRoom()
     }
-  }, [])
+  }, [leaveRoom])
+
+  // 判断是否为刷新的逻辑
+    // 进入页面后再次尝试从存储读取（防止刷新后初始状态为 null）
+    const hasLoadedDetailsRef = useRef(false)
+    useEffect(() => {
+      // 防止严格模式下重复执行
+      if (hasLoadedDetailsRef.current) return
+      const interviewId = new URLSearchParams(window.location.search).get('interview_id')
+      const jobId = new URLSearchParams(window.location.search).get('job_id')
+      const jobApplyId = new URLSearchParams(window.location.search).get('job_apply_id')
+      const details = localStorage.getItem(`rtc_connection_info:v1:${interviewId}`)
+
+      if (details) {
+        hasLoadedDetailsRef.current = true
+        localStorage.removeItem(`rtc_connection_info:v1:${interviewId}`)
+      } else {
+        let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrue&source=session_refresh`
+        if (jobApplyId) url += `&job_apply_id=${jobApplyId}`
+        navigate({ to: url, replace: true })
+      }
+    }, [])
 
 
   return (
