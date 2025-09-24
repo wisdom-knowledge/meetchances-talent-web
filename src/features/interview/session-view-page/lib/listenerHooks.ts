@@ -22,8 +22,7 @@ import { useRef } from 'react';
 
 import { useRoomStore, type IUser } from '@/stores/interview/room';
 import RtcClient, { IEventListener } from './RtcClient';
-import { postNodeAction, NodeActionTrigger } from '@/features/interview/api'
-import { userEvent, reportRtcMessageReceived } from '@/lib/apm'
+import { reportRtcMessageReceived } from '@/lib/apm'
 
 import { useDeviceStore } from '@/stores/interview/device';
 import { useMessageHandler } from '@/features/interview/session-view-page/lib/handler';
@@ -58,7 +57,6 @@ const useRtcListeners = (): IEventListener => {
   };
 
   const handleUserLeave = async (e: onUserLeaveEvent) => {
-    const { userId } = e.userInfo;
     roomStore.remoteUserLeave({ userId: e.userInfo.userId });
     roomStore.removeAutoPlayFail({ userId: e.userInfo.userId });
 
@@ -66,38 +64,6 @@ const useRtcListeners = (): IEventListener => {
     try { await RtcClient.stopVideoCapture() } catch { /* noop */ }
     try { await RtcClient.leaveRoom() } catch { /* noop */ }
 
-    try {
-      const isCandidateInRoom = roomStore.getCandidateInRoom()
-      // 如果候选人在房间里，并且此时离开的是Agent。那么代表Agent是主动离开的，而不是由于候选人离开而离开的。
-      // 并且此时页面是面试页面，而不是准备页面
-      if (isCandidateInRoom && /ChatBot/.test(userId) && window.location.pathname === '/interview/session_view') {
-        const params = new URLSearchParams(window.location.search)
-        const interviewId = roomStore.rtcConnectionInfo?.interview_id
-        if (interviewId != null) params.set('interview_id', String(interviewId))
-        // 保留已存在的 job_id / job_apply_id / interview_node_id
-        const jobId = params.get('job_id')
-        if (jobId) params.set('job_id', jobId)
-        const jobApplyId = params.get('job_apply_id')
-        if (jobApplyId) params.set('job_apply_id', jobApplyId)
-        const interviewNodeId = params.get('interview_node_id')
-
-        // 上报并提交节点
-        userEvent('interview_completed', '面试正常结束', {
-          job_id: jobId ?? undefined,
-          interview_id: interviewId ?? undefined,
-          job_apply_id: jobApplyId ?? undefined,
-        })
-        if (interviewNodeId) {
-          try {
-            await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
-          } catch { /* ignore */ }
-        }
-        // 跳转 finish（使用原生 replace 便于释放设备权限）
-        setTimeout(() => {
-          window.location.replace(`/finish?${params.toString()}`)
-        }, 300)
-      }
-    } catch { /* ignore */ }
   };
 
   const handleUserPublishStream = (e: { userId: string; mediaType: MediaType }) => {

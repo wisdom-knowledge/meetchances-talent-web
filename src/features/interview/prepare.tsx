@@ -439,6 +439,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     }
   }, [jobId, interviewNodeId, connecting, navigate, jobApplyId])
 
+  // 获取RTC的连接信息并更新至local Storage中
   const loadRtcConnectionInfo = useCallback(async () => {
     try {
       const params = new URLSearchParams(window.location.search)
@@ -451,7 +452,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       }
       const info = await getRtcConnectionInfo({ job_id: jobId })
       setRtcConnectionInfo(info)
-
+// 更新至local Storage中
+      localStorage.setItem(`rtc_connection_info:v1:${info.interview_id}`, JSON.stringify(info))
     } catch (_e) {
       toast.error('获取面试连接信息失败，请稍后重试', { position: 'top-center' })
     }
