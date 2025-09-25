@@ -343,3 +343,47 @@ export function reportSessionPageRefresh(extra?: Record<string, string>): void {
     type: 'event',
   })
 }
+
+// Finish 页面：当用户评分 <= 4 星时，上报一次低分反馈事件
+export interface FinishFeedbackLowScorePayload {
+  interview_id: number
+  total_score: number
+  flow_score?: number
+  expression_score?: number
+  relevance_score?: number
+  feedback_text?: string
+  job_id?: string | number
+  job_apply_id?: string | number
+}
+
+export function reportFinishFeedbackLowScore(payload: FinishFeedbackLowScorePayload): void {
+  if (!apmClient) return
+  const {
+    interview_id,
+    total_score,
+    flow_score,
+    expression_score,
+    relevance_score,
+    feedback_text,
+    job_id,
+    job_apply_id,
+  } = payload
+  const categories: Record<string, string> = {
+    page: 'finish',
+    interview_id: String(interview_id),
+    total_score: String(total_score),
+  }
+  if (typeof flow_score !== 'undefined') categories.flow_score = String(flow_score)
+  if (typeof expression_score !== 'undefined') categories.expression_score = String(expression_score)
+  if (typeof relevance_score !== 'undefined') categories.relevance_score = String(relevance_score)
+  if (typeof feedback_text !== 'undefined') categories.feedback_text = stringifyForCategory(feedback_text)
+  if (typeof job_id !== 'undefined') categories.job_id = String(job_id)
+  if (typeof job_apply_id !== 'undefined') categories.job_apply_id = String(job_apply_id)
+
+  apmClient('sendEvent', {
+    name: 'finish_feedback_low_score',
+    categories,
+    metrics: {},
+    type: 'event',
+  })
+}
