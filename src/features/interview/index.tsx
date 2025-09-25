@@ -4,7 +4,7 @@ import { RoomAudioRenderer, RoomContext } from '@livekit/components-react'
 import { RoomEvent, Room, type RemoteParticipant } from 'livekit-client'
 // AgentControlBar moved into SessionView
 import '@livekit/components-styles'
-import { loadInterviewConnectionFromStorage, postNodeAction, NodeActionTrigger, useInterviewRecordStatus, type InterviewConnectionDetails } from '@/features/interview/api'
+import { loadInterviewConnectionFromStorage, useInterviewRecordStatus, type InterviewConnectionDetails } from '@/features/interview/api'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'

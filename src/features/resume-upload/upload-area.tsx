@@ -32,6 +32,12 @@ export function UploadArea({ onUploadComplete, className, uploader, onUploadingC
     const file = files[0]
     if (!file) return
 
+    // 验证文件类型，只允许PDF
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error('仅支持上传PDF格式的简历文件')
+      return
+    }
+
     setUploading(true)
     onUploadingChange?.(true)
     setUploadingFiles([file])
@@ -123,10 +129,11 @@ export function UploadArea({ onUploadComplete, className, uploader, onUploadingC
               ref={fileInputRef}
               type="file"
               className="hidden"
+              accept=".pdf"
               onChange={handleFileSelect}
               disabled={uploading}
-              aria-label="选择文件"
-              title="选择文件"
+              aria-label="选择PDF文件"
+              title="选择PDF文件"
             />
 
             {/* Upload Progress (moved inside the same CardContent) */}
@@ -156,7 +163,7 @@ export function UploadArea({ onUploadComplete, className, uploader, onUploadingC
             )}
 
             {children ? <div>{children}</div> : null}
-            <p className="text-sm text-muted-foreground">支持拖拽或点击选择文件</p>
+            <p className="text-sm text-muted-foreground">支持拖拽或点击选择PDF文件</p>
           </div>
         </CardContent>
         {uploading && (
