@@ -28,4 +28,3 @@ export function InterviewTimer({ active, className }: { active?: boolean; classN
   return <div className={`rounded-full bg-black/60 text-white px-3 py-1 text-sm ${className ?? ''}`}>{seconds <= 0 ? '面试即将结束' : `${pad(h)}:${pad(m)}:${pad(s)}`}</div>
 }
 
-
