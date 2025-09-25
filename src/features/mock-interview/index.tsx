@@ -45,7 +45,7 @@ export default function MockInterviewPage() {
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
   const [page, setPage] = useState(search.page ?? 1)
-  const [pageSize] = useState(search.pageSize ?? 9)
+  const [pageSize] = useState(search.pageSize ?? 12)
 
   // 同步状态到 URL
   useEffect(() => {
@@ -71,7 +71,7 @@ export default function MockInterviewPage() {
         limit: pageSize,
         q: undefined,
       }),
-    enabled: categories.length === 0 || category !== undefined,
+    enabled: categories.length !== 0 && category !== undefined,
   })
 
   const items = useMemo(() => data?.items ?? [], [data])
@@ -93,7 +93,8 @@ export default function MockInterviewPage() {
           Icon: fallbackIcon, // 兜底使用统一图标；若后续需要根据 icon 动态渲染，可扩展
         }))
         setCategories(mapped)
-        if (category == null && mapped.length > 0) {
+        // 只在初始化时设置默认分类
+        if (search.category === undefined && mapped.length > 0) {
           setCategory(mapped[0].id)
         }
       } catch {
@@ -103,7 +104,7 @@ export default function MockInterviewPage() {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [search.category])
 
   // 计算分类横向滚动的左右可滚动状态
   useEffect(() => {
@@ -278,14 +279,12 @@ export default function MockInterviewPage() {
           </button>
         </div>
 
-        {/* 旧的静态分类已移除 */}
-
         {/* 列表（自适应高度 + 纵向滚动） */}
         <div className='flex min-h-0 flex-1'>
           {items.length === 0 ? (
             <MockEmptyState />
           ) : (
-            <div className='grid flex-1 grid-cols-1 gap-5 overflow-y-auto pr-1 sm:grid-cols-[repeat(auto-fill,_minmax(283px,_1fr))]'>
+            <div className='grid flex-1 grid-cols-1 gap-5 overflow-y-auto pr-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pb-2'>
               {items.map((it: BackendMockJobItem, idx: number) => (
                 <MockCard
                   key={it.id}
