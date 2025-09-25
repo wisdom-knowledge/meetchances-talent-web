@@ -118,7 +118,7 @@ export default function InterviewReports() {
           {report ? <CandidateInfoCard data={report} /> : null}
           <AiInterviewSection
             data={report?.ai_interview}
-            videoUrl={report?.avatar_url || ''}
+            videoUrl={report?.video_url || ''}
           />
         </div>
       </Main>

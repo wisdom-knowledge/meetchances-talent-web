@@ -138,7 +138,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
         params.set('interview_id', String(interviewId))
         if (jobId != null) params.set('job_id', String(jobId))
         if (jobApplyId) params.set('job_apply_id', String(jobApplyId))
-        if (interviewNodeId) params.set('interview_node_id', String(interviewNodeId))
+        if (interviewNodeId && !isMock) params.set('interview_node_id', String(interviewNodeId))
         params.set('is_mock', String(Boolean(isMock)))
         const invite = current.get('invite_token')
         if (invite) params.set('invite_token', invite)
@@ -275,7 +275,6 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
             interview_id: interviewId,
             job_apply_id: jobApplyId,
           })
-          await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
         }
       } catch { /* ignore */ }
       if (interviewId) {
