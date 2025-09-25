@@ -50,6 +50,7 @@ export interface MockRecordItem extends MockInterviewItem {
 // --- Records API transparent types ---
 export interface MockInterviewRecordApiItem {
   job_id?: number
+  job_apply_id?: number | string
   job_title: string
   interview_duration_minutes: number
   status: number | string

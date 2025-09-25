@@ -545,7 +545,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   // 根据进度切换视图
   useEffect(() => {
     const next = resolveViewModeFromProgress()
-    if (next && next !== viewMode) {
+    if (next && next !== viewMode && !isMock) {
       setViewMode(next)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -672,23 +672,29 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 <div className='flex items-start justify-between gap-4'>
                   <div className='min-w-0'>
                     <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
-                    <div className='flex items-center gap-4 text-primary mb-2'>
-                      <div className='flex items-center'>
-                        <IconBriefcase className='h-4 w-4 mr-1' />
-                        <span className='text-[14px]'>时薪制</span>
+                    {!isMock && (
+                      <div className='text-primary mb-2 flex items-center gap-4'>
+                        <div className='flex items-center'>
+                          <IconBriefcase className='mr-1 h-4 w-4' />
+                          <span className='text-[14px]'>时薪制</span>
+                        </div>
+                        <div className='flex items-center'>
+                          <IconWorldPin className='mr-1 h-4 w-4' />
+                          <span className='text-[14px]'>远程</span>
+                        </div>
                       </div>
-                      <div className='flex items-center'>
-                        <IconWorldPin className='h-4 w-4 mr-1' />
-                        <span className='text-[14px]'>远程</span>
+                    )}
+                  </div>
+                  {
+                    !isMock && (
+                      <div className='hidden md:flex flex-col items-end min-w-[140px]'>
+                        <div className='text-xl font-semibold text-foreground mb-1'>
+                          {job ? `¥${job.salary_min ?? 0}~¥${job.salary_max ?? 0}` : '—'}
+                        </div>
+                        <div className='text-xs text-muted-foreground mb-3'>每小时</div>
                       </div>
-                    </div>
-                  </div>
-                  <div className='hidden md:flex flex-col items-end min-w-[140px]'>
-                    <div className='text-xl font-semibold text-foreground mb-1'>
-                      {job ? `¥${job.salary_min ?? 0}~¥${job.salary_max ?? 0}` : '—'}
-                    </div>
-                    <div className='text-xs text-muted-foreground mb-3'>每小时</div>
-                  </div>
+                    )
+                  }
                 </div>
                 <Separator className='mt-2' />
                 {/* 发布者信息 */}

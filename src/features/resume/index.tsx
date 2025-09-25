@@ -169,6 +169,13 @@ export default function ResumePage() {
   async function handleResumeFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    
+    // 验证文件类型，只允许PDF
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error('仅支持上传PDF格式的简历文件')
+      e.target.value = '' // 清空选择
+      return
+    }
     try {
       setUploadingResume(true)
       const fd = new FormData()
@@ -268,7 +275,7 @@ export default function ResumePage() {
                         ref={fileInputRef}
                         type='file'
                         className='hidden'
-                        accept='.pdf,.doc,.docx,.md,.txt'
+                        accept='.pdf'
                         aria-label='上传简历文件'
                         title='上传简历文件'
                         onChange={handleResumeFileChange}

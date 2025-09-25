@@ -4,7 +4,7 @@ import { RoomAudioRenderer, RoomContext } from '@livekit/components-react'
 import { RoomEvent, Room, type RemoteParticipant } from 'livekit-client'
 // AgentControlBar moved into SessionView
 import '@livekit/components-styles'
-import { loadInterviewConnectionFromStorage, postNodeAction, NodeActionTrigger, useInterviewRecordStatus, type InterviewConnectionDetails, removeInterviewConnectionFromStorage } from '@/features/interview/api'
+import { loadInterviewConnectionFromStorage, useInterviewRecordStatus, type InterviewConnectionDetails, removeInterviewConnectionFromStorage } from '@/features/interview/api'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -161,7 +161,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
         params.set('interview_id', String(interviewId))
         if (jobId != null) params.set('job_id', String(jobId))
         if (jobApplyId) params.set('job_apply_id', String(jobApplyId))
-        if (interviewNodeId) params.set('interview_node_id', String(interviewNodeId))
+        if (interviewNodeId && !isMock) params.set('interview_node_id', String(interviewNodeId))
         params.set('is_mock', String(Boolean(isMock)))
         const invite = current.get('invite_token')
         if (invite) params.set('invite_token', invite)
@@ -298,7 +298,6 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
             interview_id: interviewId,
             job_apply_id: jobApplyId,
           })
-          await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
         }
       } catch { /* ignore */ }
       if (interviewId) {
