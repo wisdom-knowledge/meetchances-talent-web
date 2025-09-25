@@ -495,7 +495,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   // 根据进度切换视图
   useEffect(() => {
     const next = resolveViewModeFromProgress()
-    if (next && next !== viewMode) {
+    if (next && next !== viewMode && !isMock) {
       setViewMode(next)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
