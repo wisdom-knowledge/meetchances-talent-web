@@ -899,7 +899,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     || !interviewNodeId
                     || connecting
                   }
-                  className='w-full' onClick={onStartInterviewClick}>
+                  className='w-full disabled:opacity-100 disabled:bg-[#C9C9C9] disabled:border-[0.5px] disabled:border-[rgba(255,255,255,0.12)]' onClick={onStartInterviewClick}>
                   {connecting ? '面试间连接中…' : '确认设备，下一步'}
                 </Button>
                 <Button
