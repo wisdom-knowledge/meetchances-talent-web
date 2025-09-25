@@ -139,6 +139,8 @@ export default function FinishPage() {
 
   const goNext = async () => {
     if (!interviewId || rating <= 0 || submitting) return
+    // 低分时强制要求细分评分全部选择
+    if (rating <= 4 && (flowScore <= 0 || expressionScore <= 0 || relevanceScore <= 0)) return
     // 当评分 <= 4 星时，额外上报自定义 APM 事件（不影响原有接口上报）
     if (rating <= 4) {
       try {
@@ -177,37 +179,17 @@ export default function FinishPage() {
     }
   }
 
-  const handleHelp = () => {
-    setHelpOpen(true)
-  }
-
-  //  暂时展出提交资料符合页面
-  // if (finishSubmit) {
-  //   return (
-  //     <Main
-  //       fixed
-  //       className={`flex w-full items-center justify-center bg-white`}
-  //     >
-  //       <img
-  //         src={
-  //           'https://dnu-cdn.xpertiise.com/common/8af6d9a9-6f39-47e2-ac48-74abe3c833e6.svg'
-  //         }
-  //         alt='meetchances'
-  //         className='mb-[32px] ml-3 h-[120px] w-[140px] object-contain'
-  //       />
-  //       <h2 className='mb-3 text-xl font-semibold'>复核面试中</h2>
-  //       <p className='mb-6 max-w-[428px] text-center text-sm opacity-70'>
-  //         感谢您完成面试，我们正在复核您的面试过程，预计48小时内通知您，请等待短信通知
-  //       </p>
-  //     </Main>
-  //   )
-  // }
+  // 保留：如需在其它位置触发支持弹窗，可调用 setHelpOpen(true)
 
   return (
     <Main
       fixed
       className={`flex w-full items-center justify-center bg-[#ECD9FC]`}
     >
+      {/* 右上角：寻求支持 */}
+      <div className='absolute right-6 top-6'>
+        <Button variant='link' className='text-primary' onClick={() => setHelpOpen(true)}>寻求支持</Button>
+      </div>
       <section className='min-w-[418px] space-y-6'>
         <Card>
           <CardContent className='p-6'>
@@ -235,7 +217,7 @@ export default function FinishPage() {
               })}
             </div>
 
-           
+
             {rating > 0 && rating <= 4 && (
               <div className='mt-6 space-y-6'>
                 <div>
@@ -305,7 +287,7 @@ export default function FinishPage() {
                       )
                     })}
                   </div>
-                
+
                   {rating > 0 && (
                     <div className='space-y-2 text-center mt-4'>
                       <Textarea
@@ -335,7 +317,9 @@ export default function FinishPage() {
         <div className='flex items-center justify-center'>
           <Button
             onClick={goNext}
-            disabled={rating <= 0 || submitting}
+            disabled={
+              rating <= 0 || submitting || (rating <= 4 && (flowScore <= 0 || expressionScore <= 0 || relevanceScore <= 0))
+            }
             className='h-[44px] w-[200px] bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)] text-white'
           >
             提交
@@ -370,15 +354,6 @@ export default function FinishPage() {
           </div>
         </section>
       )} */}
-      <div className='absolute right-0 bottom-3 left-0 text-center text-sm text-black/70'>
-        需要支持请
-        <span
-          className='cursor-pointer text-[var(--color-blue-600)] underline'
-          onClick={handleHelp}
-        >
-          寻求帮助
-        </span>
-      </div>
 
       {/* 寻求支持弹窗 */}
       <SupportDialog
