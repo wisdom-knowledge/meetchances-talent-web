@@ -48,26 +48,29 @@ export default function MockCard({ item, index }: MockCardProps) {
           - 移动端：始终 144px，按钮常显
           - ≥sm：默认 104px，hover 变 144px
       */}
-      <div className='bg-white'>
-        <div className='h-[144px] sm:h-[104px] sm:group-hover:h-[144px] transition-all duration-300 ease-out p-5 pt-4'>
-          <div className='mt-2 font-semibold text-base'>{item.title}</div>
-          <div className='mt-1 text-sm text-muted-foreground line-clamp-2 h-[42px] overflow-hidden'>
-            <span dangerouslySetInnerHTML={{ __html: item.summary || '' }} />
-          </div>
-          <div className='mt-3'>
-            <button
-              className='h-7 w-full inline-flex items-center justify-center rounded-md bg-gradient-to-r from-[#4E02E4] to-[#C994F7] px-3 text-white text-sm shadow'
-              onClick={() => {
-                navigate({
-                  to: '/interview/prepare',
-                  search: {
-                    data: `job_id${item.interview_id}andisMock${true}andcountdown${item.durationMinutes}`,
-                  } as unknown as Record<string, unknown>,
-                }).catch(() => {})
-              }}
-            >
-              开始面试
-            </button>
+      <div className='bg-white overflow-hidden'>
+        <div className='h-[144px] sm:h-[104px] sm:group-hover:h-[144px] transition-all duration-300 ease-out p-5 pt-4 relative'>
+          <div className='flex flex-col h-full'>
+            <div className='mt-[4px] font-semibold text-[16px] leading-[24px]'>{item.title}</div>
+            <div 
+              className='mt-[4px] text-[12px] leading-[18px] text-muted-foreground line-clamp-2 h-[36px] overflow-hidden flex-shrink-0'
+              dangerouslySetInnerHTML={{ __html: item.summary || '' }}
+            />
+            <div className='mt-3 flex-1 flex items-end'>
+              <button
+                className='h-7 w-full inline-flex items-center justify-center rounded-md bg-gradient-to-r from-[#4E02E4] to-[#C994F7] px-3 text-white text-sm shadow opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 transition-all duration-300 ease-out'
+                onClick={() => {
+                  navigate({
+                    to: '/interview/prepare',
+                    search: {
+                      data: `job_id${item.interview_id}andisMock${true}andcountdown${item.durationMinutes}`,
+                    } as unknown as Record<string, unknown>,
+                  }).catch(() => {})
+                }}
+              >
+                开始面试
+              </button>
+            </div>
           </div>
         </div>
       </div>
