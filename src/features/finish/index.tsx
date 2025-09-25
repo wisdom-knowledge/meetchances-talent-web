@@ -38,6 +38,13 @@ export default function FinishPage() {
     return params.get('interview_id') ?? ''
   }, [])
 
+  // 是否为模拟面试：仅接受 'true' / 'false' 或无该参数
+  const isMock = useMemo(() => {
+    const sp = new URLSearchParams(window.location.search)
+    const val = sp.get('is_mock') ?? sp.get('isMock')
+    return val === 'true'
+  }, [])
+
   // interview 节点 id（用于补偿上报 NodeAction）
   const interviewNodeId = useMemo(() => {
     const sp = new URLSearchParams(window.location.search)
@@ -155,11 +162,19 @@ export default function FinishPage() {
       score: rating,
       feedback: feedback,
     })
-    navigate({
-      to: '/interview/prepare',
-      search: prepareSearch as unknown as Record<string, unknown>,
-      replace: true,
-    })
+    if (isMock) {
+      navigate({
+        to: '/mock-interview',
+        search: { page: 1, pageSize: 9, q: '', category: undefined },
+        replace: true,
+      })
+    } else {
+      navigate({
+        to: '/interview/prepare',
+        search: prepareSearch as unknown as Record<string, unknown>,
+        replace: true,
+      })
+    }
   }
 
   const handleHelp = () => {

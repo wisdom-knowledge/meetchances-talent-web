@@ -31,6 +31,7 @@ import { Route as AuthenticatedTalentPoolIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedResumeIndexRouteImport } from './routes/_authenticated/resume/index'
 import { Route as AuthenticatedResumeUploadIndexRouteImport } from './routes/_authenticated/resume-upload/index'
+import { Route as AuthenticatedMockInterviewIndexRouteImport } from './routes/_authenticated/mock-interview/index'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs/index'
 import { Route as AuthenticatedJobRecommendIndexRouteImport } from './routes/_authenticated/job-recommend/index'
 import { Route as AuthenticatedJobDetailIndexRouteImport } from './routes/_authenticated/job-detail/index'
@@ -51,6 +52,7 @@ import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedInterviewSession_viewRouteImport } from './routes/_authenticated/interview/session_view'
+import { Route as AuthenticatedMockInterviewRecordsRouteImport } from './routes/_authenticated/mock-interview/records'
 import { Route as AuthenticatedInterviewSessionRouteImport } from './routes/_authenticated/interview/session'
 import { Route as AuthenticatedInterviewPrepareRouteImport } from './routes/_authenticated/interview/prepare'
 import { Route as AuthenticatedInterviewAntechamberRouteImport } from './routes/_authenticated/interview/antechamber'
@@ -167,6 +169,12 @@ const AuthenticatedResumeUploadIndexRoute =
     path: '/resume-upload/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMockInterviewIndexRoute =
+  AuthenticatedMockInterviewIndexRouteImport.update({
+    id: '/mock-interview/',
+    path: '/mock-interview/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
   id: '/jobs/',
   path: '/jobs/',
@@ -281,6 +289,12 @@ const AuthenticatedInterviewSession_viewRoute =
     path: '/interview/session_view',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMockInterviewRecordsRoute =
+  AuthenticatedMockInterviewRecordsRouteImport.update({
+    id: '/mock-interview/records',
+    path: '/mock-interview/records',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInterviewSessionRoute =
   AuthenticatedInterviewSessionRouteImport.update({
     id: '/interview/session',
@@ -319,6 +333,7 @@ export interface FileRoutesByFullPath {
   '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
+  '/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -338,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/job-detail': typeof AuthenticatedJobDetailIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
+  '/mock-interview': typeof AuthenticatedMockInterviewIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
   '/resume': typeof AuthenticatedResumeIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -362,6 +378,7 @@ export interface FileRoutesByTo {
   '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
+  '/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -381,6 +398,7 @@ export interface FileRoutesByTo {
   '/job-detail': typeof AuthenticatedJobDetailIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
+  '/mock-interview': typeof AuthenticatedMockInterviewIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
   '/resume': typeof AuthenticatedResumeIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -410,6 +428,7 @@ export interface FileRoutesById {
   '/_authenticated/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/_authenticated/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/_authenticated/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
+  '/_authenticated/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -429,6 +448,7 @@ export interface FileRoutesById {
   '/_authenticated/job-detail/': typeof AuthenticatedJobDetailIndexRoute
   '/_authenticated/job-recommend/': typeof AuthenticatedJobRecommendIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/_authenticated/mock-interview/': typeof AuthenticatedMockInterviewIndexRoute
   '/_authenticated/resume-upload/': typeof AuthenticatedResumeUploadIndexRoute
   '/_authenticated/resume/': typeof AuthenticatedResumeIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -457,6 +477,7 @@ export interface FileRouteTypes {
     | '/interview/prepare'
     | '/interview/session'
     | '/interview/session_view'
+    | '/mock-interview/records'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
@@ -476,6 +497,7 @@ export interface FileRouteTypes {
     | '/job-detail'
     | '/job-recommend'
     | '/jobs'
+    | '/mock-interview'
     | '/resume-upload'
     | '/resume'
     | '/settings/'
@@ -500,6 +522,7 @@ export interface FileRouteTypes {
     | '/interview/prepare'
     | '/interview/session'
     | '/interview/session_view'
+    | '/mock-interview/records'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
@@ -519,6 +542,7 @@ export interface FileRouteTypes {
     | '/job-detail'
     | '/job-recommend'
     | '/jobs'
+    | '/mock-interview'
     | '/resume-upload'
     | '/resume'
     | '/settings'
@@ -547,6 +571,7 @@ export interface FileRouteTypes {
     | '/_authenticated/interview/prepare'
     | '/_authenticated/interview/session'
     | '/_authenticated/interview/session_view'
+    | '/_authenticated/mock-interview/records'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
@@ -566,6 +591,7 @@ export interface FileRouteTypes {
     | '/_authenticated/job-detail/'
     | '/_authenticated/job-recommend/'
     | '/_authenticated/jobs/'
+    | '/_authenticated/mock-interview/'
     | '/_authenticated/resume-upload/'
     | '/_authenticated/resume/'
     | '/_authenticated/settings/'
@@ -745,6 +771,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedResumeUploadIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mock-interview/': {
+      id: '/_authenticated/mock-interview/'
+      path: '/mock-interview'
+      fullPath: '/mock-interview'
+      preLoaderRoute: typeof AuthenticatedMockInterviewIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/jobs/': {
       id: '/_authenticated/jobs/'
       path: '/jobs'
@@ -885,6 +918,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInterviewSession_viewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mock-interview/records': {
+      id: '/_authenticated/mock-interview/records'
+      path: '/mock-interview/records'
+      fullPath: '/mock-interview/records'
+      preLoaderRoute: typeof AuthenticatedMockInterviewRecordsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/interview/session': {
       id: '/_authenticated/interview/session'
       path: '/interview/session'
@@ -939,6 +979,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInterviewPrepareRoute: typeof AuthenticatedInterviewPrepareRoute
   AuthenticatedInterviewSessionRoute: typeof AuthenticatedInterviewSessionRoute
   AuthenticatedInterviewSession_viewRoute: typeof AuthenticatedInterviewSession_viewRoute
+  AuthenticatedMockInterviewRecordsRoute: typeof AuthenticatedMockInterviewRecordsRoute
   AuthenticatedAnnotateReportIndexRoute: typeof AuthenticatedAnnotateReportIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
@@ -951,6 +992,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobDetailIndexRoute: typeof AuthenticatedJobDetailIndexRoute
   AuthenticatedJobRecommendIndexRoute: typeof AuthenticatedJobRecommendIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
+  AuthenticatedMockInterviewIndexRoute: typeof AuthenticatedMockInterviewIndexRoute
   AuthenticatedResumeUploadIndexRoute: typeof AuthenticatedResumeUploadIndexRoute
   AuthenticatedResumeIndexRoute: typeof AuthenticatedResumeIndexRoute
   AuthenticatedTalentPoolIndexRoute: typeof AuthenticatedTalentPoolIndexRoute
@@ -967,6 +1009,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInterviewSessionRoute: AuthenticatedInterviewSessionRoute,
   AuthenticatedInterviewSession_viewRoute:
     AuthenticatedInterviewSession_viewRoute,
+  AuthenticatedMockInterviewRecordsRoute:
+    AuthenticatedMockInterviewRecordsRoute,
   AuthenticatedAnnotateReportIndexRoute: AuthenticatedAnnotateReportIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
@@ -980,6 +1024,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJobDetailIndexRoute: AuthenticatedJobDetailIndexRoute,
   AuthenticatedJobRecommendIndexRoute: AuthenticatedJobRecommendIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
+  AuthenticatedMockInterviewIndexRoute: AuthenticatedMockInterviewIndexRoute,
   AuthenticatedResumeUploadIndexRoute: AuthenticatedResumeUploadIndexRoute,
   AuthenticatedResumeIndexRoute: AuthenticatedResumeIndexRoute,
   AuthenticatedTalentPoolIndexRoute: AuthenticatedTalentPoolIndexRoute,
