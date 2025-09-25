@@ -887,7 +887,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     || !interviewNodeId
                     || connecting
                   }
-                  className='w-full mt-4' onClick={onStartNewInterviewClick}>
+                  className='w-full mt-4 disabled:opacity-100 disabled:bg-[#C9C9C9] disabled:border-[0.5px] disabled:border-[rgba(255,255,255,0.12)]' onClick={onStartNewInterviewClick}>
                   {connecting ? '面试间连接中…' : '确认设备，下一步（新版）'}
                 </Button>
                 <p className='text-xs text-muted-foreground mt-4'>请在安静、独立的空间进行本次AI面试，确保评估效果最佳</p>
