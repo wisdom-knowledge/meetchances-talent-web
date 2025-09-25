@@ -281,16 +281,6 @@ export default function FinishPage() {
                         placeholder='请填写您的反馈（可选）'
                         className='min-h-[151px] min-w-[458px]'
                       />
-                      <div>
-                        <a
-                          href='https://meetchances.feishu.cn/share/base/form/shrcnU5zDT6uFeBSHM0SeUVvdah'
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          className='text-sm text-[var(--color-blue-600)] underline '
-                        >
-                          参与体验调研{">>"}
-                        </a>
-                      </div>
                     </div>
                   )}
                 </div>
