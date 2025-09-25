@@ -163,7 +163,7 @@ export function UploadArea({ onUploadComplete, className, uploader, onUploadingC
             )}
 
             {children ? <div>{children}</div> : null}
-            <p className="text-sm text-muted-foreground">支持拖拽或点击选择PDF文件</p>
+            <p className="text-sm text-muted-foreground">仅支持PDF格式文件，可拖拽或点击选择文件</p>
           </div>
         </CardContent>
         {uploading && (
