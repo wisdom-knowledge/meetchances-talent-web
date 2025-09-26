@@ -449,6 +449,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   // 新版面试间
   const onStartNewInterviewClick = async () => {
     if (!jobId || !interviewNodeId || connecting) return
+    console.log('onStartNewInterviewClick', typeof onStartInterviewClick)
     setConnecting(true)
     try {
       // 1) 点击时实时获取最新的 RTC 连接信息
@@ -869,7 +870,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             {/* 右：操作区域 */}
             <div className='col-span-5 p-6 sticky flex flex-col justify-center'>
               <div className='my-36'>
-                <Button
+                {/* <Button
                   disabled={
                     cameraStatus !== DeviceTestStatus.Success
                     || micStatus !== DeviceTestStatus.Success
@@ -879,7 +880,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   }
                   className='w-full disabled:opacity-100 disabled:bg-[#C9C9C9] disabled:border-[0.5px] disabled:border-[rgba(255,255,255,0.12)]' onClick={onStartInterviewClick}>
                   {connecting ? '面试间连接中…' : '确认设备，下一步'}
-                </Button>
+                </Button> */}
                 <Button
                   disabled={
                     cameraStatus !== DeviceTestStatus.Success
@@ -889,7 +890,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     || connecting
                   }
                   className='w-full mt-4 disabled:opacity-100 disabled:bg-[#C9C9C9] disabled:border-[0.5px] disabled:border-[rgba(255,255,255,0.12)]' onClick={onStartNewInterviewClick}>
-                  {connecting ? '面试间连接中…' : '确认设备，下一步（新版）'}
+                  {connecting ? '面试间连接中…' : '确认设备，下一步'}
                 </Button>
                 <p className='text-xs text-muted-foreground mt-4'>请在安静、独立的空间进行本次AI面试，确保评估效果最佳</p>
               </div>
