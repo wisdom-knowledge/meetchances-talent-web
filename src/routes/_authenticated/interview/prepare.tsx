@@ -85,11 +85,15 @@ function PrepareRouteComponent() {
     job_apply_id?: string | number
     isMock?: boolean
     countdown?: string | number
+    source?: string
   }
 
   if (isMobile) {
     return <MobileFullscreenMask open={true} />
   }
+
+  // 检查来源是否为 session 页面刷新
+  const isFromSessionRefresh = search?.source === 'session_refresh'
 
   if (search?.data) {
     const { jobId, inviteToken, isSkipConfirm, jobApplyId: jobApplyIdFromData, isMock, countdown } = parseDataString(search?.data)
@@ -102,6 +106,7 @@ function PrepareRouteComponent() {
         jobApplyIdFromRoute={jobApplyId}
         isMock={isMock}
         countdown={countdown}
+        isFromSessionRefresh={isFromSessionRefresh}
       />
     )
   }
@@ -114,6 +119,7 @@ function PrepareRouteComponent() {
       jobApplyIdFromRoute={search?.job_apply_id}
       isMock={search?.isMock}
       countdown={search?.countdown}
+      isFromSessionRefresh={isFromSessionRefresh}
     />
   )
 }

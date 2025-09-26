@@ -81,6 +81,15 @@ export function loadInterviewConnectionFromStorage(interviewId: string | number)
   }
 }
 
+export function removeInterviewConnectionFromStorage(interviewId: string | number): void {
+  try {
+    const key = makeInterviewConnStorageKey(interviewId)
+    window.localStorage.removeItem(key)
+  } catch (_e) {
+    // ignore storage errors (e.g., private mode)
+  }
+}
+
 // Interview record status
 export interface InterviewRecordStatusData {
   status: number
@@ -291,4 +300,44 @@ export function useJobApplyProgress(jobApplyId: string | number | null, enabled 
   })
 }
 
+/**
+ * 获取 RTC 连接信息
+ * @param params 
+ * @returns 
+ */
+// (removed duplicate getRtcConnectionInfo)
 
+
+/**
+ * 开始语音聊天
+ * @param params 
+ * @returns 
+ */
+export async function startVoiceChat(params: {room_id: string}) {
+  return api.post('/talent/start-voice-chat', params)
+}
+
+/**
+ * 停止语音聊天
+ * @param params 
+ * @returns 
+ */
+export async function stopVoiceChat(params: {room_name: string}) {
+  return api.post('/talent/stop-voice-chat', params)
+}
+
+// Volc RTC
+export interface RtcConnectionInfoResponse {
+  token: string
+  room_id: string
+  user_id: string
+  server_url: string
+  expire_at: number
+  interview_id: number
+  room_name: string
+}
+
+export async function getRtcConnectionInfo(params: { job_id: number }): Promise<RtcConnectionInfoResponse> {
+  const raw = await api.post('/talent/vol-rtc-connection', params)
+  return raw as unknown as RtcConnectionInfoResponse
+}

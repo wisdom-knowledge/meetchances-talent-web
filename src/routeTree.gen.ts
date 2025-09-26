@@ -52,8 +52,10 @@ import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedMockInterviewRecordsRouteImport } from './routes/_authenticated/mock-interview/records'
+import { Route as AuthenticatedInterviewSession_viewRouteImport } from './routes/_authenticated/interview/session_view'
 import { Route as AuthenticatedInterviewSessionRouteImport } from './routes/_authenticated/interview/session'
 import { Route as AuthenticatedInterviewPrepareRouteImport } from './routes/_authenticated/interview/prepare'
+import { Route as AuthenticatedInterviewAntechamberRouteImport } from './routes/_authenticated/interview/antechamber'
 
 const ClerkRouteRoute = ClerkRouteRouteImport.update({
   id: '/clerk',
@@ -287,6 +289,12 @@ const AuthenticatedMockInterviewRecordsRoute =
     path: '/mock-interview/records',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedInterviewSession_viewRoute =
+  AuthenticatedInterviewSession_viewRouteImport.update({
+    id: '/interview/session_view',
+    path: '/interview/session_view',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInterviewSessionRoute =
   AuthenticatedInterviewSessionRouteImport.update({
     id: '/interview/session',
@@ -297,6 +305,12 @@ const AuthenticatedInterviewPrepareRoute =
   AuthenticatedInterviewPrepareRouteImport.update({
     id: '/interview/prepare',
     path: '/interview/prepare',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedInterviewAntechamberRoute =
+  AuthenticatedInterviewAntechamberRouteImport.update({
+    id: '/interview/antechamber',
+    path: '/interview/antechamber',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -315,9 +329,11 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
   '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
+  '/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -358,9 +374,11 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
   '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
+  '/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -406,9 +424,11 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
   '/_authenticated/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/_authenticated/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/_authenticated/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
+  '/_authenticated/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -453,9 +473,11 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/interview/antechamber'
     | '/interview/prepare'
     | '/interview/session'
     | '/mock-interview/records'
+    | '/interview/session_view'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
@@ -496,9 +518,11 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/interview/antechamber'
     | '/interview/prepare'
     | '/interview/session'
     | '/mock-interview/records'
+    | '/interview/session_view'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
@@ -543,9 +567,11 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
+    | '/_authenticated/interview/antechamber'
     | '/_authenticated/interview/prepare'
     | '/_authenticated/interview/session'
     | '/_authenticated/mock-interview/records'
+    | '/_authenticated/interview/session_view'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
@@ -892,6 +918,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMockInterviewRecordsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/interview/session_view': {
+      id: '/_authenticated/interview/session_view'
+      path: '/interview/session_view'
+      fullPath: '/interview/session_view'
+      preLoaderRoute: typeof AuthenticatedInterviewSession_viewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/interview/session': {
       id: '/_authenticated/interview/session'
       path: '/interview/session'
@@ -904,6 +937,13 @@ declare module '@tanstack/react-router' {
       path: '/interview/prepare'
       fullPath: '/interview/prepare'
       preLoaderRoute: typeof AuthenticatedInterviewPrepareRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/interview/antechamber': {
+      id: '/_authenticated/interview/antechamber'
+      path: '/interview/antechamber'
+      fullPath: '/interview/antechamber'
+      preLoaderRoute: typeof AuthenticatedInterviewAntechamberRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
@@ -935,9 +975,11 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedInterviewAntechamberRoute: typeof AuthenticatedInterviewAntechamberRoute
   AuthenticatedInterviewPrepareRoute: typeof AuthenticatedInterviewPrepareRoute
   AuthenticatedInterviewSessionRoute: typeof AuthenticatedInterviewSessionRoute
   AuthenticatedMockInterviewRecordsRoute: typeof AuthenticatedMockInterviewRecordsRoute
+  AuthenticatedInterviewSession_viewRoute: typeof AuthenticatedInterviewSession_viewRoute
   AuthenticatedAnnotateReportIndexRoute: typeof AuthenticatedAnnotateReportIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
@@ -961,10 +1003,14 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedInterviewAntechamberRoute:
+    AuthenticatedInterviewAntechamberRoute,
   AuthenticatedInterviewPrepareRoute: AuthenticatedInterviewPrepareRoute,
   AuthenticatedInterviewSessionRoute: AuthenticatedInterviewSessionRoute,
   AuthenticatedMockInterviewRecordsRoute:
     AuthenticatedMockInterviewRecordsRoute,
+  AuthenticatedInterviewSession_viewRoute:
+    AuthenticatedInterviewSession_viewRoute,
   AuthenticatedAnnotateReportIndexRoute: AuthenticatedAnnotateReportIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,

@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import emptyStar from '@/assets/images/empty-start.svg'
 import filledStar from '@/assets/images/full-start.svg'
 import { NodeActionTrigger, postNodeAction } from '@/features/interview/api'
+import { reportFinishFeedbackLowScore } from '@/lib/apm'
 
 
 export default function FinishPage() {
@@ -24,6 +25,13 @@ export default function FinishPage() {
   const [hoverRating, setHoverRating] = useState<number>(0)
   const [feedback, setFeedback] = useState<string>('')
   const [submitting, setSubmitting] = useState<boolean>(false)
+  // 细分评分（仅当总评分 <= 4 时展示与收集）
+  const [flowScore, setFlowScore] = useState<number>(0)
+  const [flowHover, setFlowHover] = useState<number>(0)
+  const [expressionScore, setExpressionScore] = useState<number>(0)
+  const [expressionHover, setExpressionHover] = useState<number>(0)
+  const [relevanceScore, setRelevanceScore] = useState<number>(0)
+  const [relevanceHover, setRelevanceHover] = useState<number>(0)
 
   const interviewId = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
@@ -131,6 +139,26 @@ export default function FinishPage() {
 
   const goNext = async () => {
     if (!interviewId || rating <= 0 || submitting) return
+    // 低分时强制要求细分评分全部选择
+    if (rating <= 4 && (flowScore <= 0 || expressionScore <= 0 || relevanceScore <= 0)) return
+    // 当评分 <= 4 星时，额外上报自定义 APM 事件（不影响原有接口上报）
+    if (rating <= 4) {
+      try {
+        const sp = new URLSearchParams(window.location.search)
+        const jobId = sp.get('job_id') ?? undefined
+        const jobApplyId = sp.get('job_apply_id') ?? undefined
+        reportFinishFeedbackLowScore({
+          interview_id: Number(interviewId),
+          total_score: rating,
+          flow_score: flowScore || undefined,
+          expression_score: expressionScore || undefined,
+          relevance_score: relevanceScore || undefined,
+          feedback_text: feedback || undefined,
+          job_id: jobId,
+          job_apply_id: jobApplyId,
+        })
+      } catch (_e) { /* ignore */ }
+    }
     await handleSubmit({
       interview_id: Number(interviewId),
       score: rating,
@@ -151,44 +179,25 @@ export default function FinishPage() {
     }
   }
 
-  const handleHelp = () => {
-    setHelpOpen(true)
-  }
-
-  //  暂时展出提交资料符合页面
-  // if (finishSubmit) {
-  //   return (
-  //     <Main
-  //       fixed
-  //       className={`flex w-full items-center justify-center bg-white`}
-  //     >
-  //       <img
-  //         src={
-  //           'https://dnu-cdn.xpertiise.com/common/8af6d9a9-6f39-47e2-ac48-74abe3c833e6.svg'
-  //         }
-  //         alt='meetchances'
-  //         className='mb-[32px] ml-3 h-[120px] w-[140px] object-contain'
-  //       />
-  //       <h2 className='mb-3 text-xl font-semibold'>复核面试中</h2>
-  //       <p className='mb-6 max-w-[428px] text-center text-sm opacity-70'>
-  //         感谢您完成面试，我们正在复核您的面试过程，预计48小时内通知您，请等待短信通知
-  //       </p>
-  //     </Main>
-  //   )
-  // }
+  // 保留：如需在其它位置触发支持弹窗，可调用 setHelpOpen(true)
 
   return (
     <Main
       fixed
       className={`flex w-full items-center justify-center bg-[#ECD9FC]`}
     >
+      {/* 右上角：寻求支持 */}
+      <div className='absolute right-6 top-6'>
+        <Button variant='link' className='text-primary' onClick={() => setHelpOpen(true)}>寻求支持</Button>
+      </div>
       <section className='min-w-[418px] space-y-6'>
         <Card>
           <CardContent className='p-6'>
             <h2 className='mb-3 text-center text-[24px] font-semibold tracking-wide'>
               您的面试体验如何？
             </h2>
-            <div className='mb-6 flex items-center justify-center gap-[10px]'>
+            <div className='mb-2 text-[18px] font-semibold'>整体评分</div>
+            <div className='flex items-center gap-[10px]'>
               {Array.from({ length: 5 }).map((_, i) => {
                 const value = i + 1
                 const filled = (hoverRating || rating) >= value
@@ -202,29 +211,93 @@ export default function FinishPage() {
                     onClick={() => setRating(value)}
                     className='transition-transform hover:scale-105'
                   >
-                    <img src={filled ? filledStar : emptyStar} alt={filled ? 'filled-star' : 'empty-star'} className='h-10 w-10' />
+                    <img src={filled ? filledStar : emptyStar} alt={filled ? 'filled-star' : 'empty-star'} className='h-8 w-8' />
                   </button>
                 )
               })}
             </div>
 
-            {rating > 0 && (
-              <div className='space-y-2 text-center'>
-                <Textarea
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  placeholder='请填写您的反馈（可选）'
-                  className='min-h-[151px] min-w-[458px]'
-                />
+
+            {rating > 0 && rating <= 4 && (
+              <div className='mt-6 space-y-6'>
                 <div>
-                  <a
-                    href='https://meetchances.feishu.cn/share/base/form/shrcnU5zDT6uFeBSHM0SeUVvdah'
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='text-sm text-[var(--color-blue-600)] underline '
-                  >
-                    参与体验调研{">>"}
-                  </a>
+                  <div className='mb-2 text-[18px] font-semibold'>面试过程流畅、无卡顿</div>
+                  <div className='flex items-center gap-[10px]'>
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const value = i + 1
+                      const filled = (flowHover || flowScore) >= value
+                      return (
+                        <button
+                          key={`flow-${value}`}
+                          type='button'
+                          aria-label={`流畅度评分 ${value}`}
+                          onMouseEnter={() => setFlowHover(value)}
+                          onMouseLeave={() => setFlowHover(0)}
+                          onClick={() => setFlowScore(value)}
+                          className='transition-transform hover:scale-105'
+                        >
+                          <img src={filled ? filledStar : emptyStar} alt={filled ? 'filled-star' : 'empty-star'} className='h-8 w-8' />
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <div className='mb-2 text-[18px] font-semibold'>面试官表达自然、理解准确</div>
+                  <div className='flex items-center gap-[10px]'>
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const value = i + 1
+                      const filled = (expressionHover || expressionScore) >= value
+                      return (
+                        <button
+                          key={`exp-${value}`}
+                          type='button'
+                          aria-label={`表达理解评分 ${value}`}
+                          onMouseEnter={() => setExpressionHover(value)}
+                          onMouseLeave={() => setExpressionHover(0)}
+                          onClick={() => setExpressionScore(value)}
+                          className='transition-transform hover:scale-105'
+                        >
+                          <img src={filled ? filledStar : emptyStar} alt={filled ? 'filled-star' : 'empty-star'} className='h-8 w-8' />
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <div className='mb-2 text-[18px] font-semibold'>面试问题与岗位和您的背景相符</div>
+                  <div className='flex items-center gap-[10px]'>
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const value = i + 1
+                      const filled = (relevanceHover || relevanceScore) >= value
+                      return (
+                        <button
+                          key={`rel-${value}`}
+                          type='button'
+                          aria-label={`相关性评分 ${value}`}
+                          onMouseEnter={() => setRelevanceHover(value)}
+                          onMouseLeave={() => setRelevanceHover(0)}
+                          onClick={() => setRelevanceScore(value)}
+                          className='transition-transform hover:scale-105'
+                        >
+                          <img src={filled ? filledStar : emptyStar} alt={filled ? 'filled-star' : 'empty-star'} className='h-8 w-8' />
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {rating > 0 && (
+                    <div className='space-y-2 text-center mt-4'>
+                      <Textarea
+                        value={feedback}
+                        onChange={(e) => setFeedback(e.target.value)}
+                        placeholder='请填写您的反馈（可选）'
+                        className='min-h-[151px] min-w-[458px]'
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -234,7 +307,9 @@ export default function FinishPage() {
         <div className='flex items-center justify-center'>
           <Button
             onClick={goNext}
-            disabled={rating <= 0 || submitting}
+            disabled={
+              rating <= 0 || submitting || (rating <= 4 && (flowScore <= 0 || expressionScore <= 0 || relevanceScore <= 0))
+            }
             className='h-[44px] w-[200px] bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)] text-white'
           >
             提交
@@ -269,15 +344,6 @@ export default function FinishPage() {
           </div>
         </section>
       )} */}
-      <div className='absolute right-0 bottom-3 left-0 text-center text-sm text-black/70'>
-        需要支持请
-        <span
-          className='cursor-pointer text-[var(--color-blue-600)] underline'
-          onClick={handleHelp}
-        >
-          寻求帮助
-        </span>
-      </div>
 
       {/* 寻求支持弹窗 */}
       <SupportDialog

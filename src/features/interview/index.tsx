@@ -4,13 +4,13 @@ import { RoomAudioRenderer, RoomContext } from '@livekit/components-react'
 import { RoomEvent, Room, type RemoteParticipant } from 'livekit-client'
 // AgentControlBar moved into SessionView
 import '@livekit/components-styles'
-import { loadInterviewConnectionFromStorage, useInterviewRecordStatus, type InterviewConnectionDetails } from '@/features/interview/api'
+import { loadInterviewConnectionFromStorage, useInterviewRecordStatus, type InterviewConnectionDetails, removeInterviewConnectionFromStorage } from '@/features/interview/api'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
-import { markInterviewStart, reportInterviewDeviceInfo, reportInterviewConnected, reportRecordFail, reportWsConnectTimeout, reportWsReconnectTimeout, userEvent, reportRoomConnectError } from '@/lib/apm'
+import { markInterviewStart, reportInterviewDeviceInfo, reportInterviewConnected, reportRecordFail, reportWsConnectTimeout, reportWsReconnectTimeout, userEvent, reportRoomConnectError, reportSessionStay15s } from '@/lib/apm'
 import { toast } from 'sonner'
 
 interface InterviewPageProps {
@@ -109,11 +109,34 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     markInterviewStart()
   }, [])
   
-  // 进入页面后再次尝试从存储读取（防止刷新后初始状态为 null）
+  // Session页面停留15秒埋点
   useEffect(() => {
+    const timer = setTimeout(() => {
+      reportSessionStay15s()
+    }, 15000) // 15秒
+    
+    return () => clearTimeout(timer)
+  }, [])
+  
+  // 进入页面后再次尝试从存储读取（防止刷新后初始状态为 null）
+  const hasLoadedDetailsRef = useRef(false)
+  
+  useEffect(() => {
+    // 防止严格模式下重复执行
+    if (hasLoadedDetailsRef.current) return
+    
     const details = loadInterviewConnectionFromStorage(interviewId)
-    if (details) setData(details)
-  }, [interviewId])
+    if (details) {
+      setData(details)
+      hasLoadedDetailsRef.current = true
+    } else {
+      setData(null)
+      let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrue&source=session_refresh`
+      if (jobApplyId) url += `&job_apply_id=${jobApplyId}`
+      navigate({ to: url, replace: true })
+    }
+  }, [])
+
   const performEndInterview = async () => {
     if (navigatedRef.current) return
     const interviewId = (data as { interviewId?: string | number } | undefined)?.interviewId
@@ -345,7 +368,11 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     const handleConnChanged = () => {
       // Connection state changed logic if needed
     }
-    room.on(RoomEvent.Disconnected, handleDisconnected)
+    const details = loadInterviewConnectionFromStorage(interviewId)
+    if (details?.token && details?.serverUrl) { 
+      room.on(RoomEvent.Disconnected, handleDisconnected)
+      removeInterviewConnectionFromStorage(interviewId)
+    }
     room.on(RoomEvent.Reconnecting, handleReconnecting)
     room.on(RoomEvent.Reconnected, handleReconnected)
     room.on(RoomEvent.ConnectionStateChanged, handleConnChanged)
