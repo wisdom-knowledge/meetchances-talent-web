@@ -287,11 +287,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const setRtcConnectionInfo = useRoomStore((s) => s.setRtcConnectionInfo)
   // 当视频设备自动选择时，保存为默认选择
   useEffect(() => {
+    if (viewMode !== ViewMode.InterviewPrepare) return
     const preferred = getPreferredDeviceId('videoinput')
     if (!preferred && cam.activeDeviceId) {
       void setPreferredDeviceIdSmart('videoinput', cam.activeDeviceId, cam.devices)
     }
-  }, [cam.activeDeviceId, cam.devices])
+  }, [viewMode, cam.activeDeviceId, cam.devices])
   const user = useAuthStore((s) => s.auth.user)
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
@@ -876,7 +877,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     || !interviewNodeId
                     || connecting
                   }
-                  className='w-full' onClick={onStartInterviewClick}>
+                  className='w-full disabled:opacity-100 disabled:bg-[#C9C9C9] disabled:border-[0.5px] disabled:border-[rgba(255,255,255,0.12)]' onClick={onStartInterviewClick}>
                   {connecting ? '面试间连接中…' : '确认设备，下一步'}
                 </Button>
                 <Button
