@@ -284,11 +284,13 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
   // 当视频设备自动选择时，保存为默认选择
   useEffect(() => {
+    if (viewMode === ViewMode.InterviewPrepare) {
     const preferred = getPreferredDeviceId('videoinput')
-    if (!preferred && cam.activeDeviceId) {
-      void setPreferredDeviceIdSmart('videoinput', cam.activeDeviceId, cam.devices)
+      if (!preferred && cam.activeDeviceId) {
+        void setPreferredDeviceIdSmart('videoinput', cam.activeDeviceId, cam.devices)
+      }
     }
-  }, [cam.activeDeviceId, cam.devices])
+  }, [cam.activeDeviceId, cam.devices, viewMode])
   const user = useAuthStore((s) => s.auth.user)
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
