@@ -289,11 +289,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const setRtcConnectionInfo = useRoomStore((s) => s.setRtcConnectionInfo)
   // 当视频设备自动选择时，保存为默认选择
   useEffect(() => {
+    if (viewMode !== ViewMode.InterviewPrepare) return
     const preferred = getPreferredDeviceId('videoinput')
     if (!preferred && cam.activeDeviceId) {
       void setPreferredDeviceIdSmart('videoinput', cam.activeDeviceId, cam.devices)
     }
-  }, [cam.activeDeviceId, cam.devices])
+  }, [viewMode, cam.activeDeviceId, cam.devices])
   const user = useAuthStore((s) => s.auth.user)
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
