@@ -1090,23 +1090,32 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     <div className='text-2xl font-bold mb-2 leading-tight truncate text-foreground'>
                       {job.title}
                     </div>
-                    <div className='flex items-center gap-4 text-primary mb-2'>
-                      <div className='flex items-center'>
-                        <IconBriefcase className='h-4 w-4 mr-1' />
-                        <span className='text-[14px]'>时薪制</span>
-                      </div>
-                      <div className='flex items-center'>
-                        <IconWorldPin className='h-4 w-4 mr-1' />
-                        <span className='text-[14px]'>远程</span>
-                      </div>
-                    </div>
+                    {
+                      !isMock && (
+                        <div className='flex items-center gap-4 text-primary mb-2'>
+                          <div className='flex items-center'>
+                            <IconBriefcase className='h-4 w-4 mr-1' />
+                            <span className='text-[14px]'>时薪制</span>
+                          </div>
+                          <div className='flex items-center'>
+                            <IconWorldPin className='h-4 w-4 mr-1' />
+                            <span className='text-[14px]'>远程</span>
+                          </div>
+                        </div>
+                      )
+                    }
                   </div>
-                  <div className='hidden md:flex flex-col items-end min-w-[140px]'>
-                    <div className='text-xl font-semibold text-foreground mb-1'>
-                      ¥{job.salary_min ?? 0}~¥{job.salary_max ?? 0}
-                    </div>
-                    <div className='text-xs text-muted-foreground mb-3'>每小时</div>
-                  </div>
+                  {
+                    !isMock && (
+                      <div className='hidden md:flex flex-col items-end min-w-[140px]'>
+                        <div className='text-xl font-semibold text-foreground mb-1'>
+                          ¥{job.salary_min ?? 0}~¥{job.salary_max ?? 0}
+                        </div>
+                        <div className='text-xs text-muted-foreground mb-3'>每小时</div>
+                      </div>
+                    )
+                  }
+
                 </div>
 
                 {/* 发布者信息 */}
