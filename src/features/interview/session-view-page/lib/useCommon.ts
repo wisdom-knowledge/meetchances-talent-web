@@ -176,7 +176,7 @@ export const useJoin = (): [boolean, () => Promise<void | boolean>] => {
       return
     }
     RtcClient.updateBasicInfo({
-      app_id: '68c7802af2dba90172caaa3a',
+      app_id: import.meta.env.VITE_RTC_APP_ID ?? '',
       room_id: rtcInfo.room_id,
       user_id: rtcInfo.user_id,
       token: rtcInfo.token,

@@ -54,6 +54,7 @@ jobs:
           VITE_APM_APP_ID: ${{ secrets.VITE_APM_APP_ID }}
           VITE_APM_APP_TOKEN: ${{ secrets.VITE_APM_APP_TOKEN }}
           VITE_APP_ENV: ${{ vars.VITE_APP_ENV }}
+          VITE_RTC_APP_ID: ${{ vars.VITE_RTC_APP_ID }}
         run: pnpm run build
 
       - name: 验证构建产物
