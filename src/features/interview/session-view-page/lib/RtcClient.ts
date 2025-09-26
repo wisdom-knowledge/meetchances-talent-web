@@ -105,7 +105,7 @@ export class RTCClient {
    * 创建引擎
    */
   createEngine = async () => {
-    this.engine = VERTC.createEngine(this.basicInfo.app_id || '68c7802af2dba90172caaa3a');
+    this.engine = VERTC.createEngine(this.basicInfo.app_id || import.meta.env.VITE_RTC_APP_ID || '');
     try {
       const { default: RTCAIAnsExtension } = await import('@volcengine/rtc/extension-ainr');
       const AIAnsExtension = new RTCAIAnsExtension();
