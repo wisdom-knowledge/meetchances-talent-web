@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { IconClockHour4, IconCurrencyYen } from '@tabler/icons-react'
+import { IconClockHour4, IconCurrencyYen, IconSearch } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 // import { Search } from '@/components/search'
 // import { Button } from '@/components/ui/button'
@@ -29,6 +29,7 @@ import {
 } from './api'
 // import { useNavigate } from '@tanstack/react-router'
 import JobDetailDrawer from './components/job-detail-drawer'
+import { Input } from '@/components/ui/input'
 
 function formatPublishTime(createdAt?: string): string {
   if (!createdAt) return ''
@@ -146,6 +147,14 @@ export default function JobsListPage() {
               职位列表
             </h1>
             <p className='text-muted-foreground text-sm sm:text-base'>寻找与你匹配的工作机会</p>
+            
+          </div>
+          
+        </div>
+        <div className='mt-2 w-full flex items-center gap-2'>
+          <div className='relative flex-1'>
+            <Input placeholder='搜索职位' className='rounded-full pr-9 placeholder:text-sm' />
+            <IconSearch aria-hidden='true' className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
           </div>
           <div className='hidden items-center gap-2 sm:flex'>
             <button
