@@ -151,7 +151,7 @@ export default function JobsListPage() {
           </div>
           
         </div>
-        <div className='mt-2 w-full flex items-center gap-2'>
+        <div className='mt-4 w-full flex items-center gap-2'>
           <div className='relative flex-1'>
             <Input placeholder='搜索职位' className='rounded-full pr-9 placeholder:text-sm' />
             <IconSearch aria-hidden='true' className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
