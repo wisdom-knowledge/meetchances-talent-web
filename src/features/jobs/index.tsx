@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { IconClockHour4, IconCurrencyYen } from '@tabler/icons-react'
+import { useState, useMemo, useEffect } from 'react'
+import { IconClockHour4, IconCurrencyYen, IconSearch } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 // import { Search } from '@/components/search'
 // import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ import { Main } from '@/components/layout/main'
 // import { TopNav } from '@/components/layout/top-nav'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { userEvent } from '@/lib/apm'
+import { useNavigate, useRouterState } from '@tanstack/react-router'
 
 // import { ExploreJobs } from './mockData.ts'
 import {
@@ -28,6 +29,9 @@ import {
 } from './api'
 // import { useNavigate } from '@tanstack/react-router'
 import JobDetailDrawer from './components/job-detail-drawer'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import searchPng from '@/assets/images/search.png'
 
 function formatPublishTime(createdAt?: string): string {
   if (!createdAt) return ''
@@ -46,17 +50,38 @@ function formatPublishTime(createdAt?: string): string {
 }
 
 export default function JobsListPage() {
-  // const navigate = useNavigate()
+  const navigate = useNavigate()
+  const { location } = useRouterState()
+  const search = location.search as Record<string, unknown>
+
+  const jobIdFromUrl = useMemo(() => {
+    const v = search?.job_id
+    if (typeof v === 'string') {
+      const n = Number(v)
+      return Number.isNaN(n) ? v : n
+    }
+    if (typeof v === 'number') return v
+    return null
+  }, [search])
 
   const [selectedJob, setSelectedJob] = useState<ApiJob | null>(null)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [selectedJobId, setSelectedJobId] = useState<string | number | null>(jobIdFromUrl)
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(Boolean(jobIdFromUrl))
 
   const [sortBy, setSortBy] = useState<JobsSortBy>(JobsSortBy.PublishTime)
   const [sortOrder, setSortOrder] = useState<JobsSortOrder>(JobsSortOrder.Desc)
+  const [keyword, setKeyword] = useState<string>('')
+  const [debouncedKeyword, setDebouncedKeyword] = useState<string>('')
+
+  // 300ms 防抖
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300)
+    return () => clearTimeout(t)
+  }, [keyword])
 
   const queryParams = useMemo(
-    () => ({ skip: 0, limit: 20, sort_by: sortBy, sort_order: sortOrder }),
-    [sortBy, sortOrder]
+    () => ({ skip: 0, limit: 20, sort_by: sortBy, sort_order: sortOrder, title: debouncedKeyword || undefined }),
+    [sortBy, sortOrder, debouncedKeyword]
   )
   const { data: jobsData, isLoading } = useJobsQuery(queryParams)
   const jobs = useMemo(() => jobsData?.data ?? [], [jobsData])
@@ -65,23 +90,54 @@ export default function JobsListPage() {
   const { data: applyStatusMap } = useJobApplyStatus(jobIds, Boolean(jobIds.length))
 
   // 当只拿到列表的精简数据时，点击后再拉详情
-  const { data: detailData } = useJobDetailQuery(
-    selectedJob?.id ?? null,
-    isDrawerOpen
-  )
+  const effectiveSelectedId = selectedJobId ?? selectedJob?.id ?? null
+  const { data: detailData } = useJobDetailQuery(effectiveSelectedId, isDrawerOpen)
   const selectedJobData = detailData ?? selectedJob
 
   const handleSelectJob = (job: ApiJob) => {
     setSelectedJob(job)
+    setSelectedJobId(job.id)
     setIsDrawerOpen(true)
     userEvent('position_item_clicked', '点击岗位列表项', { job_id: job.id })
+    navigate({
+      to: location.pathname,
+      search: (prev) => ({ ...(prev as Record<string, unknown>), job_id: job.id }),
+    })
   }
 
   const handleCloseDrawer = () => {
     setIsDrawerOpen(false)
-    // 关闭后清理当前选中数据
     setSelectedJob(null)
+    setSelectedJobId(null)
+    // 从 URL 移除 job_id
+    navigate({
+      to: location.pathname,
+      search: (prev) => {
+        const { job_id: _omit, ...rest } = (prev || {}) as Record<string, unknown>
+        return rest
+      },
+    })
   }
+
+  // 当 URL 中存在 job_id 时，进入页面后自动展开并同步本地状态
+  useEffect(() => {
+    if (jobIdFromUrl) {
+      setIsDrawerOpen(true)
+      setSelectedJobId(jobIdFromUrl)
+    } else {
+      setIsDrawerOpen(false)
+      setSelectedJobId(null)
+      setSelectedJob(null)
+    }
+  }, [jobIdFromUrl])
+
+  // 当列表加载后，如果 URL 有 job_id 但本地还没选中具体 Job，则尝试从列表中填充
+  useEffect(() => {
+    if (jobIdFromUrl && !selectedJob) {
+      const found = jobs.find((j) => String(j.id) === String(jobIdFromUrl))
+      if (found) setSelectedJob(found)
+    }
+  }, [jobIdFromUrl, jobs, selectedJob])
 
   const isPublishActive = sortBy === JobsSortBy.PublishTime
   const isSalaryActive = sortBy === JobsSortBy.SalaryMax
@@ -101,6 +157,29 @@ export default function JobsListPage() {
               职位列表
             </h1>
             <p className='text-muted-foreground text-sm sm:text-base'>寻找与你匹配的工作机会</p>
+            
+          </div>
+          
+        </div>
+        <div className='mt-4 w-full flex items-center gap-2'>
+          <div className='relative flex-1'>
+            <Input
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder='搜索职位'
+              className='rounded-full pr-16 placeholder:text-sm'
+            />
+            {keyword ? (
+              <button
+                type='button'
+                onClick={() => setKeyword('')}
+                aria-label='清空搜索'
+                className='absolute right-9 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full text-muted-foreground hover:bg-accent flex items-center justify-center'
+              >
+                <span className='text-lg leading-none'>&times;</span>
+              </button>
+            ) : null}
+            <IconSearch aria-hidden='true' className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
           </div>
           <div className='hidden items-center gap-2 sm:flex'>
             <button
@@ -181,8 +260,23 @@ export default function JobsListPage() {
                         </div>
                       </li>
                     ))
-                  : [...jobs].map((job: ApiJob) => {
-                      const isActive = selectedJob?.id === job.id
+                  : jobs.length === 0 ? (
+                    <li>
+                      <div className='w-full py-16 text-center'>
+                        <div className='mx-auto mb-4 h-16 w-16 opacity-80'>
+                          <img src={searchPng} alt='' className='h-16 w-16 mx-auto' aria-hidden='true' />
+                        </div>
+                        <h3 className='text-base font-semibold'>未找到相关职位</h3>
+                        <p className='text-muted-foreground text-sm mt-1'>试试调整关键词{keyword ? '，或清空搜索' : ''}</p>
+                        {keyword ? (
+                          <div className='mt-4'>
+                            <Button size='sm' variant='secondary' onClick={() => setKeyword('')}>清空搜索</Button>
+                          </div>
+                        ) : null}
+                      </div>
+                    </li>
+                  ) : ([...jobs].map((job: ApiJob) => {
+                      const isActive = String(selectedJobId ?? selectedJob?.id ?? '') === String(job.id)
                       return (
                         <li key={job.id}>
                           <div
@@ -237,7 +331,7 @@ export default function JobsListPage() {
                           </div>
                         </li>
                       )
-                    })}
+                    }))}
               </ul>
             </ScrollArea>
           </div>
