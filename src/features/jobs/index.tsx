@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { IconClockHour4, IconCurrencyYen } from '@tabler/icons-react'
+import { IconClockHour4, IconCurrencyYen, IconSearch } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 // import { Search } from '@/components/search'
 // import { Button } from '@/components/ui/button'
@@ -29,6 +29,9 @@ import {
 } from './api'
 // import { useNavigate } from '@tanstack/react-router'
 import JobDetailDrawer from './components/job-detail-drawer'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import searchPng from '@/assets/images/search.png'
 
 function formatPublishTime(createdAt?: string): string {
   if (!createdAt) return ''
@@ -67,10 +70,18 @@ export default function JobsListPage() {
 
   const [sortBy, setSortBy] = useState<JobsSortBy>(JobsSortBy.PublishTime)
   const [sortOrder, setSortOrder] = useState<JobsSortOrder>(JobsSortOrder.Desc)
+  const [keyword, setKeyword] = useState<string>('')
+  const [debouncedKeyword, setDebouncedKeyword] = useState<string>('')
+
+  // 300ms 防抖
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300)
+    return () => clearTimeout(t)
+  }, [keyword])
 
   const queryParams = useMemo(
-    () => ({ skip: 0, limit: 20, sort_by: sortBy, sort_order: sortOrder }),
-    [sortBy, sortOrder]
+    () => ({ skip: 0, limit: 20, sort_by: sortBy, sort_order: sortOrder, title: debouncedKeyword || undefined }),
+    [sortBy, sortOrder, debouncedKeyword]
   )
   const { data: jobsData, isLoading } = useJobsQuery(queryParams)
   const jobs = useMemo(() => jobsData?.data ?? [], [jobsData])
@@ -146,6 +157,29 @@ export default function JobsListPage() {
               职位列表
             </h1>
             <p className='text-muted-foreground text-sm sm:text-base'>寻找与你匹配的工作机会</p>
+            
+          </div>
+          
+        </div>
+        <div className='mt-4 w-full flex items-center gap-2'>
+          <div className='relative flex-1'>
+            <Input
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder='搜索职位'
+              className='rounded-full pr-16 placeholder:text-sm'
+            />
+            {keyword ? (
+              <button
+                type='button'
+                onClick={() => setKeyword('')}
+                aria-label='清空搜索'
+                className='absolute right-9 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full text-muted-foreground hover:bg-accent flex items-center justify-center'
+              >
+                <span className='text-lg leading-none'>&times;</span>
+              </button>
+            ) : null}
+            <IconSearch aria-hidden='true' className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
           </div>
           <div className='hidden items-center gap-2 sm:flex'>
             <button
@@ -226,7 +260,22 @@ export default function JobsListPage() {
                         </div>
                       </li>
                     ))
-                  : [...jobs].map((job: ApiJob) => {
+                  : jobs.length === 0 ? (
+                    <li>
+                      <div className='w-full py-16 text-center'>
+                        <div className='mx-auto mb-4 h-16 w-16 opacity-80'>
+                          <img src={searchPng} alt='' className='h-16 w-16 mx-auto' aria-hidden='true' />
+                        </div>
+                        <h3 className='text-base font-semibold'>未找到相关职位</h3>
+                        <p className='text-muted-foreground text-sm mt-1'>试试调整关键词{keyword ? '，或清空搜索' : ''}</p>
+                        {keyword ? (
+                          <div className='mt-4'>
+                            <Button size='sm' variant='secondary' onClick={() => setKeyword('')}>清空搜索</Button>
+                          </div>
+                        ) : null}
+                      </div>
+                    </li>
+                  ) : ([...jobs].map((job: ApiJob) => {
                       const isActive = String(selectedJobId ?? selectedJob?.id ?? '') === String(job.id)
                       return (
                         <li key={job.id}>
@@ -282,7 +331,7 @@ export default function JobsListPage() {
                           </div>
                         </li>
                       )
-                    })}
+                    }))}
               </ul>
             </ScrollArea>
           </div>
