@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
 import MockEmptyState from '@/features/mock-interview/components/empty-state'
 import MockCard from '@/features/mock-interview/components/mock-card'
 import { fetchMockInterviewList, fetchMockCategories } from './api'
@@ -27,7 +26,7 @@ type CategoryOption = {
 }
 
 export default function MockInterviewPage() {
-  const search = useSearch({ from: '/_authenticated/mock-interview/' }) as {
+  const search = useSearch({ from: '/_public/mock-interview/' }) as {
     page?: number
     pageSize?: number
     q?: string
@@ -144,7 +143,6 @@ export default function MockInterviewPage() {
     <>
       <Header fixed>
         <div className='ml-auto flex items-center space-x-4'>
-          <ProfileDropdown />
         </div>
       </Header>
 
@@ -212,14 +210,13 @@ export default function MockInterviewPage() {
             ref={catScrollRef}
             className='mx-9 flex items-stretch gap-6 overflow-x-auto whitespace-nowrap [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
           >
-            {categories.map(({ id, label, Icon, icon }) => {
+            {categories.map(({ id, label, Icon }) => {
               const active = category === id
               return (
                 <button
                   key={id}
                   onClick={() => setCategory(id)}
                   className='group inline-flex max-w-[120px] min-w-[88px] shrink-0 flex-col items-center gap-2 text-sm'
-                  aria-pressed={active}
                 >
                   <span
                     className={[
@@ -229,23 +226,7 @@ export default function MockInterviewPage() {
                         : 'text-foreground/80 group-hover:text-primary',
                     ].join(' ')}
                   >
-                    {icon ? (
-                      <span
-                        className='h-6 w-6 bg-current'
-                        style={{
-                          WebkitMaskImage: `url(${icon})`,
-                          maskImage: `url(${icon})`,
-                          WebkitMaskRepeat: 'no-repeat',
-                          maskRepeat: 'no-repeat',
-                          WebkitMaskPosition: 'center',
-                          maskPosition: 'center',
-                          WebkitMaskSize: 'contain',
-                          maskSize: 'contain',
-                        }}
-                      />
-                    ) : (
-                      <Icon className='h-6 w-6' />
-                    )}
+                    <Icon className='h-6 w-6' />
                   </span>
                   <span
                     className={[

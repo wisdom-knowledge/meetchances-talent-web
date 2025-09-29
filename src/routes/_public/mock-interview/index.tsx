@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import MockInterviewPage from '@/features/mock-interview'
 
-export const Route = createFileRoute('/_authenticated/mock-interview/')({
+export const Route = createFileRoute('/_public/mock-interview/')({
   validateSearch: (search: { page?: number; pageSize?: number; q?: string; category?: string }) => {
     return {
       page: typeof search?.page === 'number' && search.page > 0 ? search.page : 1,
@@ -12,5 +12,3 @@ export const Route = createFileRoute('/_authenticated/mock-interview/')({
   },
   component: () => <MockInterviewPage />,
 })
-
-

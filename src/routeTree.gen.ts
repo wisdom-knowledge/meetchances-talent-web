@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ClerkRouteRouteImport } from './routes/clerk/route'
+import { Route as PublicRouteRouteImport } from './routes/_public/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as JobsJob_idRouteImport } from './routes/jobs/$job_id'
@@ -26,13 +27,13 @@ import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-p
 import { Route as ClerkAuthenticatedRouteRouteImport } from './routes/clerk/_authenticated/route'
 import { Route as ClerkauthRouteRouteImport } from './routes/clerk/(auth)/route'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
+import { Route as PublicMockInterviewIndexRouteImport } from './routes/_public/mock-interview/index'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedTalentPoolIndexRouteImport } from './routes/_authenticated/talent-pool/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedResumeIndexRouteImport } from './routes/_authenticated/resume/index'
 import { Route as AuthenticatedResumeUploadIndexRouteImport } from './routes/_authenticated/resume-upload/index'
-import { Route as AuthenticatedMockInterviewIndexRouteImport } from './routes/_authenticated/mock-interview/index'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs/index'
 import { Route as AuthenticatedJobRecommendIndexRouteImport } from './routes/_authenticated/job-recommend/index'
 import { Route as AuthenticatedJobDetailIndexRouteImport } from './routes/_authenticated/job-detail/index'
@@ -48,11 +49,11 @@ import { Route as AuthenticatedAnnotateReportIndexRouteImport } from './routes/_
 import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/clerk/_authenticated/user-management'
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
+import { Route as PublicMockInterviewRecordsRouteImport } from './routes/_public/mock-interview/records'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
-import { Route as AuthenticatedMockInterviewRecordsRouteImport } from './routes/_authenticated/mock-interview/records'
 import { Route as AuthenticatedInterviewSession_viewRouteImport } from './routes/_authenticated/interview/session_view'
 import { Route as AuthenticatedInterviewSessionRouteImport } from './routes/_authenticated/interview/session'
 import { Route as AuthenticatedInterviewPrepareRouteImport } from './routes/_authenticated/interview/prepare'
@@ -61,6 +62,10 @@ import { Route as AuthenticatedInterviewAntechamberRouteImport } from './routes/
 const ClerkRouteRoute = ClerkRouteRouteImport.update({
   id: '/clerk',
   path: '/clerk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicRouteRoute = PublicRouteRouteImport.update({
+  id: '/_public',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -141,6 +146,12 @@ const AuthenticatedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const PublicMockInterviewIndexRoute =
+  PublicMockInterviewIndexRouteImport.update({
+    id: '/mock-interview/',
+    path: '/mock-interview/',
+    getParentRoute: () => PublicRouteRoute,
+  } as any)
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -173,12 +184,6 @@ const AuthenticatedResumeUploadIndexRoute =
   AuthenticatedResumeUploadIndexRouteImport.update({
     id: '/resume-upload/',
     path: '/resume-upload/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedMockInterviewIndexRoute =
-  AuthenticatedMockInterviewIndexRouteImport.update({
-    id: '/mock-interview/',
-    path: '/mock-interview/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
@@ -265,6 +270,12 @@ const ClerkauthSignInRoute = ClerkauthSignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => ClerkauthRouteRoute,
 } as any)
+const PublicMockInterviewRecordsRoute =
+  PublicMockInterviewRecordsRouteImport.update({
+    id: '/mock-interview/records',
+    path: '/mock-interview/records',
+    getParentRoute: () => PublicRouteRoute,
+  } as any)
 const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsRouteImport.update({
     id: '/notifications',
@@ -288,12 +299,6 @@ const AuthenticatedSettingsAccountRoute =
     id: '/account',
     path: '/account',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
-const AuthenticatedMockInterviewRecordsRoute =
-  AuthenticatedMockInterviewRecordsRouteImport.update({
-    id: '/mock-interview/records',
-    path: '/mock-interview/records',
-    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedInterviewSession_viewRoute =
   AuthenticatedInterviewSession_viewRouteImport.update({
@@ -340,11 +345,11 @@ export interface FileRoutesByFullPath {
   '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
-  '/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/mock-interview/records': typeof PublicMockInterviewRecordsRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -360,13 +365,13 @@ export interface FileRoutesByFullPath {
   '/job-detail': typeof AuthenticatedJobDetailIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
-  '/mock-interview': typeof AuthenticatedMockInterviewIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
   '/resume': typeof AuthenticatedResumeIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/talent-pool': typeof AuthenticatedTalentPoolIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/mock-interview': typeof PublicMockInterviewIndexRoute
 }
 export interface FileRoutesByTo {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
@@ -386,11 +391,11 @@ export interface FileRoutesByTo {
   '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
-  '/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/mock-interview/records': typeof PublicMockInterviewRecordsRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -406,17 +411,18 @@ export interface FileRoutesByTo {
   '/job-detail': typeof AuthenticatedJobDetailIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
-  '/mock-interview': typeof AuthenticatedMockInterviewIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
   '/resume': typeof AuthenticatedResumeIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/talent-pool': typeof AuthenticatedTalentPoolIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/mock-interview': typeof PublicMockInterviewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_public': typeof PublicRouteRouteWithChildren
   '/clerk': typeof ClerkRouteRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk/(auth)': typeof ClerkauthRouteRouteWithChildren
@@ -437,11 +443,11 @@ export interface FileRoutesById {
   '/_authenticated/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/_authenticated/interview/session': typeof AuthenticatedInterviewSessionRoute
   '/_authenticated/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
-  '/_authenticated/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/_public/mock-interview/records': typeof PublicMockInterviewRecordsRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -457,13 +463,13 @@ export interface FileRoutesById {
   '/_authenticated/job-detail/': typeof AuthenticatedJobDetailIndexRoute
   '/_authenticated/job-recommend/': typeof AuthenticatedJobRecommendIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
-  '/_authenticated/mock-interview/': typeof AuthenticatedMockInterviewIndexRoute
   '/_authenticated/resume-upload/': typeof AuthenticatedResumeUploadIndexRoute
   '/_authenticated/resume/': typeof AuthenticatedResumeIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/talent-pool/': typeof AuthenticatedTalentPoolIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_public/mock-interview/': typeof PublicMockInterviewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -487,11 +493,11 @@ export interface FileRouteTypes {
     | '/interview/prepare'
     | '/interview/session'
     | '/interview/session_view'
-    | '/mock-interview/records'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/mock-interview/records'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
@@ -507,13 +513,13 @@ export interface FileRouteTypes {
     | '/job-detail'
     | '/job-recommend'
     | '/jobs'
-    | '/mock-interview'
     | '/resume-upload'
     | '/resume'
     | '/settings/'
     | '/talent-pool'
     | '/tasks'
     | '/users'
+    | '/mock-interview'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/clerk'
@@ -533,11 +539,11 @@ export interface FileRouteTypes {
     | '/interview/prepare'
     | '/interview/session'
     | '/interview/session_view'
-    | '/mock-interview/records'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/mock-interview/records'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
@@ -553,16 +559,17 @@ export interface FileRouteTypes {
     | '/job-detail'
     | '/job-recommend'
     | '/jobs'
-    | '/mock-interview'
     | '/resume-upload'
     | '/resume'
     | '/settings'
     | '/talent-pool'
     | '/tasks'
     | '/users'
+    | '/mock-interview'
   id:
     | '__root__'
     | '/_authenticated'
+    | '/_public'
     | '/clerk'
     | '/_authenticated/settings'
     | '/clerk/(auth)'
@@ -583,11 +590,11 @@ export interface FileRouteTypes {
     | '/_authenticated/interview/prepare'
     | '/_authenticated/interview/session'
     | '/_authenticated/interview/session_view'
-    | '/_authenticated/mock-interview/records'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/notifications'
+    | '/_public/mock-interview/records'
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
     | '/clerk/_authenticated/user-management'
@@ -603,17 +610,18 @@ export interface FileRouteTypes {
     | '/_authenticated/job-detail/'
     | '/_authenticated/job-recommend/'
     | '/_authenticated/jobs/'
-    | '/_authenticated/mock-interview/'
     | '/_authenticated/resume-upload/'
     | '/_authenticated/resume/'
     | '/_authenticated/settings/'
     | '/_authenticated/talent-pool/'
     | '/_authenticated/tasks/'
     | '/_authenticated/users/'
+    | '/_public/mock-interview/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  PublicRouteRoute: typeof PublicRouteRouteWithChildren
   ClerkRouteRoute: typeof ClerkRouteRouteWithChildren
   authForgotPasswordRoute: typeof authForgotPasswordRoute
   authOtpRoute: typeof authOtpRoute
@@ -635,6 +643,13 @@ declare module '@tanstack/react-router' {
       path: '/clerk'
       fullPath: '/clerk'
       preLoaderRoute: typeof ClerkRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof PublicRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -749,6 +764,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_public/mock-interview/': {
+      id: '/_public/mock-interview/'
+      path: '/mock-interview'
+      fullPath: '/mock-interview'
+      preLoaderRoute: typeof PublicMockInterviewIndexRouteImport
+      parentRoute: typeof PublicRouteRoute
+    }
     '/_authenticated/users/': {
       id: '/_authenticated/users/'
       path: '/users'
@@ -789,13 +811,6 @@ declare module '@tanstack/react-router' {
       path: '/resume-upload'
       fullPath: '/resume-upload'
       preLoaderRoute: typeof AuthenticatedResumeUploadIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/mock-interview/': {
-      id: '/_authenticated/mock-interview/'
-      path: '/mock-interview'
-      fullPath: '/mock-interview'
-      preLoaderRoute: typeof AuthenticatedMockInterviewIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/jobs/': {
@@ -903,6 +918,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClerkauthSignInRouteImport
       parentRoute: typeof ClerkauthRouteRoute
     }
+    '/_public/mock-interview/records': {
+      id: '/_public/mock-interview/records'
+      path: '/mock-interview/records'
+      fullPath: '/mock-interview/records'
+      preLoaderRoute: typeof PublicMockInterviewRecordsRouteImport
+      parentRoute: typeof PublicRouteRoute
+    }
     '/_authenticated/settings/notifications': {
       id: '/_authenticated/settings/notifications'
       path: '/notifications'
@@ -930,13 +952,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/account'
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
-    '/_authenticated/mock-interview/records': {
-      id: '/_authenticated/mock-interview/records'
-      path: '/mock-interview/records'
-      fullPath: '/mock-interview/records'
-      preLoaderRoute: typeof AuthenticatedMockInterviewRecordsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/interview/session_view': {
       id: '/_authenticated/interview/session_view'
@@ -999,7 +1014,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInterviewPrepareRoute: typeof AuthenticatedInterviewPrepareRoute
   AuthenticatedInterviewSessionRoute: typeof AuthenticatedInterviewSessionRoute
   AuthenticatedInterviewSession_viewRoute: typeof AuthenticatedInterviewSession_viewRoute
-  AuthenticatedMockInterviewRecordsRoute: typeof AuthenticatedMockInterviewRecordsRoute
   AuthenticatedAnnotateReportIndexRoute: typeof AuthenticatedAnnotateReportIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
@@ -1012,7 +1026,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobDetailIndexRoute: typeof AuthenticatedJobDetailIndexRoute
   AuthenticatedJobRecommendIndexRoute: typeof AuthenticatedJobRecommendIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
-  AuthenticatedMockInterviewIndexRoute: typeof AuthenticatedMockInterviewIndexRoute
   AuthenticatedResumeUploadIndexRoute: typeof AuthenticatedResumeUploadIndexRoute
   AuthenticatedResumeIndexRoute: typeof AuthenticatedResumeIndexRoute
   AuthenticatedTalentPoolIndexRoute: typeof AuthenticatedTalentPoolIndexRoute
@@ -1029,8 +1042,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInterviewSessionRoute: AuthenticatedInterviewSessionRoute,
   AuthenticatedInterviewSession_viewRoute:
     AuthenticatedInterviewSession_viewRoute,
-  AuthenticatedMockInterviewRecordsRoute:
-    AuthenticatedMockInterviewRecordsRoute,
   AuthenticatedAnnotateReportIndexRoute: AuthenticatedAnnotateReportIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
@@ -1044,7 +1055,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJobDetailIndexRoute: AuthenticatedJobDetailIndexRoute,
   AuthenticatedJobRecommendIndexRoute: AuthenticatedJobRecommendIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
-  AuthenticatedMockInterviewIndexRoute: AuthenticatedMockInterviewIndexRoute,
   AuthenticatedResumeUploadIndexRoute: AuthenticatedResumeUploadIndexRoute,
   AuthenticatedResumeIndexRoute: AuthenticatedResumeIndexRoute,
   AuthenticatedTalentPoolIndexRoute: AuthenticatedTalentPoolIndexRoute,
@@ -1054,6 +1064,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface PublicRouteRouteChildren {
+  PublicMockInterviewRecordsRoute: typeof PublicMockInterviewRecordsRoute
+  PublicMockInterviewIndexRoute: typeof PublicMockInterviewIndexRoute
+}
+
+const PublicRouteRouteChildren: PublicRouteRouteChildren = {
+  PublicMockInterviewRecordsRoute: PublicMockInterviewRecordsRoute,
+  PublicMockInterviewIndexRoute: PublicMockInterviewIndexRoute,
+}
+
+const PublicRouteRouteWithChildren = PublicRouteRoute._addFileChildren(
+  PublicRouteRouteChildren,
+)
 
 interface ClerkauthRouteRouteChildren {
   ClerkauthSignInRoute: typeof ClerkauthSignInRoute
@@ -1100,6 +1124,7 @@ const ClerkRouteRouteWithChildren = ClerkRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  PublicRouteRoute: PublicRouteRouteWithChildren,
   ClerkRouteRoute: ClerkRouteRouteWithChildren,
   authForgotPasswordRoute: authForgotPasswordRoute,
   authOtpRoute: authOtpRoute,
