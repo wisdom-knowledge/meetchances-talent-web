@@ -51,8 +51,8 @@ import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
-import { Route as AuthenticatedInterviewSession_viewRouteImport } from './routes/_authenticated/interview/session_view'
 import { Route as AuthenticatedMockInterviewRecordsRouteImport } from './routes/_authenticated/mock-interview/records'
+import { Route as AuthenticatedInterviewSession_viewRouteImport } from './routes/_authenticated/interview/session_view'
 import { Route as AuthenticatedInterviewSessionRouteImport } from './routes/_authenticated/interview/session'
 import { Route as AuthenticatedInterviewPrepareRouteImport } from './routes/_authenticated/interview/prepare'
 import { Route as AuthenticatedInterviewAntechamberRouteImport } from './routes/_authenticated/interview/antechamber'
@@ -283,16 +283,16 @@ const AuthenticatedSettingsAccountRoute =
     path: '/account',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
-const AuthenticatedInterviewSession_viewRoute =
-  AuthenticatedInterviewSession_viewRouteImport.update({
-    id: '/interview/session_view',
-    path: '/interview/session_view',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedMockInterviewRecordsRoute =
   AuthenticatedMockInterviewRecordsRouteImport.update({
     id: '/mock-interview/records',
     path: '/mock-interview/records',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedInterviewSession_viewRoute =
+  AuthenticatedInterviewSession_viewRouteImport.update({
+    id: '/interview/session_view',
+    path: '/interview/session_view',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedInterviewSessionRoute =
@@ -911,18 +911,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
-    '/_authenticated/interview/session_view': {
-      id: '/_authenticated/interview/session_view'
-      path: '/interview/session_view'
-      fullPath: '/interview/session_view'
-      preLoaderRoute: typeof AuthenticatedInterviewSession_viewRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/mock-interview/records': {
       id: '/_authenticated/mock-interview/records'
       path: '/mock-interview/records'
       fullPath: '/mock-interview/records'
       preLoaderRoute: typeof AuthenticatedMockInterviewRecordsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/interview/session_view': {
+      id: '/_authenticated/interview/session_view'
+      path: '/interview/session_view'
+      fullPath: '/interview/session_view'
+      preLoaderRoute: typeof AuthenticatedInterviewSession_viewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/interview/session': {

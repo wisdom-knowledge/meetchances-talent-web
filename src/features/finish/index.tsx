@@ -58,14 +58,14 @@ export default function FinishPage() {
   useEffect(() => {
     ;(async () => {
       try {
-        if (interviewNodeId != null) {
+        if (interviewNodeId != null && !isMock) {
           await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
         }
       } catch (_e) {
         // ignore
       }
     })()
-  }, [interviewNodeId])
+  }, [interviewNodeId, isMock])
 
   // 把 prepare 页面的参数原样透传回去，便于返回时延续上下文
   const prepareSearch = useMemo(() => {
@@ -312,7 +312,9 @@ export default function FinishPage() {
             }
             className='h-[44px] w-[200px] bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)] text-white'
           >
-            提交
+            {
+              isMock ? '提交并生成面试报告' : '提交'
+            }
           </Button>
         </div>
       </section>
