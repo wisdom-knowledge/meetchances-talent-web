@@ -8,9 +8,10 @@ interface HeaderProps {
   fixed?: boolean
   ref?: React.Ref<HTMLElement>
   children?: React.ReactNode
+  showSidebarTrigger?: boolean
 }
 
-export const Header = ({ className, fixed, children }: HeaderProps) => {
+export const Header = ({ className, fixed, children, showSidebarTrigger = true }: HeaderProps) => {
   const [offset, setOffset] = React.useState(0)
 
   React.useEffect(() => {
@@ -42,8 +43,12 @@ export const Header = ({ className, fixed, children }: HeaderProps) => {
             'after:bg-background/20 after:absolute after:inset-0 after:-z-10 after:backdrop-blur-lg'
         )}
       >
-        <SidebarTrigger variant='outline' className='max-md:scale-125' />
-        <Separator orientation='vertical' className='h-6' />
+        {showSidebarTrigger ? (
+          <>
+            <SidebarTrigger variant='outline' className='max-md:scale-125' />
+            <Separator orientation='vertical' className='h-6' />
+          </>
+        ) : null}
         {children}
       </div>
     </header>
