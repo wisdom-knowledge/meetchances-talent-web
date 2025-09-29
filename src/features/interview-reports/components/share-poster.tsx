@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toPng } from 'html-to-image'
 import { Download, Share2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -11,7 +11,7 @@ import poster_60_80 from '@/assets/images/poster/60-80.svg'
 import poster_80_95 from '@/assets/images/poster/80-95.svg'
 import poster_96_98 from '@/assets/images/poster/95-98.svg'
 import poster_99_100 from '@/assets/images/poster/99-100.svg'
-import qrPng from '@/assets/images/poster/qrcode.png'
+import QRCode from 'qrcode'
 import { userEvent } from '@/lib/apm'
 import { Button } from '@/components/ui/button'
 import {
@@ -78,6 +78,28 @@ export function SharePoster({
       toast.error('下载失败，请重试')
     }
   }
+
+  // 计算域名与二维码链接
+  const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
+  const domain = appEnv === 'test' ? 'talent-test.meetchances.com' : 'talent.meetchances.com'
+  const qrLink = `https://${domain}/jobs/${jobId ?? ''}?_fr=wxqr`
+
+  // 生成二维码 Data URL
+  const [qrDataUrl, setQrDataUrl] = useState<string>('')
+  useEffect(() => {
+    let aborted = false
+    ;(async () => {
+      try {
+        const dataUrl = await QRCode.toDataURL(qrLink, { margin: 1, width: 600 })
+        if (!aborted) setQrDataUrl(dataUrl)
+      } catch (_e) {
+        if (!aborted) setQrDataUrl('')
+      }
+    })()
+    return () => {
+      aborted = true
+    }
+  }, [qrLink])
 
   function getPosterPresetByScore(s: number): {
     title: string
@@ -254,15 +276,19 @@ export function SharePoster({
                 </div>
                 {/* 底部区域 */}
                 <div className='absolute right-0 bottom-0 left-0 z-10 flex h-[calc(var(--sy)*300px)] items-center gap-[calc(var(--sx)*54px)] px-[calc(var(--sx)*114px)] py-[calc(var(--sy)*43px)]'>
-                  <img
-                    src={qrPng}
-                    alt='qrcode'
-                    className='h-[calc(var(--sx)*214px)] w-[calc(var(--sx)*214px)] shrink-0'
-                  />
+                  {qrDataUrl ? (
+                    <img
+                      src={qrDataUrl}
+                      alt='qrcode'
+                      className='h-[calc(var(--sx)*214px)] w-[calc(var(--sx)*214px)] shrink-0'
+                    />
+                  ) : (
+                    <div className='h-[calc(var(--sx)*214px)] w-[calc(var(--sx)*214px)] shrink-0 rounded bg-muted/30' />
+                  )}
                   <div
                     className='mt-[calc(var(--sy)*14px)] flex-1 self-start text-[calc(var(--sx)*35px)] leading-[1.5] font-bold whitespace-pre-line text-[var(--footerColor)]'
                   >
-                    {`快来https://talent.meetchances.com\n测测你的面试段位~`}
+                    {`快来https://${domain}\n测测你的面试段位~`}
                   </div>
                 </div>
                 <img
@@ -285,7 +311,7 @@ export function SharePoster({
             </Button>
             <Button onClick={downloadPoster} className='gap-2'>
               <Download className='h-4 w-4' />
-              下载海报
+              下载海报分享到朋友圈
             </Button>
           </div>
         </div>
