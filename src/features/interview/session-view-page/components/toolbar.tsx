@@ -6,7 +6,7 @@ import { TrackToggle } from '@/components/livekit/track-toggle'
 // import { DeviceSelect } from '@/features/interview/session-view'
 import DeviceSelectLite from './device-select-lite'
 
-export interface ToolbarProps extends React.HTMLAttributes<HTMLDivElement> {}
+export type ToolbarProps = React.HTMLAttributes<HTMLDivElement>
 
 export default function Toolbar({ className, ...props }: ToolbarProps) {
   const room = useRoomContext()

@@ -19,10 +19,11 @@ import {
   NetworkQuality,
 } from '@volcengine/rtc';
 import { useRef } from 'react';
+import { toast } from 'sonner'
 
 import { useRoomStore, type IUser } from '@/stores/interview/room';
 import RtcClient, { IEventListener } from './RtcClient';
-import { reportRtcMessageReceived } from '@/lib/apm'
+import { reportRtcMessageReceived, userEvent } from '@/lib/apm'
 
 import { useDeviceStore } from '@/stores/interview/device';
 import { useMessageHandler } from '@/features/interview/session-view-page/lib/handler';
@@ -33,10 +34,15 @@ const useRtcListeners = (): IEventListener => {
   const deviceStore = useDeviceStore();
   const { parser } = useMessageHandler();
   const playStatus = useRef<{ [key: string]: { audio: boolean; video: boolean } }>({});
-  
+
 
   const handleTrackEnded = async (event: { kind: string; isScreen: boolean }) => {
     const { kind, isScreen } = event;
+    // 摄像头掉线（非屏幕共享）时提示
+    if (!isScreen && kind === 'video') {
+      toast.error('断开摄像头后，面试内容会丢失，请重新调试设备再面试', { position: 'top-center', duration: 5000 })
+      userEvent('interview_camera_disconnected', '摄像头掉线', {})
+    }
     /** 浏览器自带的屏幕共享关闭触发方式，通过 onTrackEnd 事件去关闭 */
     if (isScreen && kind === 'video') {
       await RtcClient.stopScreenCapture();

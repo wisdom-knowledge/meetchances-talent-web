@@ -67,6 +67,7 @@ export const useDeviceState = () => {
         : RtcClient.unpublishStream(MediaType.AUDIO));
     }
     void queryDevices('audio');
+    await RtcClient.setAudioCaptureConfig();
     await (!isAudioPublished ? RtcClient.startAudioCapture() : RtcClient.stopAudioCapture());
     roomActions.updateLocalUser({ publishAudio: !isAudioPublished })
   };

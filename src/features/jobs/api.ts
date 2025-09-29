@@ -28,7 +28,7 @@ export type ApiJob = {
   id: number | string
   title: string
   description: string
-  job_type: 'full_time' | 'part_time'
+  job_type: 'full_time' | 'part_time' | 'MOCK_JOB'
   salary_type: 'hour' | 'month' | 'year' | string
   salary_min: number
   salary_max: number
@@ -52,6 +52,10 @@ export type ApiJob = {
   }
   created_at?: string
   updated_at?: string
+  /**
+   * 模拟面试时长（分钟）。仅当 job_type 为 'MOCK_JOB' 时可能存在。
+   */
+  interview_duration_minutes?: number
 }
 
 async function fetchJobs(

@@ -62,6 +62,7 @@ export default function InterviewSessionViewPage() {
     return () => {
       console.log('use effect >>> leave room')
       leaveRoom()
+      userEvent('interview_user_terminated_by_effect', 'effect触发的用户离开面试间', {})
     }
   }, [])
 

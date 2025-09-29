@@ -72,6 +72,8 @@ export default function JobsListPage() {
   const [sortOrder, setSortOrder] = useState<JobsSortOrder>(JobsSortOrder.Desc)
   const [keyword, setKeyword] = useState<string>('')
   const [debouncedKeyword, setDebouncedKeyword] = useState<string>('')
+  const [page, setPage] = useState<number>(0)
+  const pageSize = 20
 
   // 300ms 防抖
   useEffect(() => {
@@ -79,12 +81,21 @@ export default function JobsListPage() {
     return () => clearTimeout(t)
   }, [keyword])
 
+  // 搜索与排序变更时回到第一页
+  useEffect(() => {
+    setPage(0)
+  }, [debouncedKeyword, sortBy, sortOrder])
+
   const queryParams = useMemo(
-    () => ({ skip: 0, limit: 20, sort_by: sortBy, sort_order: sortOrder, title: debouncedKeyword || undefined }),
-    [sortBy, sortOrder, debouncedKeyword]
+    () => ({ skip: page * pageSize, limit: pageSize, sort_by: sortBy, sort_order: sortOrder, title: debouncedKeyword || undefined }),
+    [sortBy, sortOrder, debouncedKeyword, page]
   )
   const { data: jobsData, isLoading } = useJobsQuery(queryParams)
   const jobs = useMemo(() => jobsData?.data ?? [], [jobsData])
+  const total = jobsData?.total ?? 0
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  const canPrev = page > 0
+  const canNext = total ? page + 1 < pageCount : jobs.length === pageSize
   // 串行：在拿到 jobs 后再请求申请状态
   const jobIds = useMemo(() => jobs.map((j) => j.id), [jobs])
   const { data: applyStatusMap } = useJobApplyStatus(jobIds, Boolean(jobIds.length))
@@ -157,9 +168,9 @@ export default function JobsListPage() {
               职位列表
             </h1>
             <p className='text-muted-foreground text-sm sm:text-base'>寻找与你匹配的工作机会</p>
-            
+
           </div>
-          
+
         </div>
         <div className='mt-4 w-full flex items-center gap-2'>
           <div className='relative flex-1'>
@@ -237,10 +248,10 @@ export default function JobsListPage() {
         </div>
         <Separator className='my-4 lg:my-6' />
 
-        <div className='relative -mb-8 flex h-[calc(100vh-260px)] flex-col gap-6 lg:flex-row'>
+        <div className='relative -mb-8 flex h-[calc(100vh-17rem)] flex-col gap-6 lg:flex-row'>
           {/* 左侧：职位列表 */}
-          <div className='flex-1'>
-            <ScrollArea className='h-[calc(100vh-260px)] pr-1'>
+          <div className='flex-1 flex flex-col min-h-0'>
+            <ScrollArea className='flex-1 min-h-0 h-[calc(100vh-17rem)] pr-1'>
               <ul className='space-y-2 pb-4'>
                 {isLoading
                   ? Array.from({ length: 8 }).map((_, index: number) => (
@@ -334,6 +345,26 @@ export default function JobsListPage() {
                     }))}
               </ul>
             </ScrollArea>
+            {/* 分页控制：固定在列表下方可见 */}
+            <div className='flex items-center justify-end gap-2 pt-2'>
+              <button
+                type='button'
+                className={cn('inline-flex h-8 items-center rounded-md border px-3 text-xs', !canPrev && 'opacity-50 cursor-not-allowed')}
+                disabled={!canPrev}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+              >
+                上一页
+              </button>
+              <div className='text-muted-foreground text-xs'>第 {page + 1} / {pageCount} 页</div>
+              <button
+                type='button'
+                className={cn('inline-flex h-8 items-center rounded-md border px-3 text-xs', !canNext && 'opacity-50 cursor-not-allowed')}
+                disabled={!canNext}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                下一页
+              </button>
+            </div>
           </div>
           {/* 职位详情：Drawer 展示 */}
           <JobDetailDrawer
