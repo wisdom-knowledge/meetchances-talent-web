@@ -4,6 +4,7 @@ import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/ap
 interface StepsProps {
   jobApplyId: string | number | null
   className?: string
+  isMock?: boolean
 }
 
 type VisualStepStatus = 'completed' | 'inProgress' | 'notStarted'
@@ -26,10 +27,10 @@ function mapNodeStatusToVisual(status: JobApplyNodeStatus): VisualStepStatus {
   }
 }
 
-export function Steps({ jobApplyId, className }: StepsProps) {
+export function Steps({ jobApplyId, className, isMock }: StepsProps) {
   const { data, isLoading } = useJobApplyProgress(jobApplyId, Boolean(jobApplyId))
 
-  if (!jobApplyId) return null
+  if (!jobApplyId || isMock) return null
 
   return (
     <div className={cn('mt-8', className)}>

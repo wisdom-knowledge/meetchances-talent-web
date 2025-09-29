@@ -13,6 +13,7 @@ import emptyStar from '@/assets/images/empty-start.svg'
 import filledStar from '@/assets/images/full-start.svg'
 import { NodeActionTrigger, postNodeAction } from '@/features/interview/api'
 import { reportFinishFeedbackLowScore } from '@/lib/apm'
+import { useJobDetailQuery } from '@/features/jobs/api'
 
 
 export default function FinishPage() {
@@ -38,12 +39,19 @@ export default function FinishPage() {
     return params.get('interview_id') ?? ''
   }, [])
 
-  // 是否为模拟面试：仅接受 'true' / 'false' 或无该参数
-  const isMock = useMemo(() => {
-    const sp = new URLSearchParams(window.location.search)
-    const val = sp.get('is_mock') ?? sp.get('isMock')
-    return val === 'true'
+  // 获取 jobId
+  const jobId = useMemo(() => {
+    const params = new URLSearchParams(window.location.search)
+    const id = params.get('job_id')
+    if (!id) return null
+    const n = Number(id)
+    return Number.isNaN(n) ? id : n
   }, [])
+
+  // 获取职位信息并判断是否为模拟面试
+  const { data: job } = useJobDetailQuery(jobId, Boolean(jobId))
+  const isMock = useMemo(() => job?.job_type === 'mock_job', [job])
+
 
   // 是否为主动取消面试：仅接受 'true' / 'false' 或无该参数
   const isCanceled = useMemo(() => {
@@ -65,14 +73,14 @@ export default function FinishPage() {
   useEffect(() => {
     ;(async () => {
       try {
-        if (interviewNodeId != null && !isMock) {
+        if (interviewNodeId != null && !isMock && job != null) {
           await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
         }
       } catch (_e) {
         // ignore
       }
     })()
-  }, [interviewNodeId, isMock])
+  }, [interviewNodeId, isMock, job])
 
   // 把 prepare 页面的参数原样透传回去，便于返回时延续上下文
   const prepareSearch = useMemo(() => {
