@@ -6,6 +6,7 @@ export interface JobsListParams {
   limit?: number
   sort_by?: JobsSortBy
   sort_order?: JobsSortOrder
+  title?: string
 }
 
 export enum JobsSortBy {
@@ -66,9 +67,10 @@ async function fetchJobs(
     limit = 20,
     sort_by = JobsSortBy.PublishTime,
     sort_order = JobsSortOrder.Desc,
+    title,
   } = params
   const raw = await api.get(`/jobs/`, {
-    params: { skip, limit, sort_by, sort_order },
+    params: { skip, limit, sort_by, sort_order, ...(title ? { title } : {}) },
   })
   // API may return array或 {items,total}; 这里做兼容
   if (Array.isArray(raw)) {
