@@ -46,6 +46,7 @@ export default function InterviewSessionViewPage() {
         const params = new URLSearchParams(window.location.search)
         const storeInterviewId = useRoomStore.getState().rtcConnectionInfo?.interview_id
         if (storeInterviewId != null) params.set('interview_id', String(storeInterviewId))
+        if (params.get('is_mock')) params.set('is_canceled', 'true')
         window.location.replace(`/finish?${params.toString()}`)
       } catch {
         window.location.replace('/finish')
