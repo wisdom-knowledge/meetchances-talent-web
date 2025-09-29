@@ -35,6 +35,7 @@ export default function JobsDetailPage({ jobId }: JobsDetailPageProps) {
                 recommendName={''}
                 isTwoColumn={false}
                 backLabel='更多岗位'
+                applyButtonText='开始面试'
               />
             ) : (
               <div className='text-muted-foreground flex h-40 items-center justify-center text-sm'>

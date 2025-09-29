@@ -17,6 +17,7 @@ export interface JobDetailContentProps {
   recommendName?: string
   isTwoColumn?: boolean
   backLabel?: string
+  applyButtonText?: string
 }
 
 const salaryTypeUnit: Record<NonNullable<ApiJob['salary_type']>, string> = {
@@ -32,6 +33,7 @@ export default function JobDetailContent({
   recommendName,
   isTwoColumn = false,
   backLabel,
+  applyButtonText = '立即申请',
 }: JobDetailContentProps) {
   const isMobile = useIsMobile()
 
@@ -156,7 +158,7 @@ export default function JobDetailContent({
                   onClick={applyJob}
                   className='!rounded-md !bg-[#4E02E4] !px-6 !py-2 !text-base !text-white'
                 >
-                  立即申请
+                  {applyButtonText}
                 </Button>
               </div>
             )}
@@ -196,7 +198,7 @@ export default function JobDetailContent({
             </div>
             <div className='mb-[12px] text-sm'>备好简历,开始申请吧！</div>
             <Button onClick={applyJob} className='h-[44px] w-full'>
-              立即申请
+              {applyButtonText}
             </Button>
           </div>
         )}
@@ -230,7 +232,7 @@ export default function JobDetailContent({
           </div>
           <div className='mb-[12px] text-sm'>备好简历,开始申请吧！</div>
           <Button onClick={applyJob} className={cn('h-[44px] w-full', isMobile ? '' : 'max-w-[272px]')}>
-            立即申请
+            {applyButtonText}
           </Button>
         </div>
       )}
@@ -254,7 +256,7 @@ export default function JobDetailContent({
                 onClick={applyJob}
                 className='flex-shrink-0 !rounded-md !border-[#4E02E4] !bg-[#4E02E4] !px-4 !py-2 !text-sm !font-medium !text-white'
               >
-                立即申请
+                {applyButtonText}
               </Button>
             </div>
           </div>
