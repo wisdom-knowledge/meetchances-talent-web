@@ -94,8 +94,9 @@ export function AiInterviewSkeleton() {
       <div className=''>
         <h3 className='mb-4 font-medium text-gray-900'>面试记录</h3>
 
-        <div className='h-[400px] rounded-lg border border-gray-300 bg-gray-50 p-4'>
-          <div className='grid h-full grid-cols-2 gap-4'>
+        <div className='rounded-lg border border-gray-300 bg-gray-50 p-4'>
+          {/* 桌面端骨架 - 左右分栏 */}
+          <div className='hidden md:grid h-[400px] grid-cols-2 gap-4'>
             {/* 左侧视频区域骨架 */}
             <div className='overflow-hidden rounded-lg border-2 border-gray-300 bg-white'>
               <Skeleton className='h-full w-full' />
@@ -107,6 +108,36 @@ export function AiInterviewSkeleton() {
                 <div className='space-y-0'>
                   {/* 模拟6条对话记录 - 匹配真实对话的结构和间距 */}
                   {Array.from({ length: 6 }).map((_, idx) => (
+                    <div key={idx}>
+                      <div className='flex items-center gap-2'>
+                        <Skeleton className='h-3 w-10' />
+                        <Skeleton className='h-[26px] w-16 rounded-[12px]' />
+                      </div>
+                      <div className='ml-[50px] px-0 pt-3 pb-9'>
+                        <Skeleton className='mb-2 h-4 w-full' />
+                        <Skeleton className='mb-2 h-4 w-4/5' />
+                        <Skeleton className='h-4 w-3/4' />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* 移动端骨架 - 上下结构 */}
+          <div className='md:hidden space-y-4'>
+            {/* 上方视频区域骨架 */}
+            <div className='h-[200px] overflow-hidden rounded-lg border-2 border-gray-300 bg-white'>
+              <Skeleton className='h-full w-full' />
+            </div>
+
+            {/* 下方对话记录骨架 */}
+            <div className='h-[300px] overflow-hidden rounded-lg border border-gray-200 bg-white p-4'>
+              <div className='scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 h-full overflow-y-auto'>
+                <div className='space-y-0'>
+                  {/* 模拟4条对话记录（移动端显示较少） */}
+                  {Array.from({ length: 4 }).map((_, idx) => (
                     <div key={idx}>
                       <div className='flex items-center gap-2'>
                         <Skeleton className='h-3 w-10' />
@@ -373,8 +404,9 @@ export function AiInterviewSection({ data, videoUrl }: Props) {
       <div className=''>
         <h3 className='mb-4 font-medium text-gray-900'>面试记录</h3>
 
-        <div className='h-[400px] rounded-lg border border-gray-300 bg-gray-50 p-4'>
-          <div className='grid h-full grid-cols-2 gap-4'>
+        <div className='rounded-lg border border-gray-300 bg-gray-50 p-4'>
+          {/* 桌面端 - 左右分栏 */}
+          <div className='hidden md:grid h-[400px] grid-cols-2 gap-4'>
             {/* 左侧视频区域 */}
             <div className='overflow-hidden rounded-lg border-2 border-gray-300 bg-white'>
               {videoUrl ? (
@@ -406,6 +438,104 @@ export function AiInterviewSection({ data, videoUrl }: Props) {
 
             {/* 右侧对话记录（detail_text） */}
             <div className='overflow-hidden rounded-lg border border-gray-200 bg-white p-4'>
+              <div
+                ref={chatRef}
+                className='scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 h-full overflow-y-auto'
+              >
+                <div className='space-y-2'>
+                  {groups.length > 0 ? (
+                    groups.map((g, gIdx) => (
+                      <div
+                        key={gIdx}
+                        ref={(el) => {
+                          itemRefs.current[gIdx] = el
+                        }}
+                        onClick={() => handleJumpTo(g.tSec, gIdx)}
+                        className={`relative cursor-pointer rounded-md px-2 py-2 transition-colors hover:bg-gray-50 ${
+                          activeIdx === gIdx
+                            ? 'z-10 animate-pulse ring-2 ring-[#4E02E4] ring-inset'
+                            : ''
+                        }`}
+                        role='button'
+                        tabIndex={0}
+                      >
+                        {g.items.map((d, idx) => {
+                          const tSec = d.metadata?.t_sec
+                          const isAssistant = d.role === 'assistant'
+                          return (
+                            <div key={idx}>
+                              <div className='flex items-center gap-2'>
+                                <span className='cursor-pointer text-xs font-medium text-[#4E02E4]'>
+                                  {typeof tSec === 'number'
+                                    ? `${String(Math.floor(tSec / 60)).padStart(2, '0')}:${String(Math.floor(tSec % 60)).padStart(2, '0')}`
+                                    : ''}
+                                </span>
+                                <span
+                                  className={`h-[26px] rounded-[12px] px-[12px] text-xs leading-[26px] ${
+                                    d.role === 'assistant'
+                                      ? 'bg-[#F6F2FD] text-[#4E02E4]'
+                                      : 'bg-[#4E02E4] text-white'
+                                  }`}
+                                >
+                                  {' '}
+                                  {isAssistant ? '面试官' : '候选人'}
+                                </span>
+                              </div>
+                              <div
+                                className={`ml-[50px] px-0 pt-3 pb-3 text-sm leading-[1.6] ${
+                                  isAssistant ? 'font-bold' : ''
+                                } tracking-[0.35px] break-all whitespace-pre-wrap text-black/50`}
+                              >
+                                {d.content}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ))
+                  ) : (
+                    <div className='py-8 text-center text-gray-500'>
+                      暂无对话记录
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* 移动端 - 上下结构 */}
+          <div className='md:hidden space-y-4'>
+            {/* 上方视频区域 */}
+            <div className='h-[200px] overflow-hidden rounded-lg border-2 border-gray-300 bg-white'>
+              {videoUrl ? (
+                <video
+                  ref={videoRef}
+                  className='h-full w-full object-cover'
+                  controls
+                  preload='metadata'
+                  crossOrigin='anonymous'
+                  poster={posterSrc ?? posterImageUrl}
+                >
+                  <source src={videoUrl} type='video/mp4' />
+                  您的浏览器不支持视频播放
+                </video>
+              ) : (
+                <div className='flex h-full w-full flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-white p-6 text-center'>
+                  <div className='rounded-full bg-gray-100 p-3 shadow-sm'>
+                    <IconVideoOff className='h-8 w-8 text-gray-400' />
+                  </div>
+                  <div className='mt-3 text-base font-medium text-gray-700'>
+                    暂无视频
+                  </div>
+                  <div className='mt-1 text-xs text-gray-500'>
+                    请等待视频生成或处理完成后再试
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 下方对话记录 */}
+            <div className='h-[300px] overflow-hidden rounded-lg border border-gray-200 bg-white p-4'>
               <div
                 ref={chatRef}
                 className='scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 h-full overflow-y-auto'
