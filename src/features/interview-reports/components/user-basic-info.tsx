@@ -129,8 +129,8 @@ export function CandidateInfoCard({ data }: Props) {
           </div>
         </div>
 
-        {/* 面试详细信息 - 网格布局 */}
-        <div className='grid grid-cols-3 gap-8 text-sm'>
+        {/* 面试详细信息 - 响应式布局 */}
+        <div className='grid grid-cols-1 gap-3 text-sm md:grid-cols-3 md:gap-8'>
           <div className='flex gap-1'>
             <span className='font-medium text-gray-500'>面试岗位:</span>
             <span className='font-semibold text-gray-900'>{data.job_name || '—'}</span>
