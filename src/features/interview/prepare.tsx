@@ -27,7 +27,7 @@ import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import { handleServerError } from '@/utils/handle-server-error'
 import { useAuthStore } from '@/stores/authStore'
-import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, getInterviewNodeId, fetchInterviewConnectionDetails, saveInterviewConnectionToStorage, getRtcConnectionInfo } from '@/features/interview/api'
+import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, getInterviewNodeId, getRtcConnectionInfo } from '@/features/interview/api'
 import { useRoomStore } from '@/stores/interview/room'
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
@@ -410,40 +410,40 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     } catch { /* ignore */ }
   }, [])
 
-  const onStartInterviewClick = useCallback(async () => {
-    if (!jobId || !interviewNodeId || connecting) return
-    setConnecting(true)
+  // const onStartInterviewClick = useCallback(async () => {
+  //   if (!jobId || !interviewNodeId || connecting) return
+  //   setConnecting(true)
 
-    try {
-      const details = await fetchInterviewConnectionDetails(jobId)
-      if (!details?.interviewId) {
-        toast.error('创建面试房间失败，请稍后再试')
-        setConnecting(false)
-        return
-      }
-      saveInterviewConnectionToStorage(details)
-      userEvent('interview_started', '点击开始面试(确认设备，下一步)', {
-        job_id: job?.id,
-        isMock: isMock,
-        job_apply_id: jobApplyId ?? undefined,
-        interview_id: details.interviewId ?? undefined,
-      })
-      navigate({
-        to: '/interview/session',
-        search: {
-          interview_id: details.interviewId,
-          job_id: jobId ?? undefined,
-          job_apply_id: jobApplyId ?? undefined,
-          is_mock: isMock ?? undefined,
-          interview_node_id: interviewNodeId ?? undefined,
-          countdown: countdown ?? undefined,
-        },
-      })
-    } catch (_e) {
-      toast.error('网络不稳定，请重试')
-      setConnecting(false)
-    }
-  }, [jobId, interviewNodeId, connecting, navigate, jobApplyId, countdown, isMock])
+  //   try {
+  //     const details = await fetchInterviewConnectionDetails(jobId)
+  //     if (!details?.interviewId) {
+  //       toast.error('创建面试房间失败，请稍后再试')
+  //       setConnecting(false)
+  //       return
+  //     }
+  //     saveInterviewConnectionToStorage(details)
+  //     userEvent('interview_started', '点击开始面试(确认设备，下一步)', {
+  //       job_id: job?.id,
+  //       isMock: isMock,
+  //       job_apply_id: jobApplyId ?? undefined,
+  //       interview_id: details.interviewId ?? undefined,
+  //     })
+  //     navigate({
+  //       to: '/interview/session',
+  //       search: {
+  //         interview_id: details.interviewId,
+  //         job_id: jobId ?? undefined,
+  //         job_apply_id: jobApplyId ?? undefined,
+  //         is_mock: isMock ?? undefined,
+  //         interview_node_id: interviewNodeId ?? undefined,
+  //         countdown: countdown ?? undefined,
+  //       },
+  //     })
+  //   } catch (_e) {
+  //     toast.error('网络不稳定，请重试')
+  //     setConnecting(false)
+  //   }
+  // }, [jobId, interviewNodeId, connecting, navigate, jobApplyId, countdown, isMock])
 
   // 旧逻辑：页面初始化即加载 RTC 连接信息（已废弃，改为点击时加载）
 
