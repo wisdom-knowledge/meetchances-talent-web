@@ -16,6 +16,8 @@ export interface JobDetailContentProps {
   onBack?: () => void
   recommendName?: string
   isTwoColumn?: boolean
+  backLabel?: string
+  applyButtonText?: string
 }
 
 const salaryTypeUnit: Record<NonNullable<ApiJob['salary_type']>, string> = {
@@ -30,6 +32,8 @@ export default function JobDetailContent({
   onBack,
   recommendName,
   isTwoColumn = false,
+  backLabel,
+  applyButtonText = '立即申请',
 }: JobDetailContentProps) {
   const isMobile = useIsMobile()
 
@@ -71,6 +75,9 @@ export default function JobDetailContent({
   const applyJob = async () => {
     userEvent('position_apply_clicked', '点击立即申请岗位', { job_id: job.id })
     let params = `data=job_id${job.id}`
+    if (job.job_type === 'mock_job') {
+      params = `${params}`
+    }
     if (inviteToken) {
       params = `${params}andinvite_token${inviteToken}`
     }
@@ -101,11 +108,14 @@ export default function JobDetailContent({
               <button
                 type='button'
                 onClick={onBack}
-                aria-label='返回'
+                aria-label={backLabel || '返回'}
                 className='cursor-pointer'
               >
                 <img src={backImg} alt="back" className='text-muted-foreground h-6 w-6' />
               </button>
+              {backLabel ? (
+                <span onClick={onBack} className='cursor-pointer ml-2 self-center text-sm text-muted-foreground'>{backLabel}</span>
+              ) : null}
             </div>
           )}
 
@@ -117,27 +127,34 @@ export default function JobDetailContent({
               {/* 移动端：薪资信息显示在左侧标题下方 */}
               {isMobile && (
                 <div>
-                  <div className='flex items-center gap-2'>
-                    <div className='text-xl font-semibold text-gray-900'>
-                      ¥{low}~¥{high}
-                    </div>
-                    <div className='text-xs text-gray-500'>{`每${unit}`}</div>
-                  </div>
+                  {
+                    low && high ? (
+                      <div className='flex items-center gap-2'>
+                        <div className='text-xl font-semibold text-gray-900'>
+                          ¥{low}~¥{high}
+                        </div>
+                        <div className='text-xs text-gray-500'>{`每${unit}`}</div>
+                      </div>)
+                     : <div></div>}
                 </div>
               )}
             </div>
             {/* 右侧：薪资和按钮 - 桌面端显示 */}
             {!isMobile && (
               <div className='flex min-w-[140px] flex-col items-end'>
-                <div className='mb-1 text-xl font-semibold text-gray-900'>
-                  ¥{low}~¥{high}
-                </div>
-                <div className='mb-3 text-xs text-gray-500'>{`每${unit}`}</div>
+                {low && high ?  (
+                  <>
+                    <div className='mb-1 text-xl font-semibold text-gray-900'>
+                      ¥{low}~¥{high}
+                    </div>
+                    <div className='mb-3 text-xs text-gray-500'>{`每${unit}`}</div>
+                  </>
+                ) : <div></div>}
                 <Button
                   onClick={applyJob}
                   className='!rounded-md !bg-[#4E02E4] !px-6 !py-2 !text-base !text-white'
                 >
-                  立即申请
+                  {applyButtonText}
                 </Button>
               </div>
             )}
@@ -157,17 +174,6 @@ export default function JobDetailContent({
               'bg-primary/5 relative max-h-[303px] rounded-lg px-6 py-5 shadow-sm',
               'w-full md:w-[320px]'
             )}
-            style={
-              isMobile
-                ? {
-                    backgroundImage:
-                      'url("https://dnu-cdn.xpertiise.com/common/3be774fc-cec8-4dae-9a15-7e83f4315dcc.svg")',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: '283px 314px',
-                    backgroundPosition: 'right 17px bottom -31px',
-                  }
-                : undefined
-            }
           >
             <div className='text-foreground mb-3 text-[18px] font-bold'>
               准备好加入我们的专家群体了吗?
@@ -182,13 +188,13 @@ export default function JobDetailContent({
               </div>
               <div className='flex flex-row-reverse items-center'>
                 <div className='mr-3 flex -space-x-2'>
-                  <img src={avatarsImg} className='h-[37px] w-[187px]' />
+                  <img src={avatarsImg} alt='' aria-hidden='true' className='h-[37px] w-[187px]' />
                 </div>
               </div>
             </div>
             <div className='mb-[12px] text-sm'>备好简历,开始申请吧！</div>
             <Button onClick={applyJob} className='h-[44px] w-full'>
-              立即申请
+              {applyButtonText}
             </Button>
           </div>
         )}
@@ -202,17 +208,6 @@ export default function JobDetailContent({
             'bg-primary/5 relative rounded-lg px-6 py-5 shadow-sm',
             'mx-auto my-6 w-full'
           )}
-          style={
-            isMobile
-              ? undefined
-              : {
-                backgroundImage:
-                  'url("https://dnu-cdn.xpertiise.com/common/3be774fc-cec8-4dae-9a15-7e83f4315dcc.svg")',
-                backgroundRepeat: 'no-repeat',
-                backgroundSize: '283px 314px',
-                backgroundPosition: 'right 17px bottom -31px',
-              }
-          }
         >
           <div className='text-foreground mb-3 text-[18px] font-bold'>
             准备好加入我们的专家群体了吗?
@@ -227,13 +222,13 @@ export default function JobDetailContent({
             </div>
             <div className={cn('flex items-center', isMobile ? 'flex-row-reverse' : '')}>
               <div className='flex -space-x-2'>
-                <img src={avatarsImg} className='h-[37px] w-[187px]' />
+                <img src={avatarsImg} alt='' aria-hidden='true' className='h-[37px] w-[187px]' />
               </div>
             </div>
           </div>
           <div className='mb-[12px] text-sm'>备好简历,开始申请吧！</div>
           <Button onClick={applyJob} className={cn('h-[44px] w-full', isMobile ? '' : 'max-w-[272px]')}>
-            立即申请
+            {applyButtonText}
           </Button>
         </div>
       )}
@@ -241,7 +236,6 @@ export default function JobDetailContent({
       {/* 底部固定栏 - 仅在移动端显示，带过渡 */}
       {isMobile && (
         <div
-          aria-hidden={!showFixedBar}
           className={
             'bg-background/95 supports-[backdrop-filter]:bg-background/75 fixed inset-x-0 bottom-0 z-50 border-t backdrop-blur transition-transform duration-300 ease-out will-change-transform ' +
             (showFixedBar ? 'translate-y-0' : 'translate-y-full')
@@ -258,7 +252,7 @@ export default function JobDetailContent({
                 onClick={applyJob}
                 className='flex-shrink-0 !rounded-md !border-[#4E02E4] !bg-[#4E02E4] !px-4 !py-2 !text-sm !font-medium !text-white'
               >
-                立即申请
+                {applyButtonText}
               </Button>
             </div>
           </div>

@@ -1,7 +1,42 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useJobDetailQuery } from '@/features/jobs/api'
 
 export default function InterviewTimer({ active, className }: { active?: boolean; className?: string }) {
-  const [seconds, setSeconds] = useState(15 * 60)
+  // 获取 jobId 并查询职位信息
+  const jobId = useMemo(() => {
+    if (typeof window === 'undefined') return null
+    const params = new URLSearchParams(window.location.search)
+    const id = params.get('job_id')
+    if (!id) return null
+    const n = Number(id)
+    return Number.isNaN(n) ? id : n
+  }, [])
+
+  const { data: job } = useJobDetailQuery(jobId, Boolean(jobId))
+
+  // 从 job 的 interview_duration_minutes 获取面试时长，如果没有则默认15分钟
+  const getInitialSeconds = useCallback(() => {
+    try {
+      const minutes = job?.interview_duration_minutes
+      if (minutes != null && Number.isFinite(minutes) && minutes > 0) {
+        return Math.floor(minutes * 60)
+      }
+      return 15 * 60 // 默认15分钟
+    } catch {
+      return 15 * 60 // 默认15分钟
+    }
+  }, [job?.interview_duration_minutes])
+
+  const [seconds, setSeconds] = useState(() => getInitialSeconds())
+
+  // 当 job 数据加载后，更新计时器初始值
+  useEffect(() => {
+    if (job?.interview_duration_minutes) {
+      const newSeconds = getInitialSeconds()
+      setSeconds(newSeconds)
+    }
+  }, [job?.interview_duration_minutes, getInitialSeconds])
+
   useEffect(() => {
     if (!active) return
     if (seconds <= 0) return

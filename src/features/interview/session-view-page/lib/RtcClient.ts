@@ -23,6 +23,7 @@ import VERTC, {
   NetworkQuality,
   VideoRenderMode,
   ScreenEncoderConfig,
+  TrackCaptureConfig,
 } from '@volcengine/rtc';
 import { toast } from 'sonner';
 // import { string2tlv } from '@/utils/rtc-utils';
@@ -83,7 +84,7 @@ export class RTCClient {
 
   /**
    * 更新基础信息
-   * @param basicInfo 
+   * @param basicInfo
    */
   updateBasicInfo = (basicInfo: BasicBody) => {
     this.basicInfo = basicInfo;
@@ -123,21 +124,21 @@ export class RTCClient {
 
   /**
    * 添加事件监听器
-   * @param handleError 
-   * @param handleUserJoin 
-   * @param handleUserLeave 
-   * @param handleTrackEnded 
-   * @param handleUserPublishStream 
-   * @param handleUserUnpublishStream 
-   * @param handleRemoteStreamStats 
-   * @param handleLocalStreamStats 
-   * @param handleLocalAudioPropertiesReport 
-   * @param handleRemoteAudioPropertiesReport 
-   * @param handleAudioDeviceStateChanged 
-   * @param handleAutoPlayFail 
-   * @param handlePlayerEvent 
-   * @param handleRoomBinaryMessageReceived 
-   * @param handleNetworkQuality 
+   * @param handleError
+   * @param handleUserJoin
+   * @param handleUserLeave
+   * @param handleTrackEnded
+   * @param handleUserPublishStream
+   * @param handleUserUnpublishStream
+   * @param handleRemoteStreamStats
+   * @param handleLocalStreamStats
+   * @param handleLocalAudioPropertiesReport
+   * @param handleRemoteAudioPropertiesReport
+   * @param handleAudioDeviceStateChanged
+   * @param handleAutoPlayFail
+   * @param handlePlayerEvent
+   * @param handleRoomBinaryMessageReceived
+   * @param handleNetworkQuality
    */
   addEventListeners = ({
     handleError,
@@ -212,7 +213,7 @@ export class RTCClient {
 
   /**
    * 检查设备权限
-   * @returns 
+   * @returns
    */
   checkPermission(): Promise<{
     video: boolean;
@@ -282,7 +283,7 @@ export class RTCClient {
 
   /**
    * 开始视频采集
-   * @param camera 
+   * @param camera
    */
   startVideoCapture = async (camera?: string) => {
     await this.engine.startVideoCapture(camera || this._videoCaptureDevice);
@@ -298,7 +299,7 @@ export class RTCClient {
 
   /**
    * 开始屏幕采集
-   * @param enableAudio 
+   * @param enableAudio
    */
   startScreenCapture = async (enableAudio = false) => {
     // 这个方法还支持其他的重要参数，详见文档
@@ -316,8 +317,24 @@ export class RTCClient {
   };
 
   /**
+   * 设置音频采集配置
+   * @param config 
+   */
+  setAudioCaptureConfig = async (config: TrackCaptureConfig = {
+    noiseSuppression: true,
+    echoCancellation: true,
+    autoGainControl: true,
+  }) => {
+    await this.engine.setAudioCaptureConfig({
+      noiseSuppression: config.noiseSuppression ?? true,
+      echoCancellation: config.echoCancellation ?? true,
+      autoGainControl: config.autoGainControl ?? true,
+    });
+  };
+
+  /**
    * 开始音频采集
-   * @param mic 
+   * @param mic
    */
   startAudioCapture = async (mic?: string) => {
     await this.engine.startAudioCapture(mic || this._audioCaptureDevice);
@@ -329,7 +346,7 @@ export class RTCClient {
 
   /**
    * 发布媒体流
-   * @param mediaType 
+   * @param mediaType
    */
   publishStream = (mediaType: MediaType) => {
     this.engine.publishStream(mediaType);
@@ -393,7 +410,7 @@ export class RTCClient {
 
   /**
    * @brief 设置本地视频镜像类型
-   * @param type 
+   * @param type
    */
   setLocalVideoMirrorType = (type: MirrorType) => {
     return this.engine.setLocalVideoMirrorType(type);
@@ -401,10 +418,10 @@ export class RTCClient {
 
   /**
    * @brief 设置本地视频播放器
-   * @param userId 
-   * @param renderDom 
-   * @param isScreenShare 
-   * @param renderMode 
+   * @param userId
+   * @param renderDom
+   * @param isScreenShare
+   * @param renderMode
    */
   setLocalVideoPlayer = (
     userId: string,

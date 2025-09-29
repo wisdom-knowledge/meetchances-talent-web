@@ -15,6 +15,7 @@ import useAgentApm from './lib/useAgentApm'
 import { userEvent } from '@/lib/apm'
 import { useRoomStore } from '@/stores/interview/room'
 import { useNavigate } from '@tanstack/react-router'
+import { useJobDetailQuery } from '@/features/jobs/api'
 
 export default function InterviewSessionViewPage() {
 
@@ -23,6 +24,11 @@ export default function InterviewSessionViewPage() {
   useInterviewFinish()
   useAgentApm()
   const navigate = useNavigate()
+  
+  // 获取job详情来判断是否为模拟面试
+  const params = new URLSearchParams(window.location.search)
+  const jobId = params.get('job_id')
+  const { data: jobDetail } = useJobDetailQuery(jobId, Boolean(jobId))
   const performEndInterview = useCallback(async () => {
     try {
       const params = new URLSearchParams(window.location.search)
@@ -32,6 +38,7 @@ export default function InterviewSessionViewPage() {
       const interviewId = storeInterviewId ?? params.get('interview_id') ?? undefined
       userEvent('interview_user_terminated', '用户主动中断面试', {
         job_id: jobId,
+        is_mock: jobDetail?.job_type === 'mock_job',
         interview_id: interviewId,
         job_apply_id: jobApplyId,
       })
@@ -44,12 +51,14 @@ export default function InterviewSessionViewPage() {
         const params = new URLSearchParams(window.location.search)
         const storeInterviewId = useRoomStore.getState().rtcConnectionInfo?.interview_id
         if (storeInterviewId != null) params.set('interview_id', String(storeInterviewId))
+        // 从job详情判断是否为模拟面试
+        if (jobDetail?.job_type === 'mock_job') params.set('is_canceled', 'true')
         window.location.replace(`/finish?${params.toString()}`)
       } catch {
         window.location.replace('/finish')
       }
     }, 1000)
-  }, [leaveRoom])
+  }, [leaveRoom, jobDetail])
 
   const onLeave = useCallback(() => {
     setConfirmEndOpen(true)
@@ -59,6 +68,7 @@ export default function InterviewSessionViewPage() {
     return () => {
       console.log('use effect >>> leave room')
       leaveRoom()
+      userEvent('interview_user_terminated_by_effect', 'effect触发的用户离开面试间', {})
     }
   }, [])
 
@@ -68,20 +78,22 @@ export default function InterviewSessionViewPage() {
   useEffect(() => {
     // 防止严格模式下重复执行
     if (hasLoadedDetailsRef.current) return
-    const interviewId = new URLSearchParams(window.location.search).get('interview_id')
-    const jobId = new URLSearchParams(window.location.search).get('job_id')
-    const jobApplyId = new URLSearchParams(window.location.search).get('job_apply_id')
+    const params = new URLSearchParams(window.location.search)
+    const interviewId = params.get('interview_id')
+    const jobId = params.get('job_id')
+    const jobApplyId = params.get('job_apply_id')
     const details = localStorage.getItem(`rtc_connection_info:v1:${interviewId}`)
 
     if (details) {
       hasLoadedDetailsRef.current = true
       localStorage.removeItem(`rtc_connection_info:v1:${interviewId}`)
     } else {
+      // 构建完整的重定向URL，保留所有重要参数
       let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrue&source=session_refresh`
       if (jobApplyId) url += `&job_apply_id=${jobApplyId}`
       navigate({ to: url, replace: true })
     }
-  }, [])
+  }, [jobDetail, navigate])
 
 
   return (

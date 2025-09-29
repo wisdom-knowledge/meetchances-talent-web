@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { reportFirstTokenDuration, reportThinkingDuration, userEvent } from '@/lib/apm'
 import { useRoomStore } from '@/stores/interview/room'
+import { useJobDetailQuery } from '@/features/jobs/api'
 
 /**
  * 监听 AI Agent 的思考/说话状态变更并上报相关指标
@@ -13,6 +14,18 @@ export function useAgentApm(): void {
   const isAIThinking = useRoomStore((s) => s.isAIThinking)
   const isSpeaking = Boolean(isAITalking)
   const isThinking = Boolean(isAIThinking)
+
+  // 获取 jobId 并查询职位信息
+  const jobId = useMemo(() => {
+    const qs = new URLSearchParams(window.location.search)
+    const id = qs.get('job_id')
+    if (!id) return null
+    const n = Number(id)
+    return Number.isNaN(n) ? id : n
+  }, [])
+
+  const { data: job } = useJobDetailQuery(jobId, Boolean(jobId))
+  const isMock = useMemo(() => job?.job_type === 'mock_job', [job])
 
   // 回合号（从 0 开始），进入 speaking 时 +1
   const currentRoundRef = useRef<number>(0)
@@ -36,6 +49,7 @@ export function useAgentApm(): void {
         const qs = new URLSearchParams(window.location.search)
         userEvent('interview_rounds_2_reached', '面试问答超过2轮', {
           job_id: qs.get('job_id') ?? undefined,
+          is_mock: isMock,
           interview_id: qs.get('interview_id') ?? undefined,
           job_apply_id: qs.get('job_apply_id') ?? undefined,
         })
@@ -45,6 +59,7 @@ export function useAgentApm(): void {
         const qs = new URLSearchParams(window.location.search)
         userEvent('interview_rounds_5_reached', '面试问答5轮', {
           job_id: qs.get('job_id') ?? undefined,
+          is_mock: isMock,
           interview_id: qs.get('interview_id') ?? undefined,
           job_apply_id: qs.get('job_apply_id') ?? undefined,
         })
@@ -67,7 +82,7 @@ export function useAgentApm(): void {
         reportFirstTokenDuration(duration)
       }
     }
-  }, [isThinking, isSpeaking])
+  }, [isThinking, isSpeaking, isMock])
 }
 
 export default useAgentApm

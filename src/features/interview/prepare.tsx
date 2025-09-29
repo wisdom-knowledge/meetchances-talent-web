@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { UploadArea } from '@/features/resume-upload/upload-area'
 import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
-import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled, IconUpload } from '@tabler/icons-react'
+import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled, IconUpload, IconEdit } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { IconLoader2 } from '@tabler/icons-react'
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
@@ -27,7 +27,7 @@ import type { StructInfo } from '@/features/resume-upload/types/struct-info'
 import { patchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import { handleServerError } from '@/utils/handle-server-error'
 import { useAuthStore } from '@/stores/authStore'
-import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, getInterviewNodeId, fetchInterviewConnectionDetails, saveInterviewConnectionToStorage, getRtcConnectionInfo } from '@/features/interview/api'
+import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, getInterviewNodeId, getRtcConnectionInfo } from '@/features/interview/api'
 import { useRoomStore } from '@/stores/interview/room'
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
@@ -305,6 +305,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     return ai?.node_status
   }, [progressNodes])
 
+  const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
+  
+  // 判断是否为模拟面试
+  const isMock = useMemo(() => job?.job_type === 'mock_job', [job])
+
   // 页面挂载时清除之前存储的设备偏好，防止设备被拔掉后出现问题
   useEffect(() => {
     clearAllPreferredDevices()
@@ -369,11 +374,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       // 这里仅切换视图
       setViewMode(ViewMode.InterviewPrepare)
     }
-  }, [viewMode, jobApplyId, workflow, queryClient, interviewNodeId, jobId, navigate])
+  }, [viewMode, jobApplyId, workflow, queryClient])
 
   const handleConfirmResumeClick = useCallback(async () => {
-    if (uploadingResume || !resumeValues) return
-    userEvent('resume_confirmed', '确认简历，下一步', { page: 'interview_prepare',job_apply_id: jobApplyId ?? undefined,job_id: jobId ?? undefined })
+    if (uploadingResume) return
+    if (!resumeValues) return
+    userEvent('resume_confirmed', '确认简历，下一步', { page: 'interview_prepare',isMock: isMock,job_apply_id: jobApplyId ?? undefined,job_id: jobId ?? undefined })
     // 先进行简历校验（与“保存更新”一致）。失败则打开抽屉并定位。
     const parsed = resumeSchema.safeParse(resumeValues)
     if (!parsed.success) {
@@ -388,7 +394,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       return
     }
     await proceedAfterResumeConfirm()
-  }, [uploadingResume, resumeValues, uploadedThisVisit, hadResumeBefore, proceedAfterResumeConfirm])
+  }, [uploadingResume, resumeValues, uploadedThisVisit, hadResumeBefore, proceedAfterResumeConfirm, jobApplyId, jobId, isMock])
 
   // 确保在离开页面前主动释放媒体资源，避免设备权限长期占用
   const releaseAllMediaStreams = useCallback(() => {
@@ -407,37 +413,38 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     } catch { /* ignore */ }
   }, [])
 
-  const onStartInterviewClick = useCallback(async () => {
-    if (!jobId || !interviewNodeId || connecting) return
-    setConnecting(true)
+  // const onStartInterviewClick = useCallback(async () => {
+  //   if (!jobId || !interviewNodeId || connecting) return
+  //   setConnecting(true)
 
-    try {
-      const details = await fetchInterviewConnectionDetails(jobId)
-      if (!details?.interviewId) {
-        toast.error('创建面试房间失败，请稍后再试')
-        setConnecting(false)
-        return
-      }
-      saveInterviewConnectionToStorage(details)
-      userEvent('interview_started', '点击开始面试(确认设备，下一步)', {
-        job_id: job?.id,
-        job_apply_id: jobApplyId ?? undefined,
-        interview_id: details.interviewId ?? undefined,
-      })
-      navigate({
-        to: '/interview/session',
-        search: {
-          interview_id: details.interviewId,
-          job_id: jobId ?? undefined,
-          job_apply_id: jobApplyId ?? undefined,
-          interview_node_id: interviewNodeId ?? undefined,
-        },
-      })
-    } catch (_e) {
-      toast.error('网络不稳定，请重试')
-      setConnecting(false)
-    }
-  }, [jobId, interviewNodeId, connecting, navigate, jobApplyId])
+  //   try {
+  //     const details = await fetchInterviewConnectionDetails(jobId)
+  //     if (!details?.interviewId) {
+  //       toast.error('创建面试房间失败，请稍后再试')
+  //       setConnecting(false)
+  //       return
+  //     }
+  //     saveInterviewConnectionToStorage(details)
+  //     userEvent('interview_started', '点击开始面试(确认设备，下一步)', {
+  //       job_id: job?.id,
+  //       isMock: isMock,
+  //       job_apply_id: jobApplyId ?? undefined,
+  //       interview_id: details.interviewId ?? undefined,
+  //     })
+  //     navigate({
+  //       to: '/interview/session',
+  //       search: {
+  //         interview_id: details.interviewId,
+  //         job_id: jobId ?? undefined,
+  //         job_apply_id: jobApplyId ?? undefined,
+  //         interview_node_id: interviewNodeId ?? undefined,
+  //       },
+  //     })
+  //   } catch (_e) {
+  //     toast.error('网络不稳定，请重试')
+  //     setConnecting(false)
+  //   }
+  // }, [jobId, interviewNodeId, connecting, navigate, jobApplyId, isMock])
 
   // 旧逻辑：页面初始化即加载 RTC 连接信息（已废弃，改为点击时加载）
 
@@ -449,7 +456,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   // 新版面试间
   const onStartNewInterviewClick = async () => {
     if (!jobId || !interviewNodeId || connecting) return
-    console.log('onStartNewInterviewClick', typeof onStartInterviewClick)
     setConnecting(true)
     try {
       // 1) 点击时实时获取最新的 RTC 连接信息
@@ -515,8 +521,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
   // (removed) Audio output check – not used
 
-  const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
-
   // 进入页面（ViewMode=Job）即尝试获取用户简历，并进行回显
   useEffect(() => {
     let mounted = true
@@ -536,16 +540,16 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     return () => {
       mounted = false
     }
-  }, [viewMode])
+  }, [viewMode, isMock])
 
   // 根据进度切换视图
   useEffect(() => {
     const next = resolveViewModeFromProgress()
-    if (next && next !== viewMode) {
+    if (next && next !== viewMode && !isMock) {
       setViewMode(next)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progressNodes])
+  }, [progressNodes, isMock])
 
   const handleApplyJob = useCallback(async () => {
     if (!jobId || isSkipConfirm) return
@@ -668,23 +672,29 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 <div className='flex items-start justify-between gap-4'>
                   <div className='min-w-0'>
                     <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
-                    <div className='flex items-center gap-4 text-primary mb-2'>
-                      <div className='flex items-center'>
-                        <IconBriefcase className='h-4 w-4 mr-1' />
-                        <span className='text-[14px]'>时薪制</span>
+                    {!isMock && (
+                      <div className='text-primary mb-2 flex items-center gap-4'>
+                        <div className='flex items-center'>
+                          <IconBriefcase className='mr-1 h-4 w-4' />
+                          <span className='text-[14px]'>时薪制</span>
+                        </div>
+                        <div className='flex items-center'>
+                          <IconWorldPin className='mr-1 h-4 w-4' />
+                          <span className='text-[14px]'>远程</span>
+                        </div>
                       </div>
-                      <div className='flex items-center'>
-                        <IconWorldPin className='h-4 w-4 mr-1' />
-                        <span className='text-[14px]'>远程</span>
+                    )}
+                  </div>
+                  {
+                    !isMock && (
+                      <div className='hidden md:flex flex-col items-end min-w-[140px]'>
+                        <div className='text-xl font-semibold text-foreground mb-1'>
+                          {job ? `¥${job.salary_min ?? 0}~¥${job.salary_max ?? 0}` : '—'}
+                        </div>
+                        <div className='text-xs text-muted-foreground mb-3'>每小时</div>
                       </div>
-                    </div>
-                  </div>
-                  <div className='hidden md:flex flex-col items-end min-w-[140px]'>
-                    <div className='text-xl font-semibold text-foreground mb-1'>
-                      {job ? `¥${job.salary_min ?? 0}~¥${job.salary_max ?? 0}` : '—'}
-                    </div>
-                    <div className='text-xs text-muted-foreground mb-3'>每小时</div>
-                  </div>
+                    )
+                  }
                 </div>
                 <Separator className='mt-2' />
                 {/* 发布者信息 */}
@@ -725,7 +735,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   uploader={uploadTalentResume}
                   onUploadingChange={setUploadingResume}
                   onUploadComplete={(results) => {
-                    userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare', action: resumeValues ? 'update' : 'upload',job_id: jobId ?? undefined,job_apply_id: jobApplyId ?? undefined })
+                    userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare',isMock: isMock, action: resumeValues ? 'update' : 'upload',job_id: jobId ?? undefined,job_apply_id: jobApplyId ?? undefined })
                     const first = results.find((r) => r.success)
                     if (!first) return
                     const si = (first.backend?.struct_info ?? {}) as StructInfo
@@ -736,6 +746,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     userEvent('resume_parsed_success', '简历解析成功', {
                       page: 'interview_prepare',
                       name: mapped.name ?? '',
+                      isMock: isMock,
                       phone: mapped.phone ?? '',
                       email: mapped.email ?? '',
                       education_count: String(mapped.education?.length ?? 0),
@@ -766,12 +777,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   )}
 
                   {resumeValues ? (
-                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare', trigger: 'button_click', action: 'update', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
+                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare',isMock: isMock ,trigger: 'button_click', action: 'update', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
                       <IconUpload className='h-4 w-4' />
                       更新简历
                     </Button>
                   ) : (
-                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare', trigger: 'button_click', action: 'upload', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
+                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare',isMock: isMock ,trigger: 'button_click', action: 'upload', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
                       <IconUpload className='h-4 w-4' />
                       上传简历
                     </Button>
@@ -786,6 +797,19 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={handleConfirmResumeClick}>
                     {uploadingResume ? '正在分析简历…' : '确认简历，下一步'}
                   </Button>
+                  {isMock && !resumeValues && (
+                    <div className='mt-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground'>
+                      <span>没有简历？</span>
+                      <button
+                        type='button'
+                        onClick={() => setResumeOpen(true)}
+                        className='inline-flex items-center gap-1 text-primary hover:underline underline-offset-2'
+                      >
+                        <IconEdit className='h-3.5 w-3.5' /> 手动填写
+                      </button>
+                      <span className='text-primary'>»</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* 遮罩交给 UploadArea 内部处理，这里不再渲染 */}
@@ -814,6 +838,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   setStage('mic')
                   userEvent('speaker_status_confirmed', '确认扬声器状态正常', {
                     job_id: job?.id,
+                    isMock: isMock,
                     job_apply_id: jobApplyId ?? undefined,
                     interview_node_id: interviewNodeId ?? undefined,
                   })
@@ -832,6 +857,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   setStage('headphone')
                   userEvent('camera_status_confirmed', '确认摄像头状态正常', {
                     job_id: job?.id,
+                    isMock: isMock,
                     job_apply_id: jobApplyId ?? undefined,
                     interview_node_id: interviewNodeId ?? undefined,
                   })
@@ -840,6 +866,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   setMicStatus(DeviceTestStatus.Success)
                   userEvent('microphone_status_confirmed', '确认麦克风状态正常', {
                     job_id: job?.id,
+                    isMock: isMock,
                     job_apply_id: jobApplyId ?? undefined,
                     interview_node_id: interviewNodeId ?? undefined,
                   })
@@ -990,7 +1017,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         )}
 
         {/* 底部步骤与下一步 */}
-        <Steps jobApplyId={jobApplyId ?? null} />
+        <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
 
       </Main>
       <SupportDialog open={supportOpen} onOpenChange={setSupportOpen} />
@@ -1062,23 +1089,32 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     <div className='text-2xl font-bold mb-2 leading-tight truncate text-foreground'>
                       {job.title}
                     </div>
-                    <div className='flex items-center gap-4 text-primary mb-2'>
-                      <div className='flex items-center'>
-                        <IconBriefcase className='h-4 w-4 mr-1' />
-                        <span className='text-[14px]'>时薪制</span>
-                      </div>
-                      <div className='flex items-center'>
-                        <IconWorldPin className='h-4 w-4 mr-1' />
-                        <span className='text-[14px]'>远程</span>
-                      </div>
-                    </div>
+                    {
+                      !isMock && (
+                        <div className='flex items-center gap-4 text-primary mb-2'>
+                          <div className='flex items-center'>
+                            <IconBriefcase className='h-4 w-4 mr-1' />
+                            <span className='text-[14px]'>时薪制</span>
+                          </div>
+                          <div className='flex items-center'>
+                            <IconWorldPin className='h-4 w-4 mr-1' />
+                            <span className='text-[14px]'>远程</span>
+                          </div>
+                        </div>
+                      )
+                    }
                   </div>
-                  <div className='hidden md:flex flex-col items-end min-w-[140px]'>
-                    <div className='text-xl font-semibold text-foreground mb-1'>
-                      ¥{job.salary_min ?? 0}~¥{job.salary_max ?? 0}
-                    </div>
-                    <div className='text-xs text-muted-foreground mb-3'>每小时</div>
-                  </div>
+                  {
+                    !isMock && (
+                      <div className='hidden md:flex flex-col items-end min-w-[140px]'>
+                        <div className='text-xl font-semibold text-foreground mb-1'>
+                          ¥{job.salary_min ?? 0}~¥{job.salary_max ?? 0}
+                        </div>
+                        <div className='text-xs text-muted-foreground mb-3'>每小时</div>
+                      </div>
+                    )
+                  }
+
                 </div>
 
                 {/* 发布者信息 */}
@@ -1142,6 +1178,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 if (res.success) {
                   userEvent('resume_save', '简历保存', {
                     page: 'interview_prepare',
+                    isMock: isMock,
                     name: vals.name ?? '',
                     phone: vals.phone ?? '',
                     email: vals.email ?? '',

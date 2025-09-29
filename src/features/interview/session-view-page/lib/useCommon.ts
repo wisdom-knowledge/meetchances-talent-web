@@ -3,7 +3,7 @@
  * SPDX-license-identifier: BSD-3-Clause
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import RtcClient from '@/features/interview/session-view-page/lib/RtcClient';
 import useRtcListeners from '@/features/interview/session-view-page/lib/listenerHooks';
@@ -11,6 +11,7 @@ import { useRoomStore } from '@/stores/interview/room';
 import { useDeviceStore } from '@/stores/interview/device';
 import { userEvent } from '@/lib/apm'
 import { postNodeAction, NodeActionTrigger } from '@/features/interview/api'
+import { useJobDetailQuery } from '@/features/jobs/api'
 // logger removed; use toast for user-facing notices
 
 export const ABORT_VISIBILITY_CHANGE = 'abortVisibilityChange';
@@ -67,6 +68,7 @@ export const useDeviceState = () => {
         : RtcClient.unpublishStream(MediaType.AUDIO));
     }
     void queryDevices('audio');
+    await RtcClient.setAudioCaptureConfig();
     await (!isAudioPublished ? RtcClient.startAudioCapture() : RtcClient.stopAudioCapture());
     roomActions.updateLocalUser({ publishAudio: !isAudioPublished })
   };
@@ -256,7 +258,19 @@ export const useInterviewFinish = () => {
   const leave = useLeave()
   const triggeredRef = useRef(false)
 
-  const beforeLeave = async () => {
+  // 获取 jobId 并查询职位信息
+  const jobId = useMemo(() => {
+    const params = new URLSearchParams(window.location.search)
+    const id = params.get('job_id')
+    if (!id) return null
+    const n = Number(id)
+    return Number.isNaN(n) ? id : n
+  }, [])
+
+  const { data: job } = useJobDetailQuery(jobId, Boolean(jobId))
+  const isMock = useMemo(() => job?.job_type === 'mock_job', [job])
+
+  const beforeLeave = useCallback(async () => {
     const params = new URLSearchParams(window.location.search)
     const roomStore = useRoomStore.getState()
     const interviewId = roomStore.rtcConnectionInfo?.interview_id
@@ -271,6 +285,7 @@ export const useInterviewFinish = () => {
     // 上报并提交节点
     userEvent('interview_completed', '面试正常结束', {
       job_id: jobId ?? undefined,
+      is_mock: isMock,
       interview_id: interviewId ?? undefined,
       job_apply_id: jobApplyId ?? undefined,
     })
@@ -283,7 +298,7 @@ export const useInterviewFinish = () => {
     setTimeout(() => {
       window.location.replace(`/finish?${params.toString()}`)
     }, 300)
-  }
+  }, [isMock])
 
   useEffect(() => {
     // 当收到了 Agent 的离开事件，并且 Agent 没有说话和思考，则代表正常完成面试了
@@ -292,5 +307,5 @@ export const useInterviewFinish = () => {
       void beforeLeave()
       void leave()
     }
-  }, [isAITalking, isAIThinking, isAgentLeaving, leave])
+  }, [isAITalking, isAIThinking, isAgentLeaving, leave, beforeLeave])
 }

@@ -22,6 +22,7 @@ import voiceLottie from '@/lotties/voice-lottie.json';
 import { AgentControlBar } from '@/components/livekit/agent-control-bar'
 import { getPreferredDeviceId } from '@/lib/devices'
 import { reportThinkingDuration, userEvent } from '@/lib/apm'
+import { useJobDetailQuery } from '@/features/jobs/api'
 
 function useLocalTrackRef(source: Track.Source) {
   const { localParticipant } = useLocalParticipant()
@@ -51,6 +52,10 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
   const micTrack = useLocalTrackRef(Track.Source.Microphone)
   const cameraTrack = useLocalTrackRef(Track.Source.Camera)
   const connectingLottieRef = useRef<LottieRefCurrentProps>(null)
+
+  // 获取职位信息并判断是否为模拟面试
+  const { data: job } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
+  const isMock = useMemo(() => job?.job_type === 'mock_job', [job])
 
   // thinking 轮次与起止时间
   const [thinkingRound, setThinkingRound] = useState<number>(0)
@@ -110,6 +115,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
         reportedRound2ReachedRef.current = true
         userEvent('interview_rounds_2_reached', '面试问答超过2轮', {
           job_id: jobId,
+          is_mock: isMock,
           interview_id: interviewId,
           job_apply_id: jobApplyId,
         })
@@ -119,6 +125,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
         reportedRound5ReachedRef.current = true
         userEvent('interview_rounds_5_reached', '面试问答5轮', {
           job_id: jobId,
+          is_mock: isMock,
           interview_id: interviewId,
           job_apply_id: jobApplyId,
         })
@@ -153,7 +160,7 @@ export function SessionView({ disabled, sessionStarted, className, onRequestEnd,
 
     prevAgentStateRef.current = curr
     // 在会话状态与 agentState 变化时响应
-  }, [agentState, sessionStarted, thinkingRound, interviewId, jobId, jobApplyId, printRoundEvent])
+  }, [agentState, sessionStarted, thinkingRound, interviewId, jobId, jobApplyId, isMock, printRoundEvent])
 
   // 只显示最新的一条Agent消息
   const latestAgentMessage = useMemo(() => {

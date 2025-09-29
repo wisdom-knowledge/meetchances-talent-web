@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Main } from '@/components/layout/main'
 import { RoomAudioRenderer, RoomContext } from '@livekit/components-react'
 import { RoomEvent, Room, type RemoteParticipant } from 'livekit-client'
 // AgentControlBar moved into SessionView
 import '@livekit/components-styles'
-import { loadInterviewConnectionFromStorage, postNodeAction, NodeActionTrigger, useInterviewRecordStatus, type InterviewConnectionDetails, removeInterviewConnectionFromStorage } from '@/features/interview/api'
+import { loadInterviewConnectionFromStorage, useInterviewRecordStatus, type InterviewConnectionDetails, removeInterviewConnectionFromStorage } from '@/features/interview/api'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -12,6 +12,7 @@ import { SessionView } from '@/features/interview/session-view'
 import { getPreferredDeviceId } from '@/lib/devices'
 import { markInterviewStart, reportInterviewDeviceInfo, reportInterviewConnected, reportRecordFail, reportWsConnectTimeout, reportWsReconnectTimeout, userEvent, reportRoomConnectError, reportSessionStay15s } from '@/lib/apm'
 import { toast } from 'sonner'
+import { useJobDetailQuery } from '@/features/jobs/api'
 
 interface InterviewPageProps {
   interviewId: string | number
@@ -22,6 +23,10 @@ interface InterviewPageProps {
 
 export default function InterviewPage({ interviewId, jobId, jobApplyId, interviewNodeId }: InterviewPageProps) {
   const navigate = useNavigate()
+  
+  // 获取职位信息并判断是否为模拟面试
+  const { data: job } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
+  const isMock = useMemo(() => job?.job_type === 'mock_job', [job])
 
   // const identity = useMemo(() => `user-${Date.now()}`, [])
   const [data, setData] = useState<InterviewConnectionDetails | null>(() => loadInterviewConnectionFromStorage(interviewId))
@@ -134,7 +139,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
       if (jobApplyId) url += `&job_apply_id=${jobApplyId}`
       navigate({ to: url, replace: true })
     }
-  }, [])
+  }, [interviewId, jobId, jobApplyId, navigate])
 
   const performEndInterview = async () => {
     if (navigatedRef.current) return
@@ -144,6 +149,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
     // 提交当前节点结果，确保后端状态更新
     userEvent('interview_user_terminated', '用户主动中断面试', {
       job_id: jobId,
+      is_mock: isMock,
       interview_id: interviewId,
       job_apply_id: jobApplyId,
     })
@@ -159,7 +165,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
         params.set('interview_id', String(interviewId))
         if (jobId != null) params.set('job_id', String(jobId))
         if (jobApplyId) params.set('job_apply_id', String(jobApplyId))
-        if (interviewNodeId) params.set('interview_node_id', String(interviewNodeId))
+        if (interviewNodeId && !isMock) params.set('interview_node_id', String(interviewNodeId))
         const invite = current.get('invite_token')
         if (invite) params.set('invite_token', invite)
         const skip = current.get('isSkipConfirm')
@@ -260,11 +266,12 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
       reportedRecordStartedRef.current = true
       userEvent('interview_recording_started', '面试录制成功开启', {
         job_id: jobId,
+        isMock: isMock,
         interview_id: interviewId,
         job_apply_id: jobApplyId,
       })
     }
-  }, [recordStatus?.status, roomName, jobId, interviewId, jobApplyId])
+  }, [recordStatus?.status, roomName, jobId, interviewId, jobApplyId, isMock])
 
   // 面试断开或有参与者断开时，结束面试：跳转 finish 页面（replace），带上 interview_id
   useEffect(() => {
@@ -290,10 +297,10 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
         if (interviewNodeId) {
           userEvent('interview_completed', '面试正常结束', {
             job_id: jobId,
+            is_mock: isMock,
             interview_id: interviewId,
             job_apply_id: jobApplyId,
           })
-          await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
         }
       } catch { /* ignore */ }
       if (interviewId) {
@@ -304,7 +311,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
           params.set('interview_id', String(interviewId))
           params.set('job_id', String(jobId))
           if (jobApplyId) params.set('job_apply_id', String(jobApplyId))
-          if (interviewNodeId) params.set('interview_node_id', String(interviewNodeId))
+          if (interviewNodeId && !isMock) params.set('interview_node_id', String(interviewNodeId))
           const invite = current.get('invite_token')
           if (invite) params.set('invite_token', invite)
           const skip = current.get('isSkipConfirm')
@@ -380,7 +387,7 @@ export default function InterviewPage({ interviewId, jobId, jobApplyId, intervie
       room.off(RoomEvent.ConnectionStateChanged, handleConnChanged)
       room.off(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected)
     }
-  }, [navigate, data, jobApplyId, interviewNodeId, jobId, startReconnectTimeout, stopReconnectTimeout, stopConnectTimeout, debugEnabled])
+  }, [navigate, data, jobApplyId, interviewNodeId, jobId, isMock, interviewId, startReconnectTimeout, stopReconnectTimeout, stopConnectTimeout, debugEnabled])
 
   // 记录页面可见性与网络状态，辅助定位生产环境切后台后的断开
   useEffect(() => {

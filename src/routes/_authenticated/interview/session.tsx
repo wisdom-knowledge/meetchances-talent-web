@@ -25,7 +25,7 @@ export const Route = createFileRoute('/_authenticated/interview/session')({
 
 function InterviewSessionRouteComponent() {
   const isMobile = useIsMobile()
-  const search = Route.useSearch() as { interview_id: string | number; job_id?: string | number; job_apply_id?: string | number; interview_node_id?: string | number }
+  const search = Route.useSearch() as { interview_id: string | number; job_id?: string | number; job_apply_id?: string | number; interview_node_id?: string | number; }
   
   if (isMobile) {
     return <MobileFullscreenMask open={true} />
