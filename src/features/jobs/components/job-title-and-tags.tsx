@@ -20,7 +20,7 @@ export default function JobTitleAndTags({ job }: JobTitleAndTagsProps) {
         {job.title}
       </div>
       <div className='mb-2 flex flex-row items-center gap-2 text-[#4E02E4]'>
-        {job.job_type !== 'MOCK_JOB' &&
+        {job.job_type !== 'mock_job' &&
           (<div className='mr-4 flex items-center justify-center'>
             <IconBriefcase className='mr-1 h-4 w-4' />
             <span className='text-[14px]'>

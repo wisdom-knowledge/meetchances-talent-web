@@ -76,7 +76,7 @@ export default function JobDetailContent({
     userEvent('position_apply_clicked', '点击立即申请岗位', { job_id: job.id })
     let params = `data=job_id${job.id}`
     // MOCK_JOB: 追加 isMock 与 countdown（分钟）。优先使用接口字段，否则默认 15 分钟
-    if (job.job_type === 'MOCK_JOB') {
+    if (job.job_type === 'mock_job') {
       const minutes = typeof job.interview_duration_minutes === 'number' && job.interview_duration_minutes > 0
         ? job.interview_duration_minutes
         : 15

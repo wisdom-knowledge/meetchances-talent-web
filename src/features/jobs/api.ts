@@ -28,7 +28,7 @@ export type ApiJob = {
   id: number | string
   title: string
   description: string
-  job_type: 'full_time' | 'part_time' | 'MOCK_JOB'
+  job_type: 'full_time' | 'part_time' | 'mock_job'
   salary_type: 'hour' | 'month' | 'year' | string
   salary_min: number
   salary_max: number
