@@ -23,6 +23,7 @@ import VERTC, {
   NetworkQuality,
   VideoRenderMode,
   ScreenEncoderConfig,
+  TrackCaptureConfig,
 } from '@volcengine/rtc';
 import { toast } from 'sonner';
 // import { string2tlv } from '@/utils/rtc-utils';
@@ -313,6 +314,22 @@ export class RTCClient {
    */
   stopScreenCapture = async () => {
     await this.engine.stopScreenCapture();
+  };
+
+  /**
+   * 设置音频采集配置
+   * @param config 
+   */
+  setAudioCaptureConfig = async (config: TrackCaptureConfig = {
+    noiseSuppression: true,
+    echoCancellation: true,
+    autoGainControl: true,
+  }) => {
+    await this.engine.setAudioCaptureConfig({
+      noiseSuppression: config.noiseSuppression ?? true,
+      echoCancellation: config.echoCancellation ?? true,
+      autoGainControl: config.autoGainControl ?? true,
+    });
   };
 
   /**
