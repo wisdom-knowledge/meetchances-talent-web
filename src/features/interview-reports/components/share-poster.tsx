@@ -195,7 +195,7 @@ export function SharePoster({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='!max-w-[90vw] w-auto min-w-[445px]'>
+      <DialogContent className='!max-w-[90vw] w-auto min-w-[445px] max-h-[99vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
             <Share2 className='h-5 w-5' />
@@ -269,7 +269,7 @@ export function SharePoster({
                     className='flex h-full items-center'
                     style={{ width: `${(701 / 1262) * 100}%` }}
                   >
-                    <div className='mt-[calc(var(--sy)*24px)] w-full pr-[calc(var(--sx)*64px)] pl-[calc(var(--sx)*44px)] text-[calc(var(--sx)*45px)] leading-[1.3] font-bold break-words whitespace-pre-wrap text-[var(--theme)]'>
+                    <div className='mt-[calc(var(--sy)*24px)] w-full pr-[calc(var(--sx)*64px)] pl-[calc(var(--sx)*44px)] text-[calc(var(--sx)*50px)] leading-[1.3] font-bold break-words whitespace-pre-wrap text-[var(--theme)]'>
                       {preset.comment}
                     </div>
                   </div>

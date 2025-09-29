@@ -15,6 +15,7 @@ import useAgentApm from './lib/useAgentApm'
 import { userEvent } from '@/lib/apm'
 import { useRoomStore } from '@/stores/interview/room'
 import { useNavigate } from '@tanstack/react-router'
+import { useJobDetailQuery } from '@/features/jobs/api'
 
 export default function InterviewSessionViewPage() {
 
@@ -23,17 +24,21 @@ export default function InterviewSessionViewPage() {
   useInterviewFinish()
   useAgentApm()
   const navigate = useNavigate()
+  
+  // 获取job详情来判断是否为模拟面试
+  const params = new URLSearchParams(window.location.search)
+  const jobId = params.get('job_id')
+  const { data: jobDetail } = useJobDetailQuery(jobId, Boolean(jobId))
   const performEndInterview = useCallback(async () => {
     try {
       const params = new URLSearchParams(window.location.search)
       const jobId = params.get('job_id') ?? undefined
-      const isMock = params.get('is_mock') ?? undefined
       const jobApplyId = params.get('job_apply_id') ?? undefined
       const storeInterviewId = useRoomStore.getState().rtcConnectionInfo?.interview_id
       const interviewId = storeInterviewId ?? params.get('interview_id') ?? undefined
       userEvent('interview_user_terminated', '用户主动中断面试', {
         job_id: jobId,
-        is_mock: isMock,
+        is_mock: jobDetail?.job_type === 'mock_job',
         interview_id: interviewId,
         job_apply_id: jobApplyId,
       })
@@ -46,13 +51,14 @@ export default function InterviewSessionViewPage() {
         const params = new URLSearchParams(window.location.search)
         const storeInterviewId = useRoomStore.getState().rtcConnectionInfo?.interview_id
         if (storeInterviewId != null) params.set('interview_id', String(storeInterviewId))
-        if (params.get('is_mock')) params.set('is_canceled', 'true')
+        // 从job详情判断是否为模拟面试
+        if (jobDetail?.job_type === 'mock_job') params.set('is_canceled', 'true')
         window.location.replace(`/finish?${params.toString()}`)
       } catch {
         window.location.replace('/finish')
       }
     }, 1000)
-  }, [leaveRoom])
+  }, [leaveRoom, jobDetail])
 
   const onLeave = useCallback(() => {
     setConfirmEndOpen(true)
@@ -76,8 +82,6 @@ export default function InterviewSessionViewPage() {
     const interviewId = params.get('interview_id')
     const jobId = params.get('job_id')
     const jobApplyId = params.get('job_apply_id')
-    const isMock = params.get('is_mock')
-    const countdown = params.get('countdown')
     const details = localStorage.getItem(`rtc_connection_info:v1:${interviewId}`)
 
     if (details) {
@@ -85,11 +89,11 @@ export default function InterviewSessionViewPage() {
       localStorage.removeItem(`rtc_connection_info:v1:${interviewId}`)
     } else {
       // 构建完整的重定向URL，保留所有重要参数
-      let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrueandisMock${isMock}andcountdown${countdown}&source=session_refresh`
+      let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrue&source=session_refresh`
       if (jobApplyId) url += `&job_apply_id=${jobApplyId}`
       navigate({ to: url, replace: true })
     }
-  }, [])
+  }, [jobDetail, navigate])
 
 
   return (

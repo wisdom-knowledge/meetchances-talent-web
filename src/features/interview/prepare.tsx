@@ -45,8 +45,6 @@ interface InterviewPreparePageProps {
   isSkipConfirm?: boolean
   jobApplyIdFromRoute?: string | number
   isFromSessionRefresh?: boolean
-  isMock?: boolean
-  countdown?: string | number
 }
 
 enum ViewMode {
@@ -262,7 +260,7 @@ enum ViewMode {
     )
   }
 
-export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute, isMock, countdown, isFromSessionRefresh = false }: InterviewPreparePageProps) {
+export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm = false, jobApplyIdFromRoute, isFromSessionRefresh = false }: InterviewPreparePageProps) {
   const navigate = useNavigate()
   const [connecting, setConnecting] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -306,6 +304,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     const ai = nodes.find((n) => n.node_name.includes('AI 面试'))
     return ai?.node_status
   }, [progressNodes])
+
+  const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
+  
+  // 判断是否为模拟面试
+  const isMock = useMemo(() => job?.job_type === 'mock_job', [job])
 
   // 页面挂载时清除之前存储的设备偏好，防止设备被拔掉后出现问题
   useEffect(() => {
@@ -371,7 +374,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       // 这里仅切换视图
       setViewMode(ViewMode.InterviewPrepare)
     }
-  }, [viewMode, jobApplyId, workflow, queryClient, interviewNodeId, jobId, navigate])
+  }, [viewMode, jobApplyId, workflow, queryClient])
 
   const handleConfirmResumeClick = useCallback(async () => {
     if (uploadingResume) return
@@ -434,16 +437,14 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   //         interview_id: details.interviewId,
   //         job_id: jobId ?? undefined,
   //         job_apply_id: jobApplyId ?? undefined,
-  //         is_mock: isMock ?? undefined,
   //         interview_node_id: interviewNodeId ?? undefined,
-  //         countdown: countdown ?? undefined,
   //       },
   //     })
   //   } catch (_e) {
   //     toast.error('网络不稳定，请重试')
   //     setConnecting(false)
   //   }
-  // }, [jobId, interviewNodeId, connecting, navigate, jobApplyId, countdown, isMock])
+  // }, [jobId, interviewNodeId, connecting, navigate, jobApplyId, isMock])
 
   // 旧逻辑：页面初始化即加载 RTC 连接信息（已废弃，改为点击时加载）
 
@@ -473,8 +474,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           job_apply_id: jobApplyId ?? undefined,
           interview_node_id: interviewNodeId ?? undefined,
           room_id: info.room_id,
-          is_mock: isMock ?? undefined,
-          countdown: countdown ?? undefined,
         } as unknown as Record<string, unknown>,
       })
     } catch (_e) {
@@ -522,8 +521,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
   // (removed) Audio output check – not used
 
-  const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
-
   // 进入页面（ViewMode=Job）即尝试获取用户简历，并进行回显
   useEffect(() => {
     let mounted = true
@@ -552,7 +549,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       setViewMode(next)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progressNodes])
+  }, [progressNodes, isMock])
 
   const handleApplyJob = useCallback(async () => {
     if (!jobId || isSkipConfirm) return
@@ -1020,7 +1017,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         )}
 
         {/* 底部步骤与下一步 */}
-        <Steps jobApplyId={jobApplyId ?? null} />
+        <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
 
       </Main>
       <SupportDialog open={supportOpen} onOpenChange={setSupportOpen} />
