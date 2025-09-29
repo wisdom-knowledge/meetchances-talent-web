@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import MockInterviewPage from '@/features/mock-interview'
+import MockInterviewTabsPage from '@/features/mock-interview/tabs-page'
 
 export const Route = createFileRoute('/_public/mock-interview/')({
   validateSearch: (search: { page?: number; pageSize?: number; q?: string; category?: string }) => {
@@ -10,5 +10,5 @@ export const Route = createFileRoute('/_public/mock-interview/')({
       category: typeof search?.category === 'string' ? search.category : undefined,
     }
   },
-  component: () => <MockInterviewPage />,
+  component: () => <MockInterviewTabsPage />,
 })
