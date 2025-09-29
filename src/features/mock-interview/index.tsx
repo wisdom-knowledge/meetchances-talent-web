@@ -275,6 +275,7 @@ export default function MockInterviewPage() {
                     summary: it.description,
                     durationMinutes: it.interview_duration_minutes,
                     category: it.category_name,
+                    id: it.id,
                   }}
                   index={idx}
                 />

@@ -61,10 +61,7 @@ export default function MockCard({ item, index }: MockCardProps) {
                 className='h-7 w-full inline-flex items-center justify-center rounded-md bg-gradient-to-r from-[#4E02E4] to-[#C994F7] px-3 text-white text-sm shadow opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 transition-all duration-300 ease-out'
                 onClick={() => {
                   navigate({
-                    to: '/interview/prepare',
-                    search: {
-                      data: `job_id${item.interview_id}andisMock${true}andcountdown${item.durationMinutes}`,
-                    } as unknown as Record<string, unknown>,
+                    to: `/jobs/${item.id}`,
                   }).catch(() => {})
                 }}
               >
