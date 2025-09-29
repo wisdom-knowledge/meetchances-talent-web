@@ -63,6 +63,7 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
         </div>
       </div>
       <div className='flex items-center gap-2 shrink-0'>
+        {!reportReady && <span className='text-[12px] text-gray-400'>生成时间约30秒</span>}
         <Button
           size='sm'
           onClick={() => { if (!reportReady) return; onReport() }}

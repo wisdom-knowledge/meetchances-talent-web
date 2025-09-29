@@ -51,7 +51,7 @@ export default function MockCard({ item, index }: MockCardProps) {
       <div className='bg-white overflow-hidden'>
         <div className='h-[144px] sm:h-[104px] sm:group-hover:h-[144px] transition-all duration-300 ease-out p-5 pt-4 relative'>
           <div className='flex flex-col h-full'>
-            <div className='mt-[4px] font-semibold text-[16px] leading-[24px]'>{item.title}</div>
+            <div className='mt-[4px] font-semibold text-[16px] leading-[24px] line-clamp-1'>{item.title}</div>
             <div 
               className='mt-[4px] text-[12px] leading-[18px] text-muted-foreground line-clamp-2 h-[36px] overflow-hidden flex-shrink-0'
               dangerouslySetInnerHTML={{ __html: item.summary || '' }}
