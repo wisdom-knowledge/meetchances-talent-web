@@ -45,6 +45,13 @@ export default function FinishPage() {
     return val === 'true'
   }, [])
 
+  // 是否为主动取消面试：仅接受 'true' / 'false' 或无该参数
+  const isCanceled = useMemo(() => {
+    const sp = new URLSearchParams(window.location.search)
+    const val = sp.get('is_canceled') ?? sp.get('isCanceled')
+    return val === 'true'
+  }, [])
+
   // interview 节点 id（用于补偿上报 NodeAction）
   const interviewNodeId = useMemo(() => {
     const sp = new URLSearchParams(window.location.search)
@@ -313,7 +320,7 @@ export default function FinishPage() {
             className='h-[44px] w-[200px] bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)] text-white'
           >
             {
-              isMock ? '提交并生成面试报告' : '提交'
+              isMock && !isCanceled ? '提交并生成面试报告' : '提交'
             }
           </Button>
         </div>

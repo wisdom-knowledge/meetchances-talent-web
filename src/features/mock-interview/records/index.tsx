@@ -4,19 +4,19 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Button } from '@/components/ui/button'
 import MockEmptyState from '@/features/mock-interview/components/empty-state'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { fetchMockInterviewRecords } from '@/features/mock-interview/api'
 import type { MockInterviewRecordApiItem } from '@/features/mock-interview/types'
 import { IconArrowLeft, IconDots } from '@tabler/icons-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useJobApplyWorkflow, getInterviewNodeId, postNodeAction, NodeActionTrigger } from '@/features/interview/api'
+import { useJobApplyWorkflow, getInterviewNodeId } from '@/features/interview/api'
 import { toast } from 'sonner'
 
 function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInterviewRecordApiItem; onReport: () => void; onMore: () => void; onReinterview: () => void }) {
   const statusNum = typeof item.status === 'number' ? item.status : parseInt(String(item.status ?? '0'), 10)
   const reportReady = statusNum === 20
   const [isRetaking, setIsRetaking] = useState(false)
-  const queryClient = useQueryClient()
+  // const queryClient = useQueryClient()
   
   // 获取workflow信息以获取interview_node_id
   const { data: workflow } = useJobApplyWorkflow(item.job_apply_id ?? null, Boolean(item.job_apply_id))
@@ -30,20 +30,20 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
     
     setIsRetaking(true)
     try {
-      const result = await postNodeAction({
-        node_id: interviewNodeId,
-        trigger: NodeActionTrigger.Retake,
-        result_data: {}
-      })
+      // const result = await postNodeAction({
+      //   node_id: interviewNodeId,
+      //   trigger: NodeActionTrigger.Retake,
+      //   result_data: {}
+      // })
       
-      if (result.success) {
-        // 清除相关的查询缓存，确保prepare页面能获取到最新数据
-        queryClient.invalidateQueries({ queryKey: ['job-apply-workflow', item.job_apply_id] })
-        queryClient.removeQueries({ queryKey: ['job-apply-workflow', item.job_apply_id] })
-        onReinterview()
-      } else {
-        toast.error('重新面试申请失败，请稍后重试')
-      }
+      // if (result.success) {
+      // 清除相关的查询缓存，确保prepare页面能获取到最新数据
+      // queryClient.invalidateQueries({ queryKey: ['job-apply-workflow', item.job_apply_id] })
+      // queryClient.removeQueries({ queryKey: ['job-apply-workflow', item.job_apply_id] })
+      onReinterview()
+      // } else {
+      //   toast.error('重新面试申请失败，请稍后重试')
+      // }
     } catch (_error) {
       // 记录错误但不在生产环境输出到控制台
       toast.error('重新面试申请失败，请稍后重试')
