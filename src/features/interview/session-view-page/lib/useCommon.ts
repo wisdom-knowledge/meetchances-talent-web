@@ -263,6 +263,7 @@ export const useInterviewFinish = () => {
     if (interviewId != null) params.set('interview_id', String(interviewId))
     // 保留已存在的 job_id / job_apply_id / interview_node_id
     const jobId = params.get('job_id')
+    const isMock = params.get('is_mock')
     if (jobId) params.set('job_id', jobId)
     const jobApplyId = params.get('job_apply_id')
     if (jobApplyId) params.set('job_apply_id', jobApplyId)
@@ -271,6 +272,7 @@ export const useInterviewFinish = () => {
     // 上报并提交节点
     userEvent('interview_completed', '面试正常结束', {
       job_id: jobId ?? undefined,
+      is_mock: isMock ?? undefined,
       interview_id: interviewId ?? undefined,
       job_apply_id: jobApplyId ?? undefined,
     })

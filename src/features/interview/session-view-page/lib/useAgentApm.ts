@@ -36,6 +36,7 @@ export function useAgentApm(): void {
         const qs = new URLSearchParams(window.location.search)
         userEvent('interview_rounds_2_reached', '面试问答超过2轮', {
           job_id: qs.get('job_id') ?? undefined,
+          is_mock: qs.get('is_mock') ?? undefined,
           interview_id: qs.get('interview_id') ?? undefined,
           job_apply_id: qs.get('job_apply_id') ?? undefined,
         })
@@ -45,6 +46,7 @@ export function useAgentApm(): void {
         const qs = new URLSearchParams(window.location.search)
         userEvent('interview_rounds_5_reached', '面试问答5轮', {
           job_id: qs.get('job_id') ?? undefined,
+          is_mock: qs.get('is_mock') ?? undefined,
           interview_id: qs.get('interview_id') ?? undefined,
           job_apply_id: qs.get('job_apply_id') ?? undefined,
         })

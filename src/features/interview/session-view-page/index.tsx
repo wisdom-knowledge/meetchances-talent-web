@@ -27,11 +27,13 @@ export default function InterviewSessionViewPage() {
     try {
       const params = new URLSearchParams(window.location.search)
       const jobId = params.get('job_id') ?? undefined
+      const isMock = params.get('is_mock') ?? undefined
       const jobApplyId = params.get('job_apply_id') ?? undefined
       const storeInterviewId = useRoomStore.getState().rtcConnectionInfo?.interview_id
       const interviewId = storeInterviewId ?? params.get('interview_id') ?? undefined
       userEvent('interview_user_terminated', '用户主动中断面试', {
         job_id: jobId,
+        is_mock: isMock,
         interview_id: interviewId,
         job_apply_id: jobApplyId,
       })
@@ -68,16 +70,20 @@ export default function InterviewSessionViewPage() {
   useEffect(() => {
     // 防止严格模式下重复执行
     if (hasLoadedDetailsRef.current) return
-    const interviewId = new URLSearchParams(window.location.search).get('interview_id')
-    const jobId = new URLSearchParams(window.location.search).get('job_id')
-    const jobApplyId = new URLSearchParams(window.location.search).get('job_apply_id')
+    const params = new URLSearchParams(window.location.search)
+    const interviewId = params.get('interview_id')
+    const jobId = params.get('job_id')
+    const jobApplyId = params.get('job_apply_id')
+    const isMock = params.get('is_mock')
+    const countdown = params.get('countdown')
     const details = localStorage.getItem(`rtc_connection_info:v1:${interviewId}`)
 
     if (details) {
       hasLoadedDetailsRef.current = true
       localStorage.removeItem(`rtc_connection_info:v1:${interviewId}`)
     } else {
-      let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrue&source=session_refresh`
+      // 构建完整的重定向URL，保留所有重要参数
+      let url = `/interview/prepare?data=job_id${jobId}andisSkipConfirmtrueandisMock${isMock}andcountdown${countdown}&source=session_refresh`
       if (jobApplyId) url += `&job_apply_id=${jobApplyId}`
       navigate({ to: url, replace: true })
     }

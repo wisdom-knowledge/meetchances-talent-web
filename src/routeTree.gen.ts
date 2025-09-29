@@ -332,8 +332,8 @@ export interface FileRoutesByFullPath {
   '/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
   '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/interview/session': typeof AuthenticatedInterviewSessionRoute
-  '/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
+  '/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -377,8 +377,8 @@ export interface FileRoutesByTo {
   '/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
   '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/interview/session': typeof AuthenticatedInterviewSessionRoute
-  '/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
+  '/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -427,8 +427,8 @@ export interface FileRoutesById {
   '/_authenticated/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
   '/_authenticated/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
   '/_authenticated/interview/session': typeof AuthenticatedInterviewSessionRoute
-  '/_authenticated/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/_authenticated/interview/session_view': typeof AuthenticatedInterviewSession_viewRoute
+  '/_authenticated/mock-interview/records': typeof AuthenticatedMockInterviewRecordsRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -476,8 +476,8 @@ export interface FileRouteTypes {
     | '/interview/antechamber'
     | '/interview/prepare'
     | '/interview/session'
-    | '/mock-interview/records'
     | '/interview/session_view'
+    | '/mock-interview/records'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
@@ -521,8 +521,8 @@ export interface FileRouteTypes {
     | '/interview/antechamber'
     | '/interview/prepare'
     | '/interview/session'
-    | '/mock-interview/records'
     | '/interview/session_view'
+    | '/mock-interview/records'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
@@ -570,8 +570,8 @@ export interface FileRouteTypes {
     | '/_authenticated/interview/antechamber'
     | '/_authenticated/interview/prepare'
     | '/_authenticated/interview/session'
-    | '/_authenticated/mock-interview/records'
     | '/_authenticated/interview/session_view'
+    | '/_authenticated/mock-interview/records'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
@@ -978,8 +978,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInterviewAntechamberRoute: typeof AuthenticatedInterviewAntechamberRoute
   AuthenticatedInterviewPrepareRoute: typeof AuthenticatedInterviewPrepareRoute
   AuthenticatedInterviewSessionRoute: typeof AuthenticatedInterviewSessionRoute
-  AuthenticatedMockInterviewRecordsRoute: typeof AuthenticatedMockInterviewRecordsRoute
   AuthenticatedInterviewSession_viewRoute: typeof AuthenticatedInterviewSession_viewRoute
+  AuthenticatedMockInterviewRecordsRoute: typeof AuthenticatedMockInterviewRecordsRoute
   AuthenticatedAnnotateReportIndexRoute: typeof AuthenticatedAnnotateReportIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
@@ -1007,10 +1007,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedInterviewAntechamberRoute,
   AuthenticatedInterviewPrepareRoute: AuthenticatedInterviewPrepareRoute,
   AuthenticatedInterviewSessionRoute: AuthenticatedInterviewSessionRoute,
-  AuthenticatedMockInterviewRecordsRoute:
-    AuthenticatedMockInterviewRecordsRoute,
   AuthenticatedInterviewSession_viewRoute:
     AuthenticatedInterviewSession_viewRoute,
+  AuthenticatedMockInterviewRecordsRoute:
+    AuthenticatedMockInterviewRecordsRoute,
   AuthenticatedAnnotateReportIndexRoute: AuthenticatedAnnotateReportIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,

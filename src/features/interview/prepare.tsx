@@ -443,7 +443,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       toast.error('网络不稳定，请重试')
       setConnecting(false)
     }
-  }, [jobId, interviewNodeId, connecting, navigate, jobApplyId, countdown])
+  }, [jobId, interviewNodeId, connecting, navigate, jobApplyId, countdown, isMock])
 
   // 旧逻辑：页面初始化即加载 RTC 连接信息（已废弃，改为点击时加载）
 
@@ -455,7 +455,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   // 新版面试间
   const onStartNewInterviewClick = async () => {
     if (!jobId || !interviewNodeId || connecting) return
-    console.log('onStartNewInterviewClick', typeof onStartInterviewClick)
     setConnecting(true)
     try {
       // 1) 点击时实时获取最新的 RTC 连接信息
@@ -474,6 +473,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           job_apply_id: jobApplyId ?? undefined,
           interview_node_id: interviewNodeId ?? undefined,
           room_id: info.room_id,
+          is_mock: isMock ?? undefined,
+          countdown: countdown ?? undefined,
         } as unknown as Record<string, unknown>,
       })
     } catch (_e) {
