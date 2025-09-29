@@ -237,10 +237,10 @@ export default function JobsListPage() {
         </div>
         <Separator className='my-4 lg:my-6' />
 
-        <div className='relative -mb-8 flex h-[calc(100vh-12rem)] flex-col gap-6 lg:flex-row'>
+        <div className='relative -mb-8 flex h-[calc(100vh-260px)] flex-col gap-6 lg:flex-row'>
           {/* 左侧：职位列表 */}
           <div className='flex-1'>
-            <ScrollArea className='h-[calc(100vh-12rem)] pr-1'>
+            <ScrollArea className='h-[calc(100vh-260px)] pr-1'>
               <ul className='space-y-2 pb-4'>
                 {isLoading
                   ? Array.from({ length: 8 }).map((_, index: number) => (
