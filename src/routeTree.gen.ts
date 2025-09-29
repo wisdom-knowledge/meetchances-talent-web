@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ClerkRouteRouteImport } from './routes/clerk/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as JobsJob_idRouteImport } from './routes/jobs/$job_id'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
@@ -70,6 +71,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const JobsJob_idRoute = JobsJob_idRouteImport.update({
+  id: '/jobs/$job_id',
+  path: '/jobs/$job_id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const errors503Route = errors503RouteImport.update({
   id: '/(errors)/503',
@@ -328,6 +334,7 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/jobs/$job_id': typeof JobsJob_idRoute
   '/': typeof AuthenticatedIndexRoute
   '/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
   '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
@@ -373,6 +380,7 @@ export interface FileRoutesByTo {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/jobs/$job_id': typeof JobsJob_idRoute
   '/': typeof AuthenticatedIndexRoute
   '/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
   '/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
@@ -423,6 +431,7 @@ export interface FileRoutesById {
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
+  '/jobs/$job_id': typeof JobsJob_idRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
   '/_authenticated/interview/prepare': typeof AuthenticatedInterviewPrepareRoute
@@ -472,6 +481,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/jobs/$job_id'
     | '/'
     | '/interview/antechamber'
     | '/interview/prepare'
@@ -517,6 +527,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/jobs/$job_id'
     | '/'
     | '/interview/antechamber'
     | '/interview/prepare'
@@ -566,6 +577,7 @@ export interface FileRouteTypes {
     | '/(errors)/404'
     | '/(errors)/500'
     | '/(errors)/503'
+    | '/jobs/$job_id'
     | '/_authenticated/'
     | '/_authenticated/interview/antechamber'
     | '/_authenticated/interview/prepare'
@@ -613,6 +625,7 @@ export interface RootRouteChildren {
   errors404Route: typeof errors404Route
   errors500Route: typeof errors500Route
   errors503Route: typeof errors503Route
+  JobsJob_idRoute: typeof JobsJob_idRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -637,6 +650,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/jobs/$job_id': {
+      id: '/jobs/$job_id'
+      path: '/jobs/$job_id'
+      fullPath: '/jobs/$job_id'
+      preLoaderRoute: typeof JobsJob_idRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(errors)/503': {
       id: '/(errors)/503'
@@ -1091,6 +1111,7 @@ const rootRouteChildren: RootRouteChildren = {
   errors404Route: errors404Route,
   errors500Route: errors500Route,
   errors503Route: errors503Route,
+  JobsJob_idRoute: JobsJob_idRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
