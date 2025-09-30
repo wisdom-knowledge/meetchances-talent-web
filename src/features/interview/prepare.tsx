@@ -824,8 +824,24 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         */}
         {viewMode === ViewMode.InterviewPrepare && (
           <div className='flex-1 flex flex-col lg:grid lg:gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
+            {/* 移动端：操作区域在上 */}
+            <div className='lg:hidden order-1 p-4'>
+              <Button
+                disabled={
+                  cameraStatus !== DeviceTestStatus.Success
+                  || micStatus !== DeviceTestStatus.Success
+                  || spkStatus !== DeviceTestStatus.Success
+                  || !interviewNodeId
+                  || connecting
+                }
+                className='w-full disabled:opacity-100 disabled:bg-[#C9C9C9] disabled:border-[0.5px] disabled:border-[rgba(255,255,255,0.12)]' onClick={onStartNewInterviewClick}>
+                {connecting ? '面试间连接中…' : '确认设备，下一步'}
+              </Button>
+              <p className='text-xs text-muted-foreground mt-4 text-center'>请在安静、独立的空间进行本次AI面试，确保评估效果最佳</p>
+            </div>
+
             {/* 左：职位标题 + 设备检查 */}
-            <div className='lg:col-span-7 space-y-6 px-3 lg:pl-3 flex flex-col justify-center'>
+            <div className='lg:col-span-7 space-y-6 px-3 lg:pl-3 flex flex-col justify-center order-2'>
               <div className='flex items-center justify-between'>
                 <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
                 <div className='ml-4 flex-shrink-0'><ConnectionQualityBarsStandalone /></div>
@@ -894,20 +910,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               />
             </div>
 
-            {/* 右：操作区域 */}
-            <div className='lg:col-span-5 p-6 lg:sticky flex flex-col justify-center'>
+            {/* 右：操作区域（桌面端） */}
+            <div className='hidden lg:flex lg:col-span-5 p-6 lg:sticky flex-col justify-center order-3'>
               <div className='lg:my-36'>
-                {/* <Button
-                  disabled={
-                    cameraStatus !== DeviceTestStatus.Success
-                    || micStatus !== DeviceTestStatus.Success
-                    || spkStatus !== DeviceTestStatus.Success
-                    || !interviewNodeId
-                    || connecting
-                  }
-                  className='w-full disabled:opacity-100 disabled:bg-[#C9C9C9] disabled:border-[0.5px] disabled:border-[rgba(255,255,255,0.12)]' onClick={onStartInterviewClick}>
-                  {connecting ? '面试间连接中…' : '确认设备，下一步'}
-                </Button> */}
                 <Button
                   disabled={
                     cameraStatus !== DeviceTestStatus.Success
