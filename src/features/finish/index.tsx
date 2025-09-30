@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { handleServerError } from '@/utils/handle-server-error'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,6 @@ import { FeedbackParams, fetchFeedback } from './api'
 import { toast } from 'sonner'
 import emptyStar from '@/assets/images/empty-start.svg'
 import filledStar from '@/assets/images/full-start.svg'
-import { NodeActionTrigger, postNodeAction } from '@/features/interview/api'
 import { reportFinishFeedbackLowScore } from '@/lib/apm'
 import { useJobDetailQuery } from '@/features/jobs/api'
 
@@ -59,28 +58,6 @@ export default function FinishPage() {
     const val = sp.get('is_canceled') ?? sp.get('isCanceled')
     return val === 'true'
   }, [])
-
-  // interview 节点 id（用于补偿上报 NodeAction）
-  const interviewNodeId = useMemo(() => {
-    const sp = new URLSearchParams(window.location.search)
-    const nodeId = sp.get('interview_node_id')
-    if (!nodeId) return undefined
-    const n = Number(nodeId)
-    return Number.isNaN(n) ? (nodeId as string) : (n as number)
-  }, [])
-
-  // 进入页面即进行一次补偿上报（submit），失败不阻塞流程
-  useEffect(() => {
-    ;(async () => {
-      try {
-        if (interviewNodeId != null && !isMock && job != null) {
-          await postNodeAction({ node_id: interviewNodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
-        }
-      } catch (_e) {
-        // ignore
-      }
-    })()
-  }, [interviewNodeId, isMock, job])
 
   // 把 prepare 页面的参数原样透传回去，便于返回时延续上下文
   const prepareSearch = useMemo(() => {
