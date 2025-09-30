@@ -4,6 +4,7 @@ export interface MockInterviewItem {
   summary: string
   durationMinutes: number
   category: string
+  category_id: number
   id: number
 }
 

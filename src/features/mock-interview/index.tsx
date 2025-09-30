@@ -215,9 +215,12 @@ export default function MockInterviewPage() {
               return (
                 <button
                   key={id}
-                  onClick={() => setCategory(id)}
+                  onClick={() => {
+                    setPage(1)
+                    setCategory(id)
+                  }}
                   className='group inline-flex max-w-[120px] min-w-[88px] shrink-0 flex-col items-center gap-2 text-sm'
-                  aria-pressed={active}
+                  aria-pressed={active ? 'true' : 'false'}
                 >
                   <span
                     className={[
@@ -292,9 +295,11 @@ export default function MockInterviewPage() {
                     summary: it.description,
                     durationMinutes: it.interview_duration_minutes,
                     category: it.category_name,
+                    category_id: it.category_id,
                     id: it.id,
                   }}
                   index={idx}
+                  categories={categories}
                 />
               ))}
             </div>
