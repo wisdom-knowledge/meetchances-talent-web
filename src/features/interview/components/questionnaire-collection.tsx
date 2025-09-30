@@ -1,46 +1,60 @@
 
+import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
+import { 
+  QuestionnaireNodeData, 
+  QuestionnaireStatus, 
+  CollectionStatus 
+} from '../types/questionnaire'
 
 // 问卷收集组件 - 集成飞书问卷
-// 节点数据接口
-export interface QuestionnaireNodeData {
-  created_at?: string
-  id?: number
-  job_id?: number | null
-  node_config?: Record<string, unknown>
-  node_key?: string
-  node_name?: string
-  node_type?: string
-  order_index?: number
-  result_data?: Record<string, unknown> | null
-  status?: number | string
-  talent_id?: number | null
-  updated_at?: string
-  workflow_instance_id?: number
-}
-
-// 问卷状态枚举
-export enum QuestionnaireStatus {
-  NotFilled = 0,        // 未填写
-  PendingReview = 20,   // 已填写待审核
-  Rejected = 40,        // 被拒绝
-}
-
-// 问卷收集状态类型
-export type CollectionStatus = 'not-filled' | 'pending-review' | 'rejected'
 
 interface QuestionnaireCollectionProps {
   nodeData?: QuestionnaireNodeData
   jobApplyId?: string | number
 }
 
+// 获取问卷状态的 API 函数
+async function fetchQuestionnaireStatus(nodeId: string | number): Promise<QuestionnaireNodeData> {
+  const raw = await api.get('/talent/node/status', { params: { node_id: nodeId } })
+  return raw as unknown as QuestionnaireNodeData
+}
+
+// 轮询问卷状态的 Hook
+function useQuestionnaireStatusPolling(nodeId: string | number | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: ['questionnaire-status', nodeId],
+    queryFn: () => fetchQuestionnaireStatus(nodeId as string | number),
+    enabled: Boolean(nodeId) && enabled,
+    refetchInterval: 5000, // 每5秒轮询一次
+    staleTime: 0, // 不使用缓存，每次都重新获取
+  })
+}
+
 export default function QuestionnaireCollection({
   nodeData,
   jobApplyId
 }: QuestionnaireCollectionProps) {
+  const [currentNodeData, setCurrentNodeData] = useState(nodeData)
+  
+  // 当状态为未填写时启用轮询
+  const shouldPoll = currentNodeData?.status === QuestionnaireStatus.NotFilled
+  const { data: polledData, isLoading } = useQuestionnaireStatusPolling(
+    currentNodeData?.id, 
+    shouldPoll
+  )
+  
+  // 更新节点数据
+  useEffect(() => {
+    if (polledData) {
+      setCurrentNodeData(polledData)
+    }
+  }, [polledData])
   
   // 根据节点状态确定当前状态
   const getCurrentStatus = (): CollectionStatus => {
-    const status = Number(nodeData?.status ?? 0)
+    const status = Number(currentNodeData?.status ?? 0)
     switch (status) {
       case QuestionnaireStatus.NotFilled:
         return 'not-filled'
@@ -56,9 +70,9 @@ export default function QuestionnaireCollection({
   const currentStatus = getCurrentStatus()
   
   // 从nodeData中获取问卷链接
-  const questionnaireUrl = nodeData?.node_config?.url as string || 
-                          nodeData?.node_config?.form_url as string ||
-                          nodeData?.node_config?.questionnaire_url as string
+  const questionnaireUrl = currentNodeData?.node_config?.url as string || 
+                          currentNodeData?.node_config?.form_url as string ||
+                          currentNodeData?.node_config?.questionnaire_url as string
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
@@ -73,21 +87,35 @@ export default function QuestionnaireCollection({
 
       {/* 根据状态显示不同内容 */}
       {currentStatus === 'not-filled' && (
-        <div className="text-center space-y-4 max-w-md">
-          <p className="text-gray-700 text-lg">
-            请点击下方链接填写问卷,帮助我们更好地了解你
-          </p>
-          <a 
-            href={questionnaireUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-block text-blue-500 hover:text-blue-600 underline text-lg cursor-pointer"
-          >
-            问卷链接
-          </a>
-          <p className="text-gray-700">
-            你的专属申请ID是: <span className="font-bold">{jobApplyId || nodeData?.id || 'N/A'}</span>
-          </p>
+        <div className="w-full max-w-4xl space-y-4">
+          <div className="text-center space-y-2">
+            <p className="text-gray-700 text-lg">
+              请填写下方问卷,帮助我们更好地了解你
+            </p>
+            <p className="text-gray-600">
+              你的专属申请ID是: <span className="font-bold">{jobApplyId || currentNodeData?.id || 'N/A'}</span>
+            </p>
+          </div>
+          
+          {questionnaireUrl && (
+            <div className="w-full">
+              <iframe
+                src={questionnaireUrl}
+                width="100%"
+                height="600"
+                frameBorder="0"
+                className="rounded-lg shadow-lg"
+                title="问卷填写"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+              />
+            </div>
+          )}
+          
+          {isLoading && (
+            <div className="text-center text-gray-500">
+              正在检查问卷状态...
+            </div>
+          )}
         </div>
       )}
 
