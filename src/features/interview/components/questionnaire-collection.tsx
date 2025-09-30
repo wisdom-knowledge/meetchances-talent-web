@@ -1,7 +1,6 @@
 
 
 // 问卷收集组件 - 集成飞书问卷
-import { IconLoader2 } from '@tabler/icons-react'
 // 节点数据接口
 export interface QuestionnaireNodeData {
   created_at?: string
@@ -41,7 +40,7 @@ export default function QuestionnaireCollection({
   
   // 根据节点状态确定当前状态
   const getCurrentStatus = (): CollectionStatus => {
-    const status = Number(nodeData?.status ?? 40)
+    const status = Number(nodeData?.status ?? 0)
     switch (status) {
       case QuestionnaireStatus.NotFilled:
         return 'not-filled'
@@ -65,7 +64,11 @@ export default function QuestionnaireCollection({
     <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
       {/* 加载动画 */}
       <div className="mb-8">
-        <IconLoader2 className="h-16 w-16 text-purple-500 animate-spin" />
+        <img 
+          src="https://dnu-cdn.xpertiise.com/common/942a2fdb-7d92-41a6-aff0-570ad59e6d31.svg" 
+          alt="加载中" 
+          className="w-50"
+        />
       </div>
 
       {/* 根据状态显示不同内容 */}
