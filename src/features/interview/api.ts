@@ -273,6 +273,7 @@ export function useJobApplyProgress(jobApplyId: string | number | null, enabled 
         if (type === 'RESUME_CHECK' || key === 'ResumeCheck' || lowerName.includes('resume')) return '简历分析'
         if (type === 'TRIAL_TASK' || key.toLowerCase().includes('task') || lowerName.includes('task')) return '测试任务'
         if (type === 'EDUCATION_VERIFY' || lowerName.includes('education')) return '学历验证'
+        // TODO:wx 加问卷收集的type
         return name || key || '—'
       }
       const normalizeStatus = (n: JobApplyWorkflowNode): JobApplyNodeStatus => {
@@ -313,7 +314,7 @@ export function useJobApplyProgress(jobApplyId: string | number | null, enabled 
  * @param params 
  * @returns 
  */
-export async function startVoiceChat(params: {room_id: string}) {
+export async function startVoiceChat(params: { room_id: string }) {
   return api.post('/talent/start-voice-chat', params)
 }
 
@@ -322,7 +323,7 @@ export async function startVoiceChat(params: {room_id: string}) {
  * @param params 
  * @returns 
  */
-export async function stopVoiceChat(params: {room_name: string}) {
+export async function stopVoiceChat(params: { room_name: string }) {
   return api.post('/talent/stop-voice-chat', params)
 }
 

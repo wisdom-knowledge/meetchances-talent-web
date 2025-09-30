@@ -38,6 +38,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
 import { userEvent, reportSessionPageRefresh } from '@/lib/apm'
 import { useJoin } from '@/features/interview/session-view-page/lib/useCommon'
+import QuestionnaireCollection from './components/questionnaire-collection'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -47,6 +48,7 @@ interface InterviewPreparePageProps {
   isFromSessionRefresh?: boolean
 }
 
+// TODO:wx 添加问卷收集枚举
 enum ViewMode {
   Job = 'job',
   InterviewPrepare = 'interview-prepare',
@@ -55,6 +57,7 @@ enum ViewMode {
   EducationEval = 'education-eval',
   AllApproved = 'all-approved',
   Rejected = 'rejected',
+  Questionnaire = 'questionnaire',
 }
 
 // steps 组件迁移为独立组件，见 features/interview/components/steps.tsx
@@ -274,7 +277,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
   const [resumeFocusField, setResumeFocusField] = useState<string | undefined>(undefined)
   const [hadResumeBefore, setHadResumeBefore] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Job)
+  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Questionnaire)
   const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
@@ -487,6 +490,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     if (name.toLowerCase().includes('ai') || name.includes('AI 面试') || name.includes('Al面试')) return ViewMode.InterviewPrepare
     if (name.includes('测试任务') || name.includes('第一轮测试任务') || name.includes('第二轮测试任务')) return ViewMode.TrailTask
     if (name.includes('学历验证')) return ViewMode.EducationEval
+    // TODO:wx 加问卷收集的type
     return ViewMode.Job
   }
 
@@ -658,6 +662,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             <Button variant='link' className='text-primary' onClick={() => setSupportOpen(true)}>寻求支持</Button>
           </div>
         </div>
+
+        {/* TODO:wx 根据ViewMode类型去判断 问卷收集节点 */}
+        <QuestionnaireCollection jobApplyId={jobApplyId} />
 
         {/* ViewMode.Job
             职位与简历上传阶段：
