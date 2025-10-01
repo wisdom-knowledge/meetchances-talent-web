@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
@@ -7,7 +8,14 @@ import MockInterviewList from '@/features/mock-interview/components/mock-intervi
 import MockInterviewRecords from '@/features/mock-interview/components/mock-interview-records'
 
 export default function MockInterviewTabsPage() {
-  const [activeTab, setActiveTab] = useState('interview')
+  const navigate = useNavigate()
+  const search = useSearch({ from: '/_public/mock-interview/' }) as { tab?: string }
+  const [activeTab, setActiveTab] = useState(search?.tab === 'records' ? 'records' : 'interview')
+  
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab)
+    navigate({ to: '/mock-interview', search: { tab } })
+  }
 
   return (
     <>
@@ -21,7 +29,7 @@ export default function MockInterviewTabsPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className='flex-1 flex flex-col min-h-0'>
           <div className='flex border-b border-border shrink-0'>
             <button
-              onClick={() => setActiveTab('interview')}
+              onClick={() => handleTabChange('interview')}
               className={`px-4 py-2 text-lg font-medium border-b-2 transition-colors ${
                 activeTab === 'interview'
                   ? 'border-[#4E02E4] text-[#4E02E4]'
@@ -31,7 +39,7 @@ export default function MockInterviewTabsPage() {
               模拟面试
             </button>
             <button
-              onClick={() => setActiveTab('records')}
+              onClick={() => handleTabChange('records')}
               className={`px-4 py-2 text-lg font-medium border-b-2 transition-colors ${
                 activeTab === 'records'
                   ? 'border-[#4E02E4] text-[#4E02E4]'

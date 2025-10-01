@@ -84,11 +84,7 @@ export default function InterviewReports() {
             variant='ghost'
             size='sm'
             onClick={() => {
-              if (typeof window !== 'undefined' && window.history.length > 1) {
-                window.history.back()
-              } else {
-                navigate({ to: '/mock-interview/records' })
-              }
+              navigate({ to: '/mock-interview', search: { tab: 'records' } })
             }}
           >
             <IconArrowLeft className='h-4 w-4' /> 返回
