@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge'
 import { mapCurrentNodeStatusToPill } from '@/utils/apply-pill'
 import moneySvg from '@/assets/images/money.svg'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -163,11 +162,11 @@ export default function JobsListPage() {
       <Main fixed className='px-4 py-0'>
         <div className='mx-auto w-full max-w-[1224px]'>
         <div className='flex items-start justify-between gap-3'>
-          <div className='space-y-0.5 flex items-end'>
+          <div className=' flex items-end'>
             <h1 className=' text-xl font-bold tracking-tight md:text-2xl mr-2'>
               职位列表
             </h1>
-            <p className='text-muted-foreground text-sm sm:text-base relative top-[-2px]'>寻找与你匹配的工作机会</p>
+            <p className='text-muted-foreground text-sm sm:text-base relative '>寻找与你匹配的工作机会</p>
           </div>
 
         </div>

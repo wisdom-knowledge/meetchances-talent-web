@@ -75,8 +75,8 @@ export default function HomeViewPage() {
       </Header>
 
       <Main fixed>
-        <div className='space-y-0.5'>
-          <h1 className='text-xl font-bold tracking-tight md:text-2xl'>
+        <div className='md:flex md:items-end'>
+          <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-2'>
             欢迎回来{displayName ? `，${displayName}` : ''}
           </h1>
           <p className='text-muted-foreground'>查看你的任务与申请进度</p>
