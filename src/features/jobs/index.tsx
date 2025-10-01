@@ -160,7 +160,7 @@ export default function JobsListPage() {
       </Header>
 
       <Main fixed className='px-4 py-0'>
-        <div className='mx-auto w-full max-w-[1224px]'>
+        <div className='mx-auto w-full max-w-[1224px] h-full'>
         <div className='flex items-start justify-between gap-3'>
           <div className=' flex items-end'>
             <h1 className=' text-xl font-bold tracking-tight md:text-2xl mr-2'>
@@ -245,10 +245,10 @@ export default function JobsListPage() {
           </Tabs>
         </div>
 
-        <div className='relative -mb-8 flex h-[calc(100vh-12rem)] flex-col gap-6 lg:flex-row'>
+        <div className='relative -mb-8 flex md:h-[calc(100vh-10rem)] h-[calc(100vh-12rem)] flex-col gap-6 lg:flex-row'>
           {/* 左侧：职位列表 */}
           <div className='flex-1 flex flex-col min-h-0'>
-            <ScrollArea className='flex-1 min-h-0 h-[calc(100vh-12rem)] pr-1'>
+            <ScrollArea className='flex-1 min-h-0 md:h-[calc(100vh-10rem)] h-[calc(100vh-12rem)] pr-1'>
               <ul className='space-y-2 pb-4'>
                 {isLoading
                   ? Array.from({ length: 8 }).map((_, index: number) => (
