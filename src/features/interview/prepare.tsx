@@ -48,7 +48,6 @@ interface InterviewPreparePageProps {
   isFromSessionRefresh?: boolean
 }
 
-// TODO:wx 添加问卷收集枚举
 enum ViewMode {
   Job = 'job',
   InterviewPrepare = 'interview-prepare',
@@ -277,7 +276,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [resumeValues, setResumeValues] = useState<ResumeFormValues | null>(null)
   const [resumeFocusField, setResumeFocusField] = useState<string | undefined>(undefined)
   const [hadResumeBefore, setHadResumeBefore] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Questionnaire)
+  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Job)
   const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
@@ -285,6 +284,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [jobApplyId, setJobApplyId] = useState<number | string | null>(jobApplyIdFromRoute ?? null)
   const [currentSpkDeviceId, setCurrentSpkDeviceId] = useState<string>('')
   const [currentMicDeviceId, setCurrentMicDeviceId] = useState<string>('')
+  const [currentNodeData, setCurrentNodeData] = useState<Record<string, unknown> | null>(null)
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const [_joining, triggerJoin] = useJoin()
   const setRtcConnectionInfo = useRoomStore((s) => s.setRtcConnectionInfo)
@@ -490,7 +490,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     if (name.toLowerCase().includes('ai') || name.includes('AI 面试') || name.includes('Al面试')) return ViewMode.InterviewPrepare
     if (name.includes('测试任务') || name.includes('第一轮测试任务') || name.includes('第二轮测试任务')) return ViewMode.TrailTask
     if (name.includes('学历验证')) return ViewMode.EducationEval
-    // TODO:wx 加问卷收集的type
+    if (name.includes('问卷调查')) return ViewMode.Questionnaire
     return ViewMode.Job
   }
 
@@ -550,7 +550,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   useEffect(() => {
     const next = resolveViewModeFromProgress()
     if (next && next !== viewMode && !isMock) {
-      setViewMode(next)
+      // setViewMode(next)
+      setViewMode(ViewMode.Questionnaire)
+      // TODO:找到progressNodes中第一个不是完成状态的节点，然后进行设置，如果next节点的name是问卷而且状态还是进行中，
+      // 就一直轮询请求useJobApplyProgress，可以设置一个时间间隔，然后在组件卸载或者得到状态为不是进行中就停止
+      setCurrentNodeData(progressNodes?.[0] as unknown as Record<string, unknown>)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progressNodes, isMock])
@@ -663,8 +667,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           </div>
         </div>
 
-        {/* TODO:wx 根据ViewMode类型去判断 问卷收集节点 */}
-        <QuestionnaireCollection jobApplyId={jobApplyId} />
 
         {/* ViewMode.Job
             职位与简历上传阶段：
@@ -1020,6 +1022,16 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             <div className='text-center whitespace-pre-line text-xl font-semibold leading-relaxed text-foreground'>
               {`您没有通过项目筛选。\n感谢您的参与，欢迎申请其他岗位。`}
             </div>
+          </div>
+        )}
+
+        {/* ViewMode.Questionnaire
+            问卷收集阶段：
+            - 展示飞书问卷并等待用户填写
+        */}
+        {viewMode === ViewMode.Questionnaire && (
+          <div className='flex-1 w-full max-w-screen-xl mx-auto'>
+            <QuestionnaireCollection nodeData={currentNodeData ?? undefined} />
           </div>
         )}
 

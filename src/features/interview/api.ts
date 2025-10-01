@@ -273,7 +273,7 @@ export function useJobApplyProgress(jobApplyId: string | number | null, enabled 
         if (type === 'RESUME_CHECK' || key === 'ResumeCheck' || lowerName.includes('resume')) return '简历分析'
         if (type === 'TRIAL_TASK' || key.toLowerCase().includes('task') || lowerName.includes('task')) return '测试任务'
         if (type === 'EDUCATION_VERIFY' || lowerName.includes('education')) return '学历验证'
-        // TODO:wx 加问卷收集的type
+        if (type === 'QUESTIONNAIRE' || key === 'Questionnaire' || lowerName.includes('questionnaire')) return '问卷调查'
         return name || key || '—'
       }
       const normalizeStatus = (n: JobApplyWorkflowNode): JobApplyNodeStatus => {
@@ -296,7 +296,7 @@ export function useJobApplyProgress(jobApplyId: string | number | null, enabled 
             return JobApplyNodeStatus.NotStarted
         }
       }
-      return backendNodes.map((n) => ({ node_name: normalizeName(n), node_status: normalizeStatus(n) }))
+      return backendNodes.map((n) => ({ ...n, node_name: normalizeName(n), node_status: normalizeStatus(n) }))
     },
   })
 }
