@@ -38,6 +38,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
 import { userEvent, reportSessionPageRefresh } from '@/lib/apm'
 import { useJoin } from '@/features/interview/session-view-page/lib/useCommon'
+import { AnnotateTestPending } from '@/features/interview/components/annotate-test-pending'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -54,6 +55,7 @@ enum ViewMode {
   TrailTask = 'trail-task',
   EducationEval = 'education-eval',
   AllApproved = 'all-approved',
+  AnnotateTestPending = 'annotate-test-pending',
   Rejected = 'rejected',
 }
 
@@ -483,9 +485,13 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   }
 
   function nodeNameToViewMode(name: string): ViewMode {
+// FIXME：调试代码
+    return ViewMode.AnnotateTestPending
+
     if (name.includes('简历分析')) return ViewMode.Job
     if (name.toLowerCase().includes('ai') || name.includes('AI 面试') || name.includes('Al面试')) return ViewMode.InterviewPrepare
     if (name.includes('测试任务') || name.includes('第一轮测试任务') || name.includes('第二轮测试任务')) return ViewMode.TrailTask
+    if (name.includes('标注测试') || name.includes('Xpert Studio')) return ViewMode.AnnotateTestPending
     if (name.includes('学历验证')) return ViewMode.EducationEval
     return ViewMode.Job
   }
@@ -990,6 +996,14 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               </div>
             </div>
           </div>
+        )}
+
+        {/* ViewMode.AnnotateTestPending
+            标注测试阶段：
+            - 引导用户前往 Xpert Studio 完成标注测试任务
+        */}
+        {viewMode === ViewMode.AnnotateTestPending && (
+          <AnnotateTestPending onTaskComplete={() => setSupportOpen(true)} />
         )}
 
         {/* ViewMode.AllApproved
