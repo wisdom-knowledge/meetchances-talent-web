@@ -245,7 +245,7 @@ export default function ResumePage() {
 
       <Main fixed>
         <div className='md:flex md:items-end'>
-          <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-2'>我的简历</h1>
+          <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>我的简历</h1>
           <p className='text-muted-foreground'>完善你的基本信息与经历，便于精准匹配项目。</p>
         </div>
         <Separator className='my-4 lg:my-6' />
