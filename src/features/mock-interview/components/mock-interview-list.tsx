@@ -194,7 +194,7 @@ export default function MockInterviewList() {
                   setPage(1)
                   setCategory(id)
                 }}
-                className='group inline-flex max-w-[120px] min-w-[88px] shrink-0 flex-col items-center gap-2 text-sm'
+                className='group inline-flex max-w-[120px] min-w-[76px] shrink-0 flex-col items-center gap-2 text-sm'
                 aria-pressed={active ? 'true' : 'false'}
               >
                 <span
