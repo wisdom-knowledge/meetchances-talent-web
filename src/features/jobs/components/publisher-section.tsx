@@ -25,7 +25,7 @@ export default function PublisherSection({ job, recommendName }: PublisherSectio
   return (
     <div>
       <div className='border-border flex items-center gap-3 border-b py-4'>
-        <div className='flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-1 border-gray-200 bg-white'>
+        <div className='flex h-9 w-9 items-center justify-center overflow-hidden bg-white'>
           <img
             src={company?.logo}
             alt={company?.name}
