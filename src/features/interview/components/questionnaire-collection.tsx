@@ -33,10 +33,7 @@ export default function QuestionnaireCollection({
   // 从nodeData中获取问卷链接
   const nodeConfig = nodeData?.node_config as Record<string, unknown> | undefined
   const questionnaireUrl =
-    (nodeConfig?.url as string) ||
-    (nodeConfig?.form_url as string) ||
-    (nodeConfig?.questionnaire_url as string) ||
-    'https://bytedance.larkoffice.com/share/base/form/shrcnGLNIsAkENaIOZTygEkgHLg'
+    (nodeConfig?.survey_link as string)
     
   return (
     <div className='h-full'>

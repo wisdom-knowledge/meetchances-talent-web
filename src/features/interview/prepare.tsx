@@ -299,7 +299,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const user = useAuthStore((s) => s.auth.user)
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
-  const { data: progressNodes, isLoading: isProgressLoading } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
+  const { data: progressNodes, isLoading: isProgressLoading, refetch: refetchProgress } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
   const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
   const interviewNodeId = useMemo(() => getInterviewNodeId(workflow), [workflow])
   const interviewNodeStatus = useMemo(() => {
@@ -371,13 +371,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           // ignore, allow navigation even if confirm fails
         }
       }
-      setViewMode(ViewMode.InterviewPrepare)
-    } else {
-      // 不再自动跳转会话页；改为等待用户在设备确认页点击“确认设备，下一步”
-      // 这里仅切换视图
-      setViewMode(ViewMode.InterviewPrepare)
     }
-  }, [viewMode, jobApplyId, workflow, queryClient])
+    await refetchProgress()
+  }, [viewMode, jobApplyId, workflow, queryClient, refetchProgress])
 
   const handleConfirmResumeClick = useCallback(async () => {
     if (uploadingResume) return
@@ -546,18 +542,64 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     }
   }, [viewMode, isMock])
 
-  // 根据进度切换视图
+  // 根据进度切换视图 + 问卷节点轮询
   useEffect(() => {
+    // 1. 视图切换逻辑
     const next = resolveViewModeFromProgress()
     if (next && next !== viewMode && !isMock) {
-      // setViewMode(next)
-      setViewMode(ViewMode.Questionnaire)
-      // TODO:找到progressNodes中第一个不是完成状态的节点，然后进行设置，如果next节点的name是问卷而且状态还是进行中，
-      // 就一直轮询请求useJobApplyProgress，可以设置一个时间间隔，然后在组件卸载或者得到状态为不是进行中就停止
-      setCurrentNodeData(progressNodes?.[0] as unknown as Record<string, unknown>)
+      setViewMode(next)
+    }
+
+    // 2. 设置当前激活节点
+    const activeNode = progressNodes?.find(
+      (node) => node.node_status !== JobApplyNodeStatus.Approved && 
+                node.node_status !== JobApplyNodeStatus.Rejected
+    )
+    if (activeNode) {
+      setCurrentNodeData(activeNode as unknown as Record<string, unknown>)
+    }
+
+    // 3. 问卷节点轮询：当问卷调查节点处于进行中时，定期刷新工作流状态
+    const isQuestionnaireInProgress = 
+      activeNode?.node_name === '问卷调查' && 
+      activeNode.node_status === JobApplyNodeStatus.InProgress &&
+      !isMock
+
+    if (isQuestionnaireInProgress) {
+      const pollInterval = setInterval(async () => {
+        // 刷新工作流数据，这会触发本 useEffect 重新执行
+        await queryClient.invalidateQueries({
+          queryKey: ['job-apply-workflow', jobApplyId],
+        })
+      }, 5000)
+
+      return () => {
+        clearInterval(pollInterval)
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progressNodes, isMock])
+
+  // 问卷页面轮询机制：当在问卷页面且节点状态为进行中时，定期刷新进度
+  // useEffect(() => {
+  //   if (isMock || viewMode !== ViewMode.Questionnaire) return
+    
+  //   const activeNode = progressNodes?.find(
+  //     (node) => node.node_name === '问卷调查' && 
+  //               node.node_status === JobApplyNodeStatus.InProgress
+  //   )
+    
+  //   // 如果问卷节点正在进行中，则开启轮询
+  //   if (activeNode) {
+  //     const pollInterval = setInterval(async () => {
+  //       await queryClient.invalidateQueries({ queryKey: ['job-apply-workflow', jobApplyId] })
+  //     }, 5000) // 每5秒轮询一次
+      
+  //     return () => {
+  //       clearInterval(pollInterval)
+  //     }
+  //   }
+  // }, [viewMode, progressNodes, isMock, jobApplyId, queryClient])
 
   const handleApplyJob = useCallback(async () => {
     if (!jobId || isSkipConfirm) return

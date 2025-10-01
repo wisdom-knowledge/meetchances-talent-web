@@ -19,7 +19,7 @@ export interface QuestionnaireNodeData {
 
 // 问卷状态枚举
 export enum QuestionnaireStatus {
-  NotFilled = 0,        // 未填写
+  NotFilled = 10,        // 未填写
   PendingReview = 20,   // 已填写待审核
   Rejected = 40,        // 被拒绝
 }
