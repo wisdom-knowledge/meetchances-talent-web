@@ -1,24 +1,43 @@
+import type { ApiJob } from '@/features/jobs/api'
+
 export interface PublisherSectionProps {
+  job: ApiJob
   recommendName?: string
 }
 
-export default function PublisherSection({ recommendName }: PublisherSectionProps) {
+const companyMaps = [
+  {
+    id:1,
+    name:'一面千识',
+    logo:'https://dnu-cdn.xpertiise.com/common/34af7d0c-7d83-421d-b8ed-8b636ac77bf3.png',
+    website:'meetchances.com'
+  },
+  {
+    id: 2,
+    name:'文心一言',
+    logo:'https://dnu-cdn.xpertiise.com/common/b151ae4c-81b0-46e4-aceb-1773c4cf5058.png',
+    website:'yiyan.baidu.com'
+  }
+]
+
+export default function PublisherSection({ job, recommendName }: PublisherSectionProps) {
+  const company = companyMaps.find((item) => item.id === job.company_id)
   return (
     <div>
       <div className='border-border flex items-center gap-3 border-b py-4'>
         <div className='flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-1 border-gray-200 bg-white'>
           <img
-            src={'https://dnu-cdn.xpertiise.com/common/34af7d0c-7d83-421d-b8ed-8b636ac77bf3.png'}
-            alt='meetchances'
+            src={company?.logo}
+            alt={company?.name}
             className='h-9 w-9 object-contain ml-[3px] mt-[1px]'
           />
         </div>
         <div className='flex flex-col'>
           <span className='text-foreground text-sm font-medium'>
-            由一面千识发布
+            由{company?.name}发布
           </span>
           <span className='text-muted-foreground mt-[10px] text-xs'>
-            meetchances.com
+            {company?.website}
           </span>
         </div>
       </div>
