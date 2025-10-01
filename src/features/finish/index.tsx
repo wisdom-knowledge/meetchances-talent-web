@@ -182,7 +182,7 @@ export default function FinishPage() {
     if (isMock) {
       navigate({
         to: '/mock-interview',
-        search: { page: 1, pageSize: 12, q: '', category: undefined },
+        search: { page: 1, pageSize: 12, q: '', category: undefined, tab: 'records' },
         replace: true,
       })
     } else {
