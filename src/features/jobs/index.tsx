@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge'
 import { mapCurrentNodeStatusToPill } from '@/utils/apply-pill'
 import moneySvg from '@/assets/images/money.svg'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -160,19 +159,18 @@ export default function JobsListPage() {
         </div>
       </Header>
 
-      <Main fixed>
-        <div className='mx-auto w-full max-w-[1224px]'>
+      <Main fixed className='px-4 py-0'>
+        <div className='mx-auto w-full max-w-[1224px] h-full'>
         <div className='flex items-start justify-between gap-3'>
-          <div className='space-y-0.5'>
-            <h1 className='mb-2 text-2xl font-bold tracking-tight md:text-3xl'>
+          <div className=' flex items-end'>
+            <h1 className=' text-xl font-bold tracking-tight md:text-2xl mr-3'>
               职位列表
             </h1>
-            <p className='text-muted-foreground text-sm sm:text-base'>寻找与你匹配的工作机会</p>
-
+            <p className='text-muted-foreground text-sm sm:text-base relative '>寻找与你匹配的工作机会</p>
           </div>
 
         </div>
-        <div className='mt-4 w-full flex items-center gap-2'>
+        <div className='md:mt-[12px] mt-[8px] w-full flex items-center gap-2 md:mb-[12px] mb-[8px]'>
           <div className='relative flex-1'>
             <Input
               value={keyword}
@@ -226,7 +224,7 @@ export default function JobsListPage() {
           </div>
         </div>
         {/* 移动端 Tabs：放在标题和描述下方，仅小屏显示 */}
-        <div className='sm:hidden mt-2'>
+        <div className='sm:hidden mt-2 mb-[8px]'>
           <Tabs
             value={isPublishActive ? 'publish' : 'salary'}
             onValueChange={(v) => {
@@ -246,12 +244,11 @@ export default function JobsListPage() {
             </TabsList>
           </Tabs>
         </div>
-        <Separator className='my-4 lg:my-6' />
 
-        <div className='relative -mb-8 flex h-[calc(100vh-17rem)] flex-col gap-6 lg:flex-row'>
+        <div className='relative -mb-8 flex md:h-[calc(100vh-10rem)] h-[calc(100vh-12rem)] flex-col gap-6 lg:flex-row'>
           {/* 左侧：职位列表 */}
           <div className='flex-1 flex flex-col min-h-0'>
-            <ScrollArea className='flex-1 min-h-0 h-[calc(100vh-17rem)] pr-1'>
+            <ScrollArea className='flex-1 min-h-0 md:h-[calc(100vh-10rem)] h-[calc(100vh-12rem)] pr-1'>
               <ul className='space-y-2 pb-4'>
                 {isLoading
                   ? Array.from({ length: 8 }).map((_, index: number) => (
