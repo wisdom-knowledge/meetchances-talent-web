@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { UploadArea } from '@/features/resume-upload/upload-area'
 import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
+import PublisherSection from '@/features/jobs/components/publisher-section'
 import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled, IconUpload, IconEdit } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { IconLoader2 } from '@tabler/icons-react'
@@ -698,15 +699,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 </div>
                 <Separator className='mt-2' />
                 {/* 发布者信息 */}
-                <div className='flex items-center gap-3 py-4 border-b border-border'>
-                  <div className='w-9 h-9 border-1 border-gray-200 rounded-full flex items-center justify-center overflow-hidden bg-white'>
-                    <img src={'https://dnu-cdn.xpertiise.com/common/34af7d0c-7d83-421d-b8ed-8b636ac77bf3.png'} alt='meetchances' className='h-9 w-9 object-contain ml-[3px] mt-[1px]' />
-                  </div>
-                  <div className='flex flex-col'>
-                    <span className='text-sm font-medium text-foreground'>由一面千识发布</span>
-                    <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
-                  </div>
-                </div>
+                {job && <PublisherSection job={job} />}
                 <div className='flex-1 min-h-0 text-foreground/90 leading-relaxed text-sm md:text-base py-4 flex flex-col'>
                   {/* 限高 + 渐隐遮罩 */}
                   <div className='relative flex-1 min-h-0 overflow-hidden'>
@@ -1123,15 +1116,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 </div>
 
                 {/* 发布者信息 */}
-                <div className='flex items-center gap-3 py-4 border-b bord er-border'>
-                  <div className='w-9 h-9 border-1 border-gray-200 rounded-full flex items-center justify-center overflow-hidden bg-white'>
-                    <img src={'https://dnu-cdn.xpertiise.com/common/34af7d0c-7d83-421d-b8ed-8b636ac77bf3.png'} alt='meetchances' className='h-9 w-9 object-contain ml-[3px] mt-[1px]' />
-                  </div>
-                  <div className='flex flex-col'>
-                    <span className='text-sm font-medium text-foreground'>由一面千识发布</span>
-                    <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
-                  </div>
-                </div>
+                <PublisherSection job={job} />
 
                 {/* 详情描述 */}
                 <div className='py-6 text-foreground/90 text-base leading-relaxed'>
