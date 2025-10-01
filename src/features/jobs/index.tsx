@@ -163,7 +163,7 @@ export default function JobsListPage() {
         <div className='mx-auto w-full max-w-[1224px] h-full'>
         <div className='flex items-start justify-between gap-3'>
           <div className=' flex items-end'>
-            <h1 className=' text-xl font-bold tracking-tight md:text-2xl mr-2'>
+            <h1 className=' text-xl font-bold tracking-tight md:text-2xl mr-3'>
               职位列表
             </h1>
             <p className='text-muted-foreground text-sm sm:text-base relative '>寻找与你匹配的工作机会</p>
