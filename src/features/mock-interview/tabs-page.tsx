@@ -1,5 +1,4 @@
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
@@ -19,7 +18,10 @@ export default function MockInterviewTabsPage() {
   const handleTabChange = (tab: string) => {
     navigate({
       to: '/mock-interview',
-      search: { ...search, tab },
+      search: { 
+        ...search, 
+        tab: tab === DEFAULT_MOCK_INTERVIEW_TAB ? undefined : tab 
+      },
       replace: true,
     }).catch(() => {
       // 忽略导航错误
@@ -34,7 +36,7 @@ export default function MockInterviewTabsPage() {
         </div>
       </Header>
 
-      <Main fixed>
+      <Main fixed className='pt-0'>
         <Tabs value={activeTab} onValueChange={handleTabChange} className='flex-1 flex flex-col min-h-0'>
             <div className='flex border-b border-border shrink-0'>
               <button
