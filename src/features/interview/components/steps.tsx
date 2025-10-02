@@ -108,7 +108,7 @@ function MobileSteps({
   return (
     <div 
       ref={containerRef}
-      className='flex items-center overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden'
+      className='flex items-center overflow-x-auto  [-ms-overflow-style:none] [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden'
     >
       {displaySteps.map((node, idx) => {
         const visual = mapNodeStatusToVisual(node.node_status as JobApplyNodeStatus)
@@ -199,7 +199,7 @@ export function Steps({ jobApplyId, className, isMock }: StepsProps) {
   const steps = data ?? []
 
   return (
-    <div className={cn('mt-8', className)}>
+    <div className={cn('mt-2', className)}>
       {isMobile ? (
         <MobileSteps steps={steps} isLoading={isLoading} />
       ) : (
