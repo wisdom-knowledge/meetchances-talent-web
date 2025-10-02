@@ -39,6 +39,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
 import { userEvent, reportSessionPageRefresh } from '@/lib/apm'
 import { useJoin } from '@/features/interview/session-view-page/lib/useCommon'
+import QuestionnaireCollection from './components/questionnaire-collection'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -56,6 +57,7 @@ enum ViewMode {
   EducationEval = 'education-eval',
   AllApproved = 'all-approved',
   Rejected = 'rejected',
+  Questionnaire = 'questionnaire',
 }
 
 // steps 组件迁移为独立组件，见 features/interview/components/steps.tsx
@@ -283,6 +285,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [jobApplyId, setJobApplyId] = useState<number | string | null>(jobApplyIdFromRoute ?? null)
   const [currentSpkDeviceId, setCurrentSpkDeviceId] = useState<string>('')
   const [currentMicDeviceId, setCurrentMicDeviceId] = useState<string>('')
+  const [currentNodeData, setCurrentNodeData] = useState<Record<string, unknown> | null>(null)
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const [_joining, triggerJoin] = useJoin()
   const setRtcConnectionInfo = useRoomStore((s) => s.setRtcConnectionInfo)
@@ -297,7 +300,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const user = useAuthStore((s) => s.auth.user)
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
-  const { data: progressNodes, isLoading: isProgressLoading } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
+  const { data: progressNodes, isLoading: isProgressLoading, refetch: refetchProgress } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
   const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
   const interviewNodeId = useMemo(() => getInterviewNodeId(workflow), [workflow])
   const interviewNodeStatus = useMemo(() => {
@@ -369,13 +372,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           // ignore, allow navigation even if confirm fails
         }
       }
-      setViewMode(ViewMode.InterviewPrepare)
-    } else {
-      // 不再自动跳转会话页；改为等待用户在设备确认页点击“确认设备，下一步”
-      // 这里仅切换视图
-      setViewMode(ViewMode.InterviewPrepare)
     }
-  }, [viewMode, jobApplyId, workflow, queryClient])
+    await refetchProgress()
+  }, [viewMode, jobApplyId, workflow, queryClient, refetchProgress])
 
   const handleConfirmResumeClick = useCallback(async () => {
     if (uploadingResume) return
@@ -488,6 +487,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     if (name.toLowerCase().includes('ai') || name.includes('AI 面试') || name.includes('Al面试')) return ViewMode.InterviewPrepare
     if (name.includes('测试任务') || name.includes('第一轮测试任务') || name.includes('第二轮测试任务')) return ViewMode.TrailTask
     if (name.includes('学历验证')) return ViewMode.EducationEval
+    if (name.includes('问卷调查')) return ViewMode.Questionnaire
     return ViewMode.Job
   }
 
@@ -543,14 +543,64 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     }
   }, [viewMode, isMock])
 
-  // 根据进度切换视图
+  // 根据进度切换视图 + 问卷节点轮询
   useEffect(() => {
+    // 1. 视图切换逻辑
     const next = resolveViewModeFromProgress()
     if (next && next !== viewMode && !isMock) {
       setViewMode(next)
     }
+
+    // 2. 设置当前激活节点
+    const activeNode = progressNodes?.find(
+      (node) => node.node_status !== JobApplyNodeStatus.Approved && 
+                node.node_status !== JobApplyNodeStatus.Rejected
+    )
+    if (activeNode) {
+      setCurrentNodeData(activeNode as unknown as Record<string, unknown>)
+    }
+
+    // 3. 问卷节点轮询：当问卷调查节点处于进行中时，定期刷新工作流状态
+    const isQuestionnaireInProgress = 
+      activeNode?.node_name === '问卷调查' && 
+      activeNode.node_status === JobApplyNodeStatus.InProgress &&
+      !isMock
+
+    if (isQuestionnaireInProgress) {
+      const pollInterval = setInterval(async () => {
+        // 刷新工作流数据，这会触发本 useEffect 重新执行
+        await queryClient.invalidateQueries({
+          queryKey: ['job-apply-workflow', jobApplyId],
+        })
+      }, 5000)
+
+      return () => {
+        clearInterval(pollInterval)
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progressNodes, isMock])
+
+  // 问卷页面轮询机制：当在问卷页面且节点状态为进行中时，定期刷新进度
+  // useEffect(() => {
+  //   if (isMock || viewMode !== ViewMode.Questionnaire) return
+    
+  //   const activeNode = progressNodes?.find(
+  //     (node) => node.node_name === '问卷调查' && 
+  //               node.node_status === JobApplyNodeStatus.InProgress
+  //   )
+    
+  //   // 如果问卷节点正在进行中，则开启轮询
+  //   if (activeNode) {
+  //     const pollInterval = setInterval(async () => {
+  //       await queryClient.invalidateQueries({ queryKey: ['job-apply-workflow', jobApplyId] })
+  //     }, 5000) // 每5秒轮询一次
+      
+  //     return () => {
+  //       clearInterval(pollInterval)
+  //     }
+  //   }
+  // }, [viewMode, progressNodes, isMock, jobApplyId, queryClient])
 
   const handleApplyJob = useCallback(async () => {
     if (!jobId || isSkipConfirm) return
@@ -659,6 +709,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             <Button variant='link' className='text-primary' onClick={() => setSupportOpen(true)}>寻求支持</Button>
           </div>
         </div>
+
 
         {/* ViewMode.Job
             职位与简历上传阶段：
@@ -1011,6 +1062,16 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             <div className='text-center whitespace-pre-line text-xl font-semibold leading-relaxed text-foreground'>
               {`您没有通过项目筛选。\n感谢您的参与，欢迎申请其他岗位。`}
             </div>
+          </div>
+        )}
+
+        {/* ViewMode.Questionnaire
+            问卷收集阶段：
+            - 展示飞书问卷并等待用户填写
+        */}
+        {viewMode === ViewMode.Questionnaire && (
+          <div className='flex-1 w-full max-w-screen-xl mx-auto'>
+            <QuestionnaireCollection nodeData={currentNodeData ?? undefined} />
           </div>
         )}
 
