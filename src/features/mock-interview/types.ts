@@ -57,6 +57,7 @@ export interface MockInterviewRecordApiItem {
   interview_duration_minutes: number
   status: number | string
   applied_at: string
+  category_image: string
 }
 
 export interface MockInterviewRecordsResponse {
