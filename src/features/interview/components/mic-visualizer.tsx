@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface MicVisualizerProps {
   stream: MediaStream | null | undefined
@@ -9,11 +10,14 @@ interface MicVisualizerProps {
   barCount?: number // default 12 for capsule design
 }
 
-export function MicVisualizer({ stream, className, barCount = 12 }: MicVisualizerProps) {
+export function MicVisualizer({ stream, className, barCount }: MicVisualizerProps) {
+  const isMobile = useIsMobile()
   const audioContextRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
   const rafRef = useRef<number | null>(null)
 
+  // 移动端使用更少的柱状条
+  const effectiveBarCount = barCount ?? (isMobile ? 8 : 12)
   const [activeCount, setActiveCount] = useState<number>(0)
 
   useEffect(() => {
@@ -44,7 +48,7 @@ export function MicVisualizer({ stream, className, barCount = 12 }: MicVisualize
           // 应用对数缩放和敏感度调整
           const normalizedRms = Math.min(1, rms / 128) // 降低归一化阈值
           const amplified = Math.pow(normalizedRms, 0.5) // 使用幂函数放大小信号
-          const lit = Math.max(0, Math.min(barCount, Math.round(amplified * barCount * 1.2))) // 增加放大系数
+          const lit = Math.max(0, Math.min(effectiveBarCount, Math.round(amplified * effectiveBarCount * 1.2))) // 增加放大系数
           if (!isCancelled) setActiveCount(lit)
           rafRef.current = requestAnimationFrame(tick)
         }
@@ -70,17 +74,22 @@ export function MicVisualizer({ stream, className, barCount = 12 }: MicVisualize
       if (analyserRef.current) analyserRef.current.disconnect()
       analyserRef.current = null
     }
-  }, [stream, barCount])
+  }, [stream, effectiveBarCount])
 
   return (
-    <div className={cn('flex items-center gap-2 h-6', className)}>
-      {Array.from({ length: barCount }).map((_, idx) => {
+    <div className={cn(
+      'flex items-center h-6',
+      isMobile ? 'gap-1.5' : 'gap-2',
+      className
+    )}>
+      {Array.from({ length: effectiveBarCount }).map((_, idx) => {
         const lit = idx < activeCount
         return (
           <div
             key={idx}
             className={cn(
-              'h-8 w-4 rounded-full transition-colors duration-100',
+              'rounded-full transition-colors duration-100',
+              isMobile ? 'h-6 w-3' : 'h-8 w-4',
               lit ? 'bg-primary' : 'bg-primary/30'
             )}
           />
