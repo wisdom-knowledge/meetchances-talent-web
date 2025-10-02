@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ApiJob } from '@/features/jobs/api'
 import backImg from '@/assets/images/back.svg'
 import avatarsImg from '@/assets/images/avatars.png'
+import cardVectorImg from '@/assets/images/card-vector.svg?url'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
@@ -208,6 +209,12 @@ export default function JobDetailContent({
             'bg-primary/5 relative rounded-lg px-6 py-5 shadow-sm',
             'mx-auto my-6 w-full'
           )}
+          style={{
+            backgroundImage: !isMobile ? `url("${cardVectorImg}")` : undefined,
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 17px bottom -31px',
+            backgroundSize: '283px 314px',
+          }}
         >
           <div className='text-foreground mb-3 text-[18px] font-bold'>
             准备好加入我们的专家群体了吗?
