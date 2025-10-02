@@ -273,7 +273,7 @@ export function useJobApplyProgress(jobApplyId: string | number | null, enabled 
         if (type === 'RESUME_CHECK' || key === 'ResumeCheck' || lowerName.includes('resume')) return '简历分析'
         if (type === 'TRIAL_TASK' || key.toLowerCase().includes('task') || lowerName.includes('task')) return '测试任务'
         if (type === 'EDUCATION_VERIFY' || lowerName.includes('education')) return '学历验证'
-        if (type === 'SURVEY' || key === 'Survey' || lowerName.includes('survey')) return '问卷调查'
+        if (type === 'SURVEY' || key === 'Survey' || lowerName.includes('survey')) return '问卷收集'
         return name || key || '—'
       }
       const normalizeStatus = (n: JobApplyWorkflowNode): JobApplyNodeStatus => {
