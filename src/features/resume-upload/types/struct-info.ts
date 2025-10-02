@@ -5,6 +5,8 @@ export interface StructInfo {
     email?: string | null
     phone?: string | null
     gender?: '男' | '女' | string | null
+    origin?: string | null
+    expected_salary?: string | null
   }
   experience?: {
     education?: Array<{

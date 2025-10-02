@@ -306,11 +306,6 @@ export default function JobsListPage() {
                               <div>
                                 <h3 className='font-medium inline-flex items-center gap-2'>
                                   {job.title}
-                                  <Badge
-                                    className='inline-flex items-center justify-center px-2 py-1 text-[10px] leading-[10px] tracking-[0.25px] font-medium text-[#4E02E4] bg-[#4E02E40D] rounded'
-                                  >
-                                    {job.job_type === 'part_time' ? '兼职' : '全职'}
-                                  </Badge>
                                 </h3>
                                 <p className='text-muted-foreground text-xs'>
                                   {formatPublishTime(job.created_at)}
@@ -333,6 +328,11 @@ export default function JobsListPage() {
                                 <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal'>
                                   <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   ¥{job.salary_min ?? 0} - ¥{job.salary_max ?? 0} / 小时
+                                </Badge>
+                                <Badge
+                                    className='inline-flex items-center justify-center px-2 py-1 font-normal tracking-[0.25px] text-[#4E02E4] bg-[#4E02E40D] rounded'
+                                  >
+                                    {job.job_type === 'part_time' ? '兼职' : '全职'}
                                 </Badge>
                               </div>
                             </div>

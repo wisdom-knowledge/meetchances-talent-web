@@ -160,7 +160,7 @@ export default function JobDetailContent({
             )}
           </div>
 
-          <PublisherSection recommendName={recommendName} />
+          <PublisherSection job={job} recommendName={recommendName} />
 
           <RichText
             content={job.description || '暂无描述'}
