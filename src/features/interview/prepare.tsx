@@ -486,7 +486,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     if (name.toLowerCase().includes('ai') || name.includes('AI 面试') || name.includes('Al面试')) return ViewMode.InterviewPrepare
     if (name.includes('测试任务') || name.includes('第一轮测试任务') || name.includes('第二轮测试任务')) return ViewMode.TrailTask
     if (name.includes('学历验证')) return ViewMode.EducationEval
-    if (name.includes('问卷调查')) return ViewMode.Questionnaire
+    if (name.includes('问卷收集')) return ViewMode.Questionnaire
     return ViewMode.Job
   }
 
@@ -505,6 +505,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     // 优先进行中，其次未开始，否则取最后一个已完成相关节点
     const inProgress = nodes.find((n) => n.node_status === JobApplyNodeStatus.InProgress)
     if (inProgress) return nodeNameToViewMode(inProgress.node_name)
+    // TODO:需要review 有未完成的节点，则取第一个未完成的节点
+    const isCompletedPendingReview = nodes.find((n) => n.node_status === JobApplyNodeStatus.CompletedPendingReview)
+    if (isCompletedPendingReview) return nodeNameToViewMode(isCompletedPendingReview.node_name)
+    // TODO:需要review 有拒绝的节点，则取第一个拒绝的节点
+    const isRejected = nodes.find((n) => n.node_status === JobApplyNodeStatus.Rejected)
+    if (isRejected) return nodeNameToViewMode(isRejected.node_name)
     const notStarted = nodes.find((n) => n.node_status === JobApplyNodeStatus.NotStarted)
     if (notStarted) return nodeNameToViewMode(notStarted.node_name)
     const completedIdx = nodes
@@ -550,18 +556,18 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       setViewMode(next)
     }
 
+    // TODO:需要review 取当前第一个不是通过的节点
     // 2. 设置当前激活节点
     const activeNode = progressNodes?.find(
-      (node) => node.node_status !== JobApplyNodeStatus.Approved && 
-                node.node_status !== JobApplyNodeStatus.Rejected
+      (node) => node.node_status !== JobApplyNodeStatus.Approved 
     )
     if (activeNode) {
       setCurrentNodeData(activeNode as unknown as Record<string, unknown>)
     }
 
-    // 3. 问卷节点轮询：当问卷调查节点处于进行中时，定期刷新工作流状态
+    // 3. 问卷节点轮询：当问卷收集节点处于进行中时，定期刷新工作流状态
     const isQuestionnaireInProgress = 
-      activeNode?.node_name === '问卷调查' && 
+      activeNode?.node_name === '问卷收集' && 
       activeNode.node_status === JobApplyNodeStatus.InProgress &&
       !isMock
 
@@ -579,27 +585,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progressNodes, isMock])
-
-  // 问卷页面轮询机制：当在问卷页面且节点状态为进行中时，定期刷新进度
-  // useEffect(() => {
-  //   if (isMock || viewMode !== ViewMode.Questionnaire) return
-    
-  //   const activeNode = progressNodes?.find(
-  //     (node) => node.node_name === '问卷调查' && 
-  //               node.node_status === JobApplyNodeStatus.InProgress
-  //   )
-    
-  //   // 如果问卷节点正在进行中，则开启轮询
-  //   if (activeNode) {
-  //     const pollInterval = setInterval(async () => {
-  //       await queryClient.invalidateQueries({ queryKey: ['job-apply-workflow', jobApplyId] })
-  //     }, 5000) // 每5秒轮询一次
-      
-  //     return () => {
-  //       clearInterval(pollInterval)
-  //     }
-  //   }
-  // }, [viewMode, progressNodes, isMock, jobApplyId, queryClient])
 
   const handleApplyJob = useCallback(async () => {
     if (!jobId || isSkipConfirm) return

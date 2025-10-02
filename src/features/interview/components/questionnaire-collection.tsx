@@ -47,7 +47,7 @@ export default function QuestionnaireCollection({
           />
         </div>
       ) : (
-        <div className='flex min-h-[400px] flex-col items-center justify-center p-8'>
+        <div className='flex min-h-[400px] h-full flex-col items-center justify-center p-8'>
           <div className='mb-8'>
             <img
               src='https://dnu-cdn.xpertiise.com/common/942a2fdb-7d92-41a6-aff0-570ad59e6d31.svg'
