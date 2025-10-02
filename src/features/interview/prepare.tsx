@@ -1,12 +1,9 @@
 import { Main } from '@/components/layout/main'
-import { Separator } from '@/components/ui/separator'
 import { RichText } from '@/components/ui/rich-text'
 import { Button } from '@/components/ui/button'
-import { UploadArea } from '@/features/resume-upload/upload-area'
 import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
-import PublisherSection from '@/features/jobs/components/publisher-section'
-import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled, IconUpload, IconEdit } from '@tabler/icons-react'
+import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { IconLoader2 } from '@tabler/icons-react'
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
@@ -15,12 +12,11 @@ import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 // import { cn } from '@/lib/utils'
-import { LocalCameraPreview } from '@/features/interview/components/local-camera-preview'
 import { SelectDropdown } from '@/components/select-dropdown'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useMediaDeviceSelect } from '@livekit/components-react'
 import { DeviceTestStatus } from '@/types/device'
-import { uploadTalentResume, fetchTalentResumeDetail } from '@/features/resume-upload/utils/api'
+import { fetchTalentResumeDetail } from '@/features/resume-upload/utils/api'
 import TalentResumePreview from '@/features/talent-pool/components/talent-resume-preview'
 import { resumeSchema, type ResumeFormValues } from '@/features/resume/data/schema'
 import { mapStructInfoToResumeFormValues, mapResumeFormValuesToStructInfo } from '@/features/resume/data/struct-mapper'
@@ -33,13 +29,16 @@ import { useRoomStore } from '@/stores/interview/room'
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
 import searchPng from '@/assets/images/search.png'
+import { ViewModeJob } from '@/features/interview/components/view-mode-job'
+import { ViewModeInterviewPrepare } from '@/features/interview/components/view-mode-interview-prepare'
 import { getPreferredDeviceId, setPreferredDeviceIdSmart, clearAllPreferredDevices } from '@/lib/devices'
-import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
 import { userEvent, reportSessionPageRefresh } from '@/lib/apm'
 import { useJoin } from '@/features/interview/session-view-page/lib/useCommon'
 import QuestionnaireCollection from './components/questionnaire-collection'
+import PublisherSection from '@/features/jobs/components/publisher-section'
+
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -310,7 +309,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   }, [progressNodes])
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
-  
+
   // 判断是否为模拟面试
   const isMock = useMemo(() => job?.job_type === 'mock_job', [job])
 
@@ -560,15 +559,15 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     // TODO:需要review 取当前第一个不是通过的节点
     // 2. 设置当前激活节点
     const activeNode = progressNodes?.find(
-      (node) => node.node_status !== JobApplyNodeStatus.Approved 
+      (node) => node.node_status !== JobApplyNodeStatus.Approved
     )
     if (activeNode) {
       setCurrentNodeData(activeNode as unknown as Record<string, unknown>)
     }
 
     // 3. 问卷节点轮询：当问卷收集节点处于进行中时，定期刷新工作流状态
-    const isQuestionnaireInProgress = 
-      activeNode?.node_name === '问卷收集' && 
+    const isQuestionnaireInProgress =
+      activeNode?.node_name === '问卷收集' &&
       activeNode.node_status === JobApplyNodeStatus.InProgress &&
       !isMock
 
@@ -694,157 +693,68 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             <Button variant='link' className='text-primary' onClick={() => setSupportOpen(true)}>寻求支持</Button>
           </div>
         </div>
-
-
+        {isMobile && (
+          <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
+        )}
         {/* ViewMode.Job
             职位与简历上传阶段：
             - 左侧展示职位基本信息与描述
             - 右侧提供简历上传与回显，确认后进入面试准备
         */}
         {viewMode === ViewMode.Job && (
-          <div className='flex-1 flex flex-row items-stretch w-full justify-between max-w-screen-xl mx-auto overflow-hidden min-h-0'>
-            {/* 左：职位信息 */}
-            <div className='col-span-7 space-y-6 pl-3 flex flex-col h-full min-h-0 max-h-[600px] overflow-y-auto my-auto w-full '>
-              <div className='flex h-full flex-col min-h-0'>
-                <div className='flex items-start justify-between gap-4'>
-                  <div className='min-w-0'>
-                    <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
-                    {!isMock && (
-                      <div className='text-primary mb-2 flex items-center gap-4'>
-                        <div className='flex items-center'>
-                          <IconBriefcase className='mr-1 h-4 w-4' />
-                          <span className='text-[14px]'>时薪制</span>
-                        </div>
-                        <div className='flex items-center'>
-                          <IconWorldPin className='mr-1 h-4 w-4' />
-                          <span className='text-[14px]'>远程</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  {
-                    !isMock && (
-                      <div className='hidden md:flex flex-col items-end min-w-[140px]'>
-                        <div className='text-xl font-semibold text-foreground mb-1'>
-                          {job ? `¥${job.salary_min ?? 0}~¥${job.salary_max ?? 0}` : '—'}
-                        </div>
-                        <div className='text-xs text-muted-foreground mb-3'>每小时</div>
-                      </div>
-                    )
-                  }
-                </div>
-                <Separator className='mt-2' />
-                {/* 发布者信息 */}
-                {job && <PublisherSection job={job} />}
-                <div className='flex-1 min-h-0 text-foreground/90 leading-relaxed text-sm md:text-base py-4 flex flex-col'>
-                  {/* 限高 + 渐隐遮罩 */}
-                  <div className='relative flex-1 min-h-0 overflow-hidden'>
-                    <div className='h-full overflow-hidden'>
-                      {job?.description ? (
-                        <RichText content={job.description} />
-                      ) : (
-                        <div className='text-muted-foreground'>{isLoading ? '正在加载职位详情…' : '暂无职位描述'}</div>
-                      )}
-                    </div>
-                    {/* 渐隐遮罩 */}
-                    <div className='pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent' />
-                  </div>
-                  <div className='mt-4 text-center'>
-                    <Button variant='outline' onClick={() => setDrawerOpen(true)}>查看更多</Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 右：上传简历 */}
-            <div className='col-span-5 flex flex-col h-full min-h-0 justify-center'>
-              <div className='p-4 relative my-8 pl-[36px]'>
-                <UploadArea
-                  className='my-4 min-w-[420px]'
-                  uploader={uploadTalentResume}
-                  onUploadingChange={setUploadingResume}
-                  onUploadComplete={(results) => {
-                    userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare',isMock: isMock, action: resumeValues ? 'update' : 'upload',job_id: jobId ?? undefined,job_apply_id: jobApplyId ?? undefined })
-                    const first = results.find((r) => r.success)
-                    if (!first) return
-                    const si = (first.backend?.struct_info ?? {}) as StructInfo
-                    const mapped = mapStructInfoToResumeFormValues(si)
-                    setResumeValues(mapped)
-                    setUploadedThisVisit(true)
-                    // 新简历解析后立即做校验；打开抽屉，失败则定位到首个错误
-                    userEvent('resume_parsed_success', '简历解析成功', {
-                      page: 'interview_prepare',
-                      name: mapped.name ?? '',
-                      isMock: isMock,
-                      phone: mapped.phone ?? '',
-                      email: mapped.email ?? '',
-                      education_count: String(mapped.education?.length ?? 0),
-                      work_count: String(mapped.workExperience?.length ?? 0),
-                      project_count: String(mapped.projectExperience?.length ?? 0),
-                      job_id: jobId ?? undefined,
-                      job_apply_id: jobApplyId ?? undefined,
-                    })
-                    const parsed = resumeSchema.safeParse(mapped)
-                    if (!parsed.success) {
-                      const firstErr = parsed.error.issues?.[0]
-                      const pathStr = Array.isArray(firstErr?.path) && firstErr.path.length > 0 ? firstErr.path.join('.') : undefined
-                      setResumeFocusField(pathStr)
-                    } else {
-                      setResumeFocusField(undefined)
-                    }
-                    setResumeOpen(true)
-                  }}
-                >
-                  {resumeValues && !uploadingResume && (
-                    <div className='mb-4 flex items-center justify-between rounded-md border p-3 min-w-[400px]'>
-                      <div className='text-sm text-left'>
-                        <div className='font-medium'>姓名：{resumeValues.name || '—'}</div>
-                        <div className='text-muted-foreground mt-1'>电话：{resumeValues.phone || '—'}</div>
-                      </div>
-                      <Button size='sm' variant='outline' onClick={(e) => { e.stopPropagation(); setResumeOpen(true) }}>点击查看</Button>
-                    </div>
-                  )}
-
-                  {resumeValues ? (
-                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare',isMock: isMock ,trigger: 'button_click', action: 'update', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
-                      <IconUpload className='h-4 w-4' />
-                      更新简历
-                    </Button>
-                  ) : (
-                    <Button size='sm' variant='secondary' onClick={() => userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare',isMock: isMock ,trigger: 'button_click', action: 'upload', job_id: jobId ?? undefined, job_apply_id: jobApplyId ?? undefined })}>
-                      <IconUpload className='h-4 w-4' />
-                      上传简历
-                    </Button>
-                  )}
-                                  {/* 解析后的基础信息 */}
-
-                </UploadArea>
-
-
-
-                <div className='my-4'>
-                  <Button className='w-full' disabled={uploadingResume || !resumeValues} onClick={handleConfirmResumeClick}>
-                    {uploadingResume ? '正在分析简历…' : '确认简历，下一步'}
-                  </Button>
-                  {isMock && !resumeValues && (
-                    <div className='mt-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground'>
-                      <span>没有简历？</span>
-                      <button
-                        type='button'
-                        onClick={() => setResumeOpen(true)}
-                        className='inline-flex items-center gap-1 text-primary hover:underline underline-offset-2'
-                      >
-                        <IconEdit className='h-3.5 w-3.5' /> 手动填写
-                      </button>
-                      <span className='text-primary'>»</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* 遮罩交给 UploadArea 内部处理，这里不再渲染 */}
-              </div>
-            </div>
-          </div>)}
+          <ViewModeJob
+            job={job}
+            isLoading={isLoading}
+            isMock={isMock}
+            resumeValues={resumeValues}
+            uploadingResume={uploadingResume}
+            onDrawerOpen={() => setDrawerOpen(true)}
+            onResumeOpen={() => setResumeOpen(true)}
+            onUploadingChange={setUploadingResume}
+            onUploadComplete={(results) => {
+              userEvent('resume_uploaded', '简历上传', { page: 'interview_prepare',isMock: isMock, action: resumeValues ? 'update' : 'upload',job_id: jobId ?? undefined,job_apply_id: jobApplyId ?? undefined })
+              const first = results.find((r) => r.success)
+              if (!first) return
+              const si = (first.backend?.struct_info ?? {}) as StructInfo
+              const mapped = mapStructInfoToResumeFormValues(si)
+              setResumeValues(mapped)
+              setUploadedThisVisit(true)
+              // 新简历解析后立即做校验；打开抽屉，失败则定位到首个错误
+              userEvent('resume_parsed_success', '简历解析成功', {
+                page: 'interview_prepare',
+                name: mapped.name ?? '',
+                isMock: isMock,
+                phone: mapped.phone ?? '',
+                email: mapped.email ?? '',
+                education_count: String(mapped.education?.length ?? 0),
+                work_count: String(mapped.workExperience?.length ?? 0),
+                project_count: String(mapped.projectExperience?.length ?? 0),
+                job_id: jobId ?? undefined,
+                job_apply_id: jobApplyId ?? undefined,
+              })
+              const parsed = resumeSchema.safeParse(mapped)
+              if (!parsed.success) {
+                const firstErr = parsed.error.issues?.[0]
+                const pathStr = Array.isArray(firstErr?.path) && firstErr.path.length > 0 ? firstErr.path.join('.') : undefined
+                setResumeFocusField(pathStr)
+              } else {
+                setResumeFocusField(undefined)
+              }
+              setResumeOpen(true)
+            }}
+            onConfirmResumeClick={handleConfirmResumeClick}
+            onUploadEvent={(action) => {
+              userEvent('resume_uploaded', '简历上传', {
+                page: 'interview_prepare',
+                isMock: isMock,
+                trigger: 'button_click',
+                action,
+                job_id: jobId ?? undefined,
+                job_apply_id: jobApplyId ?? undefined
+              })
+            }}
+          />
+        )}
 
         {/* ViewMode.InterviewPrepare
             面试准备阶段：
@@ -852,112 +762,70 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             - 设备均通过后可进入正式 AI 面试
         */}
         {viewMode === ViewMode.InterviewPrepare && (
-          <div className='flex-1 flex flex-col lg:grid lg:gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
-            {/* 移动端：操作区域在上 */}
-            <div className='lg:hidden order-1 p-4'>
-              <Button
-                disabled={
-                  cameraStatus !== DeviceTestStatus.Success
-                  || micStatus !== DeviceTestStatus.Success
-                  || spkStatus !== DeviceTestStatus.Success
-                  || !interviewNodeId
-                  || connecting
-                }
-                className='w-full disabled:opacity-100 disabled:bg-[#C9C9C9] disabled:border-[0.5px] disabled:border-[rgba(255,255,255,0.12)]' onClick={onStartNewInterviewClick}>
-                {connecting ? '面试间连接中…' : '确认设备，下一步'}
-              </Button>
-              <p className='text-xs text-muted-foreground mt-4 text-center'>请在安静、独立的空间进行本次AI面试，确保评估效果最佳</p>
-            </div>
-
-            {/* 左：职位标题 + 设备检查 */}
-            <div className='lg:col-span-7 space-y-6 px-3 lg:pl-3 flex flex-col justify-center order-2'>
-              <div className='flex items-center justify-between'>
-                <div className='text-2xl font-bold mb-2 leading-tight truncate'>{job?.title ?? (isLoading ? '加载中…' : '未找到职位')}</div>
-                <div className='ml-4 flex-shrink-0'><ConnectionQualityBarsStandalone /></div>
-              </div>
-              {/* 用户摄像头展示区域 */}
-              <LocalCameraPreview
-                stage={stage}
-                onHeadphoneConfirm={() => {
-                  setSpkStatus(DeviceTestStatus.Success)
-                  setStage('mic')
-                  userEvent('speaker_status_confirmed', '确认扬声器状态正常', {
-                    job_id: job?.id,
-                    isMock: isMock,
-                    job_apply_id: jobApplyId ?? undefined,
-                    interview_node_id: interviewNodeId ?? undefined,
-                  })
-                }}
-                onStatusChange={setCameraStatus}
-                deviceId={cam.activeDeviceId}
-                speakerDeviceId={currentSpkDeviceId}
-                micDeviceId={currentMicDeviceId}
-                onCameraDeviceResolved={(resolvedId) => {
-                  if (resolvedId && resolvedId !== cam.activeDeviceId) {
-                    cam.setActiveMediaDevice(resolvedId)
-                  }
-                }}
-                onCameraConfirmed={() => {
-                  setCameraStatus(DeviceTestStatus.Success)
-                  setStage('headphone')
-                  userEvent('camera_status_confirmed', '确认摄像头状态正常', {
-                    job_id: job?.id,
-                    isMock: isMock,
-                    job_apply_id: jobApplyId ?? undefined,
-                    interview_node_id: interviewNodeId ?? undefined,
-                  })
-                }}
-                onMicConfirmed={() => {
-                  setMicStatus(DeviceTestStatus.Success)
-                  userEvent('microphone_status_confirmed', '确认麦克风状态正常', {
-                    job_id: job?.id,
-                    isMock: isMock,
-                    job_apply_id: jobApplyId ?? undefined,
-                    interview_node_id: interviewNodeId ?? undefined,
-                  })
-                }}
-                disableCameraConfirm={cameraStatus === DeviceTestStatus.Failed}
-              />
-
-              {/* 三个设备选择 + 状态 */}
-              <DeviceSelectorsRow
-                camActiveDeviceId={cam.activeDeviceId}
-                camDevices={cam.devices}
-                onCamChange={(v) => {
-                  cam.setActiveMediaDevice(v)
-                  if (v !== cam.activeDeviceId) {
-                    setCameraStatus(DeviceTestStatus.Testing)
-                  }
-                }}
-                cameraStatus={cameraStatus}
-                micStatus={micStatus}
-                spkStatus={spkStatus}
-                onMicStatusChange={()=>{}}
-                onSpkStatusChange={()=>{}}
-                onSpkDeviceChange={setCurrentSpkDeviceId}
-                onMicDeviceChange={setCurrentMicDeviceId}
-              />
-            </div>
-
-            {/* 右：操作区域（桌面端） */}
-            <div className='hidden lg:flex lg:col-span-5 p-6 lg:sticky flex-col justify-center order-3'>
-              <div className='lg:my-36'>
-                <Button
-                  disabled={
-                    cameraStatus !== DeviceTestStatus.Success
-                    || micStatus !== DeviceTestStatus.Success
-                    || spkStatus !== DeviceTestStatus.Success
-                    || !interviewNodeId
-                    || connecting
-                  }
-                  className='w-full mt-4 disabled:opacity-100 disabled:bg-[#C9C9C9] disabled:border-[0.5px] disabled:border-[rgba(255,255,255,0.12)]' onClick={onStartNewInterviewClick}>
-                  {connecting ? '面试间连接中…' : '确认设备，下一步'}
-                </Button>
-                <p className='text-xs text-muted-foreground mt-4'>请在安静、独立的空间进行本次AI面试，确保评估效果最佳</p>
-              </div>
-            </div>
-          </div>
-
+          <ViewModeInterviewPrepare
+            job={job}
+            isLoading={isLoading}
+            isMock={isMock}
+            jobApplyId={jobApplyId}
+            interviewNodeId={interviewNodeId ?? null}
+            connecting={connecting}
+            stage={stage}
+            cameraStatus={cameraStatus}
+            micStatus={micStatus}
+            spkStatus={spkStatus}
+            camActiveDeviceId={cam.activeDeviceId}
+            camDevices={cam.devices}
+            currentSpkDeviceId={currentSpkDeviceId}
+            currentMicDeviceId={currentMicDeviceId}
+            onStartNewInterviewClick={onStartNewInterviewClick}
+            onSpkStatusChange={setSpkStatus}
+            onMicStatusChange={setMicStatus}
+            onCameraStatusChange={setCameraStatus}
+            onStageChange={setStage}
+            onCamChange={(v) => {
+              cam.setActiveMediaDevice(v)
+              if (v !== cam.activeDeviceId) {
+                setCameraStatus(DeviceTestStatus.Testing)
+              }
+            }}
+            onSpkDeviceChange={setCurrentSpkDeviceId}
+            onMicDeviceChange={setCurrentMicDeviceId}
+            onCameraDeviceResolved={(resolvedId) => {
+              if (resolvedId && resolvedId !== cam.activeDeviceId) {
+                cam.setActiveMediaDevice(resolvedId)
+              }
+            }}
+            onCameraConfirmed={() => {
+              setCameraStatus(DeviceTestStatus.Success)
+              setStage('headphone')
+              userEvent('camera_status_confirmed', '确认摄像头状态正常', {
+                job_id: job?.id,
+                isMock: isMock,
+                job_apply_id: jobApplyId ?? undefined,
+                interview_node_id: interviewNodeId ?? undefined,
+              })
+            }}
+            onHeadphoneConfirm={() => {
+              setSpkStatus(DeviceTestStatus.Success)
+              setStage('mic')
+              userEvent('speaker_status_confirmed', '确认扬声器状态正常', {
+                job_id: job?.id,
+                isMock: isMock,
+                job_apply_id: jobApplyId ?? undefined,
+                interview_node_id: interviewNodeId ?? undefined,
+              })
+            }}
+            onMicConfirmed={() => {
+              setMicStatus(DeviceTestStatus.Success)
+              userEvent('microphone_status_confirmed', '确认麦克风状态正常', {
+                job_id: job?.id,
+                isMock: isMock,
+                job_apply_id: jobApplyId ?? undefined,
+                interview_node_id: interviewNodeId ?? undefined,
+              })
+            }}
+            DeviceSelectorsRow={DeviceSelectorsRow}
+          />
         )}
 
         {/* ViewMode.InterviewPendingReview
@@ -1061,7 +929,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         )}
 
         {/* 底部步骤与下一步 */}
-        <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
+        {!isMobile && (
+          <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
+        )}
 
       </Main>
       <SupportDialog open={supportOpen} onOpenChange={setSupportOpen} />
