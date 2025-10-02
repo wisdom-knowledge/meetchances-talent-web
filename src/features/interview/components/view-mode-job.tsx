@@ -214,10 +214,10 @@ function MobileViewModeJob({
       </div>
 
       {/* 职位描述区域 - 可滚动，占据剩余空间 */}
-      <div className='flex-1 min-h-0 overflow-auto pb-4'>
+      <div className='flex-1 min-h-0 overflow-auto relative'>
         {/* 发布者信息 */}
         {job && <PublisherSection job={job} className='border-t' />}
-        <div className='text-sm text-foreground/80 leading-relaxed py-2'>
+        <div className='text-sm text-foreground/80 leading-relaxed py-2 px-4'>
           {job?.description ? (
             <RichText content={job.description} />
           ) : (
@@ -226,11 +226,14 @@ function MobileViewModeJob({
             </div>
           )}
         </div>
+        
+        {/* 底部渐隐遮罩 - 引导用户滚动 */}
+        <div className='pointer-events-none sticky bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background via-background/80 to-transparent' />
       </div>
 
       {/* 底部固定区域 - 上传简历和按钮 */}
-      <div className='flex-shrink-0 border-t border-border bg-background'>
-        <div className='py-6 space-y-4'>
+      <div className='flex-shrink-0 border-border bg-background'>
+        <div className='px-4 py-6 space-y-4'>
           <MobileUploadArea
             resumeValues={resumeValues}
             uploadingResume={uploadingResume}
