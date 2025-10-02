@@ -36,6 +36,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
 import { userEvent, reportSessionPageRefresh } from '@/lib/apm'
 import { useJoin } from '@/features/interview/session-view-page/lib/useCommon'
+import QuestionnaireCollection from './components/questionnaire-collection'
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -53,6 +54,7 @@ enum ViewMode {
   EducationEval = 'education-eval',
   AllApproved = 'all-approved',
   Rejected = 'rejected',
+  Questionnaire = 'questionnaire',
 }
 
 // steps 组件迁移为独立组件，见 features/interview/components/steps.tsx
@@ -280,6 +282,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [jobApplyId, setJobApplyId] = useState<number | string | null>(jobApplyIdFromRoute ?? null)
   const [currentSpkDeviceId, setCurrentSpkDeviceId] = useState<string>('')
   const [currentMicDeviceId, setCurrentMicDeviceId] = useState<string>('')
+  const [currentNodeData, setCurrentNodeData] = useState<Record<string, unknown> | null>(null)
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const [_joining, triggerJoin] = useJoin()
   const setRtcConnectionInfo = useRoomStore((s) => s.setRtcConnectionInfo)
@@ -294,7 +297,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const user = useAuthStore((s) => s.auth.user)
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
-  const { data: progressNodes, isLoading: isProgressLoading } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
+  const { data: progressNodes, isLoading: isProgressLoading, refetch: refetchProgress } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
   const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
   const interviewNodeId = useMemo(() => getInterviewNodeId(workflow), [workflow])
   const interviewNodeStatus = useMemo(() => {
@@ -304,7 +307,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   }, [progressNodes])
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
-  
+
   // 判断是否为模拟面试
   const isMock = useMemo(() => job?.job_type === 'mock_job', [job])
 
@@ -366,13 +369,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           // ignore, allow navigation even if confirm fails
         }
       }
-      setViewMode(ViewMode.InterviewPrepare)
-    } else {
-      // 不再自动跳转会话页；改为等待用户在设备确认页点击“确认设备，下一步”
-      // 这里仅切换视图
-      setViewMode(ViewMode.InterviewPrepare)
     }
-  }, [viewMode, jobApplyId, workflow, queryClient])
+    await refetchProgress()
+  }, [viewMode, jobApplyId, workflow, queryClient, refetchProgress])
 
   const handleConfirmResumeClick = useCallback(async () => {
     if (uploadingResume) return
@@ -485,6 +484,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     if (name.toLowerCase().includes('ai') || name.includes('AI 面试') || name.includes('Al面试')) return ViewMode.InterviewPrepare
     if (name.includes('测试任务') || name.includes('第一轮测试任务') || name.includes('第二轮测试任务')) return ViewMode.TrailTask
     if (name.includes('学历验证')) return ViewMode.EducationEval
+    if (name.includes('问卷收集')) return ViewMode.Questionnaire
     return ViewMode.Job
   }
 
@@ -503,6 +503,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     // 优先进行中，其次未开始，否则取最后一个已完成相关节点
     const inProgress = nodes.find((n) => n.node_status === JobApplyNodeStatus.InProgress)
     if (inProgress) return nodeNameToViewMode(inProgress.node_name)
+    // TODO:需要review 有未完成的节点，则取第一个未完成的节点
+    const isCompletedPendingReview = nodes.find((n) => n.node_status === JobApplyNodeStatus.CompletedPendingReview)
+    if (isCompletedPendingReview) return nodeNameToViewMode(isCompletedPendingReview.node_name)
+    // TODO:需要review 有拒绝的节点，则取第一个拒绝的节点
+    const isRejected = nodes.find((n) => n.node_status === JobApplyNodeStatus.Rejected)
+    if (isRejected) return nodeNameToViewMode(isRejected.node_name)
     const notStarted = nodes.find((n) => n.node_status === JobApplyNodeStatus.NotStarted)
     if (notStarted) return nodeNameToViewMode(notStarted.node_name)
     const completedIdx = nodes
@@ -540,11 +546,40 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     }
   }, [viewMode, isMock])
 
-  // 根据进度切换视图
+  // 根据进度切换视图 + 问卷节点轮询
   useEffect(() => {
+    // 1. 视图切换逻辑
     const next = resolveViewModeFromProgress()
     if (next && next !== viewMode && !isMock) {
       setViewMode(next)
+    }
+
+    // TODO:需要review 取当前第一个不是通过的节点
+    // 2. 设置当前激活节点
+    const activeNode = progressNodes?.find(
+      (node) => node.node_status !== JobApplyNodeStatus.Approved
+    )
+    if (activeNode) {
+      setCurrentNodeData(activeNode as unknown as Record<string, unknown>)
+    }
+
+    // 3. 问卷节点轮询：当问卷收集节点处于进行中时，定期刷新工作流状态
+    const isQuestionnaireInProgress =
+      activeNode?.node_name === '问卷收集' &&
+      activeNode.node_status === JobApplyNodeStatus.InProgress &&
+      !isMock
+
+    if (isQuestionnaireInProgress) {
+      const pollInterval = setInterval(async () => {
+        // 刷新工作流数据，这会触发本 useEffect 重新执行
+        await queryClient.invalidateQueries({
+          queryKey: ['job-apply-workflow', jobApplyId],
+        })
+      }, 5000)
+
+      return () => {
+        clearInterval(pollInterval)
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progressNodes, isMock])
@@ -707,7 +742,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             }}
             onConfirmResumeClick={handleConfirmResumeClick}
             onUploadEvent={(action) => {
-              userEvent('resume_uploaded', '简历上传', { 
+              userEvent('resume_uploaded', '简历上传', {
                 page: 'interview_prepare',
                 isMock: isMock,
                 trigger: 'button_click',
@@ -881,6 +916,16 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           </div>
         )}
 
+        {/* ViewMode.Questionnaire
+            问卷收集阶段：
+            - 展示飞书问卷并等待用户填写
+        */}
+        {viewMode === ViewMode.Questionnaire && (
+          <div className='flex-1 w-full max-w-screen-xl mx-auto'>
+            <QuestionnaireCollection nodeData={currentNodeData ?? undefined} />
+          </div>
+        )}
+
         {/* 底部步骤与下一步 */}
         {!isMobile && (
           <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
@@ -985,15 +1030,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 </div>
 
                 {/* 发布者信息 */}
-                <div className='flex items-center gap-3 py-4 border-b bord er-border'>
-                  <div className='w-9 h-9 border-1 border-gray-200 rounded-full flex items-center justify-center overflow-hidden bg-white'>
-                    <img src={'https://dnu-cdn.xpertiise.com/common/34af7d0c-7d83-421d-b8ed-8b636ac77bf3.png'} alt='meetchances' className='h-9 w-9 object-contain ml-[3px] mt-[1px]' />
-                  </div>
-                  <div className='flex flex-col'>
-                    <span className='text-sm font-medium text-foreground'>由一面千识发布</span>
-                    <span className='text-xs mt-[10px] text-muted-foreground'>meetchances.com</span>
-                  </div>
-                </div>
+                <PublisherSection job={job} />
 
                 {/* 详情描述 */}
                 <div className='py-6 text-foreground/90 text-base leading-relaxed'>
