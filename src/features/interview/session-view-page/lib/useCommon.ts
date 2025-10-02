@@ -12,6 +12,7 @@ import { useDeviceStore } from '@/stores/interview/device';
 import { userEvent } from '@/lib/apm'
 import { postNodeAction, NodeActionTrigger } from '@/features/interview/api'
 import { useJobDetailQuery } from '@/features/jobs/api'
+import { AudioProfileType } from '@volcengine/rtc';
 // logger removed; use toast for user-facing notices
 
 export const ABORT_VISIBILITY_CHANGE = 'abortVisibilityChange';
@@ -80,6 +81,8 @@ export const useDeviceState = () => {
         ? RtcClient.publishStream(MediaType.VIDEO)
         : RtcClient.unpublishStream(MediaType.VIDEO));
     }
+
+    await RtcClient.setAudioProfile(AudioProfileType.standard);
     // void queryDevices('video');
     await (!isVideoPublished ? RtcClient.startVideoCapture() : RtcClient.stopVideoCapture());
 
