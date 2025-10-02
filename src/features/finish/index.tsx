@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { MockInterviewTab } from '@/features/mock-interview/constants'
 import { handleServerError } from '@/utils/handle-server-error'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,6 +14,7 @@ import emptyStar from '@/assets/images/empty-start.svg'
 import filledStar from '@/assets/images/full-start.svg'
 import { reportFinishFeedbackLowScore } from '@/lib/apm'
 import { useJobDetailQuery } from '@/features/jobs/api'
+import { IconLoader2 } from '@tabler/icons-react'
 
 
 export default function FinishPage() {
@@ -48,7 +50,7 @@ export default function FinishPage() {
   }, [])
 
   // 获取职位信息并判断是否为模拟面试
-  const { data: job } = useJobDetailQuery(jobId, Boolean(jobId))
+  const { data: job, isLoading: isJobLoading } = useJobDetailQuery(jobId, Boolean(jobId))
   const isMock = useMemo(() => job?.job_type === 'mock_job', [job])
 
 
@@ -159,7 +161,13 @@ export default function FinishPage() {
     if (isMock) {
       navigate({
         to: '/mock-interview',
-        search: { page: 1, pageSize: 12, q: '', category: undefined, tab: 'records' },
+        search: { 
+          page: 1, 
+          pageSize: 12, 
+          q: '', 
+          category: undefined, 
+          tab: !isCanceled ? MockInterviewTab.RECORDS : undefined 
+        },
         replace: true,
       })
     } else {
@@ -172,6 +180,21 @@ export default function FinishPage() {
   }
 
   // 保留：如需在其它位置触发支持弹窗，可调用 setHelpOpen(true)
+
+  // 如果正在加载 job 数据，显示加载状态
+  if (isJobLoading && jobId) {
+    return (
+      <Main
+        fixed
+        className={`flex w-full items-center justify-center bg-[#ECD9FC]`}
+      >
+        <div className='flex items-center gap-2 text-primary'>
+          <IconLoader2 className='h-5 w-5 animate-spin' />
+          <span>正在加载...</span>
+        </div>
+      </Main>
+    )
+  }
 
   return (
     <Main
