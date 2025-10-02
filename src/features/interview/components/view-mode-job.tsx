@@ -183,7 +183,7 @@ function MobileViewModeJob({
   return (
     <div className='flex flex-col w-full h-screen max-h-screen overflow-hidden'>
       {/* 顶部信息区域 - 不可滚动 */}
-      <div className='flex-shrink-0 py-6 px-4 space-y-4'>
+      <div className='flex-shrink-0 py-6 space-y-4'>
         {/* 标题和薪资 */}
         <div className='flex space-y-2'>
           <h1 className='text-xl flex-1 font-semibold leading-tight text-foreground pr-2 line-clamp-2'>
@@ -217,7 +217,7 @@ function MobileViewModeJob({
       <div className='flex-1 min-h-0 overflow-auto relative'>
         {/* 发布者信息 */}
         {job && <PublisherSection job={job} className='border-t' />}
-        <div className='text-sm text-foreground/80 leading-relaxed py-2 px-4'>
+        <div className='text-sm text-foreground/80 leading-relaxed py-2'>
           {job?.description ? (
             <RichText content={job.description} />
           ) : (
@@ -233,7 +233,7 @@ function MobileViewModeJob({
 
       {/* 底部固定区域 - 上传简历和按钮 */}
       <div className='flex-shrink-0 border-border bg-background'>
-        <div className='px-4 py-6 space-y-4'>
+        <div className='py-6 space-y-4'>
           <MobileUploadArea
             resumeValues={resumeValues}
             uploadingResume={uploadingResume}
