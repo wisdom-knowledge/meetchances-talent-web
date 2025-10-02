@@ -1,9 +1,11 @@
 import type { ApiJob } from '@/features/jobs/api'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { cn } from '@/lib/utils'
 
 export interface PublisherSectionProps {
   job: ApiJob
   recommendName?: string
+  className?: string
 }
 
 const companyMaps = [
@@ -22,10 +24,10 @@ const companyMaps = [
 ]
 
 // PC 端组件
-function DesktopPublisherSection({ job, recommendName }: PublisherSectionProps) {
+function DesktopPublisherSection({ job, recommendName, className }: PublisherSectionProps) {
   const company = companyMaps.find((item) => item.id === job.company_id)
   return (
-    <div>
+    <div className={cn(className)}>
       <div className='border-border flex items-center gap-3 border-b py-4'>
         <div className='flex h-9 w-9 items-center justify-center overflow-hidden bg-white'>
           <img
@@ -53,11 +55,11 @@ function DesktopPublisherSection({ job, recommendName }: PublisherSectionProps) 
 }
 
 // 移动端组件
-function MobilePublisherSection({ job, recommendName }: PublisherSectionProps) {
+function MobilePublisherSection({ job, recommendName, className }: PublisherSectionProps) {
   const company = companyMaps.find((item) => item.id === job.company_id)
   return (
-    <div>
-      <div className='border-border flex items-center gap-3 border-b border-t py-3'>
+    <div className={cn(className)}>
+      <div className='border-border flex items-center gap-3 border-b py-3'>
         <div className='flex h-8 w-8 items-center justify-center overflow-hidden bg-white'>
           <img
             src={company?.logo}

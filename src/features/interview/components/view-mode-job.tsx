@@ -2,6 +2,7 @@ import { Separator } from '@/components/ui/separator'
 import { RichText } from '@/components/ui/rich-text'
 import { Button } from '@/components/ui/button'
 import { UploadArea } from '@/features/resume-upload/upload-area'
+import { MobileUploadArea } from '@/features/resume-upload/mobile-upload-area'
 import { IconBriefcase, IconWorldPin, IconUpload, IconEdit } from '@tabler/icons-react'
 import { uploadTalentResume } from '@/features/resume-upload/utils/api'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -172,7 +173,7 @@ function MobileViewModeJob({
   isMock,
   resumeValues,
   uploadingResume,
-  onDrawerOpen,
+  onDrawerOpen: _onDrawerOpen,
   onResumeOpen,
   onUploadingChange,
   onUploadComplete,
@@ -180,9 +181,9 @@ function MobileViewModeJob({
   onUploadEvent,
 }: ViewModeJobProps) {
   return (
-    <div className='flex flex-col w-full h-full overflow-y-auto'>
-      {/* 职位信息区域 */}
-      <div className='py-6 space-y-4'>
+    <div className='flex flex-col w-full h-screen max-h-screen overflow-hidden'>
+      {/* 顶部信息区域 - 不可滚动 */}
+      <div className='flex-shrink-0 py-6 px-4 space-y-4'>
         {/* 标题和薪资 */}
         <div className='flex space-y-2'>
           <h1 className='text-xl flex-1 font-semibold leading-tight text-foreground pr-2 line-clamp-2'>
@@ -209,85 +210,39 @@ function MobileViewModeJob({
           </div>
         )}
 
+        
+      </div>
+
+      {/* 职位描述区域 - 可滚动，占据剩余空间 */}
+      <div className='flex-1 min-h-0 overflow-auto pb-4'>
         {/* 发布者信息 */}
-        {job && <PublisherSection job={job} />}
-
-        {/* 职位描述标题 */}
-        <div>
-          <h2 className='text-base font-semibold text-foreground mb-3'>关于这个岗位：</h2>
-          <div className='text-sm text-foreground/80 leading-relaxed space-y-2'>
-            {job?.description ? (
-              <div className='max-h-[200px] overflow-hidden relative'>
-                <RichText content={job.description} />
-                {/* 渐隐遮罩 */}
-                <div className='pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-background to-transparent' />
-              </div>
-            ) : (
-              <div className='text-muted-foreground'>
-                {isLoading ? '正在加载职位详情…' : '暂无职位描述'}
-              </div>
-            )}
-          </div>
-          <button
-            onClick={onDrawerOpen}
-            className='text-sm text-primary hover:underline underline-offset-2 mt-2 inline-block'
-          >
-            查看更多
-          </button>
-        </div>
-
-        {/* 我们希望你 */}
-        <div className='pb-4'>
-          <h2 className='text-base font-semibold text-foreground mb-2'>我们希望你</h2>
-          <div className='text-sm text-muted-foreground'>查看更多详情...</div>
+        {job && <PublisherSection job={job} className='border-t' />}
+        <div className='text-sm text-foreground/80 leading-relaxed py-2'>
+          {job?.description ? (
+            <RichText content={job.description} />
+          ) : (
+            <div className='text-muted-foreground'>
+              {isLoading ? '正在加载职位详情…' : '暂无职位描述'}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 底部固定区域 - 上传简历 */}
-      <div className='mt-auto border-t border-border bg-background'>
+      {/* 底部固定区域 - 上传简历和按钮 */}
+      <div className='flex-shrink-0 border-t border-border bg-background'>
         <div className='py-6 space-y-4'>
-          {/* 已上传简历预览 */}
-          {resumeValues && !uploadingResume && (
-            <div className='flex items-center justify-between rounded-lg border border-border p-3 bg-card'>
-              <div className='flex items-center gap-2 min-w-0'>
-                <div className='text-sm'>
-                  <div className='font-medium text-foreground truncate'>{resumeValues.name || '—'}</div>
-                  <div className='text-xs text-muted-foreground mt-0.5'>{resumeValues.phone || '—'}</div>
-                </div>
-              </div>
-              <Button
-                size='sm'
-                variant='ghost'
-                onClick={onResumeOpen}
-                className='shrink-0'
-              >
-                查看
-              </Button>
-            </div>
-          )}
-
-          {/* 上传区域 */}
-          <UploadArea
-            className='w-full'
-            uploader={uploadTalentResume}
+          <MobileUploadArea
+            resumeValues={resumeValues}
+            uploadingResume={uploadingResume}
+            onResumeOpen={onResumeOpen}
             onUploadingChange={onUploadingChange}
             onUploadComplete={onUploadComplete}
-          >
-            <div 
-              className='w-full flex flex-col items-center justify-center py-8 px-4 border-2 border-dashed border-border rounded-lg bg-card/50'
-              onClick={() => onUploadEvent(resumeValues ? 'update' : 'upload')}
-            >
-              <div className='w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3'>
-                <IconUpload className='h-6 w-6 text-primary' />
-              </div>
-              <p className='text-sm font-medium text-foreground mb-1'>点击上传简历</p>
-              <p className='text-xs text-muted-foreground'>支持 PDF、Word 格式</p>
-            </div>
-          </UploadArea>
+            onUploadEvent={onUploadEvent}
+          />
 
           {/* 底部按钮 */}
           <Button
-            className='w-full h-12 text-base font-medium rounded-full'
+            className='w-full'
             disabled={uploadingResume || !resumeValues}
             onClick={onConfirmResumeClick}
           >
