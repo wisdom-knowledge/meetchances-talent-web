@@ -37,6 +37,8 @@ import { toast } from 'sonner'
 import { userEvent, reportSessionPageRefresh } from '@/lib/apm'
 import { useJoin } from '@/features/interview/session-view-page/lib/useCommon'
 import QuestionnaireCollection from './components/questionnaire-collection'
+import PublisherSection from '@/features/jobs/components/publisher-section'
+
 
 interface InterviewPreparePageProps {
   jobId?: string | number
