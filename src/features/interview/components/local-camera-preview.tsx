@@ -11,6 +11,7 @@ import { MicVisualizer } from '@/features/interview/components/mic-visualizer'
 import { motion } from 'framer-motion'
 import { useCameraStatusDetection } from '@/hooks/use-camera-status-detection'
 import { setAudioSinkId } from '@/lib/devices'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 type DeviceStage = 'headphone' | 'mic' | 'camera'
 
@@ -45,6 +46,7 @@ export function LocalCameraPreview({
   disableCameraConfirm = true,
   ...props
 }: LocalCameraPreviewProps) {
+  const isMobile = useIsMobile()
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
@@ -561,13 +563,14 @@ export function LocalCameraPreview({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.22 }}
-              className='absolute inset-x-0 bottom-0 h-[120px] backdrop-blur-md bg-background/40 border-border'
+              className='absolute inset-x-0 bottom-0 h-[120px] backdrop-blur-md border-border'
+              style={{ backgroundColor: 'rgba(78, 2, 228, 0.2)' }}
             >
               <div className='h-full w-full px-6 py-4 flex flex-col items-center justify-center gap-3'>
                 {/* Title */}
                 <div className='text-base text-white'>
                   {micPermissionDenied
-                    ? '请选择麦克风设备'
+                    ? isMobile ? '请授权麦克风权限' : '请选择麦克风设备'
                     : micMode === 'recording'
                       ? '请对麦克风说：我准备好了'
                       : '请确认音质正常'}
