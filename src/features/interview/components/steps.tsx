@@ -134,17 +134,17 @@ function MobileSteps({
             ? 'text-[#4E02E4]'
             : 'text-[#000000]'
 
-        // 连线颜色：跟后面的数字背景色一致
-        let lineClass = 'bg-[#A1A1A1]'
+        // 连线颜色：根据下一个step的状态
+        let lineClass = 'bg-[#DEDEDE]'
         if (!isLastStep) {
           const nextNode = displaySteps[idx + 1]
           const nextVisual = mapNodeStatusToVisual(nextNode.node_status as JobApplyNodeStatus)
           lineClass = 
             nextVisual === 'completed'
-              ? 'bg-[#4E02E4]'
+              ? 'bg-[rgba(78,2,228,0.10)]'
               : nextVisual === 'inProgress'
               ? 'bg-[#C994F7]'
-              : 'bg-[#A1A1A1]'
+              : 'bg-[#DEDEDE]'
         }
 
         return (

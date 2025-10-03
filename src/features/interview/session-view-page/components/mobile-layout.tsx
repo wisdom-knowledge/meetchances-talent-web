@@ -23,7 +23,7 @@ export default function MobileLayout({ onLeave }: MobileLayoutProps) {
       {/* 第二行：LocalVideoTile 在左，LiteAgentTile 居中 */}
       <div className='flex items-center px-4'>
         <LocalVideoTile className='h-32 w-21 flex-shrink-0 rounded-2xl overflow-hidden bg-black' />
-        <div className='flex flex-2 items-center justify-center'>
+        <div className='flex flex-2 items-center justify-center pt-1'>
           <LiteAgentTile className='h-48 w-48' />
         </div>
         <div className='w-24'></div>
