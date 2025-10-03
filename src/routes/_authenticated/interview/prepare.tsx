@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { MobileFullscreenMask } from '@/components/mobile-fullscreen-mask'
+// import { useIsMobile } from '@/hooks/use-mobile'
+// import { MobileFullscreenMask } from '@/components/mobile-fullscreen-mask'
 import InterviewPreparePage from '@/features/interview/prepare'
 
 const parseDataString = (
@@ -59,7 +59,7 @@ const parseDataString = (
 }
 
 function PrepareRouteComponent() {
-  const isMobile = useIsMobile()
+  // const isMobile = useIsMobile()
   const search = Route.useSearch() as {
     data?: string
     job_id?: string | number
@@ -69,9 +69,9 @@ function PrepareRouteComponent() {
     source?: string
   }
 
-  if (isMobile) {
-    return <MobileFullscreenMask open={true} />
-  }
+  // if (isMobile) {
+  //   return <MobileFullscreenMask open={true} />
+  // }
 
   // 检查来源是否为 session 页面刷新
   const isFromSessionRefresh = search?.source === 'session_refresh'
