@@ -508,10 +508,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     // 优先进行中，其次未开始，否则取最后一个已完成相关节点
     const inProgress = nodes.find((n) => n.node_status === JobApplyNodeStatus.InProgress)
     if (inProgress) return nodeNameToViewMode(inProgress.node_name)
-    // TODO:需要review 有未完成的节点，则取第一个未完成的节点
     const isCompletedPendingReview = nodes.find((n) => n.node_status === JobApplyNodeStatus.CompletedPendingReview)
     if (isCompletedPendingReview) return nodeNameToViewMode(isCompletedPendingReview.node_name)
-    // TODO:需要review 有拒绝的节点，则取第一个拒绝的节点
     const isRejected = nodes.find((n) => n.node_status === JobApplyNodeStatus.Rejected)
     if (isRejected) return nodeNameToViewMode(isRejected.node_name)
     const notStarted = nodes.find((n) => n.node_status === JobApplyNodeStatus.NotStarted)
@@ -559,7 +557,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       setViewMode(next)
     }
 
-    // TODO:需要review 取当前第一个不是通过的节点
     // 2. 设置当前激活节点
     const activeNode = progressNodes?.find(
       (node) => node.node_status !== JobApplyNodeStatus.Approved 
