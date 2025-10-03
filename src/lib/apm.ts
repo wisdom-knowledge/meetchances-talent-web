@@ -461,3 +461,13 @@ export function reportFinishFeedbackLowScore(payload: FinishFeedbackLowScorePayl
     type: 'event',
   })
 }
+
+/**
+ * 捕获并上报异常
+ * @param error - 错误对象或错误消息
+ * @param context - 可选的错误上下文信息
+ */
+export function captureException(error: Error | string, context?: Record<string, unknown>): void {
+  if (!apmClient) return
+  apmClient('captureException', error, context)
+}

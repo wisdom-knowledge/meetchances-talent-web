@@ -23,7 +23,7 @@ import { toast } from 'sonner'
 
 import { useRoomStore, type IUser } from '@/stores/interview/room';
 import RtcClient, { IEventListener } from './RtcClient';
-import { reportRtcMessageReceived, userEvent } from '@/lib/apm'
+import { reportRtcMessageReceived, userEvent, captureException } from '@/lib/apm'
 
 import { useDeviceStore } from '@/stores/interview/device';
 import { useMessageHandler } from '@/features/interview/session-view-page/lib/handler';
@@ -58,8 +58,19 @@ const useRtcListeners = (): IEventListener => {
     roomStore.remoteUserJoin({ userId, username });
   };
 
-  const handleError = (_e: { errorCode: string | number }) => {
-    // no-op for now; can add toast/report here
+  const handleError = (e: { errorCode: string | number; errorMessage?: string }) => {
+    const errorCode = String(e.errorCode)
+    const errorMessage = e.errorMessage || 'Unknown RTC error'
+    
+    // APM 异常上报
+    captureException(`RTC Error [${errorCode}]: ${errorMessage}`, {
+      error_code: errorCode,
+      error_message: errorMessage,
+      page: 'session',
+    })
+    
+    // 可选：根据错误代码显示用户友好的提示
+    // toast.error(`网络错误: ${errorCode}`)
   };
 
   const handleUserLeave = async (e: onUserLeaveEvent) => {
