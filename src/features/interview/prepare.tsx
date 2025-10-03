@@ -420,9 +420,16 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     let isExternalReferrer = false
     try {
       const ref = document.referrer
-      if (ref) {
-        const refOrigin = new URL(ref).origin
-        isExternalReferrer = refOrigin !== window.location.origin
+      if (!ref) {
+        isExternalReferrer = true
+      } else {
+        try {
+          const refOrigin = new URL(ref).origin
+          isExternalReferrer = refOrigin !== window.location.origin
+        } catch {
+          // ref 不是合法 URL，视为外部来源
+          isExternalReferrer = true
+        }
       }
     } catch {
       /* ignore */
@@ -1059,8 +1066,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           onClick={() => setShowServiceTip(false)}
           className={cn(
             'absolute right-16 bottom-0 mb-1 w-[60px] max-w-none rounded bg-white shadow-xl transition-all duration-300 origin-bottom-right',
-            showServiceTip 
-              ? 'opacity-100 translate-y-0 scale-[4] pointer-events-auto cursor-pointer' 
+            showServiceTip
+              ? 'opacity-100 translate-y-0 scale-[4] pointer-events-auto cursor-pointer'
               : 'pointer-events-none opacity-0 translate-y-2 scale-100 group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-[4]'
           )}
         />
