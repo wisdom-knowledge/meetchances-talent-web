@@ -140,7 +140,11 @@ function DesktopViewModeJob({
 
           <div className='my-4'>
             <Button
-              className='w-full'
+              className={
+                !(uploadingResume || !resumeValues)
+                  ? 'w-full bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)]'
+                  : 'w-full bg-[#C9C9C9] text-white'
+              }
               disabled={uploadingResume || !resumeValues}
               onClick={onConfirmResumeClick}
             >
@@ -248,7 +252,11 @@ function MobileViewModeJob({
 
           {/* 底部按钮 */}
           <Button
-            className='w-full'
+            className={
+              !(uploadingResume || !resumeValues)
+                ? 'w-full bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)]'
+                : 'w-full bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+            }
             disabled={uploadingResume || !resumeValues}
             onClick={onConfirmResumeClick}
           >
