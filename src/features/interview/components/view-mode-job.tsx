@@ -190,8 +190,11 @@ function MobileViewModeJob({
             {job?.title ?? (isLoading ? '加载中…' : '未找到职位')}
           </h1>
           {!isMock && (
-            <div className='text-sm font-semibold text-foreground'>
-              {job ? `¥${job.salary_min ?? 0}/小时` : '—'}
+            <div className='flex flex-col items-end min-w-fit'>
+              <div className='text-sm font-semibold text-foreground whitespace-nowrap'>
+                {job ? `¥${job.salary_min ?? 0}~¥${job.salary_max ?? 0}` : '—'}
+              </div>
+              <div className='text-xs font-semibold '>/小时</div>
             </div>
           )}
         </div>
