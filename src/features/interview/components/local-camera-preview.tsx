@@ -563,7 +563,8 @@ export function LocalCameraPreview({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.22 }}
-              className='absolute inset-x-0 bottom-0 h-[120px] backdrop-blur-md bg-background/40 border-border'
+              className='absolute inset-x-0 bottom-0 h-[120px] backdrop-blur-md border-border'
+              style={{ backgroundColor: 'rgba(78, 2, 228, 0.2)' }}
             >
               <div className='h-full w-full px-6 py-4 flex flex-col items-center justify-center gap-3'>
                 {/* Title */}

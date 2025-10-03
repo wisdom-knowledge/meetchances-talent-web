@@ -55,7 +55,7 @@ function MobileConnectionStatus({ className }: ConnectionStatusProps) {
       )}
     >
       <div className={cn('h-2 w-2 rounded-full shrink-0', status.color, status.pulse && 'animate-pulse')} />
-      <span className='text-white text-[9px] leading-[100%] tracking-[0.35px] font-medium font-["Noto_Sans_SC"] whitespace-nowrap'>
+      <span className='text-white text-[11px] leading-[100%] tracking-[0.35px] font-medium font-["Noto_Sans_SC"] whitespace-nowrap'>
         {status.text}
       </span>
     </div>
