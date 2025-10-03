@@ -375,6 +375,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       }
     }
     await refetchProgress()
+    if (isMock) {
+      setViewMode(ViewMode.InterviewPrepare)
+    }
   }, [viewMode, jobApplyId, workflow, queryClient, refetchProgress])
 
   const handleConfirmResumeClick = useCallback(async () => {
