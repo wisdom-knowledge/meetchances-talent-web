@@ -580,7 +580,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         await queryClient.invalidateQueries({
           queryKey: ['job-apply-workflow', jobApplyId],
         })
-      }, 5000)
+      }, 1300)
 
       return () => {
         clearInterval(pollInterval)
