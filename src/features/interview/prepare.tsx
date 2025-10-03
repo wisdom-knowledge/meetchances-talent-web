@@ -630,9 +630,16 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 let isExternalReferrer = false
                 try {
                   const ref = document.referrer
-                  if (ref) {
-                    const refOrigin = new URL(ref).origin
-                    isExternalReferrer = refOrigin !== window.location.origin
+                  if (!ref) {
+                    isExternalReferrer = true
+                  } else {
+                    try {
+                      const refOrigin = new URL(ref).origin
+                      isExternalReferrer = refOrigin !== window.location.origin
+                    } catch {
+                      // ref 不是合法 URL，视为外部来源
+                      isExternalReferrer = true
+                    }
                   }
                 } catch {
                   /* ignore */
