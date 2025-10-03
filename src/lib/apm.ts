@@ -128,6 +128,16 @@ export function userEvent(eventName: string, desc?: string, extra?: Record<strin
   })
 }
 
+/**
+ * 捕获并上报异常
+ * @param error - Error 对象或错误信息字符串
+ * @param context - 可选的上下文信息
+ */
+export function captureException(error: Error | string, context?: Record<string, unknown>): void {
+  if (!apmClient) return
+  apmClient('captureException', error, context)
+}
+
 export function initApm(): void {
   if (initialized) return
 

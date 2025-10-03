@@ -53,23 +53,18 @@ export const ChatMessageView = ({ className, children, ...props }: ChatProps) =>
 
   return (
     <div className={cn('h-full w-full', className)} {...props}>
-      <div ref={scrollContentRef} className='grid h-full w-full grid-cols-3'>
-        <div className='col-span-2' />
-        <div className='col-span-1 flex h-full flex-col justify-center px-8'>
-          <div className='max-w-md space-y-3'>
-            <div className='overflow-y-auto whitespace-pre-wrap px-1'>
-              <ul className='space-y-3'>
-                {agentMessages.map((m, idx) => (
-                  <li key={`${m.time}-${idx}`} className='group flex flex-col gap-0.5'>
-                    <span className='ml-auto max-w-5/5 rounded-[20px] py-2 text-blue-600 leading-relaxed text-base/6'>
-                      {m.value}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              {children}
-            </div>
-          </div>
+      <div ref={scrollContentRef} className='h-full w-full'>
+        <div className='overflow-y-auto whitespace-pre-wrap'>
+          <ul className='space-y-3'>
+            {agentMessages.map((m, idx) => (
+              <li key={`${m.time}-${idx}`} className='group flex flex-col gap-0.5'>
+                <span className='ml-auto max-w-5/5 rounded-[20px] py-2 text-blue-600 leading-relaxed text-base/6'>
+                  {m.value}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {children}
         </div>
       </div>
     </div>
