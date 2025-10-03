@@ -56,7 +56,7 @@ export default function QuestionnaireCollection({
     <div className='h-full'>
       {/* 根据状态显示不同内容 */}
       {currentStatus === 'not-filled' ? (
-        <div className='relative h-[calc(100vh-200px)] w-full'>
+        <div className='relative h-[calc(100vh-100px)] md:h-[calc(100vh-150px)] w-full mt-4 md:mt-0'>
           {/* 加载中状态 */}
           {isLoading && (
             <div className='absolute inset-0 z-10 flex flex-col items-center justify-center bg-background'>
