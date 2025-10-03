@@ -120,6 +120,17 @@ function DesktopViewModeInterviewPrepare({
       <div className='hidden lg:flex lg:col-span-5 p-6 lg:sticky flex-col justify-center'>
         <div className='lg:my-36'>
           <Button
+            className={
+              !(
+                cameraStatus !== DeviceTestStatus.Success ||
+                micStatus !== DeviceTestStatus.Success ||
+                spkStatus !== DeviceTestStatus.Success ||
+                !interviewNodeId ||
+                connecting
+              )
+                ? 'w-full mt-4 bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)]'
+                : 'w-full mt-4 bg-[#C9C9C9] text-white'
+            }
             disabled={
               cameraStatus !== DeviceTestStatus.Success ||
               micStatus !== DeviceTestStatus.Success ||
@@ -127,7 +138,6 @@ function DesktopViewModeInterviewPrepare({
               !interviewNodeId ||
               connecting
             }
-            className='w-full mt-4 disabled:opacity-100 disabled:bg-[#C9C9C9] disabled:border-[0.5px] disabled:border-[rgba(255,255,255,0.12)]'
             onClick={onStartNewInterviewClick}
           >
             {connecting ? '面试间连接中…' : '确认设备，下一步'}
@@ -203,6 +213,17 @@ function MobileViewModeInterviewPrepare({
        {/* 顶部按钮区域 */}
        <div className='flex-shrink-0 py-4'>
         <Button
+          className={
+            !(
+              cameraStatus !== DeviceTestStatus.Success ||
+              micStatus !== DeviceTestStatus.Success ||
+              spkStatus !== DeviceTestStatus.Success ||
+              !interviewNodeId ||
+              connecting
+            )
+              ? 'w-full bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)]'
+              : 'w-full bg-[#C9C9C9] text-white'
+          }
           disabled={
             cameraStatus !== DeviceTestStatus.Success ||
             micStatus !== DeviceTestStatus.Success ||
@@ -210,7 +231,6 @@ function MobileViewModeInterviewPrepare({
             !interviewNodeId ||
             connecting
           }
-          className='w-full'
           onClick={onStartNewInterviewClick}
         >
           {connecting ? '面试间连接中…' : '确认设备，下一步'}
