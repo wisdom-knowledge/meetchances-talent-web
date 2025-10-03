@@ -33,7 +33,7 @@ export default function MobileLayout({ onLeave }: MobileLayoutProps) {
       <div className='flex-1 flex-col items-center justify-start px-6'>
         <div className='w-full max-w-md'>
           <ChatMessageView>
-            <ConnectionStatus className='w-full scale-[0.8]' />
+            <ConnectionStatus className='scale-[0.8] mx-auto' />
           </ChatMessageView>
         </div>
       </div>
