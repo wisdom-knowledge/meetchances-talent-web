@@ -279,6 +279,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [hadResumeBefore, setHadResumeBefore] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Job)
   const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
+  const [showServiceTip, setShowServiceTip] = useState(false)
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
@@ -1040,7 +1041,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         <button
           type='button'
           aria-label='联系客服'
-          onClick={() => setSupportOpen(true)}
+          onClick={() => {
+            setShowServiceTip((prev) => !prev)
+            // setSupportOpen(true)
+          }}
           className='h-[46px] w-[46px] rounded-full bg-white border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] flex items-center justify-center transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_18px_rgba(0,0,0,0.18)] hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2'
         >
           <svg viewBox='0 0 1024 1024' className='h-6 w-6 fill-current text-muted-foreground group-hover:text-primary transition-colors'>
@@ -1052,7 +1056,13 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         <img
           src={'https://dnu-cdn.xpertiise.com/common/4c9d2d04-912e-4bde-ad30-af123145be94.jpeg'}
           alt='客服说明'
-          className='pointer-events-none absolute right-16 bottom-0 mb-1 w-[60px] max-w-none rounded bg-white shadow-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-transform duration-300 origin-bottom-right scale-100 group-hover:scale-[4]'
+          onClick={() => setShowServiceTip(false)}
+          className={cn(
+            'absolute right-16 bottom-0 mb-1 w-[60px] max-w-none rounded bg-white shadow-xl transition-all duration-300 origin-bottom-right',
+            showServiceTip 
+              ? 'opacity-100 translate-y-0 scale-[4] pointer-events-auto cursor-pointer' 
+              : 'pointer-events-none opacity-0 translate-y-2 scale-100 group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-[4]'
+          )}
         />
       </div>
 
