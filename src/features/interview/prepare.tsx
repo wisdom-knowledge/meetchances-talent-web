@@ -3,7 +3,7 @@ import { RichText } from '@/components/ui/rich-text'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
-import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
+import { IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { IconLoader2 } from '@tabler/icons-react'
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
@@ -31,6 +31,7 @@ import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/ap
 import searchPng from '@/assets/images/search.png'
 import { ViewModeJob } from '@/features/interview/components/view-mode-job'
 import { ViewModeInterviewPrepare } from '@/features/interview/components/view-mode-interview-prepare'
+import { InterviewPrepareNav } from '@/features/interview/components/interview-prepare-nav'
 import { getPreferredDeviceId, setPreferredDeviceIdSmart, clearAllPreferredDevices } from '@/lib/devices'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
@@ -412,6 +413,32 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     } catch { /* ignore */ }
   }, [])
 
+  const handleBackClick = useCallback(() => {
+    // 先主动释放媒体资源，再进行跳转
+    releaseAllMediaStreams()
+    let isExternalReferrer = false
+    try {
+      const ref = document.referrer
+      if (ref) {
+        const refOrigin = new URL(ref).origin
+        isExternalReferrer = refOrigin !== window.location.origin
+      }
+    } catch {
+      /* ignore */
+    }
+
+    if (
+      viewMode === ViewMode.InterviewPendingReview ||
+      isExternalReferrer || isFromSessionRefresh
+    ) {
+      // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
+      window.location.replace('/home')
+    } else {
+      // 其它情况：回到上一页（保留 SPA 路由栈体验）
+      window.history.back()
+    }
+  }, [releaseAllMediaStreams, viewMode, isFromSessionRefresh])
+
   // const onStartInterviewClick = useCallback(async () => {
   //   if (!jobId || !interviewNodeId || connecting) return
   //   setConnecting(true)
@@ -653,46 +680,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     <>
       <Main fixed>
         {/* 顶部工具栏：返回 + 寻求支持 */}
-        <div className={cn('flex items-center justify-between mb-2 w-full max-w-screen-xl mx-auto')}>
-          <div className='flex items-center'>
-            <Button
-              type='button'
-              variant='ghost'
-              onClick={() => {
-                // 先主动释放媒体资源，再进行跳转
-                releaseAllMediaStreams()
-                let isExternalReferrer = false
-                try {
-                  const ref = document.referrer
-                  if (ref) {
-                    const refOrigin = new URL(ref).origin
-                    isExternalReferrer = refOrigin !== window.location.origin
-                  }
-                } catch {
-                  /* ignore */
-                }
-
-                if (
-                  viewMode === ViewMode.InterviewPendingReview ||
-                  isExternalReferrer || isFromSessionRefresh
-                ) {
-                  // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
-                  window.location.replace('/home')
-                } else {
-                  // 其它情况：回到上一页（保留 SPA 路由栈体验）
-                  window.history.back()
-                }
-              }}
-              aria-label='返回'
-              className='cursor-pointer flex items-center gap-2'
-            >
-              <IconArrowLeft className='h-6 w-6 text-muted-foreground' />返回
-            </Button>
-          </div>
-          <div className='flex items-center'>
-            <Button variant='link' className='text-primary' onClick={() => setSupportOpen(true)}>寻求支持</Button>
-          </div>
-        </div>
+        <InterviewPrepareNav
+          onBackClick={handleBackClick}
+          onSupportClick={() => setSupportOpen(true)}
+        />
         {isMobile && (
           <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
         )}
