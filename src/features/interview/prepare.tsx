@@ -3,7 +3,7 @@ import { RichText } from '@/components/ui/rich-text'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
-import { IconArrowLeft, IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
+import { IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { IconLoader2 } from '@tabler/icons-react'
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
@@ -31,6 +31,7 @@ import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/ap
 import searchPng from '@/assets/images/search.png'
 import { ViewModeJob } from '@/features/interview/components/view-mode-job'
 import { ViewModeInterviewPrepare } from '@/features/interview/components/view-mode-interview-prepare'
+import { InterviewPrepareNav } from '@/features/interview/components/interview-prepare-nav'
 import { getPreferredDeviceId, setPreferredDeviceIdSmart, clearAllPreferredDevices } from '@/lib/devices'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
@@ -278,6 +279,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const [hadResumeBefore, setHadResumeBefore] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Job)
   const [cameraStatus, setCameraStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
+  const [showServiceTip, setShowServiceTip] = useState(false)
   const [micStatus, setMicStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [spkStatus, setSpkStatus] = useState<DeviceTestStatus>(DeviceTestStatus.Idle)
   const [stage, setStage] = useState<'headphone' | 'mic' | 'camera'>('camera')
@@ -411,6 +413,39 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       }
     } catch { /* ignore */ }
   }, [])
+
+  const handleBackClick = useCallback(() => {
+    // 先主动释放媒体资源，再进行跳转
+    releaseAllMediaStreams()
+    let isExternalReferrer = false
+    try {
+      const ref = document.referrer
+      if (!ref) {
+        isExternalReferrer = true
+      } else {
+        try {
+          const refOrigin = new URL(ref).origin
+          isExternalReferrer = refOrigin !== window.location.origin
+        } catch {
+          // ref 不是合法 URL，视为外部来源
+          isExternalReferrer = true
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+
+    if (
+      viewMode === ViewMode.InterviewPendingReview ||
+      isExternalReferrer || isFromSessionRefresh
+    ) {
+      // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
+      window.location.replace('/home')
+    } else {
+      // 其它情况：回到上一页（保留 SPA 路由栈体验）
+      window.history.back()
+    }
+  }, [releaseAllMediaStreams, viewMode, isFromSessionRefresh])
 
   // const onStartInterviewClick = useCallback(async () => {
   //   if (!jobId || !interviewNodeId || connecting) return
@@ -653,53 +688,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     <>
       <Main fixed>
         {/* 顶部工具栏：返回 + 寻求支持 */}
-        <div className={cn('flex items-center justify-between mb-2 w-full max-w-screen-xl mx-auto')}>
-          <div className='flex items-center'>
-            <Button
-              type='button'
-              variant='ghost'
-              onClick={() => {
-                // 先主动释放媒体资源，再进行跳转
-                releaseAllMediaStreams()
-                let isExternalReferrer = false
-                try {
-                  const ref = document.referrer
-                  if (!ref) {
-                    isExternalReferrer = true
-                  } else {
-                    try {
-                      const refOrigin = new URL(ref).origin
-                      isExternalReferrer = refOrigin !== window.location.origin
-                    } catch {
-                      // ref 不是合法 URL，视为外部来源
-                      isExternalReferrer = true
-                    }
-                  }
-                } catch {
-                  /* ignore */
-                }
-
-                if (
-                  viewMode === ViewMode.InterviewPendingReview ||
-                  isExternalReferrer || isFromSessionRefresh
-                ) {
-                  // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
-                  window.location.replace('/home')
-                } else {
-                  // 其它情况：回到上一页（保留 SPA 路由栈体验）
-                  window.history.back()
-                }
-              }}
-              aria-label='返回'
-              className='cursor-pointer flex items-center gap-2'
-            >
-              <IconArrowLeft className='h-6 w-6 text-muted-foreground' />返回
-            </Button>
-          </div>
-          <div className='flex items-center'>
-            <Button variant='link' className='text-primary' onClick={() => setSupportOpen(true)}>寻求支持</Button>
-          </div>
-        </div>
+        <InterviewPrepareNav
+          onBackClick={handleBackClick}
+          onSupportClick={() => setSupportOpen(true)}
+        />
         {isMobile && (
           <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
         )}
@@ -1056,7 +1048,10 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         <button
           type='button'
           aria-label='联系客服'
-          onClick={() => setSupportOpen(true)}
+          onClick={() => {
+            setShowServiceTip((prev) => !prev)
+            // setSupportOpen(true)
+          }}
           className='h-[46px] w-[46px] rounded-full bg-white border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] flex items-center justify-center transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_18px_rgba(0,0,0,0.18)] hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2'
         >
           <svg viewBox='0 0 1024 1024' className='h-6 w-6 fill-current text-muted-foreground group-hover:text-primary transition-colors'>
@@ -1068,7 +1063,13 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         <img
           src={'https://dnu-cdn.xpertiise.com/common/4c9d2d04-912e-4bde-ad30-af123145be94.jpeg'}
           alt='客服说明'
-          className='pointer-events-none absolute right-16 bottom-0 mb-1 w-[60px] max-w-none rounded bg-white shadow-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-transform duration-300 origin-bottom-right scale-100 group-hover:scale-[4]'
+          onClick={() => setShowServiceTip(false)}
+          className={cn(
+            'absolute right-16 bottom-0 mb-1 w-[60px] max-w-none rounded bg-white shadow-xl transition-all duration-300 origin-bottom-right',
+            showServiceTip
+              ? 'opacity-100 translate-y-0 scale-[4] pointer-events-auto cursor-pointer'
+              : 'pointer-events-none opacity-0 translate-y-2 scale-100 group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-[4]'
+          )}
         />
       </div>
 
