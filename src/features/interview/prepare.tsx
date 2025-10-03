@@ -970,6 +970,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               <p className='text-muted-foreground text-center max-w-[560px]'>
                 感谢您完成面试，我们正在审核您的材料，请等待通知
               </p>
+              <div className='flex items-center justify-center mt-5'>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="none">
+                  <path d="M5.83333 16.6667H9.16667C9.16667 17.5833 8.41667 18.3333 7.5 18.3333C6.58333 18.3333 5.83333 17.5833 5.83333 16.6667ZM4.16667 15.8333H10.8333V14.1667H4.16667V15.8333ZM13.75 7.91667C13.75 11.1 11.5333 12.8 10.6083 13.3333H4.39167C3.46667 12.8 1.25 11.1 1.25 7.91667C1.25 4.46667 4.05 1.66667 7.5 1.66667C10.95 1.66667 13.75 4.46667 13.75 7.91667ZM12.0833 7.91667C12.0833 5.39167 10.025 3.33333 7.5 3.33333C4.975 3.33333 2.91667 5.39167 2.91667 7.91667C2.91667 9.975 4.15833 11.1583 4.875 11.6667H10.125C10.8417 11.1583 12.0833 9.975 12.0833 7.91667ZM17.8083 6.14167L16.6667 6.66667L17.8083 7.19167L18.3333 8.33333L18.8583 7.19167L20 6.66667L18.8583 6.14167L18.3333 5L17.8083 6.14167ZM15.8333 5L16.6167 3.28333L18.3333 2.5L16.6167 1.71667L15.8333 0L15.05 1.71667L13.3333 2.5L15.05 3.28333L15.8333 5Z" fill="#4E02E4"/>
+                </svg>
+                <span className='ml-1 text-primary text-sm'>您可以离开当前页面啦</span>
+              </div>
               {interviewNodeStatus === JobApplyNodeStatus.CompletedPendingReview && (
                 <div className='my-8'>
                   <Button onClick={() => setReinterviewOpen(true)}>重新面试</Button>
