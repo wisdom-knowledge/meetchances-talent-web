@@ -40,6 +40,8 @@ export function Steps({ jobApplyId, className, isMock }: StepsProps) {
           const barClass =
             visual === 'completed'
               ? 'bg-[linear-gradient(90deg,var(--steps-completed-from)_0%,var(--steps-completed-to)_100%)]'
+              : visual === 'inProgress'
+              ? 'bg-[var(--steps-inprogress-bg)]'
               : 'bg-muted'
           const labelClass =
             visual === 'notStarted' ? 'text-muted-foreground' : 'text-foreground'
