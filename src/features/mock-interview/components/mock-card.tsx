@@ -25,9 +25,24 @@ export interface MockCardProps {
 }
 
 import { useNavigate } from '@tanstack/react-router'
+import { useEffect, useRef, useState } from 'react'
 
 export default function MockCard({ item, index, categories }: MockCardProps) {
   const navigate = useNavigate()
+  const titleRef = useRef<HTMLDivElement>(null)
+  const summaryRef = useRef<HTMLDivElement>(null)
+  const [summaryLineClamp, setSummaryLineClamp] = useState(2)
+
+  useEffect(() => {
+    if (titleRef.current && summaryRef.current) {
+      const titleHeight = titleRef.current.offsetHeight
+      const lineHeight = 18 // 12px font-size with 1.5 line-height = 18px
+      const availableHeight = 66 - 4 - titleHeight // 总高度 - margin-top - title高度
+      const maxLines = Math.floor(availableHeight / lineHeight)
+      setSummaryLineClamp(Math.max(1, maxLines))
+    }
+  }, [item.title])
+
   return (
     <div
       className={[
@@ -82,27 +97,40 @@ export default function MockCard({ item, index, categories }: MockCardProps) {
       </div>
 
       {/* 下方内容区域：白色背景
-          - 移动端：始终 144px，按钮常显
-          - ≥sm：默认 104px，hover 变 144px
+          - 移动端：始终 146px，按钮常显
+          - ≥sm：默认 104px，hover 变 146px
       */}
       <div className='bg-white overflow-hidden'>
-        <div className='h-[144px] sm:h-[104px] sm:group-hover:h-[144px] transition-all duration-300 ease-out p-5 pt-4 relative'>
+        <div className='h-[146px] sm:h-[106px] sm:group-hover:h-[146px] transition-all duration-300 ease-out p-[20px] pb-[20px] relative'>
           <div className='h-full'>
-            <div className='mt-[4px] font-semibold text-[16px] leading-[24px] line-clamp-1'>{item.title}</div>
-            <div 
-              className='mt-[4px] text-[12px] leading-[18px] text-muted-foreground line-clamp-2 h-[36px] overflow-hidden flex-shrink-0'
-              dangerouslySetInnerHTML={{ __html: item.summary || '' }}
-            />
-            <div className='mt-3 flex-1 flex items-end'>
+            <div className='flex-1 h-[66px] flex flex-col min-h-0'>
+              <div 
+                ref={titleRef}
+                className='font-semibold text-[16px] leading-[24px] line-clamp-2 flex-shrink-0 break-all'
+              >
+                {item.title}
+              </div>
+              <div 
+                ref={summaryRef}
+                className='mt-[4px] text-[12px] leading-[18px] text-muted-foreground flex-1 min-h-0 overflow-hidden break-all'
+                style={{
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: summaryLineClamp,
+                }}
+                dangerouslySetInnerHTML={{ __html: item.summary || '' }}
+              />
+            </div>
+            <div className='mt-[12px] flex-1 flex items-end'>
               <button
-                className='h-7 w-full inline-flex items-center justify-center rounded-md bg-gradient-to-r from-[#4E02E4] to-[#C994F7] px-3 text-white text-sm shadow opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 transition-all duration-300 ease-out'
+                className='h-[28px] w-full inline-flex items-center justify-center rounded-md bg-gradient-to-r from-[#4E02E4] to-[#C994F7] px-[12px] text-white text-sm shadow opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 transition-all duration-300 ease-out'
                 onClick={() => {
                   navigate({
                     to: `/jobs/${item.id}`,
                   }).catch(() => {})
                 }}
               >
-                开始面试
+                查看详情
               </button>
             </div>
           </div>
