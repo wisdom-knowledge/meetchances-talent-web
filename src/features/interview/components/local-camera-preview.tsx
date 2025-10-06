@@ -12,6 +12,7 @@ import { motion } from 'framer-motion'
 import { useCameraStatusDetection } from '@/hooks/use-camera-status-detection'
 import { setAudioSinkId } from '@/lib/devices'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { reportAudioRecordingInfo } from '@/lib/apm'
 
 type DeviceStage = 'headphone' | 'mic' | 'camera'
 
@@ -330,6 +331,11 @@ export function LocalCameraPreview({
           audio: audioConstraints,
           video: false,
         })
+        reportAudioRecordingInfo({
+          msg: '麦克风权限设置成功',
+          isCancelled,
+          micStream: String(micStream),
+        })
         if (isCancelled) return
         setMicPermissionDenied(false)
         micStreamRef.current = micStream
@@ -339,6 +345,11 @@ export function LocalCameraPreview({
         const recorder = new MediaRecorder(micStream)
         micRecorderRef.current = recorder
         recorder.ondataavailable = (e) => {
+          reportAudioRecordingInfo({
+            msg: '麦克风录制数据',
+            size: e.data.size,
+            type: recorder.mimeType || 'audio/webm',
+          })
           if (e.data && e.data.size > 0) micChunksRef.current.push(e.data)
         }
         recorder.onstop = () => {
@@ -347,8 +358,15 @@ export function LocalCameraPreview({
             const url = URL.createObjectURL(blob)
             setPlaybackUrl(url)
             setMicMode('playback')
-          } catch {
-            // ignore
+            reportAudioRecordingInfo({
+              msg: '麦克风录制成功',
+              url
+            })
+          } catch (e) {
+            reportAudioRecordingInfo({
+              msg: '麦克风录制失败',
+              error: String(e),
+            })
           }
         }
         recorder.start()
@@ -360,11 +378,19 @@ export function LocalCameraPreview({
         micStopRecordTimerRef.current = window.setTimeout(() => {
           try {
             if (recorder.state !== 'inactive') recorder.stop()
-          } catch {
-            // ignore
+          } catch (e) {
+            reportAudioRecordingInfo({
+              msg: '麦克风状态问题',
+              error: String(e),
+            })
           }
         }, 5000)
-      } catch {
+        // throw new Error('test')
+      } catch (e) {
+        reportAudioRecordingInfo({
+          msg: '麦克风权限设置失败',
+          error: String(e),
+        })
         setMicPermissionDenied(true)
       }
     }
