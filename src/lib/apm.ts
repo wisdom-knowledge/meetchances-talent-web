@@ -471,3 +471,12 @@ export function reportFinishFeedbackLowScore(payload: FinishFeedbackLowScorePayl
     type: 'event',
   })
 }
+
+export function reportAudioRecordingInfo(info: Record<string, unknown>): void {
+  if (!apmClient) return
+  apmClient('sendEvent', {
+    name: 'audio_recording_info',
+    categories: { page: 'interview/prepare', ...info },
+    type: 'event',
+  })
+}
