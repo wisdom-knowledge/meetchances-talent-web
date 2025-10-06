@@ -34,7 +34,7 @@ export default function JobsDetailPage({ jobId }: JobsDetailPageProps) {
                 onBack={() => navigate({ to: '/mock-interview', search: { page: 1, pageSize: 9, q: '', category: "0" } })}
                 recommendName={''}
                 isTwoColumn={false}
-                backLabel='更多岗位'
+                backLabel='查看更多岗位'
                 applyButtonText='开始面试'
               />
             ) : (

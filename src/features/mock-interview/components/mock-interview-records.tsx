@@ -49,11 +49,28 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
     }
   }
   return (
-    <div className='h-[82px] flex items-center justify-between rounded-xl border transition-shadow border-[#4E02E40D] shadow-[0_0_4px_0_#00000040] hover:bg-[#F4EAFD] hover:border-[#4E02E4] hover:shadow-[0_0_12px_0_#4E02E433] px-4'>
+    <div className='h-[82px] flex items-center justify-between rounded-xl border transition-shadow border-[#4E02E40D] shadow-[0_0_4px_0_#00000010] hover:bg-[#F4EAFD] hover:border-[#4E02E4] hover:shadow-[0_0_12px_0_#4E02E423] px-4'>
+      <div className='shrink-0 w-12 h-12 rounded-[8px] bg-[rgba(78,2,228,0.2)] md:flex items-center justify-center mr-4 hidden'>
+        <span
+          className='h-6 w-6 bg-white drop-shadow-sm'
+          style={{
+            WebkitMaskImage: `url(${item.category_image})`,
+            maskImage: `url(${item.category_image})`,
+            WebkitMaskRepeat: 'no-repeat',
+            maskRepeat: 'no-repeat',
+            WebkitMaskPosition: 'center',
+            maskPosition: 'center',
+            WebkitMaskSize: 'contain',
+            maskSize: 'contain',
+          }}
+        />
+      </div>
       <div className='min-w-0 pr-4 w-full'>
         <div className='flex items-center gap-4 min-w-0'>
           <div className='font-medium truncate text-base'>{item.job_title}</div>
-          <span className='text-xs whitespace-nowrap text-[#4E02E4]'>{item.interview_duration_minutes}分钟</span>
+          <span className='inline-flex items-center justify-center px-2 py-1 md:px-3 md:py-1.5 text-xs font-medium text-[#4E02E4] bg-[#4E02E40D] rounded-full whitespace-nowrap'>
+            {item.interview_duration_minutes}分钟
+          </span>
         </div>
         <div className='text-xs text-muted-foreground mt-2 truncate'>
           {new Date(item.applied_at).toLocaleString()}
@@ -67,8 +84,8 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
           onClick={() => { if (!reportReady) return; onReport() }}
           className={
             reportReady
-              ? 'text-xs text-white bg-[linear-gradient(89.99deg,_#4E02E4_9.53%,_#C994F7_99.99%)] hover:opacity-90 w-[130px] h-[28px]'
-              : 'text-xs text-[#4E02E4] bg-[#4E02E41A] w-[130px] h-[28px] hover:bg-[#4E02E41A] hover:text-[#4E02E4] hover:opacity-100 focus-visible:ring-0 focus-visible:outline-none active:opacity-100 cursor-default'
+              ? 'text-xs text-white bg-[linear-gradient(89.99deg,_#4E02E4_9.53%,_#C994F7_99.99%)] hover:opacity-90 h-[28px]'
+              : 'text-xs text-[#4E02E4] bg-[#4E02E41A] h-[28px] hover:bg-[#4E02E41A] hover:text-[#4E02E4] hover:opacity-100 focus-visible:ring-0 focus-visible:outline-none active:opacity-100 cursor-default'
           }
         >
           {reportReady ? '查看面试报告' : '面试报告生成中'}
@@ -100,8 +117,8 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
           onClick={() => { if (!reportReady) return; onReport() }}
           className={
             reportReady
-              ? 'text-xs text-white bg-[linear-gradient(89.99deg,_#4E02E4_9.53%,_#C994F7_99.99%)] hover:opacity-90 w-[130px] h-[28px]'
-              : 'text-xs text-[#4E02E4] bg-[#4E02E41A] w-[130px] h-[28px] hover:bg-[#4E02E41A] hover:text-[#4E02E4] hover:opacity-100 focus-visible:ring-0 focus-visible:outline-none active:opacity-100 cursor-default'
+              ? 'text-xs text-white bg-[linear-gradient(89.99deg,_#4E02E4_9.53%,_#C994F7_99.99%)] hover:opacity-90 h-[28px]'
+              : 'text-xs text-[#4E02E4] bg-[#4E02E41A] h-[28px] hover:bg-[#4E02E41A] hover:text-[#4E02E4] hover:opacity-100 focus-visible:ring-0 focus-visible:outline-none active:opacity-100 cursor-default'
           }
         >
           {reportReady ? '查看面试报告' : '面试报告生成中'}

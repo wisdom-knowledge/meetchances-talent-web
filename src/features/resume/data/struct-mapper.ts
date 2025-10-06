@@ -83,6 +83,8 @@ export function mapStructInfoToResumeFormValues(structInfo?: StructInfo | null):
     email: basic?.email ?? '',
     gender: (basic?.gender as ResumeFormValues['gender']) ?? undefined,
     city: basic?.city ?? undefined,
+    origin: basic?.origin ?? undefined,
+    expectedSalary: basic?.expected_salary ?? undefined,
     // 自我评价
     selfEvaluation: sa?.summary ?? undefined,
     workExperience: workExperience.length ? workExperience : undefined,
@@ -185,6 +187,8 @@ export function mapResumeFormValuesToStructInfo(values: ResumeFormValues): Struc
       email: values.email ?? null,
       gender: (values.gender as StructInfo['basic_info'] extends infer T ? T extends { gender?: unknown } ? T['gender'] : string : string) ?? null,
       city: values.city ?? null,
+      origin: values.origin ?? null,
+      expected_salary: values.expectedSalary ?? null,
     },
     experience: {
       work_experience: work,

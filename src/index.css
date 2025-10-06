@@ -360,3 +360,85 @@
     background-color: oklch(0.929 0.013 255.508 / 0.3); /* Dark mode primary with 30% opacity */
   }
 }
+
+/* ====================================
+   移动端适配样式
+   ==================================== */
+
+/* 禁止字体大小自动调整（不受系统设置影响） */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* 移动端优化：禁用点击高亮 */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* 移动端优化：防止长按选中文本（仅针对特定元素） */
+button,
+a,
+[role="button"] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* 移动端优化：input 和 textarea 保留文本选择功能 */
+input,
+textarea {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+
+/* 移动端优化：禁用双击缩放 */
+a,
+button,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+/* 移动端优化：优化滚动性能 */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* iOS Safari 底部安全区域适配 */
+@supports (padding: max(0px)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* 移动端优化：防止橡皮筋效果（可选） */
+html,
+body {
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
+}
+
+/* 移动端优化：确保 100vh 在移动端正确显示 */
+@supports (-webkit-touch-callout: none) {
+  .h-screen,
+  .min-h-screen,
+  .max-h-screen {
+    height: -webkit-fill-available;
+    min-height: -webkit-fill-available;
+  }
+}

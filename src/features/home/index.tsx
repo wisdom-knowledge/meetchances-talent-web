@@ -75,8 +75,8 @@ export default function HomeViewPage() {
       </Header>
 
       <Main fixed>
-        <div className='space-y-0.5'>
-          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
+        <div className='md:flex md:items-end'>
+          <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>
             欢迎回来{displayName ? `，${displayName}` : ''}
           </h1>
           <p className='text-muted-foreground'>查看你的任务与申请进度</p>
@@ -84,50 +84,52 @@ export default function HomeViewPage() {
         <Separator className='my-4 lg:my-6' />
 
         {/* 重要任务 */}
-        <div className='mb-6'>
-          <div className='text-foreground mb-3 text-[15px] font-medium'>
-            重要任务（{loadingTasks ? '…' : visibleTasks.length}）
-          </div>
-          {loadingTasks ? (
-            <Skeleton className='h-[104px] w-[300px] rounded-md' />
-          ) : (
-            <div className='space-y-3'>
-              {visibleTasks.map((task) => (
-                <Card
-                  key={task.id}
-                  className='relative w-[300px] border p-4 shadow-sm'
-                >
-                  {task.closable !== false && (
-                    <button
-                      aria-label='close'
-                      className='text-muted-foreground hover:bg-accent absolute top-2 right-2 rounded p-1'
-                      onClick={() =>
-                        setDismissed((s) => ({ ...s, [task.id]: true }))
-                      }
-                    >
-                      <IconX className='h-4 w-4' />
-                    </button>
-                  )}
-                  <div className='min-w-0 flex-1'>
-                    <div className='mb-1 font-medium'>{task.title}</div>
-                    {task.description && (
-                      <div className='text-muted-foreground mb-3 text-sm'>
-                        {task.description}
-                      </div>
-                    )}
-                    <Button
-                      size='sm'
-                      onClick={task.handleClick}
-                      className='float-right'
-                    >
-                      {task.actionText ?? '去查看'}
-                    </Button>
-                  </div>
-                </Card>
-              ))}
+        {(loadingTasks || visibleTasks.length > 0) && (
+          <div className='mb-6'>
+            <div className='text-foreground mb-3 text-[15px] font-medium'>
+              重要任务（{loadingTasks ? '…' : visibleTasks.length}）
             </div>
-          )}
-        </div>
+            {loadingTasks ? (
+              <Skeleton className='h-[104px] w-[300px] rounded-md' />
+            ) : (
+              <div className='space-y-3'>
+                {visibleTasks.map((task) => (
+                  <Card
+                    key={task.id}
+                    className='relative w-[300px] border p-4 shadow-sm'
+                  >
+                    {task.closable !== false && (
+                      <button
+                        aria-label='close'
+                        className='text-muted-foreground hover:bg-accent absolute top-2 right-2 rounded p-1'
+                        onClick={() =>
+                          setDismissed((s) => ({ ...s, [task.id]: true }))
+                        }
+                      >
+                        <IconX className='h-4 w-4' />
+                      </button>
+                    )}
+                    <div className='min-w-0 flex-1'>
+                      <div className='mb-1 font-medium'>{task.title}</div>
+                      {task.description && (
+                        <div className='text-muted-foreground mb-3 text-sm'>
+                          {task.description}
+                        </div>
+                      )}
+                      <Button
+                        size='sm'
+                        onClick={task.handleClick}
+                        className='float-right'
+                      >
+                        {task.actionText ?? '去查看'}
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 标签 Tab：我的申请 */}
         <Tabs defaultValue='applications'>
@@ -146,7 +148,14 @@ export default function HomeViewPage() {
           </div>
 
           <TabsContent value='applications'>
-            <ScrollArea className='h-[calc(100vh-30rem)] pr-1'>
+            <ScrollArea 
+              className={cn(
+                'pr-1',
+                loadingTasks || visibleTasks.length > 0
+                  ? 'h-[calc(100vh-28rem)]'
+                  : 'h-[calc(100vh-17rem)]'
+              )}
+            >
               <div className='space-y-3 px-1 py-2  no-scrollbar'>
                 {loadingApps && <Skeleton className='h-20 w-full rounded-md' />}
                 {!loadingApps && applications.length === 0 && (
@@ -272,7 +281,14 @@ export default function HomeViewPage() {
           </TabsContent>
 
           <TabsContent value='offer'>
-            <ScrollArea className='h-[calc(100vh-30rem)] pr-1'>
+            <ScrollArea 
+              className={cn(
+                'pr-1',
+                loadingTasks || visibleTasks.length > 0
+                  ? 'h-[calc(100vh-28rem)]'
+                  : 'h-[calc(100vh-20rem)]'
+              )}
+            >
               <div className='space-y-3'>
                 {loadingOffers && <Skeleton className='h-20 w-full rounded-md' />}
                 {!loadingOffers && offers.length === 0 && (

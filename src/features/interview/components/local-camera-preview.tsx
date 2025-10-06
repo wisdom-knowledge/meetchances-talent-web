@@ -11,6 +11,7 @@ import { MicVisualizer } from '@/features/interview/components/mic-visualizer'
 import { motion } from 'framer-motion'
 import { useCameraStatusDetection } from '@/hooks/use-camera-status-detection'
 import { setAudioSinkId } from '@/lib/devices'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 type DeviceStage = 'headphone' | 'mic' | 'camera'
 
@@ -45,6 +46,7 @@ export function LocalCameraPreview({
   disableCameraConfirm = true,
   ...props
 }: LocalCameraPreviewProps) {
+  const isMobile = useIsMobile()
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
@@ -543,12 +545,12 @@ export function LocalCameraPreview({
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
-                className='absolute inset-x-0 bottom-3 flex items-center justify-center gap-3 px-4'
+                className='absolute inset-x-0 bottom-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 px-4'
               >
-                <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio || !speakerDeviceId} className='disabled:backdrop-blur-[20px]'>
+                <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio || !speakerDeviceId} className='disabled:backdrop-blur-[20px] w-full sm:w-auto text-xs sm:text-sm'>
                   播放测试音频
                 </Button>
-                <Button size='sm' variant='secondary' onClick={handleHeadphoneConfirmClick} disabled={disableHeadphoneActions || !speakerDeviceId}>
+                <Button size='sm' variant='secondary' onClick={handleHeadphoneConfirmClick} disabled={disableHeadphoneActions || !speakerDeviceId} className='w-full sm:w-auto text-xs sm:text-sm'>
                   我能听到
                 </Button>
               </motion.div>
@@ -561,13 +563,14 @@ export function LocalCameraPreview({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.22 }}
-              className='absolute inset-x-0 bottom-0 h-[120px] backdrop-blur-md bg-background/40 border-border'
+              className='absolute inset-x-0 bottom-0 h-[120px] backdrop-blur-md border-border'
+              style={{ backgroundColor: 'rgba(78, 2, 228, 0.2)' }}
             >
               <div className='h-full w-full px-6 py-4 flex flex-col items-center justify-center gap-3'>
                 {/* Title */}
                 <div className='text-base text-white'>
                   {micPermissionDenied
-                    ? '请选择麦克风设备'
+                    ? isMobile ? '请授权麦克风权限' : '请选择麦克风设备'
                     : micMode === 'recording'
                       ? '请对麦克风说：我准备好了'
                       : '请确认音质正常'}
@@ -589,12 +592,12 @@ export function LocalCameraPreview({
                     </div>
                   </div>
                 ) : (
-                  <div className='w-full flex items-center justify-center gap-2'>
-                    <div className='flex items-center gap-3'>
+                  <div className='w-full flex flex-col sm:flex-row items-center justify-center gap-2'>
+                    <div className='flex items-center gap-2 sm:gap-3 w-full sm:w-auto'>
                       <Button
                         size='sm'
                         variant='ghost'
-                        className='h-8 w-8 p-0 hover:bg-white/20'
+                        className='h-8 w-8 p-0 hover:bg-white/20 shrink-0'
                         onClick={handlePlaybackToggle}
                       >
                         {isPlaybackPlaying ? (
@@ -603,12 +606,14 @@ export function LocalCameraPreview({
                           <IconPlayerPlayFilled className='h-5 w-5 text-white' />
                         )}
                       </Button>
-                      <div className='relative h-2 w-[320px] rounded-full bg-primary/20 overflow-hidden'>
+                      <div className='relative h-2 w-full sm:w-[280px] md:w-[320px] rounded-full bg-primary/20 overflow-hidden'>
                         <div className={cn('absolute left-0 top-0 h-2 rounded-full bg-primary', progressWidthClass)} />
                       </div>
                     </div>
-                    <Button size='sm' variant='secondary' onClick={handleRetake}>重录</Button>
-                    <Button size='sm' variant='default' onClick={handleMicConfirmed}>确认音质正常</Button>
+                    <div className='flex items-center gap-2 w-full sm:w-auto'>
+                      <Button size='sm' variant='secondary' onClick={handleRetake} className='flex-1 sm:flex-none text-xs sm:text-sm'>重录</Button>
+                      <Button size='sm' variant='default' onClick={handleMicConfirmed} className='flex-1 sm:flex-none text-xs sm:text-sm'>确认音质正常</Button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -621,9 +626,9 @@ export function LocalCameraPreview({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
-              className='absolute inset-x-0 bottom-3 flex items-center justify-center'
+              className='absolute inset-x-0 bottom-3 flex items-center justify-center px-4'
             >
-              <Button size='sm' variant='default' onClick={onCameraConfirmed} disabled={disableCameraConfirm || hasIssue}>确认摄像头状态正常</Button>
+              <Button size='sm' variant='default' onClick={onCameraConfirmed} disabled={disableCameraConfirm || hasIssue} className='w-full sm:w-auto text-xs sm:text-sm'>确认摄像头状态正常</Button>
             </motion.div>
           ) : null}
         </div>

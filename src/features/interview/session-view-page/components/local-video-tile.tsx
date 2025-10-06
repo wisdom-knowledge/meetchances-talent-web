@@ -30,7 +30,7 @@ export default function LocalVideoTile({ stream, recordingStatus, className, ...
       userId!,
       'local-video-player',
       false,
-      VideoRenderMode.RENDER_MODE_FILL
+      VideoRenderMode.RENDER_MODE_FIT
     )
   }
 

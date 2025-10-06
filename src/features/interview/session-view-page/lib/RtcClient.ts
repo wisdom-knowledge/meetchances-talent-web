@@ -321,14 +321,14 @@ export class RTCClient {
    * @param config 
    */
   setAudioCaptureConfig = async (config: TrackCaptureConfig = {
-    noiseSuppression: true,
-    echoCancellation: true,
-    autoGainControl: true,
+    noiseSuppression: false,
+    echoCancellation: false,
+    autoGainControl: false,
   }) => {
     await this.engine.setAudioCaptureConfig({
-      noiseSuppression: config.noiseSuppression ?? true,
-      echoCancellation: config.echoCancellation ?? true,
-      autoGainControl: config.autoGainControl ?? true,
+      noiseSuppression: config.noiseSuppression ?? false,
+      echoCancellation: config.echoCancellation ?? false,
+      autoGainControl: config.autoGainControl ?? false,
     });
   };
 

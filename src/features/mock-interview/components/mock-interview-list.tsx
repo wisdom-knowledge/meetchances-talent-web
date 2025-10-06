@@ -194,7 +194,7 @@ export default function MockInterviewList() {
                   setPage(1)
                   setCategory(id)
                 }}
-                className='group inline-flex max-w-[120px] min-w-[88px] shrink-0 flex-col items-center gap-2 text-sm'
+                className='group inline-flex max-w-[120px] min-w-[76px] shrink-0 flex-col items-center gap-2 text-sm'
                 aria-pressed={active ? 'true' : 'false'}
               >
                 <span
@@ -255,12 +255,12 @@ export default function MockInterviewList() {
         </button>
       </div>
 
-      {/* 列表（自适应高度 + 纵向滚动） */}
-      <div className='flex min-h-0 flex-1'>
+      {/* 列表（自适应高度 + 滚动） */}
+      <div className='flex flex-1 flex-col min-h-0'>
         {items.length === 0 ? (
           <MockEmptyState />
         ) : (
-          <div className='grid flex-1 grid-cols-1 gap-5 overflow-y-auto pr-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pb-2'>
+          <div className='grid grid-cols-1 gap-x-5 gap-y-7 overflow-y-auto pr-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pb-2'>
             {items.map((it: BackendMockJobItem, idx: number) => (
               <MockCard
                 key={it.id}
