@@ -3,19 +3,25 @@ import { toast } from 'sonner'
 import { IconArrowRight } from '@tabler/icons-react'
 
 interface AnnotateTestPendingProps {
-  onTaskComplete: () => void
+  onTaskSubmit: () => void
+  nodeData?: Record<string, unknown>
 }
 
 /**
  * 标注测试待完成视图
  * 引导用户前往 Xpert Studio 完成标注测试任务
  */
-export function AnnotateTestPending({ onTaskComplete }: AnnotateTestPendingProps) {
+export function AnnotateTestInProgress({ nodeData, onTaskSubmit }: AnnotateTestPendingProps) {
+  const nodeConfig = nodeData?.node_config as { project_id: number, batch_id: number }
+  const projectId = nodeConfig?.project_id
+  const batchId = nodeConfig?.batch_id
+  // https://studio-boe.xpertiise.com/projects/440/batch/960/tasklist
+  const xpertStudioUrl = `https://studio-boe.xpertiise.com/projects/${projectId}/batch/${batchId}/tasklist`
   const handleSubmit = () => {
     // TODO: 实现提交审核逻辑
     toast.success('已提交审核')
     // TODO：调用接口查询试标任务状态的接口，如果任务状态为已完成，则调用 onTaskComplete 方法
-    onTaskComplete()
+    onTaskSubmit()
   }
 
   return (
@@ -49,7 +55,7 @@ export function AnnotateTestPending({ onTaskComplete }: AnnotateTestPendingProps
           <p className='text-lg text-foreground leading-relaxed'>
             请点击链接前往{' '}
             <a
-              href='https://xpertstudio.com'
+              href={xpertStudioUrl}
               target='_blank'
               rel='noopener noreferrer'
               className='text-primary underline font-medium'

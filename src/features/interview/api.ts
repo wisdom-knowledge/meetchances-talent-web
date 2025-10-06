@@ -149,6 +149,7 @@ export async function confirmResume(jobApplyId: number | string): Promise<{ succ
 export enum JobApplyNodeStatus {
   NotStarted = 0, // 待开始
   InProgress = 10, // 已开始未完成
+  AnnotateCompleted = 15, // 待标注端审核
   CompletedPendingReview = 20, // 已完成待审核
   Approved = 30, // 通过
   Rejected = 40, // 不通过
@@ -158,6 +159,7 @@ export enum JobApplyNodeStatus {
 export interface JobApplyProgressNode {
   node_name: string
   node_status: JobApplyNodeStatus
+  id: number
 }
 
 // (mock constants removed)
@@ -174,14 +176,14 @@ export interface JobApplyWorkflowNode {
   node_key?: string
   node_name?: string
   status?: number | string
-  id?: number | string
+  id: number
 }
 
 export interface JobApplyWorkflowResponse {
   job_apply_id?: number | string
   workflow_instance_id?: number | string
   workflow_status?: string
-  current_node_id?: number | string
+  current_node_id?: number
   nodes?: JobApplyWorkflowNode[]
 }
 
@@ -255,8 +257,13 @@ export async function postNodeAction(payload: NodeActionPayload): Promise<{ succ
   }
 }
 
+export interface JobApplyProgressResult {
+  current_node_id?: number | string
+  nodes: JobApplyProgressNode[]
+}
+
 export function useJobApplyProgress(jobApplyId: string | number | null, enabled = true) {
-  return useQuery<JobApplyWorkflowResponse, unknown, JobApplyProgressNode[]>({
+  return useQuery<JobApplyWorkflowResponse, unknown, JobApplyProgressResult>({
     queryKey: ['job-apply-workflow', jobApplyId],
     queryFn: () => fetchJobApplyWorkflow(jobApplyId as string | number),
     enabled: Boolean(jobApplyId) && enabled,
@@ -271,7 +278,7 @@ export function useJobApplyProgress(jobApplyId: string | number | null, enabled 
         const lowerName = name.toLowerCase()
         if (type === 'INTERVIEW' || key === 'Interview' || lowerName.includes('interview')) return 'AI 面试'
         if (type === 'RESUME_CHECK' || key === 'ResumeCheck' || lowerName.includes('resume')) return '简历分析'
-        if (type === 'TRIAL_TASK' || key.toLowerCase().includes('task') || lowerName.includes('task')) return '测试任务'
+        if (type === 'ANNOTATE_TEST' || key === 'AnnotateTest' || lowerName.includes('annotate')) return '测试任务'
         if (type === 'EDUCATION_VERIFY' || lowerName.includes('education')) return '学历验证'
         if (type === 'SURVEY' || key === 'Survey' || lowerName.includes('survey')) return '问卷收集'
         return name || key || '—'
@@ -284,6 +291,8 @@ export function useJobApplyProgress(jobApplyId: string | number | null, enabled 
             return JobApplyNodeStatus.NotStarted
           case 10:
             return JobApplyNodeStatus.InProgress
+          case 15:
+            return JobApplyNodeStatus.AnnotateCompleted
           case 20:
             return JobApplyNodeStatus.CompletedPendingReview
           case 30:
@@ -296,7 +305,8 @@ export function useJobApplyProgress(jobApplyId: string | number | null, enabled 
             return JobApplyNodeStatus.NotStarted
         }
       }
-      return backendNodes.map((n) => ({ ...n, node_name: normalizeName(n), node_status: normalizeStatus(n) }))
+      const nodes = backendNodes.map((n) => ({ ...n, node_name: normalizeName(n), node_status: normalizeStatus(n) }))
+      return { current_node_id: obj?.current_node_id, nodes }
     },
   })
 }

@@ -37,9 +37,9 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
 import { userEvent, reportSessionPageRefresh } from '@/lib/apm'
 import { useJoin } from '@/features/interview/session-view-page/lib/useCommon'
+import { AnnotateTestInProgress as ViewModeAnnotateTestInProgress } from '@/features/interview/components/view-mode-annotate-test-in-progress'
 import QuestionnaireCollection from './components/questionnaire-collection'
 import PublisherSection from '@/features/jobs/components/publisher-section'
-
 
 interface InterviewPreparePageProps {
   jobId?: string | number
@@ -53,9 +53,11 @@ enum ViewMode {
   Job = 'job',
   InterviewPrepare = 'interview-prepare',
   InterviewPendingReview = 'interview-pending-review',
-  TrailTask = 'trail-task',
   EducationEval = 'education-eval',
   AllApproved = 'all-approved',
+  AnnotateTestInProgress = 'annotate-test-in-progress',
+  AnnotateTestReview = 'annotate-test-review',
+  AnnotateTestRejected = 'annotate-test-rejected',
   Rejected = 'rejected',
   Questionnaire = 'questionnaire',
 }
@@ -301,14 +303,14 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const user = useAuthStore((s) => s.auth.user)
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
-  const { data: progressNodes, isLoading: isProgressLoading, refetch: refetchProgress } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
+  const { data: progress, isLoading: isProgressLoading, refetch: refetchProgress } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
   const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
   const interviewNodeId = useMemo(() => getInterviewNodeId(workflow), [workflow])
   const interviewNodeStatus = useMemo(() => {
-    const nodes = progressNodes ?? []
+    const nodes = progress?.nodes ?? []
     const ai = nodes.find((n) => n.node_name.includes('AI 面试'))
     return ai?.node_status
-  }, [progressNodes])
+  }, [progress])
 
   const { data: job, isLoading } = useJobDetailQuery(jobId ?? null, Boolean(jobId))
 
@@ -378,7 +380,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     if (isMock) {
       setViewMode(ViewMode.InterviewPrepare)
     }
-  }, [viewMode, jobApplyId, workflow, queryClient, refetchProgress])
+  }, [viewMode, jobApplyId, workflow, queryClient, refetchProgress, isMock])
 
   const handleConfirmResumeClick = useCallback(async () => {
     if (uploadingResume) return
@@ -450,39 +452,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     }
   }, [releaseAllMediaStreams, viewMode, isFromSessionRefresh])
 
-  // const onStartInterviewClick = useCallback(async () => {
-  //   if (!jobId || !interviewNodeId || connecting) return
-  //   setConnecting(true)
-
-  //   try {
-  //     const details = await fetchInterviewConnectionDetails(jobId)
-  //     if (!details?.interviewId) {
-  //       toast.error('创建面试房间失败，请稍后再试')
-  //       setConnecting(false)
-  //       return
-  //     }
-  //     saveInterviewConnectionToStorage(details)
-  //     userEvent('interview_started', '点击开始面试(确认设备，下一步)', {
-  //       job_id: job?.id,
-  //       isMock: isMock,
-  //       job_apply_id: jobApplyId ?? undefined,
-  //       interview_id: details.interviewId ?? undefined,
-  //     })
-  //     navigate({
-  //       to: '/interview/session',
-  //       search: {
-  //         interview_id: details.interviewId,
-  //         job_id: jobId ?? undefined,
-  //         job_apply_id: jobApplyId ?? undefined,
-  //         interview_node_id: interviewNodeId ?? undefined,
-  //       },
-  //     })
-  //   } catch (_e) {
-  //     toast.error('网络不稳定，请重试')
-  //     setConnecting(false)
-  //   }
-  // }, [jobId, interviewNodeId, connecting, navigate, jobApplyId, isMock])
-
   // 旧逻辑：页面初始化即加载 RTC 连接信息（已废弃，改为点击时加载）
 
   // 需求调整：不在初始化时加载 RTC 连接信息，改为点击时再加载
@@ -519,46 +488,49 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     }
   }
 
-  function nodeNameToViewMode(name: string): ViewMode {
+  function currentNodeNameToViewMode(name: string, nodeStatus?: JobApplyNodeStatus | string): ViewMode {
     if (name.includes('简历分析')) return ViewMode.Job
-    if (name.toLowerCase().includes('ai') || name.includes('AI 面试') || name.includes('Al面试')) return ViewMode.InterviewPrepare
-    if (name.includes('测试任务') || name.includes('第一轮测试任务') || name.includes('第二轮测试任务')) return ViewMode.TrailTask
+    if (name.toLowerCase().includes('ai') || name.includes('AI 面试') || name.includes('Al面试')) {
+      if (nodeStatus === JobApplyNodeStatus.InProgress) {
+        // AI 面试准备页面
+        return ViewMode.InterviewPrepare
+      } else if (nodeStatus === JobApplyNodeStatus.CompletedPendingReview) {
+        // AI 面试审核页面
+        return ViewMode.InterviewPendingReview
+      } else if (nodeStatus === JobApplyNodeStatus.Rejected) {
+        // AI 面试不通过页面
+        return ViewMode.Rejected
+      }
+      return ViewMode.InterviewPrepare
+    }
+    if (name.includes('测试任务')) {
+      if (nodeStatus === JobApplyNodeStatus.InProgress) {
+        // 测试任务进行中页面
+        return ViewMode.AnnotateTestInProgress
+      } else if (Number(nodeStatus) === JobApplyNodeStatus.AnnotateCompleted || Number(nodeStatus) === JobApplyNodeStatus.CompletedPendingReview) {
+        // 完成标注端标注，待Studio端审核
+        return ViewMode.AnnotateTestReview
+      } else if (Number(nodeStatus) === JobApplyNodeStatus.Rejected) {
+        // 测试任务不通过页面
+        return ViewMode.AnnotateTestRejected
+      }
+      return ViewMode.AnnotateTestInProgress
+    }
     if (name.includes('学历验证')) return ViewMode.EducationEval
     if (name.includes('问卷收集')) return ViewMode.Questionnaire
     return ViewMode.Job
   }
 
   function resolveViewModeFromProgress(): ViewMode | null {
-    const nodes = progressNodes ?? []
+    const nodes = progress?.nodes ?? []
+    const currentNodeId = progress?.current_node_id
+    const currentNode = nodes.find((n) => n.id === currentNodeId)
     if (nodes.length === 0) return null
     // 全部节点均为已通过（30）→ 进入最终完成状态
     const allApproved = nodes.every((n) => n.node_status === JobApplyNodeStatus.Approved)
     if (allApproved) return ViewMode.AllApproved
-    // 特殊规则：AI 面试 且状态=20（已完成待审核）
-    const aiPending = nodes.find((n) => n.node_name.includes('AI 面试') && [JobApplyNodeStatus.CompletedPendingReview].includes(n.node_status) )
-    if (aiPending) return ViewMode.InterviewPendingReview
-    // AI 面试 且状态=40（不通过）
-    const aiRejected = nodes.find((n) => n.node_name.includes('AI 面试') && n.node_status === JobApplyNodeStatus.Rejected)
-    if (aiRejected) return ViewMode.Rejected
-    // 优先进行中，其次未开始，否则取最后一个已完成相关节点
-    const inProgress = nodes.find((n) => n.node_status === JobApplyNodeStatus.InProgress)
-    if (inProgress) return nodeNameToViewMode(inProgress.node_name)
-    const isCompletedPendingReview = nodes.find((n) => n.node_status === JobApplyNodeStatus.CompletedPendingReview)
-    if (isCompletedPendingReview) return nodeNameToViewMode(isCompletedPendingReview.node_name)
-    const isRejected = nodes.find((n) => n.node_status === JobApplyNodeStatus.Rejected)
-    if (isRejected) return nodeNameToViewMode(isRejected.node_name)
-    const notStarted = nodes.find((n) => n.node_status === JobApplyNodeStatus.NotStarted)
-    if (notStarted) return nodeNameToViewMode(notStarted.node_name)
-    const completedIdx = nodes
-      .map((n, idx) => ({ n, idx }))
-      .filter(({ n }) => (
-        n.node_status === JobApplyNodeStatus.Approved ||
-        n.node_status === JobApplyNodeStatus.Rejected
-      ))
-      .map(({ idx }) => idx)
-      .pop()
-    if (completedIdx !== undefined) return nodeNameToViewMode(nodes[completedIdx].node_name)
-    return nodeNameToViewMode(nodes[0].node_name)
+
+    return currentNodeNameToViewMode(currentNode?.node_name ?? '', currentNode?.node_status)
   }
 
   // (removed) Audio output check – not used
@@ -593,7 +565,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     }
 
     // 2. 设置当前激活节点
-    const activeNode = progressNodes?.find(
+    const activeNode = (progress?.nodes ?? []).find(
       (node) => node.node_status !== JobApplyNodeStatus.Approved
     )
     if (activeNode) {
@@ -619,7 +591,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progressNodes, isMock])
+  }, [progress, isMock])
 
   const handleApplyJob = useCallback(async () => {
     if (!jobId || isSkipConfirm) return
@@ -857,26 +829,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           </div>
         )}
 
-        {/* ViewMode.TrailTask
-            测试任务阶段（第一/第二轮）：
-            - 占位区，后续将接入具体任务说明、提交入口与状态反馈
-        */}
-        {viewMode === ViewMode.TrailTask && (
-          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
-            <div className='lg:col-span-7 space-y-6 pl-3'>
-              <div className='text-2xl font-bold mb-2 leading-tight truncate'>测试任务</div>
-              <p className='text-muted-foreground'>测试任务的具体指引将在此展示。</p>
-            </div>
-            <div className='lg:col-span-5 p-6 sticky flex flex-col justify-start'>
-              <div className='my-36'>
-                <Button className='w-full' disabled>
-                  功能即将上线
-                </Button>
-                <p className='text-xs text-muted-foreground mt-4'>请稍后再试，或返回查看职位详情。</p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* ViewMode.EducationEval
             学历验证阶段：
@@ -894,6 +846,53 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                   功能即将上线
                 </Button>
                 <p className='text-xs text-muted-foreground mt-4'>请稍后再试，或返回查看职位详情。</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ViewMode.AnnotateTestInProgress
+            标注测试阶段：
+            - 引导用户前往 Xpert Studio 完成标注测试任务
+        */}
+        {viewMode === ViewMode.AnnotateTestInProgress && (
+          <ViewModeAnnotateTestInProgress
+            nodeData={currentNodeData ?? undefined}
+            onTaskSubmit={async () => {
+              if (currentNodeData && currentNodeData.id) {
+                const nodeId = currentNodeData.id as number
+                await postNodeAction({ node_id: nodeId, trigger: NodeActionTrigger.Submit, result_data: {} })
+                await refetchProgress()
+              }
+            }}
+          />
+        )} 
+
+        {/* ViewMode.AnnotateTestReview
+            标注测试通过阶段：
+            - 展示标注测试通过提示文案，居中显示
+        */}
+        {viewMode === ViewMode.AnnotateTestReview && (
+          <div className='flex-1 flex items-center justify-center min-h-[60vh]'>
+            <div className='flex flex-col items-center'>
+              <img src="https://dnu-cdn.xpertiise.com/design-assets/logo-and-text-no-padding.svg" alt='' className='mb-4 h-[50px]' />
+              <div className='text-center whitespace-pre-line text-xl font-semibold leading-relaxed text-foreground'>
+                {`已收到你提交的信息,请等待管理员审核`}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ViewMode.AnnotateTestRejected
+            标注测试不通过阶段：
+            - 展示拒绝提示文案，居中显示
+        */}
+        {viewMode === ViewMode.AnnotateTestRejected && (
+          <div className='flex-1 flex items-center justify-center min-h-[60vh]'>
+            <div className='flex flex-col items-center'>
+              <img src="https://dnu-cdn.xpertiise.com/design-assets/logo-and-text-no-padding.svg" alt='' className='mb-4 h-[50px]' />
+              <div className='text-center whitespace-pre-line text-xl font-semibold leading-relaxed text-foreground'>
+                {`感谢你对本岗位的关注。此次评估未能进入下一步流程,可随时前往职位列表查看当前在招职位,期待未来有机会合作 `}
               </div>
             </div>
           </div>
