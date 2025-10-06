@@ -15,8 +15,9 @@ export function AnnotateTestInProgress({ nodeData, onTaskSubmit }: AnnotateTestP
   const nodeConfig = nodeData?.node_config as { project_id: number, batch_id: number }
   const projectId = nodeConfig?.project_id
   const batchId = nodeConfig?.batch_id
+  const domain = import.meta.env.VITE_XPERT_STUDIO_DOMAIN
   // https://studio-boe.xpertiise.com/projects/440/batch/960/tasklist
-  const xpertStudioUrl = `https://studio-boe.xpertiise.com/projects/${projectId}/batch/${batchId}/tasklist`
+  const xpertStudioUrl = `${domain}/projects/${projectId}/batch/${batchId}/tasklist`
   const handleSubmit = () => {
     // TODO: 实现提交审核逻辑
     toast.success('已提交审核')
