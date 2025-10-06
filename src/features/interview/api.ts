@@ -123,15 +123,45 @@ export interface SupportDemandPayload {
   detail: string
   need_contact: boolean
   phone_number?: string
+  images?: string[]
+}
+
+export interface UploadFileResponse {
+  status_code: number
+  status_msg: string
+  data: {
+    file_key: string
+    file_name: string
+    file_size: number
+    file_url: string
+  }
+}
+
+export async function uploadFile(file: File): Promise<UploadFileResponse> {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  const response = await api.post('/upload/file', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+  
+  // API 拦截器在 status_code === 0 时返回的是 data 部分
+  // 所以 response 直接就是文件数据，不需要再访问 .data
+  const fileData = response as unknown as UploadFileResponse['data']
+  
+  // 构造完整的响应格式以保持接口一致性
+  return {
+    status_code: 0,
+    status_msg: 'File uploaded successfully',
+    data: fileData
+  }
 }
 
 export async function submitInterviewSupportDemand(payload: SupportDemandPayload): Promise<{ success: boolean }> {
-  try {
-    await api.post('/interview/page/demand', payload)
-    return { success: true }
-  } catch (_e) {
-    return { success: false }
-  }
+  await api.post('/interview/page/demand', payload)
+  return { success: true }
 }
 
 // 简历确认：POST /api/v1/talent/resume/confirm
