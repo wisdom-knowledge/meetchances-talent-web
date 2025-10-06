@@ -103,7 +103,7 @@ export default function InterviewSessionViewPage() {
                 <DialogTitle>确认要放弃面试吗？</DialogTitle>
                 <DialogDescription>放弃面试将没有面试结果，若需要请重新面试</DialogDescription>
               </DialogHeader>
-              <DialogFooter className='gap-2'>
+              <DialogFooter className='!flex-row gap-2'>
                 <Button onClick={() => setConfirmEndOpen(false)}>继续面试</Button>
                 <Button
                   variant='outline'
@@ -130,7 +130,7 @@ export default function InterviewSessionViewPage() {
                 <DialogTitle>确认要放弃面试吗？</DialogTitle>
                 <DialogDescription>放弃面试将没有面试结果，若需要请重新面试</DialogDescription>
               </DialogHeader>
-              <DialogFooter className='gap-2'>
+              <DialogFooter className='!flex-row gap-2'>
                 <Button onClick={() => setConfirmEndOpen(false)}>继续面试</Button>
                 <Button
                   variant='outline'
