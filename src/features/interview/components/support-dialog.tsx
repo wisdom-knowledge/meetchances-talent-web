@@ -99,7 +99,8 @@ export function SupportDialog({ open, onOpenChange, onSubmit }: SupportDialogPro
           imageUrls = uploadResults.map(result => result.data.file_url)
         } catch (uploadError) {
           toast.error('图片上传失败', {
-            description: uploadError instanceof Error ? uploadError.message : '请稍后重试'
+            description: uploadError instanceof Error ? uploadError.message : '请稍后重试',
+            position: 'top-right'
           })
           return // 直接返回，不继续执行后续提交逻辑
         }
@@ -115,7 +116,9 @@ export function SupportDialog({ open, onOpenChange, onSubmit }: SupportDialogPro
       await submitInterviewSupportDemand(payload)
       
       // 显示成功提示
-      toast.success('提交成功')
+      toast.success('提交成功', {
+        position: 'top-right'
+      })
       
       // 调用外部回调（如果存在）
       onSubmit?.(values)
@@ -124,7 +127,8 @@ export function SupportDialog({ open, onOpenChange, onSubmit }: SupportDialogPro
       form.reset()
     } catch (_error) {
       toast.error('提交失败', {
-        description: '请稍后重试'
+        description: '请稍后重试',
+        position: 'top-right'
       })
     } finally {
       setUploading(false)
