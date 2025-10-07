@@ -95,15 +95,25 @@ initApm()
   try {
     let fr: string | null = null
     fr = localStorage.getItem('_fr')
+    let shareUserId: string | null = null
+    shareUserId = localStorage.getItem('shareUserId')
+    const sp = new URLSearchParams(window.location.search)
     if (!fr) {
-      const sp = new URLSearchParams(window.location.search)
       const fromUrl = sp.get('_fr')
       if (fromUrl && fromUrl.trim()) {
         fr = fromUrl.trim()
         localStorage.setItem('_fr', fr)
       }
     }
+    if (!shareUserId) {
+      const suid = sp.get('user')
+      if (suid && suid.trim()) {
+        shareUserId = suid.trim()
+        localStorage.setItem('shareUserId', shareUserId.trim())
+      }
+    }
     if (fr) setApmContext({ fr })
+    if (shareUserId) setApmContext({ 'share_user_id': shareUserId })
   } catch (_e) {}
   if (user) startApm()
 }
