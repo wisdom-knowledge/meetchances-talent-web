@@ -114,6 +114,9 @@ export function SupportDialog({ open, onOpenChange, onSubmit }: SupportDialogPro
       
       await submitInterviewSupportDemand(payload)
       
+      // 显示成功提示
+      toast.success('提交成功')
+      
       // 调用外部回调（如果存在）
       onSubmit?.(values)
       
