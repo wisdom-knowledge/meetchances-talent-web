@@ -4,10 +4,8 @@ import { MockInterviewTab } from '@/features/mock-interview/constants'
 import { handleServerError } from '@/utils/handle-server-error'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
-import SupportDialog from '@/components/support-dialog'
-import { fetchForHelp } from '../home/api'
+import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { FeedbackParams, fetchFeedback } from './api'
-import { toast } from 'sonner'
 import { reportFinishFeedbackLowScore } from '@/lib/apm'
 import { useJobDetailQuery } from '@/features/jobs/api'
 import { IconLoader2 } from '@tabler/icons-react'
@@ -99,23 +97,6 @@ export default function FinishPage() {
       handleServerError(error)
     } finally {
       setSubmitting(false)
-    }
-  }
-
-  const handleSupportSubmit = async (_payload: {
-    message: string
-    contactMethod: 'phone' | 'none'
-    phone?: string
-  }) => {
-    try {
-      await fetchForHelp({
-        detail: _payload.message,
-        need_contact: _payload.contactMethod === 'phone',
-        phone_number: _payload.phone ?? '',
-      })
-      toast.success('提交成功')
-    } catch (error) {
-      handleServerError(error)
     }
   }
 
@@ -242,7 +223,7 @@ export default function FinishPage() {
           />
 
           {/* 寻求支持弹窗 */}
-          <SupportDialog open={helpOpen} onOpenChange={setHelpOpen} onSubmit={handleSupportSubmit} />
+          <SupportDialog open={helpOpen} onOpenChange={setHelpOpen} />
         </Main>
       )}
     </>
