@@ -7,7 +7,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 
 // 模拟数据类型
 interface WalletRecord {
@@ -22,29 +21,11 @@ interface WalletRecord {
 }
 
 // 模拟数据
-const mockRecords: WalletRecord[] = [
-  {
-    id: '213742',
-    position: '大模型测评专家- (健身/营养学)',
-    incomeType: '项目收入',
-    taskId: '45364',
-    workDuration: '3:54:32',
-    hourlyRate: 100,
-    amount: 390.88,
-    status: 'pending'
-  },
-  {
-    id: '213243',
-    position: '大模型测评专家- (健身/营养学)',
-    incomeType: '审核通过奖励',
-    amount: 50,
-    status: 'pending'
-  }
-]
+const mockRecords: WalletRecord[] = []
 
-const totalIncome = 440.88
-const pendingAmount = 440.88
-const estimatedPaymentDate = '2025/10/10'
+const totalIncome = '-'
+const pendingAmount = '-'
+const estimatedPaymentDate = '-'
 
 export default function WalletPage() {
   const [activeTab, setActiveTab] = useState('income')
@@ -82,9 +63,9 @@ export default function WalletPage() {
             <CardContent className='p-4'>
               <div className='space-y-2'>
                 <h3 className='text-sm font-medium text-muted-foreground'>任务总收入</h3>
-                <p className='text-2xl font-bold text-green-600'>¥ {totalIncome.toFixed(2)}</p>
+                <p className='text-2xl font-bold text-green-600'>{totalIncome}</p>
                 <p className='text-sm text-muted-foreground'>
-                  统计截至日期 2025/10/06
+                  统计截至日期 -
                 </p>
               </div>
             </CardContent>
@@ -94,7 +75,7 @@ export default function WalletPage() {
             <CardContent className='p-4'>
               <div className='space-y-2'>
                 <h3 className='text-sm font-medium text-muted-foreground'>本期待发放</h3>
-                <p className='text-2xl font-bold text-orange-600'>¥ {pendingAmount.toFixed(2)}</p>
+                <p className='text-2xl font-bold text-orange-600'>{pendingAmount}</p>
                 <p className='text-sm text-muted-foreground'>
                   预计付款日期 {estimatedPaymentDate}
                 </p>
@@ -131,18 +112,26 @@ export default function WalletPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {mockRecords.map((record) => (
-                        <TableRow key={record.id}>
-                          <TableCell className='font-medium'>{record.id}</TableCell>
-                          <TableCell className='max-w-[200px] truncate'>{record.position}</TableCell>
-                          <TableCell>{record.incomeType}</TableCell>
-                          <TableCell>{record.taskId || '-'}</TableCell>
-                          <TableCell>{record.workDuration || '-'}</TableCell>
-                          <TableCell>{record.hourlyRate ? `¥${record.hourlyRate}` : '-'}</TableCell>
-                          <TableCell className='font-medium text-green-600'>¥{record.amount.toFixed(2)}</TableCell>
-                          <TableCell>{getStatusBadge(record.status)}</TableCell>
+                      {mockRecords.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className='h-24 text-center text-muted-foreground'>
+                            暂无数据
+                          </TableCell>
                         </TableRow>
-                      ))}
+                      ) : (
+                        mockRecords.map((record) => (
+                          <TableRow key={record.id}>
+                            <TableCell className='font-medium'>{record.id}</TableCell>
+                            <TableCell className='max-w-[200px] truncate'>{record.position}</TableCell>
+                            <TableCell>{record.incomeType}</TableCell>
+                            <TableCell>{record.taskId || '-'}</TableCell>
+                            <TableCell>{record.workDuration || '-'}</TableCell>
+                            <TableCell>{record.hourlyRate ? `¥${record.hourlyRate}` : '-'}</TableCell>
+                            <TableCell className='font-medium text-green-600'>¥{record.amount.toFixed(2)}</TableCell>
+                            <TableCell>{getStatusBadge(record.status)}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
                     </TableBody>
                   </Table>
                 </CardContent>
