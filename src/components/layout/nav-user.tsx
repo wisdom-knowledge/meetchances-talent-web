@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
-import { ChevronsUpDown, LogOut, User as UserIcon } from 'lucide-react'
+import { BadgeCheck, ChevronsUpDown, LogOut, User as UserIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -43,6 +44,10 @@ export function NavUser({
     window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')
   }
 
+  const handleProfile = () => {
+    window.open('https://xpertiise.authing.cn/u?app_id=682443543a056778c61c04ce', '_blank', 'noopener,noreferrer')
+  }
+
   const isLogin = useMemo(() => !!user?.name, [user?.name])
   
   // PC端窄版布局
@@ -64,9 +69,6 @@ export function NavUser({
                     {user.name.charAt(0) || <UserIcon className='h-4 w-4' />}
                   </AvatarFallback>
                 </Avatar>
-                <span className='text-xs font-medium truncate max-w-full px-1'>
-                  {user.name || '未登录'}
-                </span>
               </button>
             </DropdownMenuTrigger>
             {isLogin && (
@@ -76,6 +78,18 @@ export function NavUser({
                 align='end'
                 sideOffset={8}
               >
+                <DropdownMenuLabel className='font-normal'>
+                  <div className='flex flex-col space-y-1'>
+                    <p className='text-sm leading-none font-medium'>
+                      {user.name}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleProfile}>
+                  <BadgeCheck />
+                  账号信息
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleAbout}>
                   <img src={aboutUsSvg} alt='' className='h-4 w-4' />
                   关于我们
@@ -128,6 +142,18 @@ export function NavUser({
               align={state === 'collapsed' ? 'start' : 'center'}
               sideOffset={4}
             >
+              <DropdownMenuLabel className='font-normal'>
+                <div className='flex flex-col space-y-1'>
+                  <p className='text-sm leading-none font-medium'>
+                    {user.name}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleProfile}>
+                <BadgeCheck />
+                账号信息
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleAbout}>
                 <img src={aboutUsSvg} alt='' className='h-4 w-4' />
                 关于我们
