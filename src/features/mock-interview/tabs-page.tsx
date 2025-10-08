@@ -14,6 +14,22 @@ export default function MockInterviewTabsPage() {
   // 从 URL 参数获取当前 tab，如果为空则使用默认值
   const activeTab = search.tab || DEFAULT_MOCK_INTERVIEW_TAB
 
+  // 自定义标签组件
+  const CustomBadge = ({ 
+    text, 
+    icon, 
+    className = '' 
+  }: { 
+    text: string
+    icon?: string
+    className?: string
+  }) => (
+    <div className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium ${className}`}>
+      {icon && <img src={icon} alt="" className="h-3 w-3" />}
+      <span>{text}</span>
+    </div>
+  )
+
   // 当 tab 改变时，更新 URL 参数
   const handleTabChange = (tab: string) => {
     navigate({
@@ -47,7 +63,13 @@ export default function MockInterviewTabsPage() {
                     : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
-                模拟面试
+                <div className="flex items-center gap-2">
+                  <span>模拟面试</span>
+                  <CustomBadge 
+                    text="免费练习"
+                    className="text-[#4E02E4] bg-[#EDE6FC]"
+                  />
+                </div>
               </button>
               <button
                 onClick={() => handleTabChange(MockInterviewTab.RECORDS)}

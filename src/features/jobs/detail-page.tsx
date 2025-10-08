@@ -31,7 +31,7 @@ export default function JobsDetailPage({ jobId }: JobsDetailPageProps) {
             {job ? (
               <JobDetailContent
                 job={job}
-                onBack={() => navigate({ to: '/mock-interview', search: { page: 1, pageSize: 9, q: '', category: "0" } })}
+                onBack={() => navigate({ to: '/mock-interview', search: { page: 1, pageSize: 12, q: '', category: "0" } })}
                 recommendName={''}
                 isTwoColumn={false}
                 backLabel='查看更多岗位'
