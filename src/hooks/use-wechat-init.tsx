@@ -85,7 +85,7 @@ export function useWeChatInit(options: UseWeChatInitOptions = {}) {
       // 获取微信签名
       const response = await fetchWeChatSignature(url)
       
-      if (response.status_code !== 0) {
+      if (!response.data) {
         throw new Error(response.status_msg || '获取签名失败')
       }
 
