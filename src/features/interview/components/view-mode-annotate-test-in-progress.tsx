@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { IconArrowRight } from '@tabler/icons-react'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 interface AnnotateTestPendingProps {
   onTaskSubmit: () => void
@@ -12,12 +15,20 @@ interface AnnotateTestPendingProps {
  * 引导用户前往 Xpert Studio 完成标注测试任务
  */
 export function AnnotateTestInProgress({ nodeData, onTaskSubmit }: AnnotateTestPendingProps) {
+  const isMobile = useIsMobile()
+  const [mobileTipOpen, setMobileTipOpen] = useState(false)
   const nodeConfig = nodeData?.node_config as { project_id: number, batch_id: number }
   const projectId = nodeConfig?.project_id
   const batchId = nodeConfig?.batch_id
   const domain = import.meta.env.VITE_XPERT_STUDIO_DOMAIN
   // https://studio-boe.xpertiise.com/projects/440/batch/960/tasklist
   const xpertStudioUrl = `${domain}/projects/${projectId}/batch/${batchId}/tasklist`
+  const handleLinkClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
+    if (isMobile) {
+      e.preventDefault()
+      setMobileTipOpen(true)
+    }
+  }
   const handleSubmit = () => {
     // TODO: 实现提交审核逻辑
     toast.success('已提交审核')
@@ -60,6 +71,7 @@ export function AnnotateTestInProgress({ nodeData, onTaskSubmit }: AnnotateTestP
               target='_blank'
               rel='noopener noreferrer'
               className='text-primary underline font-medium'
+              onClick={handleLinkClick}
             >
               Xpert Studio
             </a>
@@ -76,6 +88,22 @@ export function AnnotateTestInProgress({ nodeData, onTaskSubmit }: AnnotateTestP
         </Button>
 
       </div>
+      {/* 移动端提示弹窗 */}
+      <Dialog open={mobileTipOpen} onOpenChange={setMobileTipOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>请通过电脑端打开链接</DialogTitle>
+          </DialogHeader>
+          <div className='text-sm text-muted-foreground'>
+            为保证最佳体验与顺利完成任务，请在电脑端访问该链接。
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setMobileTipOpen(false)} className='w-full sm:w-auto'>
+              我知道了
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
