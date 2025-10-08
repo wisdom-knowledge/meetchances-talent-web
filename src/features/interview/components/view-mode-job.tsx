@@ -1,3 +1,4 @@
+import { useRef, useEffect, useState } from 'react'
 import { Separator } from '@/components/ui/separator'
 import { RichText } from '@/components/ui/rich-text'
 import { Button } from '@/components/ui/button'
@@ -38,6 +39,41 @@ function DesktopViewModeJob({
   onConfirmResumeClick,
   onUploadEvent,
 }: ViewModeJobProps) {
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [showGradient, setShowGradient] = useState(false)
+  const [showMoreButton, setShowMoreButton] = useState(false)
+
+  // 检测内容是否超出容器高度
+  const checkContentOverflow = () => {
+    if (!contentRef.current) return
+    
+    const container = contentRef.current
+    const isOverflowing = container.scrollHeight > container.clientHeight
+    setShowGradient(isOverflowing)
+    setShowMoreButton(isOverflowing)
+  }
+
+  // 滚动事件处理
+  const handleScroll = () => {
+    if (!contentRef.current) return
+    
+    const container = contentRef.current
+    const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 1
+    setShowGradient(!isAtBottom)
+  }
+
+  // 监听内容变化和窗口大小变化
+  useEffect(() => {
+    checkContentOverflow()
+    
+    const handleResize = () => {
+      setTimeout(checkContentOverflow, 100) // 延迟检查，确保布局完成
+    }
+    
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [job?.description]) // 当职位描述变化时重新检查
+
   return (
     <div className='flex-1 flex flex-row items-stretch w-full justify-between max-w-screen-xl mx-auto overflow-hidden min-h-0'>
       {/* 左：职位信息 */}
@@ -76,7 +112,11 @@ function DesktopViewModeJob({
           <div className='flex-1 min-h-0 text-foreground/90 leading-relaxed text-sm md:text-base py-4 flex flex-col'>
             {/* 限高 + 渐隐遮罩 */}
             <div className='relative flex-1 min-h-0 overflow-hidden'>
-              <div className='h-full overflow-hidden'>
+              <div 
+                ref={contentRef}
+                className='h-full overflow-hidden'
+                onScroll={handleScroll}
+              >
                 {job?.description ? (
                   <RichText content={job.description} />
                 ) : (
@@ -85,14 +125,19 @@ function DesktopViewModeJob({
                   </div>
                 )}
               </div>
-              {/* 渐隐遮罩 */}
-              <div className='pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent' />
+              {/* 渐隐遮罩 - 只在内容超出时显示 */}
+              {showGradient && (
+                <div className='pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent' />
+              )}
             </div>
-            <div className='mt-4 text-center'>
-              <Button variant='outline' onClick={onDrawerOpen}>
-                查看更多
-              </Button>
-            </div>
+            {/* 查看更多按钮 - 只在内容超出时显示 */}
+            {showMoreButton && (
+              <div className='mt-4 text-center'>
+                <Button variant='outline' onClick={onDrawerOpen}>
+                  查看更多
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -217,7 +262,7 @@ function MobileViewModeJob({
       </div>
 
       {/* 职位描述区域 - 可滚动，占据剩余空间 */}
-      <div className='flex-1 min-h-0 overflow-auto relative'>
+      <div className='flex-1 min-h-0 overflow-auto'>
         {/* 发布者信息 */}
         {job && <PublisherSection job={job} className='border-t' />}
         <div className='text-sm text-foreground/80 leading-relaxed py-2'>
@@ -229,9 +274,6 @@ function MobileViewModeJob({
             </div>
           )}
         </div>
-        
-        {/* 底部渐隐遮罩 - 引导用户滚动 */}
-        <div className='pointer-events-none sticky bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background via-background/80 to-transparent' />
       </div>
 
       {/* 底部固定区域 - 上传简历和按钮 */}
