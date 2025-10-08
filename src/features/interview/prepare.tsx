@@ -821,8 +821,13 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                 <span className='ml-1 text-primary text-sm'>您可以离开当前页面啦</span>
               </div>
               {interviewNodeStatus === JobApplyNodeStatus.CompletedPendingReview && (
-                <div className='my-8'>
-                  <Button onClick={() => setReinterviewOpen(true)}>重新面试</Button>
+                <div className='flex gap-4 items-center justify-center'>
+                  <div className='my-8'>
+                    <Button onClick={() => setReinterviewOpen(true)}>重新面试</Button>
+                  </div>
+                  <div className='my-8'>
+                    <Button variant='outline' onClick={() => navigate({ to: '/home' })}>回到首页</Button>
+                  </div>
                 </div>
               )}
             </div>
