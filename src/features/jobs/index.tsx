@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { useWeChatShare } from '@/hooks/use-wechat-share'
 // import { TopNav } from '@/components/layout/top-nav'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { userEvent } from '@/lib/apm'
@@ -104,6 +105,16 @@ export default function JobsListPage() {
   const { data: detailData } = useJobDetailQuery(effectiveSelectedId, isDrawerOpen)
   const selectedJobData = detailData ?? selectedJob
 
+  // 使用微信分享Hook
+  useWeChatShare({
+    shareTitle: selectedJobData ? `【招聘】${selectedJobData.title}` : '',
+    shareDesc: 'Meetchances/一面千识丨一次面试，千种机会',
+    shareImgUrl:
+      'https://dnu-cdn.xpertiise.com/common/e9a5fda0-e235-4d18-817c-5d1ab019709f.svg',
+    enabled: !!selectedJobData, // 只有当岗位信息加载完成后才启用分享
+    // debug: false, // 生产环境关闭调试
+  })
+
   const handleSelectJob = (job: ApiJob) => {
     setSelectedJob(job)
     setSelectedJobId(job.id)
@@ -114,6 +125,7 @@ export default function JobsListPage() {
       search: (prev) => ({ ...(prev as Record<string, unknown>), job_id: job.id }),
     })
   }
+
 
   const handleCloseDrawer = () => {
     setIsDrawerOpen(false)
