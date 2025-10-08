@@ -15,6 +15,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import aboutUsSvg from '@/assets/images/about_us.svg'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export function NavUser({
   user,
@@ -26,6 +27,7 @@ export function NavUser({
   }
 }) {
   const { state } = useSidebar()
+  const isMobile = useIsMobile()
 
   const handleLogout = () => {
     const baseLogoutUrl = import.meta.env.VITE_AUTH_LOGOUT_URL
@@ -42,7 +44,56 @@ export function NavUser({
   }
 
   const isLogin = useMemo(() => !!user?.name, [user?.name])
+  
+  // PC端窄版布局
+  if (!isMobile) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className='flex flex-col items-center justify-center gap-1 py-3 px-2 w-full rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                onClick={() => {
+                  if (!isLogin) handleLogin()
+                }}
+              >
+                <Avatar className='h-8 w-8 rounded-full'>
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarFallback className='rounded-full'>
+                    {user.name.charAt(0) || <UserIcon className='h-4 w-4' />}
+                  </AvatarFallback>
+                </Avatar>
+                <span className='text-xs font-medium truncate max-w-full px-1'>
+                  {user.name || '未登录'}
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            {isLogin && (
+              <DropdownMenuContent
+                className='min-w-56 rounded-lg'
+                side='right'
+                align='end'
+                sideOffset={8}
+              >
+                <DropdownMenuItem onClick={handleAbout}>
+                  <img src={aboutUsSvg} alt='' className='h-4 w-4' />
+                  关于我们
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut />
+                  退出登录
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            )}
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
 
+  // 移动端：保持原有样式
   return (
     <SidebarMenu>
       <SidebarMenuItem>
