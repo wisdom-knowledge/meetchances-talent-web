@@ -110,7 +110,7 @@ export default function JobsListPage() {
     shareTitle: selectedJobData ? `【招聘】${selectedJobData.title}` : '',
     shareDesc: 'Meetchances/一面千识丨一次面试，千种机会',
     shareImgUrl:
-      'https://dnu-cdn.xpertiise.com/common/e9a5fda0-e235-4d18-817c-5d1ab019709f.svg',
+      'https://dnu-cdn.xpertiise.com/common/42eabd48-d3c6-492e-b0f0-49b7dfe4419f.png',
     enabled: !!selectedJobData, // 只有当岗位信息加载完成后才启用分享
     // debug: true, // 生产环境关闭调试
   })
