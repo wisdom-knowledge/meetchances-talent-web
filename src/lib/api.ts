@@ -1,7 +1,8 @@
 import axios from 'axios'
 import { Talent, TalentParams } from '@/stores/authStore'
-import { reportApiBusinessError, reportApiResponse } from '@/lib/apm'
+import { reportApiBusinessError, reportApiResponse, userEvent } from '@/lib/apm'
 import { noTalentMeRoutes } from '@/components/layout/data/sidebar-data'
+import { getReferralParams } from '@/lib/referral'
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
@@ -13,6 +14,46 @@ const TARGETED_API_KEYWORDS = [
   '/node/action',
   'job_apply_progress',
 ] as const
+
+// localStorage 键名：用于存储最近一次 "/talent/me" 的用户信息
+const LOCAL_STORAGE_USER_KEY = 'talent_current_user'
+
+function handleTalentMeSideEffects(user: Talent): void {
+  if (typeof window === 'undefined') return
+  // 读取旧用户
+  let prevUser: unknown = null
+  try {
+    const prevStr = window.localStorage.getItem(LOCAL_STORAGE_USER_KEY)
+    if (prevStr) prevUser = JSON.parse(prevStr)
+  } catch (_e) {
+    void _e
+  }
+
+  // 存储新用户
+  try {
+    window.localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(user))
+  } catch (_e) {
+    void _e
+  }
+
+  // 对比 id，不同视为新用户，进行来源上报
+  const prevId = (prevUser as { id?: number } | null)?.id
+  const newId = (user as { id?: number } | null)?.id
+  const isNewUser = Boolean(newId) && prevId !== newId
+  if (!isNewUser) return
+
+  const { referral_source, referral_uid } = getReferralParams()
+  // APM 上报用户注册事件
+  userEvent('user_register', '用户注册', {
+    user_id: newId,
+    referral_source,
+    referral_uid,
+  })
+  if (!referral_source && !referral_uid) return
+
+  // 忽略上报结果与错误
+  api.patch('/talent/me', { referral_source, referral_uid }).catch(() => {})
+}
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -91,6 +132,14 @@ api.interceptors.response.use(
           request_query: paramsUnknown,
           response: payload,
         })
+      }
+
+      // 业务成功：如果是 GET /talent/me，则执行本地存储与新用户来源上报逻辑
+      try {
+        const isTalentMeGet = urlStr.includes('/talent/me') && methodStr === 'GET'
+        if (isTalentMeGet) handleTalentMeSideEffects(data as Talent)
+      } catch (_e) {
+        void _e
       }
       return data
     }
