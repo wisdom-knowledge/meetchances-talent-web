@@ -2,7 +2,6 @@ import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
-import { ProfileDropdown } from '@/components/profile-dropdown'
 import MockInterviewList from '@/features/mock-interview/components/mock-interview-list'
 import MockInterviewRecords from '@/features/mock-interview/components/mock-interview-records'
 import { MockInterviewTab, DEFAULT_MOCK_INTERVIEW_TAB } from '@/features/mock-interview/constants'
@@ -48,7 +47,6 @@ export default function MockInterviewTabsPage() {
     <>
       <Header fixed>
         <div className='ml-auto flex items-center space-x-4'>
-          <ProfileDropdown />
         </div>
       </Header>
 
