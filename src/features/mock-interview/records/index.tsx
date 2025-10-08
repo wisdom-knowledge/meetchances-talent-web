@@ -118,7 +118,7 @@ export default function MockInterviewRecordsPage() {
       <Main fixed>
         {/* 顶部返回按钮（独立一行） */}
         <div>
-          <Button variant='ghost' size='sm' onClick={() => navigate({ to: '/mock-interview', search: { page: 1, pageSize: 9, q: '', category: undefined } })}>
+          <Button variant='ghost' size='sm' onClick={() => navigate({ to: '/mock-interview', search: { page: 1, pageSize: 12, q: '', category: undefined } })}>
             <IconArrowLeft className='h-4 w-4' /> 返回
           </Button>
         </div>
