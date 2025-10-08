@@ -129,7 +129,7 @@ export default function QuestionnaireCollection({
             </div>
           )}
 
-          {currentStatus === 'rejected' && (
+          {currentStatus !== 'rejected' && (
             <div className='max-w-lg space-y-4 text-center'>
               <p className='text-lg leading-relaxed text-gray-700'>
                 感谢你对本岗位的关注。此次评估未能进入下一步流程,可
