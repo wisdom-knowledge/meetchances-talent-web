@@ -22,9 +22,9 @@ export function getReferralParams(): ReferralParams {
     }
 
     // uid: 优先 URL 的 `share_user_id`，其次 localStorage `share_user_id`
-    referral_uid = getQueryParam('share_user_id', window.location.search)
+    referral_uid = getQueryParam('user', window.location.search)
     if (!referral_uid) {
-      const ls = localStorage.getItem('share_user_id')
+      const ls = localStorage.getItem('shareUserId')
       referral_uid = ls && ls.trim() ? ls.trim() : null
     }
   } catch (_e) {
