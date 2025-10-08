@@ -14,6 +14,7 @@ import { Route as PublicRouteRouteImport } from './routes/_public/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as JobsJob_idRouteImport } from './routes/jobs/$job_id'
+import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
@@ -81,6 +82,11 @@ const JobsJob_idRoute = JobsJob_idRouteImport.update({
   id: '/jobs/$job_id',
   path: '/jobs/$job_id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const errors503Route = errors503RouteImport.update({
   id: '/(errors)/503',
@@ -339,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/': typeof AuthenticatedIndexRoute
   '/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
@@ -385,6 +392,7 @@ export interface FileRoutesByTo {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/': typeof AuthenticatedIndexRoute
   '/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
@@ -437,6 +445,7 @@ export interface FileRoutesById {
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
+  '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/interview/antechamber': typeof AuthenticatedInterviewAntechamberRoute
@@ -487,6 +496,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/wallet'
     | '/jobs/$job_id'
     | '/'
     | '/interview/antechamber'
@@ -533,6 +543,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/wallet'
     | '/jobs/$job_id'
     | '/'
     | '/interview/antechamber'
@@ -584,6 +595,7 @@ export interface FileRouteTypes {
     | '/(errors)/404'
     | '/(errors)/500'
     | '/(errors)/503'
+    | '/_authenticated/wallet'
     | '/jobs/$job_id'
     | '/_authenticated/'
     | '/_authenticated/interview/antechamber'
@@ -672,6 +684,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/jobs/$job_id'
       preLoaderRoute: typeof JobsJob_idRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/wallet': {
+      id: '/_authenticated/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof AuthenticatedWalletRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/(errors)/503': {
       id: '/(errors)/503'
@@ -1009,6 +1028,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
+  AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedInterviewAntechamberRoute: typeof AuthenticatedInterviewAntechamberRoute
   AuthenticatedInterviewPrepareRoute: typeof AuthenticatedInterviewPrepareRoute
@@ -1035,6 +1055,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
+  AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedInterviewAntechamberRoute:
     AuthenticatedInterviewAntechamberRoute,

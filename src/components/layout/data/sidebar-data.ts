@@ -1,4 +1,4 @@
-import { IconBriefcase, IconId, IconHome, IconMicrophone } from '@tabler/icons-react'
+import { IconBriefcase, IconId, IconHome, IconMicrophone, IconWallet } from '@tabler/icons-react'
 // removed team switching assets
 import { type SidebarData } from '../types'
 
@@ -32,6 +32,11 @@ export const sidebarData: SidebarData = {
           title: '我的简历',
           url: '/resume',
           icon: IconId,
+        },
+        {
+          title: '钱包',
+          url: '/wallet',
+          icon: IconWallet,
         },
       ],
     },
