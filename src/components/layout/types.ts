@@ -15,6 +15,11 @@ interface Team {
 interface BaseNavItem {
   title: string
   badge?: string
+  customBadge?: {
+    text: string
+    icon?: string | React.ElementType
+    className?: string
+  }
   icon?: React.ElementType
 }
 
