@@ -1,7 +1,6 @@
 import { IconBriefcase, IconId, IconHome, IconMicrophone, IconWallet } from '@tabler/icons-react'
 // removed team switching assets
 import { type SidebarData } from '../types'
-import smileIcon from '@/assets/images/smile.svg'
 
 export const sidebarData: SidebarData = {
   user: {
@@ -30,7 +29,6 @@ export const sidebarData: SidebarData = {
           icon: IconMicrophone,
           customBadge: {
             text: '免费练习',
-            icon: smileIcon,
             className: 'text-[#4E02E4] bg-[#EDE6FC]'
           },
         },
