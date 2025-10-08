@@ -31,6 +31,10 @@ import { NavCollapsible, NavItem, NavLink, type NavGroup } from './types'
 export function NavGroup({ title, items }: NavGroup) {
   const { state, isMobile } = useSidebar()
   const href = useLocation({ select: (location) => location.href })
+  
+  // PC端：不显示折叠逻辑，直接使用窄版布局
+  const isNarrowPcLayout = !isMobile && state === 'expanded'
+  
   return (
     <SidebarGroup>
       {title?.trim() ? <SidebarGroupLabel>{title}</SidebarGroupLabel> : null}
@@ -39,7 +43,7 @@ export function NavGroup({ title, items }: NavGroup) {
           const key = `${item.title}-${item.url}`
 
           if (!item.items)
-            return <SidebarMenuLink key={key} item={item} href={href} />
+            return <SidebarMenuLink key={key} item={item} href={href} isNarrow={isNarrowPcLayout} />
 
           if (state === 'collapsed' && !isMobile)
             return (
@@ -78,8 +82,41 @@ const CustomNavBadge = ({
   </div>
 )
 
-const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
+const SidebarMenuLink = ({ item, href, isNarrow = false }: { item: NavLink; href: string; isNarrow?: boolean }) => {
   const { setOpenMobile } = useSidebar()
+  
+  // PC端窄版布局：图标在上，文字在下
+  if (isNarrow) {
+    return (
+      <SidebarMenuItem>
+        <Link 
+          to={item.url} 
+          onClick={() => setOpenMobile(false)}
+          className={`
+            relative flex flex-col items-center justify-center gap-1 py-3 px-1
+            rounded-md transition-colors
+            hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
+            ${checkIsActive(href, item) ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+          `}
+        >
+          {item.icon && <item.icon className='h-6 w-6 flex-shrink-0' />}
+          <span className='text-[10px] font-medium text-center leading-tight max-w-full break-keep whitespace-nowrap'>{item.title}</span>
+          {item.customBadge && (
+            <div className='absolute top-1 right-1'>
+              <div className={`rounded px-1 py-0.5 text-[8px] font-medium leading-none ${item.customBadge.className}`}>
+                {item.customBadge.text}
+              </div>
+            </div>
+          )}
+          {item.badge && (
+            <Badge className='absolute top-1 right-1 h-4 px-1 text-[9px]'>{item.badge}</Badge>
+          )}
+        </Link>
+      </SidebarMenuItem>
+    )
+  }
+  
+  // 移动端或其他情况：保持原有布局
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
