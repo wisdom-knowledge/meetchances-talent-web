@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import { ChevronRight } from 'lucide-react'
 import {
@@ -57,6 +57,27 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
   <Badge className='rounded-full px-1 py-0 text-xs'>{children}</Badge>
 )
 
+const CustomNavBadge = ({ 
+  text, 
+  icon, 
+  className = '' 
+}: { 
+  text: string
+  icon?: string | React.ElementType
+  className?: string
+}) => (
+  <div className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium ${className}`}>
+    {icon && (
+      typeof icon === 'string' ? (
+        <img src={icon} alt="" className="h-3 w-3" />
+      ) : (
+        React.createElement(icon, { className: "h-3 w-3" })
+      )
+    )}
+    <span>{text}</span>
+  </div>
+)
+
 const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
   const { setOpenMobile } = useSidebar()
   return (
@@ -70,6 +91,13 @@ const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
           {item.icon && <item.icon />}
           <span>{item.title}</span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
+          {item.customBadge && (
+            <CustomNavBadge 
+              text={item.customBadge.text}
+              icon={item.customBadge.icon}
+              className={item.customBadge.className}
+            />
+          )}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -96,6 +124,13 @@ const SidebarMenuCollapsible = ({
             {item.icon && <item.icon />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
+            {item.customBadge && (
+              <CustomNavBadge 
+                text={item.customBadge.text}
+                icon={item.customBadge.icon}
+                className={item.customBadge.className}
+              />
+            )}
             <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
           </SidebarMenuButton>
         </CollapsibleTrigger>
@@ -111,6 +146,13 @@ const SidebarMenuCollapsible = ({
                     {subItem.icon && <subItem.icon />}
                     <span>{subItem.title}</span>
                     {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
+                    {subItem.customBadge && (
+                      <CustomNavBadge 
+                        text={subItem.customBadge.text}
+                        icon={subItem.customBadge.icon}
+                        className={subItem.customBadge.className}
+                      />
+                    )}
                   </Link>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
@@ -140,6 +182,13 @@ const SidebarMenuCollapsedDropdown = ({
             {item.icon && <item.icon />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
+            {item.customBadge && (
+              <CustomNavBadge 
+                text={item.customBadge.text}
+                icon={item.customBadge.icon}
+                className={item.customBadge.className}
+              />
+            )}
             <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
