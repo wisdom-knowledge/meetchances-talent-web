@@ -112,7 +112,7 @@ export default function JobsListPage() {
     shareImgUrl:
       'https://dnu-cdn.xpertiise.com/common/e9a5fda0-e235-4d18-817c-5d1ab019709f.svg',
     enabled: !!selectedJobData, // 只有当岗位信息加载完成后才启用分享
-    debug: true, // 生产环境关闭调试
+    // debug: true, // 生产环境关闭调试
   })
 
   const handleSelectJob = (job: ApiJob) => {
