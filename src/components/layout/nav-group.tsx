@@ -32,8 +32,8 @@ export function NavGroup({ title, items }: NavGroup) {
   const { state, isMobile } = useSidebar()
   const href = useLocation({ select: (location) => location.href })
   
-  // PC端：不显示折叠逻辑，直接使用窄版布局
-  const isNarrowPcLayout = !isMobile && state === 'expanded'
+  // PC端：始终使用窄版垂直布局（图标在上，文字在下）
+  const isNarrowPcLayout = !isMobile
   
   return (
     <SidebarGroup>

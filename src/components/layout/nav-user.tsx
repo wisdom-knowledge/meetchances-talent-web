@@ -45,7 +45,7 @@ export function NavUser({
   }
 
   const handleProfile = () => {
-    window.open('https://xpertiise.authing.cn/u?app_id=682443543a056778c61c04ce', '_blank', 'noopener,noreferrer')
+    window.open('https://meetchances-talent.authing.cn/u?app_id=68a80c45ea682857b1f54cdc', '_blank', 'noopener,noreferrer')
   }
 
   const isLogin = useMemo(() => !!user?.name, [user?.name])
