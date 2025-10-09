@@ -18,15 +18,19 @@ export function PublicSidebarLayout({ children }: Props) {
 
   return (
     <SearchProvider>
-      <SidebarProvider defaultOpen={defaultOpen}>
+      <SidebarProvider 
+        defaultOpen={defaultOpen}
+      >
         <SkipToMain />
         {!hideSidebar && <AppSidebar />}
         <div
           id='content'
+          style={{
+            '--sidebar-width': '5rem',
+          } as React.CSSProperties}
           className={cn(
             'ml-auto w-full max-w-full',
-            !hideSidebar && 'peer-data-[state=collapsed]:w-[calc(100%-var(--sidebar-width-icon)-1rem)]',
-            !hideSidebar && 'peer-data-[state=expanded]:w-[calc(100%-var(--sidebar-width))]',
+            !hideSidebar && 'md:w-[calc(100%-5rem)]',
             'sm:transition-[width] sm:duration-200 sm:ease-linear',
             'flex h-svh flex-col',
             'has-[main.fixed-main]:group-data-[scroll-locked=1]/body:h-svh',
