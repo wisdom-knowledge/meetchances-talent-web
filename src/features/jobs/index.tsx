@@ -173,7 +173,7 @@ export default function JobsListPage() {
         </div>
       </Header>
 
-      <Main fixed className='md:mx-16'>
+      <Main fixed className='md:mx-16 md:p-0'>
         <div className='mx-auto w-full h-full'>
         <div className='flex items-start justify-between gap-3'>
           <div className=' flex items-end'>
