@@ -75,7 +75,7 @@ export function AnnotateTestInProgress({ nodeData, onTaskSubmit }: AnnotateTestP
             >
               Xpert Studio
             </a>
-            ，使用一面千识的注册手机号短信登陆后，完成【项目名】下所有任务。确认完成后请点击下方按钮提交审核
+            ，使用一面千识的注册手机号短信登陆后，完成项目下所有任务。确认完成后请点击下方按钮提交审核
           </p>
         </div>
 
