@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
+import { ProfileDropdown } from '@/components/profile-dropdown'
 import { IconListDetails, IconStar, IconUser, IconWand, IconUpload, IconLoader2 } from '@tabler/icons-react'
 
 // import { showSubmittedData } from '@/utils/show-submitted-data'
@@ -240,12 +241,15 @@ export default function ResumePage() {
     <>
       <Header fixed>
         <div className='ml-auto flex items-center space-x-4'>
+          <ProfileDropdown />
         </div>
       </Header>
 
-      <Main fixed>
+      <Main fixed className='md:mx-16 py-0'>
         <div className='md:flex md:items-end'>
-          <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>我的简历</h1>
+          <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>
+            我的简历
+          </h1>
           <p className='text-muted-foreground'>完善你的基本信息与经历，便于精准匹配项目。</p>
         </div>
         <Separator className='my-4 lg:my-6' />

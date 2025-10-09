@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { useWeChatShare } from '@/hooks/use-wechat-share'
+import { ProfileDropdown } from '@/components/profile-dropdown'
 // import { TopNav } from '@/components/layout/top-nav'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { userEvent } from '@/lib/apm'
@@ -112,7 +113,7 @@ export default function JobsListPage() {
     shareImgUrl:
       'https://dnu-cdn.xpertiise.com/common/42eabd48-d3c6-492e-b0f0-49b7dfe4419f.png',
     enabled: !!selectedJobData, // 只有当岗位信息加载完成后才启用分享
-    // debug: true, // 生产环境关闭调试
+    // debug: false, // 生产环境关闭调试
   })
 
   const handleSelectJob = (job: ApiJob) => {
@@ -168,11 +169,12 @@ export default function JobsListPage() {
     <>
       <Header fixed>
         <div className='ml-auto flex items-center space-x-4'>
+          <ProfileDropdown />
         </div>
       </Header>
 
-      <Main fixed className='px-4 py-0'>
-        <div className='mx-auto w-full max-w-[1224px] h-full'>
+      <Main fixed className='md:mx-16 py-0'>
+        <div className='mx-auto w-full h-full'>
         <div className='flex items-start justify-between gap-3'>
           <div className=' flex items-end'>
             <h1 className=' text-xl font-bold tracking-tight md:text-2xl mr-3'>

@@ -896,8 +896,19 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
           <div className='flex-1 flex items-center justify-center min-h-[60vh]'>
             <div className='flex flex-col items-center'>
               <img src="https://dnu-cdn.xpertiise.com/design-assets/logo-and-text-no-padding.svg" alt='' className='mb-4 h-[50px]' />
-              <div className='text-center whitespace-pre-line text-xl font-semibold leading-relaxed text-foreground'>
-                {`感谢你对本岗位的关注。此次评估未能进入下一步流程,可随时前往职位列表查看当前在招职位,期待未来有机会合作 `}
+              <div className='text-center text-xl font-semibold leading-relaxed text-foreground'>
+                感谢你对本岗位的关注。此次评估未能进入下一步流程,可随时前往
+                <a
+                  href='/jobs'
+                  className='mx-1 text-primary underline hover:text-primary'
+                  onClick={(e) => {
+                    e.preventDefault()
+                    window.location.href = '/jobs'
+                  }}
+                >
+                  职位列表
+                </a>
+                查看当前在招职位,期待未来有机会合作
               </div>
             </div>
           </div>

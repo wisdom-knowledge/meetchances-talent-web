@@ -5,6 +5,7 @@ import { Tabs, TabsContent } from '@/components/ui/tabs'
 import MockInterviewList from '@/features/mock-interview/components/mock-interview-list'
 import MockInterviewRecords from '@/features/mock-interview/components/mock-interview-records'
 import { MockInterviewTab, DEFAULT_MOCK_INTERVIEW_TAB } from '@/features/mock-interview/constants'
+import { ProfileDropdown } from '@/components/profile-dropdown'
 
 export default function MockInterviewTabsPage() {
   const navigate = useNavigate()
@@ -47,10 +48,11 @@ export default function MockInterviewTabsPage() {
     <>
       <Header fixed>
         <div className='ml-auto flex items-center space-x-4'>
+          <ProfileDropdown />
         </div>
       </Header>
 
-      <Main fixed className='pt-0'>
+      <Main fixed className='pt-0 md:mx-16 md:p-0'>
         <Tabs value={activeTab} onValueChange={handleTabChange} className='flex-1 flex flex-col min-h-0'>
             <div className='flex border-b border-border shrink-0'>
               <button
