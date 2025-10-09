@@ -9,7 +9,7 @@ import { useJobApplyWorkflow, type JobApplyWorkflowNode } from '@/features/inter
 
 interface AnnotateTestPendingProps {
   onTaskSubmit: () => void
-  jobApplyId?: number | null
+  jobApplyId?: number | string | null
   nodeData?: Record<string, unknown>
 }
 
