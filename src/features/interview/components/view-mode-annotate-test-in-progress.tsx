@@ -1,21 +1,39 @@
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { IconArrowRight } from '@tabler/icons-react'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 interface AnnotateTestPendingProps {
-  onTaskComplete: () => void
+  onTaskSubmit: () => void
+  nodeData?: Record<string, unknown>
 }
 
 /**
  * 标注测试待完成视图
  * 引导用户前往 Xpert Studio 完成标注测试任务
  */
-export function AnnotateTestPending({ onTaskComplete }: AnnotateTestPendingProps) {
+export function AnnotateTestInProgress({ nodeData, onTaskSubmit }: AnnotateTestPendingProps) {
+  const isMobile = useIsMobile()
+  const [mobileTipOpen, setMobileTipOpen] = useState(false)
+  const nodeConfig = nodeData?.node_config as { project_id: number, batch_id: number }
+  const projectId = nodeConfig?.project_id
+  const batchId = nodeConfig?.batch_id
+  const domain = import.meta.env.VITE_XPERT_STUDIO_DOMAIN
+  // https://studio-boe.xpertiise.com/projects/440/batch/960/tasklist
+  const xpertStudioUrl = `${domain}/projects/${projectId}/batch/${batchId}/tasklist`
+  const handleLinkClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
+    if (isMobile) {
+      e.preventDefault()
+      setMobileTipOpen(true)
+    }
+  }
   const handleSubmit = () => {
     // TODO: 实现提交审核逻辑
     toast.success('已提交审核')
     // TODO：调用接口查询试标任务状态的接口，如果任务状态为已完成，则调用 onTaskComplete 方法
-    onTaskComplete()
+    onTaskSubmit()
   }
 
   return (
@@ -49,14 +67,15 @@ export function AnnotateTestPending({ onTaskComplete }: AnnotateTestPendingProps
           <p className='text-lg text-foreground leading-relaxed'>
             请点击链接前往{' '}
             <a
-              href='https://xpertstudio.com'
+              href={xpertStudioUrl}
               target='_blank'
               rel='noopener noreferrer'
               className='text-primary underline font-medium'
+              onClick={handleLinkClick}
             >
               Xpert Studio
             </a>
-            ，使用一面千识的注册手机号短信登陆后，完成【项目名】下所有任务。确认完成后请点击下方按钮提交审核
+            ，使用一面千识的注册手机号短信登陆后，完成项目下所有任务。确认完成后请点击下方按钮提交审核
           </p>
         </div>
 
@@ -69,6 +88,22 @@ export function AnnotateTestPending({ onTaskComplete }: AnnotateTestPendingProps
         </Button>
 
       </div>
+      {/* 移动端提示弹窗 */}
+      <Dialog open={mobileTipOpen} onOpenChange={setMobileTipOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>请通过电脑端打开链接</DialogTitle>
+          </DialogHeader>
+          <div className='text-sm text-muted-foreground'>
+            为保证最佳体验与顺利完成任务，请在电脑端访问该链接。
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setMobileTipOpen(false)} className='w-full sm:w-auto'>
+              我知道了
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
