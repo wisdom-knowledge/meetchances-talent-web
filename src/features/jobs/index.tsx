@@ -110,7 +110,7 @@ export default function JobsListPage() {
   useWeChatShare({
     shareTitle: selectedJobData ? `【招聘】${selectedJobData.title}` : '',
     shareDesc: selectedJobData
-      ? `${jobTypeMapping[selectedJobData.job_type as keyof typeof jobTypeMapping] || '工作'}丨${selectedJobData.salary_min}-${selectedJobData.salary_max}/${salaryTypeMapping[selectedJobData.salary_type as keyof typeof salaryTypeMapping] || ''}`
+      ? `Meehchances/一面千识 | ${jobTypeMapping[selectedJobData.job_type as keyof typeof jobTypeMapping] || '工作'}丨${selectedJobData.salary_min}-${selectedJobData.salary_max}/${salaryTypeMapping[selectedJobData.salary_type as keyof typeof salaryTypeMapping] || 'Meehchances/一面千识'}`
       : '',
     shareImgUrl:
       'https://dnu-cdn.xpertiise.com/common/42eabd48-d3c6-492e-b0f0-49b7dfe4419f.png',
