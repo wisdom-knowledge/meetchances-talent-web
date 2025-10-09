@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { ProfileDropdown } from '@/components/profile-dropdown'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import noApplySvg from '@/assets/images/no-apply.svg'
 import noOfferSvg from '@/assets/images/no-offer.svg'
@@ -53,10 +54,11 @@ export default function HomeViewPage() {
     <>
       <Header fixed>
         <div className='ml-auto flex items-center space-x-4'>
+          <ProfileDropdown />
         </div>
       </Header>
 
-      <Main fixed>
+      <Main fixed className='md:mx-16'>
         <div className='md:flex md:items-end'>
           <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>
             欢迎回来{displayName ? `，${displayName}` : ''}

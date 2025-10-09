@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Separator } from '@/components/ui/separator'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -44,10 +45,18 @@ export default function WalletPage() {
 
   return (
     <>
-      <Header fixed></Header>
+      <Header fixed>
+        <div className='ml-auto flex items-center space-x-4'>
+          <ProfileDropdown />
+        </div>
+      </Header>
 
-      <Main fixed>
-        <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>钱包</h1>
+      <Main fixed className='md:mx-16'>
+        <div className='md:flex md:items-end'>
+          <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>
+            钱包
+          </h1>
+        </div>
         <Separator className='my-4 lg:my-6' />
 
         {/* 钱包概览卡片 */}
