@@ -863,6 +863,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         {viewMode === ViewMode.AnnotateTestInProgress && (
           <ViewModeAnnotateTestInProgress
             nodeData={currentNodeData ?? undefined}
+            jobApplyId={jobApplyId ?? null}
             onTaskSubmit={async () => {
               if (currentNodeData && currentNodeData.id) {
                 const nodeId = currentNodeData.id as number
