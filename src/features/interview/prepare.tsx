@@ -422,18 +422,18 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const handleBackClick = useCallback(() => {
     // 先主动释放媒体资源，再进行跳转
     releaseAllMediaStreams()
-    let isExternalReferrer = false
+    let isNeedToHome = false
     try {
       const ref = document.referrer
       if (!ref) {
-        isExternalReferrer = true
+        isNeedToHome = true
       } else {
         try {
           const refOrigin = new URL(ref).origin
-          isExternalReferrer = refOrigin !== window.location.origin
+          isNeedToHome = refOrigin !== window.location.origin && window.innerWidth > 699
         } catch {
           // ref 不是合法 URL，视为外部来源
-          isExternalReferrer = true
+          isNeedToHome = true
         }
       }
     } catch {
@@ -442,7 +442,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
     if (
       viewMode === ViewMode.InterviewPendingReview ||
-      isExternalReferrer || isFromSessionRefresh
+      isNeedToHome || isFromSessionRefresh
     ) {
       // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
       window.location.replace('/home')

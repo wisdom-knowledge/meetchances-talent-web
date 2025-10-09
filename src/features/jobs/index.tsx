@@ -28,6 +28,7 @@ import {
   useJobApplyStatus,
   JobApplyStatus,
 } from './api'
+import { salaryTypeMapping, jobTypeMapping } from './constants'
 // import { useNavigate } from '@tanstack/react-router'
 import JobDetailDrawer from './components/job-detail-drawer'
 import { Input } from '@/components/ui/input'
@@ -109,7 +110,9 @@ export default function JobsListPage() {
   // 使用微信分享Hook
   useWeChatShare({
     shareTitle: selectedJobData ? `【招聘】${selectedJobData.title}` : '',
-    shareDesc: 'Meetchances/一面千识丨一次面试，千种机会',
+    shareDesc: selectedJobData
+      ? `Meehchances/一面千识 | ${jobTypeMapping[selectedJobData.job_type as keyof typeof jobTypeMapping] || '工作'}丨${selectedJobData.salary_min}-${selectedJobData.salary_max}/${salaryTypeMapping[selectedJobData.salary_type as keyof typeof salaryTypeMapping] || 'Meehchances/一面千识'}`
+      : '',
     shareImgUrl:
       'https://dnu-cdn.xpertiise.com/common/42eabd48-d3c6-492e-b0f0-49b7dfe4419f.png',
     enabled: !!selectedJobData, // 只有当岗位信息加载完成后才启用分享
@@ -343,11 +346,11 @@ export default function JobsListPage() {
                                   <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   ¥{job.salary_min ?? 0} - ¥{job.salary_max ?? 0} / 小时
                                 </Badge>
-                                <Badge
-                                    className='inline-flex items-center justify-center px-2 py-1 font-normal tracking-[0.25px] text-[#4E02E4] bg-[#4E02E40D] rounded'
-                                  >
-                                    {job.job_type === 'part_time' ? '兼职' : '全职'}
-                                </Badge>
+                                 <Badge
+                                     className='inline-flex items-center justify-center px-2 py-1 font-normal tracking-[0.25px] text-[#4E02E4] bg-[#4E02E40D] rounded'
+                                   >
+                                     {jobTypeMapping[job.job_type as keyof typeof jobTypeMapping] || ''}
+                                 </Badge>
                               </div>
                             </div>
                           </div>
