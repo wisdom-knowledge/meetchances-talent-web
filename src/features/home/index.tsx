@@ -58,7 +58,7 @@ export default function HomeViewPage() {
         </div>
       </Header>
 
-      <Main fixed className='md:mx-16 md:p-0'>
+      <Main fixed className='md:mx-16 py-0'>
         <div className='md:flex md:items-end'>
           <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>
             欢迎回来{displayName ? `，${displayName}` : ''}
