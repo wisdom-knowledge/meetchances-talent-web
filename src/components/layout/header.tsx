@@ -45,8 +45,8 @@ export const Header = ({ className, fixed, children, showSidebarTrigger = true }
       >
         {showSidebarTrigger ? (
           <>
-            <SidebarTrigger variant='outline' className='max-md:scale-125' />
-            <Separator orientation='vertical' className='h-6' />
+            <SidebarTrigger variant='outline' className='max-md:scale-125 md:hidden' />
+            <Separator orientation='vertical' className='h-6 md:hidden' />
           </>
         ) : null}
         {children}
