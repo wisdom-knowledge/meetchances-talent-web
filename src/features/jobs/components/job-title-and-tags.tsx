@@ -1,11 +1,6 @@
 import { IconBriefcase, IconWorldPin } from '@tabler/icons-react'
 import type { ApiJob } from '@/features/jobs/api'
-
-const salaryTypeMapping: Record<'hour' | 'month' | 'year', string> = {
-  hour: '时',
-  month: '月',
-  year: '年',
-}
+import { salaryTypeMapping } from '../constants'
 
 export interface JobTitleAndTagsProps {
   job: ApiJob
