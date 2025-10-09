@@ -191,3 +191,30 @@ export async function fetchChangeTalnet(params: TalentParams): Promise<Talent> {
   const raw = await api.patch('/talent/me', params)
   return raw as unknown as Promise<Talent>
 }
+
+/**
+ * 微信签名响应接口
+ */
+export interface WeChatSignatureResponse {
+  status_code: number
+  status_msg: string
+  data: {
+    timestamp: number
+    noncestr: string
+    ticket: string
+    signature: string
+  }
+}
+
+/**
+ * 获取微信JS-SDK签名
+ */
+export async function fetchWeChatSignature(
+  url: string
+): Promise<WeChatSignatureResponse> {
+  return api.get(`/wechat/sign`, {
+    params: {
+      url,
+    },
+  }) as unknown as Promise<WeChatSignatureResponse>
+}

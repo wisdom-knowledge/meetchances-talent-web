@@ -19,6 +19,7 @@ function mapNodeStatusToVisual(status: JobApplyNodeStatus): VisualStepStatus {
     // 进行中：10、20
     case JobApplyNodeStatus.InProgress:
     case JobApplyNodeStatus.CompletedPendingReview:
+    case JobApplyNodeStatus.AnnotateCompleted:
       return 'inProgress'
     // 未开始：0
     case JobApplyNodeStatus.NotStarted:
@@ -196,7 +197,7 @@ export function Steps({ jobApplyId, className, isMock }: StepsProps) {
 
   if (!jobApplyId || isMock) return null
 
-  const steps = data ?? []
+  const steps = data?.nodes ?? []
 
   return (
     <div className={cn('mt-2', className)}>
