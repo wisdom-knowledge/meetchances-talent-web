@@ -7,6 +7,7 @@ import logoImg from '@/assets/images/mobile-logo.svg'
 import { userEvent } from '@/lib/apm'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/ui/button'
 import { RichText } from '@/components/ui/rich-text'
 import type { ApiJob } from '@/features/jobs/api'
@@ -39,6 +40,7 @@ export default function JobDetailContent({
   applyButtonText = '立即申请',
 }: JobDetailContentProps) {
   const isMobile = useIsMobile()
+  const user = useAuthStore((s) => s.auth.user)
 
   const applicationCardRef = useRef<HTMLDivElement>(null)
   const [showFixedBar, setShowFixedBar] = useState(true)
@@ -95,14 +97,16 @@ export default function JobDetailContent({
       params = `${params}andinvite_token${inviteToken}`
     }
     let targetUrl
-    if (import.meta.env.DEV) {
+    if (user) {
+      targetUrl = `/interview/prepare`
+    } else if (import.meta.env.DEV) {
       targetUrl = `/interview/prepare`
     } else {
       targetUrl = import.meta.env.VITE_INVITE_REDIRECT_URL
     }
 
     window.location.href = `${targetUrl}?${params}`
-  }, [job.id, job.job_type, inviteToken])
+  }, [job.id, job.job_type, inviteToken, user])
 
   const low = job.salary_min ?? 0
   const high = job.salary_max ?? 0
