@@ -25,6 +25,7 @@ export interface JobDetailContentProps {
 
 const salaryTypeUnit: Record<NonNullable<ApiJob['salary_type']>, string> = {
   hour: '小时',
+  day: '天',
   month: '月',
   year: '年',
 }
@@ -190,10 +191,10 @@ export default function JobDetailContent({
             {/* 移动端：薪资信息显示在左侧标题下方 */}
             {isMobile && (
               <div>
-                {low && high ? (
+                {low ? (
                   <div className='flex items-center gap-2'>
                     <div className='text-xl font-semibold text-gray-900'>
-                      ¥{low}~¥{high}
+                      {high > 0 ? `¥${low}~¥${high}` : `¥${low}`}
                     </div>
                     <div className='text-xs text-gray-500'>{`每${unit}`}</div>
                   </div>
@@ -206,10 +207,10 @@ export default function JobDetailContent({
           {/* 右侧：薪资和按钮 - 桌面端显示 */}
           {!isMobile && (
             <div className='flex min-w-[140px] flex-col items-end'>
-              {low && high ? (
+              {low ? (
                 <>
                   <div className='mb-1 text-xl font-semibold text-gray-900'>
-                    ¥{low}~¥{high}
+                    {high > 0 ? `¥${low}~¥${high}` : `¥${low}`}
                   </div>
                   <div className='mb-3 text-xs text-gray-500'>{`每${unit}`}</div>
                 </>
