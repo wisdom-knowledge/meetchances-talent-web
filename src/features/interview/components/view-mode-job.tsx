@@ -10,6 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import type { ResumeFormValues } from '@/features/resume/data/schema'
 import type { ApiJob } from '@/features/jobs/api'
 import PublisherSection from '@/features/jobs/components/publisher-section'
+import { salaryTypeMapping, salaryTypeUnitMapping } from '@/features/jobs/constants'
 
 interface ViewModeJobProps {
   job?: ApiJob
@@ -88,7 +89,7 @@ function DesktopViewModeJob({
                 <div className='text-primary mb-2 flex items-center gap-4'>
                   <div className='flex items-center'>
                     <IconBriefcase className='mr-1 h-4 w-4' />
-                    <span className='text-[14px]'>时薪制</span>
+                    <span className='text-[14px]'>{job ? `${salaryTypeMapping[job.salary_type as keyof typeof salaryTypeMapping] || '时'}薪制` : '时薪制'}</span>
                   </div>
                   <div className='flex items-center'>
                     <IconWorldPin className='mr-1 h-4 w-4' />
@@ -100,9 +101,11 @@ function DesktopViewModeJob({
             {!isMock && (
               <div className='hidden md:flex flex-col items-end min-w-[140px]'>
                 <div className='text-xl font-semibold text-foreground mb-1'>
-                  {job ? `¥${job.salary_min ?? 0}~¥${job.salary_max ?? 0}` : '—'}
+                  {job ? (job.salary_max && job.salary_max > 0 
+                    ? `¥${job.salary_min ?? 0}~¥${job.salary_max}` 
+                    : `¥${job.salary_min ?? 0}`) : '—'}
                 </div>
-                <div className='text-xs text-muted-foreground mb-3'>每小时</div>
+                <div className='text-xs text-muted-foreground mb-3'>每{job ? salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时' : '小时'}</div>
               </div>
             )}
           </div>
@@ -241,9 +244,11 @@ function MobileViewModeJob({
           {!isMock && (
             <div className='flex flex-col items-end min-w-fit'>
               <div className='text-sm font-semibold text-foreground whitespace-nowrap'>
-                {job ? `¥${job.salary_min ?? 0}~¥${job.salary_max ?? 0}` : '—'}
+                {job ? (job.salary_max && job.salary_max > 0 
+                  ? `¥${job.salary_min ?? 0}~¥${job.salary_max}` 
+                  : `¥${job.salary_min ?? 0}`) : '—'}
               </div>
-              <div className='text-xs font-semibold '>/小时</div>
+              <div className='text-xs font-semibold '>/{job ? salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时' : '小时'}</div>
             </div>
           )}
         </div>
@@ -253,7 +258,7 @@ function MobileViewModeJob({
           <div className='flex items-center gap-3 text-sm text-primary'>
             <div className='flex text-xs items-center gap-1'>
               <IconBriefcase className='h-4 w-4' />
-              <span>时薪制</span>
+              <span>{job ? `${salaryTypeMapping[job.salary_type as keyof typeof salaryTypeMapping] || '时'}薪制` : '时薪制'}</span>
             </div>
             <div className='flex text-xs items-center gap-1'>
               <IconWorldPin className='h-4 w-4' />

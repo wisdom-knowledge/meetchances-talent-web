@@ -3,6 +3,7 @@ import { RichText } from '@/components/ui/rich-text'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
+import { salaryTypeMapping, salaryTypeUnitMapping } from '@/features/jobs/constants'
 import { IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { IconLoader2 } from '@tabler/icons-react'
@@ -1029,7 +1030,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                         <div className='flex items-center gap-4 text-primary mb-2'>
                           <div className='flex items-center'>
                             <IconBriefcase className='h-4 w-4 mr-1' />
-                            <span className='text-[14px]'>时薪制</span>
+                            <span className='text-[14px]'>{salaryTypeMapping[job.salary_type as keyof typeof salaryTypeMapping] || '时'}薪制</span>
                           </div>
                           <div className='flex items-center'>
                             <IconWorldPin className='h-4 w-4 mr-1' />
@@ -1043,9 +1044,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     !isMock && (
                       <div className='hidden md:flex flex-col items-end min-w-[140px]'>
                         <div className='text-xl font-semibold text-foreground mb-1'>
-                          ¥{job.salary_min ?? 0}~¥{job.salary_max ?? 0}
+                          {job.salary_max && job.salary_max > 0 
+                            ? `¥${job.salary_min ?? 0}~¥${job.salary_max}` 
+                            : `¥${job.salary_min ?? 0}`}
                         </div>
-                        <div className='text-xs text-muted-foreground mb-3'>每小时</div>
+                        <div className='text-xs text-muted-foreground mb-3'>每{salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}</div>
                       </div>
                     )
                   }

@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/ui/button'
 import { RichText } from '@/components/ui/rich-text'
 import type { ApiJob } from '@/features/jobs/api'
+import { salaryTypeUnitMapping } from '@/features/jobs/constants'
 import JobTitleAndTags from './job-title-and-tags'
 import PublisherSection from './publisher-section'
 
@@ -22,12 +23,6 @@ export interface JobDetailContentProps {
   isTwoColumn?: boolean
   backLabel?: string
   applyButtonText?: string
-}
-
-const salaryTypeUnit: Record<NonNullable<ApiJob['salary_type']>, string> = {
-  hour: '小时',
-  month: '月',
-  year: '年',
 }
 
 export default function JobDetailContent({
@@ -110,8 +105,7 @@ export default function JobDetailContent({
 
   const low = job.salary_min ?? 0
   const high = job.salary_max ?? 0
-  const unit =
-    salaryTypeUnit[job.salary_type as keyof typeof salaryTypeUnit] ?? '小时'
+  const unit = salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] ?? ''
 
   const mockJobTitle = useMemo(() => {
     return (
@@ -194,10 +188,10 @@ export default function JobDetailContent({
             {/* 移动端：薪资信息显示在左侧标题下方 */}
             {isMobile && (
               <div>
-                {low && high ? (
+                {low ? (
                   <div className='flex items-center gap-2'>
                     <div className='text-xl font-semibold text-gray-900'>
-                      ¥{low}~¥{high}
+                      {high > 0 ? `¥${low}~¥${high}` : `¥${low}`}
                     </div>
                     <div className='text-xs text-gray-500'>{`每${unit}`}</div>
                   </div>
@@ -210,10 +204,10 @@ export default function JobDetailContent({
           {/* 右侧：薪资和按钮 - 桌面端显示 */}
           {!isMobile && (
             <div className='flex min-w-[140px] flex-col items-end'>
-              {low && high ? (
+              {low ? (
                 <>
                   <div className='mb-1 text-xl font-semibold text-gray-900'>
-                    ¥{low}~¥{high}
+                    {high > 0 ? `¥${low}~¥${high}` : `¥${low}`}
                   </div>
                   <div className='mb-3 text-xs text-gray-500'>{`每${unit}`}</div>
                 </>
