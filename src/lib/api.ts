@@ -3,6 +3,7 @@ import { Talent, TalentParams } from '@/stores/authStore'
 import { reportApiBusinessError, reportApiResponse, userEvent } from '@/lib/apm'
 import { noTalentMeRoutes } from '@/components/layout/data/sidebar-data'
 import { getReferralParams } from '@/lib/referral'
+import { detectRuntimeEnvSync } from '@/lib/env'
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
@@ -69,6 +70,36 @@ export const api = axios.create({
 // 登录地址（通过一个统一的环境变量覆盖）
 const LOGIN_URL = import.meta.env.VITE_AUTH_LOGIN_URL
 
+type WxWithMiniProgram = { miniProgram?: { redirectTo?: (opts: { url: string }) => void } }
+
+// 统一处理未登录/登录失效后的跳转逻辑
+function handleUnauthorizedRedirect(): void {
+  if (typeof window === 'undefined') return
+  const isSpecialPage = noTalentMeRoutes.includes(window.location.pathname)
+  if (isSpecialPage) return
+
+  try {
+    const env = detectRuntimeEnvSync()
+    if (env === 'wechat-miniprogram') {
+      // 在小程序内，使用小程序路由跳转
+      const wxAny = (window as unknown as { wx?: unknown }).wx as
+        | undefined
+        | WxWithMiniProgram
+      const target = '/pages/authorize/authorize'
+      const url = target.startsWith('/') ? target : `/${target}`
+      wxAny?.miniProgram?.redirectTo?.({ url })
+      return
+    }
+  } catch (_e) {
+    // ignore
+  }
+
+  const loginUrl = LOGIN_URL
+  if (loginUrl) {
+    window.location.href = loginUrl
+  }
+}
+
 // 响应拦截器：统一解包 { status_code, status_msg, data }
 api.interceptors.response.use(
   (response) => {
@@ -81,11 +112,7 @@ api.interceptors.response.use(
     const dataUnknown = config?.data
     // 明确处理未登录/登录失效
     if (status === 401) {
-      const isSpecialPage = noTalentMeRoutes.includes(window.location.pathname)
-      const loginUrl = LOGIN_URL
-      if (typeof window !== 'undefined' && !isSpecialPage) {
-        window.location.href = loginUrl!
-      }
+      handleUnauthorizedRedirect()
       return Promise.reject({ status_code: 401, status_msg: 'Unauthorized' })
     }
     // 若没有通用外层，直接返回原始数据

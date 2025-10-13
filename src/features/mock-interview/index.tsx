@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import MockEmptyState from '@/features/mock-interview/components/empty-state'
 import MockCard from '@/features/mock-interview/components/mock-card'
 import { fetchMockInterviewList, fetchMockCategories } from './api'
@@ -33,7 +34,7 @@ export default function MockInterviewPage() {
     category?: string
   }
   const navigate = useNavigate()
-
+  const env = useRuntimeEnv()
   const [q, setQ] = useState(search.q ?? '')
   const [qInput, setQInput] = useState(search.q ?? '')
   const [category, setCategory] = useState<number | undefined>(
@@ -141,10 +142,12 @@ export default function MockInterviewPage() {
 
   return (
     <>
-      <Header fixed>
-        <div className='ml-auto flex items-center space-x-4'>
-        </div>
-      </Header>
+      {env !== 'wechat-miniprogram' && (
+        <Header fixed>
+          <div className='ml-auto flex items-center space-x-4'>
+          </div>
+        </Header>
+      )}
 
       <Main fixed>
         <div className='flex items-center justify-between'>
@@ -220,7 +223,6 @@ export default function MockInterviewPage() {
                     setCategory(id)
                   }}
                   className='group inline-flex max-w-[120px] min-w-[88px] shrink-0 flex-col items-center gap-2 text-sm'
-                  aria-pressed={active ? 'true' : 'false'}
                 >
                   <span
                     className={[
