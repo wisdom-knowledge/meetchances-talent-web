@@ -291,7 +291,7 @@ export default function ResumePage() {
 
   return (
     <>
-      {env === 'wechat-miniprogram' && (
+      {env !== 'wechat-miniprogram' && (
         <Header fixed>
           <div className='ml-auto flex items-center space-x-4'>
             <ProfileDropdown />
