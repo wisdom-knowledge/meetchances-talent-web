@@ -12,6 +12,7 @@ import { useJobDetailQuery } from '@/features/jobs/api'
 import { useIsMobile } from '@/hooks/use-mobile'
 import DesktopLayout from './components/desktop-layout'
 import MobileLayout from './components/mobile-layout'
+import useSilenceAutoHandle from './lib/useSilenceAutoHandle'
 
 export default function InterviewSessionViewPage() {
   const isMobile = useIsMobile()
@@ -20,7 +21,7 @@ export default function InterviewSessionViewPage() {
   useInterviewFinish()
   useAgentApm()
   const navigate = useNavigate()
-  
+
   // 获取job详情来判断是否为模拟面试
   const params = new URLSearchParams(window.location.search)
   const jobId = params.get('job_id')
@@ -90,6 +91,13 @@ export default function InterviewSessionViewPage() {
       navigate({ to: url, replace: true })
     }
   }, [jobDetail, navigate])
+
+  // 静默检测：10 秒未说话先播放提示，再次 10 秒结束面试
+  useSilenceAutoHandle({
+    onEndInterview: () => {
+      void performEndInterview()
+    },
+  })
 
 
   return (
