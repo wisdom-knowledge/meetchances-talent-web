@@ -1,12 +1,15 @@
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { IconArrowRight } from '@tabler/icons-react'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { userEvent } from '@/lib/apm'
+import { useJobApplyWorkflow, type JobApplyWorkflowNode } from '@/features/interview/api'
 
 interface AnnotateTestPendingProps {
   onTaskSubmit: () => void
+  jobApplyId?: number | string | null
   nodeData?: Record<string, unknown>
 }
 
@@ -14,21 +17,55 @@ interface AnnotateTestPendingProps {
  * 标注测试待完成视图
  * 引导用户前往 Xpert Studio 完成标注测试任务
  */
-export function AnnotateTestInProgress({ nodeData, onTaskSubmit }: AnnotateTestPendingProps) {
+export function AnnotateTestInProgress({ nodeData, onTaskSubmit, jobApplyId }: AnnotateTestPendingProps) {
   const isMobile = useIsMobile()
   const [mobileTipOpen, setMobileTipOpen] = useState(false)
-  const nodeConfig = nodeData?.node_config as { project_id: number, batch_id: number }
+  const nodeConfig = nodeData?.node_config as { project_id?: number, batch_id?: number }
   const projectId = nodeConfig?.project_id
   const batchId = nodeConfig?.batch_id
   const domain = import.meta.env.VITE_XPERT_STUDIO_DOMAIN
   // https://studio-boe.xpertiise.com/projects/440/batch/960/tasklist
   const xpertStudioUrl = `${domain}/projects/${projectId}/batch/${batchId}/tasklist`
-  const handleLinkClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
+
+  // 通过 nodeData 反推出当前 job_apply_id 和当前 node_id 用于刷新
+  const nodeId = useMemo(() => (nodeData?.id as number | undefined) ?? null, [nodeData])
+  const { refetch: refetchProgress } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
+
+  const handleLinkClick: React.MouseEventHandler<HTMLAnchorElement> = useCallback(async (e) => {
     if (isMobile) {
       e.preventDefault()
       setMobileTipOpen(true)
+      return
     }
-  }
+
+    // 若 batchId 缺失，尝试重拉 workflow 再取 node_config
+    if (!batchId || !projectId) {
+      e.preventDefault()
+      try {
+        const res = await refetchProgress()
+        const nodes = (res.data?.nodes ?? []) as JobApplyWorkflowNode[]
+        const refreshed = nodes.find((n) => n.id === (nodeId as number)) as (JobApplyWorkflowNode & { node_config?: { project_id?: number; batch_id?: number } }) | undefined
+        const refreshedCfg = refreshed?.node_config
+        const pId = refreshedCfg?.project_id ?? projectId
+        const bId = refreshedCfg?.batch_id ?? batchId
+        if (pId && bId) {
+          const url = `${domain}/projects/${pId}/batch/${bId}/tasklist`
+          window.open(url, '_blank', 'noopener,noreferrer')
+          return
+        }
+      } catch { /* ignore */ }
+
+      // 二次仍无 batchId：上报并降级
+      userEvent('annotate_batch_missing', '重拉后仍然缺少 batchId，降级跳转', {
+        page: 'interview_prepare',
+        job_apply_id: jobApplyId ?? undefined,
+        node_id: nodeId ?? undefined,
+      })
+      const fallback = projectId ? `${domain}/projects/${projectId}/batch/` : `${domain}/projects/`
+      window.open(fallback, '_blank', 'noopener,noreferrer')
+      return
+    }
+  }, [isMobile, batchId, projectId, refetchProgress, nodeId, domain, jobApplyId])
   const handleSubmit = () => {
     // TODO: 实现提交审核逻辑
     toast.success('已提交审核')

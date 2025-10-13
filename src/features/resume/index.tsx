@@ -6,7 +6,7 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { IconListDetails, IconStar, IconUser, IconWand, IconUpload, IconLoader2 } from '@tabler/icons-react'
+import { IconListDetails, IconStar, IconUser, IconWand, IconUpload, IconLoader2, IconTools, IconBallpen } from '@tabler/icons-react'
 
 // import { showSubmittedData } from '@/utils/show-submitted-data'
 import { Button } from '@/components/ui/button'
@@ -28,6 +28,7 @@ import ResumeSection from './components/resume-section'
 export default function ResumePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+  const [activeSectionId, setActiveSectionId] = useState<string>('section-basic')
 
   // 性别默认值为空，由用户选择或后端数据填充
   const defaultGender = undefined
@@ -107,6 +108,55 @@ export default function ResumePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeDetail?.item?.backend?.struct_info])
+
+  // 滚动联动：根据可视区域内的 section 更新左侧目录高亮
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const sectionIds = [
+      'section-basic',
+      'section-experience',
+      'section-qualifications',
+      'section-interests',
+      'section-work-skills',
+      'section-self',
+    ]
+
+    let ticking = false
+    const handleScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        const containerTop = container.getBoundingClientRect().top
+        // 触发阈值：使标题刚进入视窗就能高亮
+        const offset = 80
+        let current: string | null = null
+        for (const id of sectionIds) {
+          const el = document.getElementById(id)
+          if (!el) continue
+          const rect = el.getBoundingClientRect()
+          const top = rect.top - containerTop
+          if (top - offset <= 0) {
+            current = id
+          } else {
+            break
+          }
+        }
+        if (!current) current = sectionIds[0]
+        setActiveSectionId((prev) => (prev === current ? prev : current as string))
+        ticking = false
+      })
+    }
+
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    // 初始计算一次
+    handleScroll()
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
 
   // 开发调试：将 mock 数据映射为表单值
   function mapMockToFormValues(): ResumeFormValues {
@@ -257,12 +307,14 @@ export default function ResumePage() {
         <div className='flex flex-1 flex-col space-y-2 overflow-hidden md:space-y-2 lg:flex-row lg:space-y-0 lg:space-x-12'>
           <aside className='top-0 lg:sticky lg:w-1/5'>
             <SectionNav
+              activeId={activeSectionId}
               items={[
                 { id: 'section-basic', title: '基本信息', icon: <IconUser size={18} /> },
                 { id: 'section-experience', title: '经历', icon: <IconListDetails size={18} /> },
                 { id: 'section-qualifications', title: '附加资质', icon: <IconStar size={18} /> },
                 { id: 'section-interests', title: '兴趣与技能', icon: <IconWand size={18} /> },
-                { id: 'section-self', title: '自我评价', icon: <IconWand size={18} /> },
+                { id: 'section-work-skills', title: '工作技能', icon: <IconTools size={18} /> },
+                { id: 'section-self', title: '自我评价', icon: <IconBallpen size={18} /> },
               ] satisfies SectionNavItem[]}
             />
           </aside>
@@ -362,7 +414,7 @@ export default function ResumePage() {
                 </ResumeSection>
 
                 {/* 工作技能（配置驱动，可手动添加） */}
-                <ResumeSection variant='plain' id='section-self' title='工作技能'>
+                <ResumeSection variant='plain' id='section-work-skills' title='工作技能'>
                   <Form {...form}>
                     <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
                       <DynamicWorkExperience sectionKey='workSkills' scrollContainerRef={scrollContainerRef} />
@@ -373,7 +425,7 @@ export default function ResumePage() {
                 </ResumeSection>
 
                 {/* 自我评价（配置驱动） */}
-                <ResumeSection variant='plain' title='自我评价'>
+                <ResumeSection variant='plain' id='section-self' title='自我评价'>
                   <Form {...form}>
                     <form className='w-full space-y-6' onSubmit={form.handleSubmit(onSubmit)}>
                       <DynamicBasicForm sectionKey='self' />

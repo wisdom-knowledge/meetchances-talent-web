@@ -1,5 +1,6 @@
-export const salaryTypeMapping: Record<'hour' | 'month' | 'year', string> = {
-  hour: '时',
+export const salaryTypeMapping: Record<'hour' | 'day' | 'month' | 'year', string> = {
+  hour: '小时',
+  day: '天',
   month: '月',
   year: '年',
 }
