@@ -7,7 +7,7 @@ export interface JobTitleAndTagsProps {
 }
 
 export default function JobTitleAndTags({ job }: JobTitleAndTagsProps) {
-  const key = (job.salary_type ?? 'hour') as 'hour' | 'month' | 'year'
+  const key = (job.salary_type ?? 'hour') as 'hour' | 'day' | 'month' | 'year'
 
   return (
     <>

@@ -15,7 +15,7 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import noApplySvg from '@/assets/images/no-apply.svg'
 import noOfferSvg from '@/assets/images/no-offer.svg'
-import { salaryTypeMapping } from '@/features/jobs/constants'
+import { salaryTypeUnitMapping } from '@/features/jobs/constants'
 import {
   useImportantTasksQuery,
   useMyApplicationsQuery,
@@ -213,7 +213,7 @@ export default function HomeViewPage() {
                             <div className='text-muted-foreground text-xs'>
                               {jd && jd.salary_max && jd.salary_max > 0 
                                 ? `${jd.salary_min ?? 0}-${jd.salary_max}` 
-                                : jd?.salary_min ?? 0} / {jd ? salaryTypeMapping[jd.salary_type as keyof typeof salaryTypeMapping] || '小时' : '小时'}
+                                : jd?.salary_min ?? 0} / {jd ? salaryTypeUnitMapping[jd.salary_type as keyof typeof salaryTypeUnitMapping] || '小时' : '小时'}
                               <span className='mx-2'>|</span>
                               远程
                               <span className='mx-2'>|</span>

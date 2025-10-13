@@ -28,7 +28,7 @@ import {
   useJobApplyStatus,
   JobApplyStatus,
 } from './api'
-import { salaryTypeMapping, jobTypeMapping } from './constants'
+import { jobTypeMapping, salaryTypeUnitMapping } from './constants'
 // import { useNavigate } from '@tanstack/react-router'
 import JobDetailDrawer from './components/job-detail-drawer'
 import { Input } from '@/components/ui/input'
@@ -111,7 +111,7 @@ export default function JobsListPage() {
   useWeChatShare({
     shareTitle: selectedJobData ? `【招聘】${selectedJobData.title}` : '',
     shareDesc: selectedJobData
-      ? `Meehchances/一面千识 | ${jobTypeMapping[selectedJobData.job_type as keyof typeof jobTypeMapping] || '工作'}丨${selectedJobData.salary_max && selectedJobData.salary_max > 0 ? `${selectedJobData.salary_min}-${selectedJobData.salary_max}` : selectedJobData.salary_min}/${salaryTypeMapping[selectedJobData.salary_type as keyof typeof salaryTypeMapping] || 'Meehchances/一面千识'}`
+      ? `Meehchances/一面千识 | ${jobTypeMapping[selectedJobData.job_type as keyof typeof jobTypeMapping] || '工作'}丨${selectedJobData.salary_max && selectedJobData.salary_max > 0 ? `${selectedJobData.salary_min}-${selectedJobData.salary_max}` : selectedJobData.salary_min}/${salaryTypeUnitMapping[selectedJobData.salary_type as keyof typeof salaryTypeUnitMapping] || 'Meehchances/一面千识'}`
       : '',
     shareImgUrl:
       'https://dnu-cdn.xpertiise.com/common/42eabd48-d3c6-492e-b0f0-49b7dfe4419f.png',
@@ -345,8 +345,8 @@ export default function JobsListPage() {
                                 <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal'>
                                   <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   {job.salary_max && job.salary_max > 0 
-                                    ? `¥${job.salary_min ?? 0} - ¥${job.salary_max} / ${salaryTypeMapping[job.salary_type as keyof typeof salaryTypeMapping] || '小时'}`
-                                    : `¥${job.salary_min ?? 0} / ${salaryTypeMapping[job.salary_type as keyof typeof salaryTypeMapping] || '小时'}`
+                                    ? `¥${job.salary_min ?? 0} - ¥${job.salary_max} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
+                                    : `¥${job.salary_min ?? 0} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
                                   }
                                 </Badge>
                                  <Badge
