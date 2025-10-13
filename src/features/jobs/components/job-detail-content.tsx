@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/ui/button'
 import { RichText } from '@/components/ui/rich-text'
 import type { ApiJob } from '@/features/jobs/api'
+import { salaryTypeUnitMapping } from '@/features/jobs/constants'
 import JobTitleAndTags from './job-title-and-tags'
 import PublisherSection from './publisher-section'
 
@@ -22,13 +23,6 @@ export interface JobDetailContentProps {
   isTwoColumn?: boolean
   backLabel?: string
   applyButtonText?: string
-}
-
-const salaryTypeUnit: Record<NonNullable<ApiJob['salary_type']>, string> = {
-  hour: '小时',
-  day: '天',
-  month: '月',
-  year: '年',
 }
 
 export default function JobDetailContent({
@@ -111,8 +105,7 @@ export default function JobDetailContent({
 
   const low = job.salary_min ?? 0
   const high = job.salary_max ?? 0
-  const unit =
-    salaryTypeUnit[job.salary_type as keyof typeof salaryTypeUnit] ?? '小时'
+  const unit = salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] ?? ''
 
   const mockJobTitle = useMemo(() => {
     return (
