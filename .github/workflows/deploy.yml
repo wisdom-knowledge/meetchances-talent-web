@@ -56,6 +56,7 @@ jobs:
           VITE_APP_ENV: ${{ vars.VITE_APP_ENV }}
           VITE_RTC_APP_ID: ${{ vars.VITE_RTC_APP_ID }}
           VITE_XPERT_STUDIO_DOMAIN: ${{ vars.VITE_XPERT_STUDIO_DOMAIN }}
+          VITE_IM_APP_ID: ${{ vars.VITE_IM_APP_ID }}
         run: pnpm run build
 
       - name: 验证构建产物

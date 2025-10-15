@@ -152,9 +152,11 @@ export function initApm(): void {
   client('init', { aid, token })
 
   apmClient = client
-  // 需要忽略上报的 fetch 目标，例如 RTC SDK 的日志上报接口
+  // 需要忽略上报的 fetch 目标，例如 RTC SDK 的日志上报接口、火山 IM 轮询接口等
   const IGNORED_FETCH_URLS: RegExp[] = [
     /^https?:\/\/web-log-report\.rtc\.volcvideo\.com\/video\/v1\/webrtc_log\/?$/, // https://web-log-report.rtc.volcvideo.com/video/v1/webrtc_log/
+    /^https?:\/\/imapi\.volcvideo\.com\/.*/, // 火山 IM API（包括轮询接口 /v1/message/get_by_user）
+    /^https?:\/\/frontier.*\.ivolces\.com\/.*/, // 火山 IM WebSocket 连接
   ]
   type GenericEvent = {
     url?: string
@@ -163,6 +165,10 @@ export function initApm(): void {
     data?: { request?: { url?: string } }
     categories?: { url?: string; path?: string }
     detail?: { url?: string }
+    payload?: {
+      request?: { url?: string }
+      response?: { url?: string }
+    }
     [key: string]: unknown
   }
   const shouldIgnoreEvent = (ev: unknown): boolean => {
@@ -177,11 +183,19 @@ export function initApm(): void {
     uCandidates.push(e.categories?.url)
     uCandidates.push(e.categories?.path)
     uCandidates.push(e.detail?.url)
+    // HTTP 事件的 payload 字段
+    uCandidates.push(e.payload?.request?.url)
+    uCandidates.push(e.payload?.response?.url)
     for (const c of uCandidates) {
       const url = typeof c === 'string' ? c : undefined
       if (!url) continue
       for (const re of IGNORED_FETCH_URLS) {
-        if (re.test(url)) return true
+        if (re.test(url)) {
+          // 开发环境下输出调试信息
+          // eslint-disable-next-line no-console
+          if (import.meta.env.DEV) console.log('[APM] Ignored URL:', url)
+          return true
+        }
       }
     }
     return false
