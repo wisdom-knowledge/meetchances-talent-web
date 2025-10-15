@@ -312,23 +312,23 @@ export function NotificationCenter({ trigger, showBadge = true }: NotificationCe
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetContent side='bottom' className='h-full w-full p-0'>
             <SheetHeader className='px-4 py-3 border-b'>
-              <div className='flex items-center gap-2'>
-                {selectedMessage ? (
-                  <>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      onClick={handleBack}
-                      className='h-8 w-8 p-0 mr-2'
-                    >
-                      <ChevronLeft className='h-4 w-4' />
-                    </Button>
-                    <SheetTitle className='font-semibold text-sm'>消息详情</SheetTitle>
-                  </>
-                ) : (
+              {selectedMessage ? (
+                <div className='relative flex items-center justify-center'>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={handleBack}
+                    className='absolute left-0 h-8 w-8 p-0'
+                  >
+                    <ChevronLeft className='h-4 w-4' />
+                  </Button>
+                  <SheetTitle className='font-semibold text-sm'>消息详情</SheetTitle>
+                </div>
+              ) : (
+                <div className='flex items-center justify-center'>
                   <SheetTitle className='font-semibold text-sm'>通知中心</SheetTitle>
-                )}
-              </div>
+                </div>
+              )}
             </SheetHeader>
             <MessageContent />
           </SheetContent>
@@ -348,23 +348,23 @@ export function NotificationCenter({ trigger, showBadge = true }: NotificationCe
         sideOffset={8}
       >
         {/* 头部 */}
-        <div className='flex items-center justify-between px-4 py-3 border-b'>
-          {selectedMessage ? (
-            <>
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={handleBack}
-                className='h-8 w-8 p-0'
-              >
-                <ChevronLeft className='h-4 w-4' />
-              </Button>
-              <h3 className='font-semibold text-sm'>消息详情</h3>
-            </>
-          ) : (
+        {selectedMessage ? (
+          <div className='relative flex items-center justify-center px-4 py-3 border-b'>
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={handleBack}
+              className='absolute left-4 h-8 w-8 p-0'
+            >
+              <ChevronLeft className='h-4 w-4' />
+            </Button>
+            <h3 className='font-semibold text-sm'>消息详情</h3>
+          </div>
+        ) : (
+          <div className='flex items-center justify-center px-4 py-3 border-b'>
             <h3 className='font-semibold text-sm'>通知中心</h3>
-          )}
-        </div>
+          </div>
+        )}
 
         <MessageContent />
       </PopoverContent>
