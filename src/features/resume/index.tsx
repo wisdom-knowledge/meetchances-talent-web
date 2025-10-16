@@ -280,14 +280,6 @@ export default function ResumePage() {
     }
   }
 
-  // 仅开发环境暴露：一键填充 mock 数据，便于调试
-  const isDev = import.meta.env.DEV
-  function fillWithMock() {
-    if (!isDev) return
-    const mockValues = mapMockToFormValues()
-    form.reset(mockValues)
-  }
-
   return (
     <>
       <Header fixed>
@@ -356,11 +348,6 @@ export default function ResumePage() {
                           </>
                         )}
                       </Button>
-                      {isDev && (
-                        <Button variant='outline' className='h-10 px-4 py-2' onClick={fillWithMock}>
-                          用 Mock 数据填充
-                        </Button>
-                      )}
                       <Button className='h-10 px-4 py-2' onClick={form.handleSubmit(onSubmit)} disabled={uploadingResume}>
                         保存
                       </Button>
