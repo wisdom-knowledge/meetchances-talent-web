@@ -35,6 +35,7 @@ import { Route as AuthenticatedTalentPoolIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedResumeIndexRouteImport } from './routes/_authenticated/resume/index'
 import { Route as AuthenticatedResumeUploadIndexRouteImport } from './routes/_authenticated/resume-upload/index'
+import { Route as AuthenticatedMineIndexRouteImport } from './routes/_authenticated/mine/index'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs/index'
 import { Route as AuthenticatedJobRecommendIndexRouteImport } from './routes/_authenticated/job-recommend/index'
 import { Route as AuthenticatedJobDetailIndexRouteImport } from './routes/_authenticated/job-detail/index'
@@ -191,6 +192,11 @@ const AuthenticatedResumeUploadIndexRoute =
     path: '/resume-upload/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMineIndexRoute = AuthenticatedMineIndexRouteImport.update({
+  id: '/mine/',
+  path: '/mine/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
   id: '/jobs/',
   path: '/jobs/',
@@ -364,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/job-detail': typeof AuthenticatedJobDetailIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
+  '/mine': typeof AuthenticatedMineIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
   '/resume': typeof AuthenticatedResumeIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -410,6 +417,7 @@ export interface FileRoutesByTo {
   '/job-detail': typeof AuthenticatedJobDetailIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
+  '/mine': typeof AuthenticatedMineIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
   '/resume': typeof AuthenticatedResumeIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -462,6 +470,7 @@ export interface FileRoutesById {
   '/_authenticated/job-detail/': typeof AuthenticatedJobDetailIndexRoute
   '/_authenticated/job-recommend/': typeof AuthenticatedJobRecommendIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/_authenticated/mine/': typeof AuthenticatedMineIndexRoute
   '/_authenticated/resume-upload/': typeof AuthenticatedResumeUploadIndexRoute
   '/_authenticated/resume/': typeof AuthenticatedResumeIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -512,6 +521,7 @@ export interface FileRouteTypes {
     | '/job-detail'
     | '/job-recommend'
     | '/jobs'
+    | '/mine'
     | '/resume-upload'
     | '/resume'
     | '/settings/'
@@ -558,6 +568,7 @@ export interface FileRouteTypes {
     | '/job-detail'
     | '/job-recommend'
     | '/jobs'
+    | '/mine'
     | '/resume-upload'
     | '/resume'
     | '/settings'
@@ -609,6 +620,7 @@ export interface FileRouteTypes {
     | '/_authenticated/job-detail/'
     | '/_authenticated/job-recommend/'
     | '/_authenticated/jobs/'
+    | '/_authenticated/mine/'
     | '/_authenticated/resume-upload/'
     | '/_authenticated/resume/'
     | '/_authenticated/settings/'
@@ -819,6 +831,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedResumeUploadIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mine/': {
+      id: '/_authenticated/mine/'
+      path: '/mine'
+      fullPath: '/mine'
+      preLoaderRoute: typeof AuthenticatedMineIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/jobs/': {
       id: '/_authenticated/jobs/'
       path: '/jobs'
@@ -1025,6 +1044,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobDetailIndexRoute: typeof AuthenticatedJobDetailIndexRoute
   AuthenticatedJobRecommendIndexRoute: typeof AuthenticatedJobRecommendIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
+  AuthenticatedMineIndexRoute: typeof AuthenticatedMineIndexRoute
   AuthenticatedResumeUploadIndexRoute: typeof AuthenticatedResumeUploadIndexRoute
   AuthenticatedResumeIndexRoute: typeof AuthenticatedResumeIndexRoute
   AuthenticatedTalentPoolIndexRoute: typeof AuthenticatedTalentPoolIndexRoute
@@ -1053,6 +1073,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJobDetailIndexRoute: AuthenticatedJobDetailIndexRoute,
   AuthenticatedJobRecommendIndexRoute: AuthenticatedJobRecommendIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
+  AuthenticatedMineIndexRoute: AuthenticatedMineIndexRoute,
   AuthenticatedResumeUploadIndexRoute: AuthenticatedResumeUploadIndexRoute,
   AuthenticatedResumeIndexRoute: AuthenticatedResumeIndexRoute,
   AuthenticatedTalentPoolIndexRoute: AuthenticatedTalentPoolIndexRoute,

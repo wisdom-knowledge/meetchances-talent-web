@@ -2,6 +2,8 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { useRuntimeEnv } from '@/hooks/use-runtime-env'
+import { P } from 'node_modules/@clerk/clerk-react/dist/useAuth-DN6TRwS8.d.mts'
 
 interface HeaderProps {
   className?: string
@@ -12,6 +14,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ className, fixed, children, showSidebarTrigger = true }: HeaderProps) => {
+  const env = useRuntimeEnv()
   const [offset, setOffset] = React.useState(0)
 
   React.useEffect(() => {
@@ -25,6 +28,11 @@ export const Header = ({ className, fixed, children, showSidebarTrigger = true }
     // Clean up the event listener on unmount
     return () => document.removeEventListener('scroll', onScroll)
   }, [])
+
+  // 移动端隐藏全局 Header
+  if (env === 'mobile') return (
+    <p className='h-4'></p>
+  )
 
   return (
     <header
