@@ -36,7 +36,7 @@ export default function MinePage() {
           {user?.phone_number ? (
             <div className='mt-2 flex items-center text-base'>
               <IconPhone className='mr-2 h-5 w-5' />
-              <span>{user.phone_number}</span>
+              <span>{maskPhoneNumber(user.phone_number)}</span>
             </div>
           ) : null}
         </div>
@@ -92,6 +92,14 @@ function handleLogout() {
 
 function gotoAccountInfo() {
   window.open('https://meetchances-talent.authing.cn/u?app_id=68a80c45ea682857b1f54cdc', '_blank', 'noopener,noreferrer')
+}
+
+function maskPhoneNumber(raw?: string): string {
+  if (!raw) return ''
+  const digits = raw.replace(/\D/g, '')
+  if (digits.length === 11) return digits.replace(/(\d{3})(\d{4})(\d{4})/, '$1****$3')
+  if (digits.length > 7) return digits.replace(/(\d{3})\d{4}(\d+)/, '$1****$2')
+  return raw
 }
 
 // 复用 @nav-user.tsx 中的两个图标（用原生 SVG，避免额外依赖）

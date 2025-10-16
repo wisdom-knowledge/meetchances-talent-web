@@ -4,8 +4,9 @@ import { Resolver, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { Separator } from '@/components/ui/separator'
+// import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
+import TitleBar from '@/components/title-bar'
 import { IconListDetails, IconStar, IconUser, IconWand, IconUpload, IconLoader2, IconTools, IconBallpen } from '@tabler/icons-react'
 
 // import { showSubmittedData } from '@/utils/show-submitted-data'
@@ -296,13 +297,12 @@ export default function ResumePage() {
       </Header>
 
       <Main fixed className='md:mx-16 py-0'>
-        <div className='md:flex md:items-end'>
-          <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>
-            我的简历
-          </h1>
-          <p className='text-muted-foreground'>完善你的基本信息与经历，便于精准匹配项目。</p>
-        </div>
-        <Separator className='my-4 lg:my-6' />
+        <TitleBar
+          title='我的简历'
+          back={true}
+          subtitle='完善你的基本信息与经历，便于精准匹配项目。'
+          separator
+        />
 
         <div className='flex flex-1 flex-col space-y-2 overflow-hidden md:space-y-2 lg:flex-row lg:space-y-0 lg:space-x-12'>
           <aside className='top-0 lg:sticky lg:w-1/5'>
