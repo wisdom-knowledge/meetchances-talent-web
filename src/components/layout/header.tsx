@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
-import { P } from 'node_modules/@clerk/clerk-react/dist/useAuth-DN6TRwS8.d.mts'
 
 interface HeaderProps {
   className?: string
