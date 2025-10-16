@@ -70,7 +70,7 @@ export const api = axios.create({
 // 登录地址（通过一个统一的环境变量覆盖）
 const LOGIN_URL = import.meta.env.VITE_AUTH_LOGIN_URL
 
-type WxWithMiniProgram = { miniProgram?: { redirectTo?: (opts: { url: string }) => void } }
+type WxWithMiniProgram = { miniProgram?: { redirectTo?: (opts: { url: string, data?: Record<string, string> }) => void } }
 
 // 统一处理未登录/登录失效后的跳转逻辑
 function handleUnauthorizedRedirect(): void {
@@ -85,9 +85,9 @@ function handleUnauthorizedRedirect(): void {
       const wxAny = (window as unknown as { wx?: unknown }).wx as
         | undefined
         | WxWithMiniProgram
-      const target = '/pages/authorize/authorize'
-      const url = target.startsWith('/') ? target : `/${target}`
-      wxAny?.miniProgram?.redirectTo?.({ url })
+      const target = '/pages/authorize/authorize?redirect_url=' + encodeURIComponent(window.location.href)
+      // const url = target.startsWith('/') ? target : `/${target}`
+      wxAny?.miniProgram?.redirectTo?.({ url: target })
       return
     }
   } catch (_e) {
