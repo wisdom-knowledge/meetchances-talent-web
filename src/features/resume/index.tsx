@@ -6,7 +6,6 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import { IconListDetails, IconStar, IconUser, IconWand, IconUpload, IconLoader2, IconTools, IconBallpen } from '@tabler/icons-react'
 
 // import { showSubmittedData } from '@/utils/show-submitted-data'
@@ -27,7 +26,6 @@ import DynamicWorkExperience from './components/dynamic-work-experience'
 import ResumeSection from './components/resume-section'
 
 export default function ResumePage() {
-  const env = useRuntimeEnv()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const [activeSectionId, setActiveSectionId] = useState<string>('section-basic')
@@ -291,13 +289,11 @@ export default function ResumePage() {
 
   return (
     <>
-      {env !== 'wechat-miniprogram' && (
-        <Header fixed>
-          <div className='ml-auto flex items-center space-x-4'>
-            <ProfileDropdown />
-          </div>
-        </Header>
-      )}
+      <Header fixed>
+        <div className='ml-auto flex items-center space-x-4'>
+          <ProfileDropdown />
+        </div>
+      </Header>
 
       <Main fixed className='md:mx-16 py-0'>
         <div className='md:flex md:items-end'>
