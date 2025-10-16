@@ -30,7 +30,7 @@ export const Header = ({ className, fixed, children, showSidebarTrigger = true }
 
   // 移动端隐藏全局 Header
   if (env === 'mobile' || env === 'wechat-miniprogram') return (
-    <p className='h-4'></p>
+    <p className='h-4 py-1'></p>
   )
 
   return (
