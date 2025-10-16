@@ -77,7 +77,7 @@ function DesktopViewModeInterviewPrepare({
   return (
     <div className='flex-1 flex flex-col lg:grid lg:gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
       {/* 左：职位标题 + 设备检查 */}
-      <div className='lg:col-span-7 space-y-6 px-3 lg:pl-3 flex flex-col justify-center'>
+      <div className='md:col-span-7 space-y-6 px-3 md:pl-3 flex flex-col justify-center'>
         <div className='flex items-center justify-between'>
           <div className='text-2xl font-bold mb-2 leading-tight truncate'>
             {job?.title ?? (isLoading ? '加载中…' : '未找到职位')}
@@ -117,7 +117,7 @@ function DesktopViewModeInterviewPrepare({
       </div>
 
       {/* 右：操作区域（桌面端） */}
-      <div className='hidden lg:flex lg:col-span-5 p-6 lg:sticky flex-col justify-center'>
+      <div className='hidden md:flex md:col-span-5 p-6 md:sticky flex-col justify-center'>
         <div className='lg:my-36'>
           <Button
             className={
