@@ -95,8 +95,14 @@ class IMManager {
 
   /**
    * 从后端接口获取并更新未读数
+   * 只有在有订阅者时才会调用 API
    */
   async fetchAndUpdateUnreadCount(): Promise<void> {
+    // 如果没有订阅者，不调用 API
+    if (this.unreadCountListeners.length === 0) {
+      return
+    }
+    
     try {
       const count = await fetchUnreadCount()
       this.notifyUnreadCountListeners(count)
