@@ -13,21 +13,49 @@ import { sanitizeHTML } from '@/utils/sanitize-html'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 /**
- * 将文本中的 URL 转换为可点击的链接
+ * 将文本中的自定义链接格式转换为可点击的 HTML 链接
+ * 支持以下格式：
+ * 
+ * 1. 带自定义文字：{link=https://example.com}点击这里{/link}
+ *    → <a href="https://example.com" target="_blank">点击这里</a>
+ * 
+ * 2. 不带自定义文字：{link=https://example.com}
+ *    → <a href="https://example.com" target="_blank">https://example.com</a>
+ * 
+ * 3. 站内链接：{link=/jobs/123}查看详情{/link}
+ *    → <a href="/jobs/123">查看详情</a>
+ * 
+ * 注意：
+ * - 外部链接（http/https）会在新窗口打开
+ * - 站内链接（以 / 开头）在当前窗口导航
  */
 function linkifyText(text: string): string {
-  // URL 正则表达式
-  const urlRegex = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g
+  let result = text
   
-  // 如果文本中已经包含 HTML 标签，直接返回（避免重复处理）
-  if (/<[a-z][\s\S]*>/i.test(text)) {
-    return text
-  }
-  
-  // 替换 URL 为链接
-  return text.replace(urlRegex, (url) => {
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+  // 1. 处理 {link=url}文字{/link} 格式（带自定义文字）
+  const linkWithTextRegex = /{link=((?:https?:\/\/|\/)[^}]+)}([^{]*?){\/link}/g
+  result = result.replace(linkWithTextRegex, (_match, url, linkText) => {
+    const displayText = linkText.trim() || url
+    const isExternal = url.startsWith('http')
+    
+    if (isExternal) {
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer">${displayText}</a>`
+    }
+    return `<a href="${url}">${displayText}</a>`
   })
+  
+  // 2. 处理 {link=url} 格式（不带自定义文字）
+  const linkRegex = /{link=((?:https?:\/\/|\/)[^}]+)}/g
+  result = result.replace(linkRegex, (_match, url) => {
+    const isExternal = url.startsWith('http')
+    
+    if (isExternal) {
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+    }
+    return `<a href="${url}">${url}</a>`
+  })
+  
+  return result
 }
 
 
