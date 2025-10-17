@@ -17,6 +17,7 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { userEvent } from '@/lib/apm'
 import { useNavigate, useRouterState } from '@tanstack/react-router'
+import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 
 // import { ExploreJobs } from './mockData.ts'
 import {
@@ -52,6 +53,7 @@ function formatPublishTime(createdAt?: string): string {
 }
 
 export default function JobsListPage() {
+  const env = useRuntimeEnv()
   const navigate = useNavigate()
   const { location } = useRouterState()
   const search = location.search as Record<string, unknown>
@@ -363,7 +365,7 @@ export default function JobsListPage() {
               </ul>
             </ScrollArea>
             {/* 分页控制：固定在列表下方可见 */}
-            <div className='flex items-center justify-end gap-2 pt-2'>
+            <div className={cn('flex items-center justify-end gap-2 pt-2', env === 'mobile' && 'pb-6')}>
               <button
                 type='button'
                 className={cn('inline-flex h-8 items-center rounded-md border px-3 text-xs', !canPrev && 'opacity-50 cursor-not-allowed')}

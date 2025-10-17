@@ -67,7 +67,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
 
       <div className='space-y-6'>
         {fieldArray.fields.length === 0 ? (
-          <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
+          <div className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-4 md:p-6 shadow-xs rounded-lg'>
             <div className='text-center py-10 text-gray-500'>
               <span className='text-xs text-muted-foreground leading-none'>
                 {arraySection.emptyText}
@@ -76,7 +76,7 @@ export default function DynamicWorkExperience({ sectionKey = 'workExperience' as
           </div>
         ) : (
           fieldArray.fields.map((fieldItem, index) => (
-            <div key={fieldItem.id} className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg'>
+            <div key={fieldItem.id} className='border border-block-layout-border bg-block-layout text-block-layout-foreground p-4 md:p-6 shadow-xs rounded-lg'>
               <div className='mb-4 flex items-center justify-between'>
                 <div className='text-sm text-muted-foreground'>{(arraySection.itemTitlePrefix ?? '工作经历') + ' ' + (index + 1)}</div>
                 {!readOnly && !(sectionKey === 'education' && index === 0) && (
