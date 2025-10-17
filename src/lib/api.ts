@@ -81,6 +81,10 @@ function handleUnauthorizedRedirect(): void {
   try {
     const env = detectRuntimeEnvSync()
     if (env === 'wechat-miniprogram') {
+      // 路由白名单：这些页面在小程序环境下也不进行 redirectTo
+      const pathname = window.location.pathname
+      const whiteList = ['/jobs', '/mock-interview', '/mine']
+      if (whiteList.some((p) => pathname.startsWith(p))) return
       // 在小程序内，使用小程序路由跳转
       const wxAny = (window as unknown as { wx?: unknown }).wx as
         | undefined
