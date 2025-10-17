@@ -293,6 +293,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const [_joining, triggerJoin] = useJoin()
   const setRtcConnectionInfo = useRoomStore((s) => s.setRtcConnectionInfo)
+  // 问卷轮询的最大次数，默认 100 次
+  const MAX_QUESTIONNAIRE_POLL_COUNT = 100
   // 当视频设备自动选择时，保存为默认选择
   useEffect(() => {
     if (viewMode !== ViewMode.InterviewPrepare) return
@@ -324,6 +326,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   }, [])
 
   const hasReportedSessionRefresh = useRef(false)
+  const questionnairePollCountRef = useRef(0)
 
   // 当页面来源为 session 页面刷新时，上报页面刷新事件
   useEffect(() => {
@@ -580,7 +583,18 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       !isMock
 
     if (isQuestionnaireInProgress) {
+      // 若已达到最大次数，则不再启动新的轮询
+      if (questionnairePollCountRef.current >= MAX_QUESTIONNAIRE_POLL_COUNT) {
+        return
+      }
+
       const pollInterval = setInterval(async () => {
+        // 已达上限则停止
+        if (questionnairePollCountRef.current >= MAX_QUESTIONNAIRE_POLL_COUNT) {
+          clearInterval(pollInterval)
+          return
+        }
+        questionnairePollCountRef.current += 1
         // 刷新工作流数据，这会触发本 useEffect 重新执行
         await queryClient.invalidateQueries({
           queryKey: ['job-apply-workflow', jobApplyId],
@@ -590,6 +604,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       return () => {
         clearInterval(pollInterval)
       }
+    } else {
+      // 非问卷阶段或已结束时，重置计数
+      questionnairePollCountRef.current = 0
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress, isMock])
