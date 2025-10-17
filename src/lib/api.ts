@@ -257,6 +257,7 @@ export interface MessageItem {
   message_id: number
   sender_id: number
   sender_user_name: string
+  title: string
   sender_user_avatar: string
   message_type: number
   content_type: number

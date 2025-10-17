@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Bell, ChevronLeft, Loader2 } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import { imManager } from '@/lib/im'
 import { cn } from '@/lib/utils'
 import { sanitizeHTML } from '@/utils/sanitize-html'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useAuthStore } from '@/stores/authStore'
 
 /**
  * 将文本中的自定义链接格式转换为可点击的 HTML 链接
@@ -85,9 +86,16 @@ export function NotificationCenter({ trigger, showBadge = true }: NotificationCe
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const COUNT = 20
+  
+  // 获取用户登录状态
+  const user = useAuthStore((state) => state.auth.user)
+  const isLoggedIn = !!user
 
   // 获取消息列表（首次加载）
-  const fetchMessagesData = async () => {
+  const fetchMessagesData = useCallback(async () => {
+    // 未登录时不执行任何操作
+    if (!isLoggedIn) return
+    
     setLoading(true)
     try {
       const response = await fetchMessages({ cursor: null, count: COUNT })
@@ -98,11 +106,11 @@ export function NotificationCenter({ trigger, showBadge = true }: NotificationCe
     } finally {
       setLoading(false)
     }
-  }
+  }, [isLoggedIn])
 
   // 加载更多消息（使用游标分页）
-  const loadMoreMessages = async () => {
-    if (loadingMore || !hasMore) return
+  const loadMoreMessages = useCallback(async () => {
+    if (loadingMore || !hasMore || !isLoggedIn) return
 
     setLoadingMore(true)
     try {
@@ -120,10 +128,13 @@ export function NotificationCenter({ trigger, showBadge = true }: NotificationCe
     } finally {
       setLoadingMore(false)
     }
-  }
+  }, [loadingMore, hasMore, isLoggedIn, messages])
 
   // 标记消息为已读
   const markAsRead = async (messageId: number) => {
+    // 未登录时不执行任何操作
+    if (!isLoggedIn) return
+    
     try {
       // 调用后端 API 标记已读
       await markMessageAsRead(messageId)
@@ -187,22 +198,28 @@ export function NotificationCenter({ trigger, showBadge = true }: NotificationCe
 
   // 监听未读数变化
   useEffect(() => {
+    // 只有在用户登录时才订阅 IM 的未读数变化
+    if (!isLoggedIn) {
+      setUnreadCount(0)
+      return
+    }
+    
     // 订阅 IM 的未读数变化（会自动获取一次）
     const unsubscribe = imManager.onUnreadCountChange((count) => {
       setUnreadCount(count)
     })
     return unsubscribe
-  }, [])
+  }, [isLoggedIn])
 
   // 打开时获取消息列表
   useEffect(() => {
-    if (open) {
+    if (open && isLoggedIn) {
       fetchMessagesData()
     } else {
       // 关闭时重置状态
       setSelectedMessage(null)
     }
-  }, [open])
+  }, [open, isLoggedIn, fetchMessagesData])
 
   // 默认触发按钮 - 与其他菜单按钮样式保持一致
   const defaultTrigger = (
@@ -254,7 +271,7 @@ export function NotificationCenter({ trigger, showBadge = true }: NotificationCe
         // 消息详情视图
         <div className='p-4 space-y-4'>
           <div>
-            <h4 className='font-semibold text-base mb-2'>{selectedMessage.sender_user_name}</h4>
+            <h4 className='font-semibold text-base mb-2'>{selectedMessage.title || '-'}</h4>
             {selectedMessage.created_at && (
               <p className='text-xs text-muted-foreground mb-4'>
                 {new Date(selectedMessage.created_at).toLocaleString('zh-CN')}
@@ -294,7 +311,7 @@ export function NotificationCenter({ trigger, showBadge = true }: NotificationCe
                     <div className='flex items-start gap-2'>
                       <div className='flex-1 min-w-0'>
                         <div className='flex items-center gap-2 mb-1'>
-                          <h4 className='font-medium text-sm truncate'>{message.sender_user_name}</h4>
+                          <h4 className='font-medium text-sm truncate'>{message.title || '-'}</h4>
                           {!message.is_read && (
                             <Badge variant='destructive' className='h-4 px-1 text-[10px]'>
                               未读
