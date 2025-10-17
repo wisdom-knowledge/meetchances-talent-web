@@ -185,7 +185,7 @@ export default function JobsListPage() {
             <h1 className=' text-xl font-bold tracking-tight md:text-2xl mr-3'>
               职位列表
             </h1>
-            <p className='text-muted-foreground text-sm sm:text-base relative '>寻找与你匹配的工作机会++</p>
+            <p className='text-muted-foreground text-sm sm:text-base relative '>寻找与你匹配的工作机会</p>
           </div>
 
         </div>
@@ -346,7 +346,7 @@ export default function JobsListPage() {
                                 })()}
                                 <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal'>
                                   <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
-                                  {job.salary_max && job.salary_max > 0 
+                                  {job.salary_max && job.salary_max > 0
                                     ? `¥${job.salary_min ?? 0} - ¥${job.salary_max} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
                                     : `¥${job.salary_min ?? 0} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
                                   }
