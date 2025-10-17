@@ -7,6 +7,7 @@ import logoImg from '@/assets/images/mobile-logo.svg'
 import { userEvent } from '@/lib/apm'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/ui/button'
 import { RichText } from '@/components/ui/rich-text'
@@ -36,6 +37,7 @@ export default function JobDetailContent({
 }: JobDetailContentProps) {
   const isMobile = useIsMobile()
   const user = useAuthStore((s) => s.auth.user)
+  const env = useRuntimeEnv()
 
   const applicationCardRef = useRef<HTMLDivElement>(null)
   const [showFixedBar, setShowFixedBar] = useState(true)
@@ -92,7 +94,9 @@ export default function JobDetailContent({
       params = `${params}andinvite_token${inviteToken}`
     }
     let targetUrl
-    if (user) {
+    if (env === 'wechat-miniprogram') {
+      targetUrl = `/interview/prepare`
+    } else if (user) {
       targetUrl = `/interview/prepare`
     } else if (import.meta.env.DEV) {
       targetUrl = `/interview/prepare`
@@ -101,7 +105,7 @@ export default function JobDetailContent({
     }
 
     window.location.href = `${targetUrl}?${params}`
-  }, [job.id, job.job_type, inviteToken, user])
+  }, [env, job.id, job.job_type, inviteToken, user])
 
   const low = job.salary_min ?? 0
   const high = job.salary_max ?? 0
