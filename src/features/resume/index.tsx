@@ -4,8 +4,9 @@ import { Resolver, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { Separator } from '@/components/ui/separator'
+// import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
+import TitleBar from '@/components/title-bar'
 import { IconListDetails, IconStar, IconUser, IconWand, IconUpload, IconLoader2, IconTools, IconBallpen } from '@tabler/icons-react'
 
 // import { showSubmittedData } from '@/utils/show-submitted-data'
@@ -220,7 +221,7 @@ export default function ResumePage() {
   async function handleResumeFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    
+
     // 验证文件类型，只允许PDF
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
       toast.error('仅支持上传PDF格式的简历文件')
@@ -279,14 +280,6 @@ export default function ResumePage() {
     }
   }
 
-  // 仅开发环境暴露：一键填充 mock 数据，便于调试
-  const isDev = import.meta.env.DEV
-  function fillWithMock() {
-    if (!isDev) return
-    const mockValues = mapMockToFormValues()
-    form.reset(mockValues)
-  }
-
   return (
     <>
       <Header fixed>
@@ -296,13 +289,12 @@ export default function ResumePage() {
       </Header>
 
       <Main fixed className='md:mx-16 py-0'>
-        <div className='md:flex md:items-end'>
-          <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>
-            我的简历
-          </h1>
-          <p className='text-muted-foreground'>完善你的基本信息与经历，便于精准匹配项目。</p>
-        </div>
-        <Separator className='my-4 lg:my-6' />
+        <TitleBar
+          title='我的简历'
+          back={true}
+          subtitle='完善你的基本信息与经历，便于精准匹配项目。'
+          separator
+        />
 
         <div className='flex flex-1 flex-col space-y-2 overflow-hidden md:space-y-2 lg:flex-row lg:space-y-0 lg:space-x-12'>
           <aside className='top-0 lg:sticky lg:w-1/5'>
@@ -356,11 +348,6 @@ export default function ResumePage() {
                           </>
                         )}
                       </Button>
-                      {isDev && (
-                        <Button variant='outline' className='h-10 px-4 py-2' onClick={fillWithMock}>
-                          用 Mock 数据填充
-                        </Button>
-                      )}
                       <Button className='h-10 px-4 py-2' onClick={form.handleSubmit(onSubmit)} disabled={uploadingResume}>
                         保存
                       </Button>
