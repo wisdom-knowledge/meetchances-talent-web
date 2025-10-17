@@ -426,6 +426,10 @@ textarea {
   }
 }
 
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* 移动端优化：防止橡皮筋效果（可选） */
 html,
 body {

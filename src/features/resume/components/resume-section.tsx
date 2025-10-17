@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 
 interface ResumeSectionProps {
   id?: string
@@ -10,6 +11,8 @@ interface ResumeSectionProps {
 }
 
 export default function ResumeSection({ id, title, className, children, variant = 'card', contentClassName }: ResumeSectionProps) {
+  const env = useRuntimeEnv()
+  const isMiniProgram = env === 'wechat-miniprogram'
   return (
     <section id={id} className={cn(className)}>
       <div className='mb-6'>
@@ -18,7 +21,8 @@ export default function ResumeSection({ id, title, className, children, variant 
       {variant === 'card' ? (
         <div
           className={cn(
-            'border border-block-layout-border bg-block-layout text-block-layout-foreground p-6 shadow-xs rounded-lg',
+            'border border-block-layout-border bg-block-layout text-block-layout-foreground shadow-xs rounded-lg',
+            isMiniProgram ? 'p-4' : 'p-4 md:p-6',
             contentClassName
           )}
         >
