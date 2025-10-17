@@ -44,6 +44,7 @@ class IMManager {
           frontierUrl: FRONTIER_URL,
           authType: im_proto.AuthType.TOKEN_AUTH,
           debug: import.meta.env.DEV, // 开发环境启用调试
+          disableInitPull: true,
           token,
         })
 
