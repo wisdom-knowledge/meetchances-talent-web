@@ -4,16 +4,15 @@ import { Resolver, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { Separator } from '@/components/ui/separator'
+// import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
+import TitleBar from '@/components/title-bar'
 import { IconListDetails, IconStar, IconUser, IconWand, IconUpload, IconLoader2, IconTools, IconBallpen } from '@tabler/icons-react'
 
 // import { showSubmittedData } from '@/utils/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { resumeSchema, type ResumeFormValues } from './data/schema'
-import { resumeMockData } from './data/mock'
-import { options } from './data/config'
 import { fetchTalentResumeDetail, patchTalentResumeDetail, uploadTalentResume } from '@/features/resume-upload/utils/api'
 import { mapStructInfoToResumeFormValues, mapResumeFormValuesToStructInfo } from '@/features/resume/data/struct-mapper'
 import type { StructInfo } from '@/features/resume-upload/types/struct-info'
@@ -158,69 +157,13 @@ export default function ResumePage() {
     }
   }, [])
 
-  // 开发调试：将 mock 数据映射为表单值
-  function mapMockToFormValues(): ResumeFormValues {
-    const rawGender = resumeMockData.structured_resume.basic_info.gender as (typeof options.gender)[number] | null
-    const gender = options.gender.includes(rawGender as (typeof options.gender)[number])
-      ? (rawGender as (typeof options.gender)[number])
-      : undefined
-
-    return {
-      name: resumeMockData.structured_resume.basic_info.name ?? '',
-      phone: resumeMockData.structured_resume.basic_info.phone ?? '',
-      city: (resumeMockData.structured_resume.basic_info.city as string | null) ?? undefined,
-      gender,
-      email: resumeMockData.structured_resume.basic_info.email ?? '',
-      origin: '',
-      expectedSalary: '',
-      hobbies: '',
-      skills: '',
-      workSkills: [],
-      softSkills: (resumeMockData.structured_resume.self_assessment.soft_skills ?? []).join('、'),
-      selfEvaluation: resumeMockData.structured_resume.self_assessment.summary ?? '',
-      workExperience:
-        (resumeMockData.structured_resume.experience.work_experience ?? []).map((w) => ({
-          organization: w.organization ?? '',
-          title: w.title ?? '',
-          startDate: w.start_date ?? '',
-          endDate: w.end_date ?? '',
-          city: (w.city as string | null) ?? '',
-          employmentType: (w.employment_type as string | null) ?? '',
-          achievements: (w.achievements ?? []).join('\n'),
-        })),
-      projectExperience:
-        (resumeMockData.structured_resume.experience.project_experience ?? []).map((p) => ({
-          organization: p.organization ?? '',
-          role: p.role ?? '',
-          startDate: p.start_date ?? '',
-          endDate: p.end_date ?? '',
-          achievements: (p.achievements ?? []).join('\n'),
-        })),
-      education:
-        (resumeMockData.structured_resume.experience.education ?? []).map((e) => ({
-          institution: e.institution ?? '',
-          major: e.major ?? '',
-          degreeType: e.degree_type ?? '',
-          degreeStatus: (e.degree_status as string | null) ?? '',
-          city: (e.city as string | null) ?? '',
-          startDate: e.start_date ?? '',
-          endDate: e.end_date ?? '',
-          achievements: e.achievements
-            ? Array.isArray(e.achievements)
-              ? e.achievements.join('\n')
-              : String(e.achievements)
-            : '',
-        })),
-    }
-  }
-
   // experiences 由动态组件内部管理；此处不需要声明
 
   // 上传新简历并回显
   async function handleResumeFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    
+
     // 验证文件类型，只允许PDF
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
       toast.error('仅支持上传PDF格式的简历文件')
@@ -279,14 +222,6 @@ export default function ResumePage() {
     }
   }
 
-  // 仅开发环境暴露：一键填充 mock 数据，便于调试
-  const isDev = import.meta.env.DEV
-  function fillWithMock() {
-    if (!isDev) return
-    const mockValues = mapMockToFormValues()
-    form.reset(mockValues)
-  }
-
   return (
     <>
       <Header fixed>
@@ -296,13 +231,12 @@ export default function ResumePage() {
       </Header>
 
       <Main fixed className='md:mx-16 py-0'>
-        <div className='md:flex md:items-end'>
-          <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>
-            我的简历
-          </h1>
-          <p className='text-muted-foreground'>完善你的基本信息与经历，便于精准匹配项目。</p>
-        </div>
-        <Separator className='my-4 lg:my-6' />
+        <TitleBar
+          title='我的简历'
+          back={true}
+          subtitle='完善你的基本信息与经历，便于精准匹配项目。'
+          separator
+        />
 
         <div className='flex flex-1 flex-col space-y-2 overflow-hidden md:space-y-2 lg:flex-row lg:space-y-0 lg:space-x-12'>
           <aside className='top-0 lg:sticky lg:w-1/5'>
@@ -356,11 +290,6 @@ export default function ResumePage() {
                           </>
                         )}
                       </Button>
-                      {isDev && (
-                        <Button variant='outline' className='h-10 px-4 py-2' onClick={fillWithMock}>
-                          用 Mock 数据填充
-                        </Button>
-                      )}
                       <Button className='h-10 px-4 py-2' onClick={form.handleSubmit(onSubmit)} disabled={uploadingResume}>
                         保存
                       </Button>

@@ -6,10 +6,12 @@ import MockInterviewList from '@/features/mock-interview/components/mock-intervi
 import MockInterviewRecords from '@/features/mock-interview/components/mock-interview-records'
 import { MockInterviewTab, DEFAULT_MOCK_INTERVIEW_TAB } from '@/features/mock-interview/constants'
 import { ProfileDropdown } from '@/components/profile-dropdown'
+// import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 
 export default function MockInterviewTabsPage() {
   const navigate = useNavigate()
   const search = useSearch({ from: '/_public/mock-interview/' })
+  // const env = useRuntimeEnv()
   
   // 从 URL 参数获取当前 tab，如果为空则使用默认值
   const activeTab = search.tab || DEFAULT_MOCK_INTERVIEW_TAB
