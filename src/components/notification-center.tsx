@@ -12,6 +12,24 @@ import { cn } from '@/lib/utils'
 import { sanitizeHTML } from '@/utils/sanitize-html'
 import { useIsMobile } from '@/hooks/use-mobile'
 
+/**
+ * 将文本中的 URL 转换为可点击的链接
+ */
+function linkifyText(text: string): string {
+  // URL 正则表达式
+  const urlRegex = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g
+  
+  // 如果文本中已经包含 HTML 标签，直接返回（避免重复处理）
+  if (/<[a-z][\s\S]*>/i.test(text)) {
+    return text
+  }
+  
+  // 替换 URL 为链接
+  return text.replace(urlRegex, (url) => {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+  })
+}
+
 
 /**
  * 通知中心组件属性
@@ -218,9 +236,9 @@ export function NotificationCenter({ trigger, showBadge = true }: NotificationCe
           <Separator />
           <div
             ref={contentRef}
-            className='text-sm text-foreground leading-relaxed [&_a]:text-primary [&_a]:underline [&_a]:cursor-pointer hover:[&_a]:text-primary/80'
+            className='text-sm text-foreground leading-relaxed prose prose-sm max-w-none [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-2 [&_a]:cursor-pointer [&_a]:font-medium [&_a]:transition-colors hover:[&_a]:text-primary/80 hover:[&_a]:decoration-primary/80'
             dangerouslySetInnerHTML={{
-              __html: sanitizeHTML(selectedMessage.text),
+              __html: sanitizeHTML(linkifyText(selectedMessage.text)),
             }}
           />
         </div>
