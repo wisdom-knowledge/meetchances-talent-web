@@ -5,9 +5,13 @@ import { Main } from '@/components/layout/main'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil } from '@tabler/icons-react'
+import { useRuntimeEnv } from '@/hooks/use-runtime-env'
+import { detectRuntimeEnvSync } from '@/lib/env'
 
 export default function MinePage() {
   const user = useAuthStore((s) => s.auth.user)
+  const env = useRuntimeEnv()
+  const isMiniProgram = env === 'wechat-miniprogram'
 
   return (
     <>
@@ -43,10 +47,10 @@ export default function MinePage() {
         {/* 菜单 */}
         <div className='space-y-2'>
           <MenuItem to='/resume' icon={<IconId />} label='我的简历' />
-          <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />
-          <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />
-          <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />
-          <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />
+          {!isMiniProgram && <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />}
+          {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
+          {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
+          {!isMiniProgram && <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />}
         </div>
       </Main>
     </>
@@ -91,6 +95,12 @@ function handleLogout() {
 }
 
 function gotoAccountInfo() {
+  try {
+    const env = detectRuntimeEnvSync()
+    if (env === 'wechat-miniprogram') return
+  } catch (_e) {
+    // ignore
+  }
   window.open('https://meetchances-talent.authing.cn/u?app_id=68a80c45ea682857b1f54cdc', '_blank', 'noopener,noreferrer')
 }
 
