@@ -1,6 +1,7 @@
 import { Sidebar, SidebarContent, SidebarFooter } from '@/components/ui/sidebar'
 import { NavGroup } from '@/components/layout/nav-group'
 import { NavUser } from '@/components/layout/nav-user'
+import { NotificationCenter } from '@/components/notification-center'
 import { sidebarData } from './data/sidebar-data'
 import { useAuthStore } from '@/stores/authStore'
 import logoCircle from '@/assets/images/logo-circle.svg'
@@ -73,7 +74,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <NavGroup key={props.title} {...props} />
           ))}
         </SidebarContent>
-        <SidebarFooter>
+        <SidebarFooter className='space-y-2'>
+          <NotificationCenter />
           <NavUser user={userForSidebar} />
         </SidebarFooter>
       </Sidebar>
@@ -112,7 +114,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           ))}
         </div>
       </SidebarContent>
-      <SidebarFooter className='!mt-0 !p-2 flex-shrink-0'>
+      <SidebarFooter className='!mt-0 !p-2 flex-shrink-0 space-y-2 flex flex-col items-center'>
+        <NotificationCenter />
         <NavUser user={userForSidebar} />
       </SidebarFooter>
     </Sidebar>

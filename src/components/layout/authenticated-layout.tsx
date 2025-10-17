@@ -2,13 +2,14 @@ import Cookies from 'js-cookie'
 import { useEffect } from 'react'
 import { Outlet, useMatches } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { fetchTalentMe } from '@/lib/api'
+import { fetchTalentMe, fetchIMToken } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { cn } from '@/lib/utils'
 import { SearchProvider } from '@/context/search-context'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import SkipToMain from '@/components/skip-to-main'
+import { useIMInit } from '@/hooks/use-im-init'
 import { MobileBottomTab } from '@/components/mobile-bottom-tab'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 
@@ -24,6 +25,7 @@ export function AuthenticatedLayout({ children }: Props) {
   const hideSidebar = matches.some((m) => (m.staticData as { hideSidebar?: boolean } | undefined)?.hideSidebar)
   const interviewBg = matches.some((m) => (m.staticData as { interviewBg?: boolean } | undefined)?.interviewBg)
 
+  // 获取用户信息
   const { data, error } = useQuery({
     queryKey: ['current-user'],
     queryFn: fetchTalentMe,
@@ -32,6 +34,19 @@ export function AuthenticatedLayout({ children }: Props) {
     retry: false,
     select: (d) => d,
   })
+
+  // 获取 IM Token
+  const { data: imTokenData } = useQuery({
+    queryKey: ['im-token'],
+    queryFn: fetchIMToken,
+    staleTime: 20 * 60 * 1000, // 20 分钟
+    refetchOnWindowFocus: false,
+    retry: 1,
+    enabled: !!data?.id, // 只有在用户信息获取成功后才获取 token
+  })
+
+  // 初始化火山 IM
+  useIMInit(imTokenData)
 
   useEffect(() => {
     if (!data) return

@@ -249,3 +249,118 @@ export async function fetchWeChatSignature(
     },
   }) as unknown as Promise<WeChatSignatureResponse>
 }
+
+/**
+ * 消息接口类型定义（后端接口格式）
+ */
+export interface MessageItem {
+  message_id: number
+  sender_id: number
+  sender_user_name: string
+  title: string
+  sender_user_avatar: string
+  message_type: number
+  content_type: number
+  text: string
+  created_at?: string
+  is_read?: boolean
+}
+
+/**
+ * 消息列表响应（后端接口格式）
+ */
+export interface MessagesResponse {
+  data: MessageItem[]
+  count: number
+}
+
+/**
+ * 消息列表请求参数
+ */
+export interface MessagesParams {
+  cursor?: number | null
+  count?: number
+}
+
+/**
+ * 获取消息列表
+ * @param params 请求参数
+ * @param params.cursor 游标，用于分页（可选）
+ * @param params.count 每页数量，默认 20，最大 100
+ */
+export async function fetchMessages(params: MessagesParams = {}): Promise<MessagesResponse> {
+  const { cursor, count = 20 } = params
+
+  const queryParams = new URLSearchParams()
+  if (cursor !== undefined && cursor !== null) {
+    queryParams.append('cursor', String(cursor))
+  }
+  queryParams.append('count', String(count))
+
+  const response = await api.get<MessagesResponse>(`/messages/?${queryParams.toString()}`)
+  return response as unknown as MessagesResponse
+}
+
+/**
+ * 标记消息已读响应接口
+ */
+export interface MarkReadResponse {
+  updated: number
+}
+
+/**
+ * 标记单条消息为已读
+ * @param messageId 消息 ID
+ */
+export async function markMessageAsRead(messageId: number): Promise<MarkReadResponse> {
+  const response = await api.post<MarkReadResponse>('/messages/mark-read', {
+    message_ids: [messageId],
+  })
+  return response as unknown as MarkReadResponse
+}
+
+/**
+ * 批量标记消息为已读
+ * @param messageIds 消息 ID 数组
+ */
+export async function markMessagesAsRead(messageIds: number[]): Promise<MarkReadResponse> {
+  const response = await api.post<MarkReadResponse>('/messages/mark-read', {
+    message_ids: messageIds,
+  })
+  return response as unknown as MarkReadResponse
+}
+
+/**
+ * 火山 IM Token 响应接口
+ */
+export interface IMTokenResponse {
+  token: string
+  expire_at: number
+}
+
+/**
+ * 获取火山 IM Token
+ */
+export async function fetchIMToken(): Promise<IMTokenResponse> {
+  return api.get('/messages/im/token') as unknown as Promise<IMTokenResponse>
+}
+
+/**
+ * 未读消息数响应接口
+ */
+export interface UnreadCountResponse {
+  unread_count: number
+}
+
+/**
+ * 获取未读消息数
+ */
+export async function fetchUnreadCount(): Promise<number> {
+  try {
+    const response = await api.get<UnreadCountResponse>('/messages/unread_count')
+    return (response as unknown as UnreadCountResponse).unread_count
+  } catch (_error) {
+    // 接口调用失败时返回 0
+    return 0
+  }
+}
