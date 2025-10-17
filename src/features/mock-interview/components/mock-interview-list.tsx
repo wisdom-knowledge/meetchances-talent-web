@@ -9,6 +9,8 @@ import {
 } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
+import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import MockEmptyState from '@/features/mock-interview/components/empty-state'
 import MockCard from '@/features/mock-interview/components/mock-card'
 import { fetchMockInterviewList, fetchMockCategories } from '../api'
@@ -22,6 +24,7 @@ type CategoryOption = {
 }
 
 export default function MockInterviewList() {
+  const env = useRuntimeEnv()
   const search = useSearch({ from: '/_public/mock-interview/' }) as {
     page?: number
     pageSize?: number
@@ -282,7 +285,7 @@ export default function MockInterviewList() {
       </div>
 
       {/* 分页 */}
-      <div className='mt-4 flex items-center justify-end gap-4 shrink-0'>
+      <div className={cn('my-4 flex items-center justify-end gap-4 shrink-0', env === 'mobile' && 'pb-12')}>
         <div className='text-muted-foreground text-sm'>共 {total} 条</div>
         <div className='flex items-center gap-1'>
           <Button
