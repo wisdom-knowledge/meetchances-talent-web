@@ -13,8 +13,6 @@ import { IconListDetails, IconStar, IconUser, IconWand, IconUpload, IconLoader2,
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { resumeSchema, type ResumeFormValues } from './data/schema'
-import { resumeMockData } from './data/mock'
-import { options } from './data/config'
 import { fetchTalentResumeDetail, patchTalentResumeDetail, uploadTalentResume } from '@/features/resume-upload/utils/api'
 import { mapStructInfoToResumeFormValues, mapResumeFormValuesToStructInfo } from '@/features/resume/data/struct-mapper'
 import type { StructInfo } from '@/features/resume-upload/types/struct-info'
@@ -158,62 +156,6 @@ export default function ResumePage() {
       container.removeEventListener('scroll', handleScroll)
     }
   }, [])
-
-  // 开发调试：将 mock 数据映射为表单值
-  function mapMockToFormValues(): ResumeFormValues {
-    const rawGender = resumeMockData.structured_resume.basic_info.gender as (typeof options.gender)[number] | null
-    const gender = options.gender.includes(rawGender as (typeof options.gender)[number])
-      ? (rawGender as (typeof options.gender)[number])
-      : undefined
-
-    return {
-      name: resumeMockData.structured_resume.basic_info.name ?? '',
-      phone: resumeMockData.structured_resume.basic_info.phone ?? '',
-      city: (resumeMockData.structured_resume.basic_info.city as string | null) ?? undefined,
-      gender,
-      email: resumeMockData.structured_resume.basic_info.email ?? '',
-      origin: '',
-      expectedSalary: '',
-      hobbies: '',
-      skills: '',
-      workSkills: [],
-      softSkills: (resumeMockData.structured_resume.self_assessment.soft_skills ?? []).join('、'),
-      selfEvaluation: resumeMockData.structured_resume.self_assessment.summary ?? '',
-      workExperience:
-        (resumeMockData.structured_resume.experience.work_experience ?? []).map((w) => ({
-          organization: w.organization ?? '',
-          title: w.title ?? '',
-          startDate: w.start_date ?? '',
-          endDate: w.end_date ?? '',
-          city: (w.city as string | null) ?? '',
-          employmentType: (w.employment_type as string | null) ?? '',
-          achievements: (w.achievements ?? []).join('\n'),
-        })),
-      projectExperience:
-        (resumeMockData.structured_resume.experience.project_experience ?? []).map((p) => ({
-          organization: p.organization ?? '',
-          role: p.role ?? '',
-          startDate: p.start_date ?? '',
-          endDate: p.end_date ?? '',
-          achievements: (p.achievements ?? []).join('\n'),
-        })),
-      education:
-        (resumeMockData.structured_resume.experience.education ?? []).map((e) => ({
-          institution: e.institution ?? '',
-          major: e.major ?? '',
-          degreeType: e.degree_type ?? '',
-          degreeStatus: (e.degree_status as string | null) ?? '',
-          city: (e.city as string | null) ?? '',
-          startDate: e.start_date ?? '',
-          endDate: e.end_date ?? '',
-          achievements: e.achievements
-            ? Array.isArray(e.achievements)
-              ? e.achievements.join('\n')
-              : String(e.achievements)
-            : '',
-        })),
-    }
-  }
 
   // experiences 由动态组件内部管理；此处不需要声明
 
