@@ -53,7 +53,7 @@ export default function MinePage() {
           {!isMiniProgram && <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />}
           {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
           {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
-          {!isMiniProgram && <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />}
+          <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />
         </div>
       </Main>
     </>
@@ -94,6 +94,22 @@ function MenuAction({ onClick, icon, label }: { onClick: () => void; icon: React
 }
 
 function handleLogout() {
+  try {
+    const env = detectRuntimeEnvSync()
+    if (env === 'wechat-miniprogram') {
+      const g = window as unknown as {
+        wx?: { miniProgram?: { redirectTo?: (opts: { url: string }) => void } }
+      }
+      const redirectTo = g.wx?.miniProgram?.redirectTo
+      if (typeof redirectTo === 'function') {
+        const target = '/pages/authorize/authorize?redirect_url=' + encodeURIComponent(window.location.href)
+        redirectTo({ url: target })
+      }
+    }
+  } catch (_e) {
+    // ignore
+  }
+
   const baseLogoutUrl = import.meta.env.VITE_AUTH_LOGOUT_URL as string | undefined
   if (baseLogoutUrl) {
     location.replace(baseLogoutUrl)
