@@ -1,4 +1,5 @@
 import { api } from '@/lib/api'
+import { useInfiniteQuery, type UseInfiniteQueryResult, type InfiniteData } from '@tanstack/react-query'
 import type { BackendMockJobsData, MockInterviewListParams, MockInterviewItem, MockCategoryItem, MockInterviewRecordsResponse } from './types'
 
 export async function fetchMockInterviewList(params: MockInterviewListParams = {
@@ -52,6 +53,39 @@ export async function fetchMockInterviewRecords(params: MockInterviewListParams 
   } catch (_e) {
     return { items: [], count: 0 }
   }
+}
+
+// --- Infinite Query for Mock Interview List ---
+export type MockListPage = BackendMockJobsData // { items: BackendMockJobItem[]; count: number }
+
+export type UseInfiniteMockInterviewListResult = UseInfiniteQueryResult<InfiniteData<MockListPage>, Error>
+
+export function useInfiniteMockInterviewList(
+  params: Omit<MockInterviewListParams, 'skip'> & { category_id?: number } = {
+    limit: 12,
+    q: undefined,
+  },
+  options?: { enabled?: boolean }
+): UseInfiniteMockInterviewListResult {
+  const { limit = 12, name, category_id, q } = params
+
+  return useInfiniteQuery<MockListPage, Error, InfiniteData<MockListPage>, [string, { limit: number; name?: string; category_id?: number; q?: string }], number>({
+    queryKey: ['mock-interview-infinite', { limit, name, category_id, q }],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const skip = pageParam * limit
+      const res = await fetchMockInterviewList({ skip, limit, name, category_id, q })
+      return res
+    },
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const total = lastPage?.count ?? 0
+      const currentPage = typeof lastPageParam === 'number' ? lastPageParam : 0
+      const pageCount = total ? Math.max(1, Math.ceil(total / limit)) : undefined
+      const hasMore = typeof pageCount === 'number' ? currentPage + 1 < pageCount : (lastPage?.items?.length ?? 0) === limit
+      return hasMore ? currentPage + 1 : undefined
+    },
+    enabled: options?.enabled ?? true,
+  })
 }
 
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { IconClockHour4, IconCurrencyYen, IconSearch } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 // import { Search } from '@/components/search'
@@ -22,6 +22,7 @@ import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 // import { ExploreJobs } from './mockData.ts'
 import {
   useJobsQuery,
+  useInfiniteJobsQuery,
   useJobDetailQuery,
   type ApiJob,
   JobsSortBy,
@@ -78,6 +79,7 @@ export default function JobsListPage() {
   const [debouncedKeyword, setDebouncedKeyword] = useState<string>('')
   const [page, setPage] = useState<number>(0)
   const pageSize = 20
+  const isInfiniteMode = env === 'mobile' || env === 'wechat-miniprogram'
 
   // 300ms 防抖
   useEffect(() => {
@@ -85,19 +87,39 @@ export default function JobsListPage() {
     return () => clearTimeout(t)
   }, [keyword])
 
-  // 搜索与排序变更时回到第一页
+  // 搜索与排序变更时回到第一页（桌面分页模式）
   useEffect(() => {
-    setPage(0)
-  }, [debouncedKeyword, sortBy, sortOrder])
+    if (!isInfiniteMode) setPage(0)
+  }, [debouncedKeyword, sortBy, sortOrder, isInfiniteMode])
 
   const queryParams = useMemo(
     () => ({ skip: page * pageSize, limit: pageSize, sort_by: sortBy, sort_order: sortOrder, title: debouncedKeyword || undefined }),
     [sortBy, sortOrder, debouncedKeyword, page]
   )
-  const { data: jobsData, isLoading } = useJobsQuery(queryParams)
-  const jobs = useMemo(() => jobsData?.data ?? [], [jobsData])
-  const total = jobsData?.total ?? 0
-  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  // 数据源：根据模式切换
+  const { data: jobsData, isLoading: isLoadingPaged } = useJobsQuery(queryParams, { enabled: !isInfiniteMode })
+  const {
+    data: infiniteData,
+    isLoading: isLoadingInfinite,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteJobsQuery(
+    { limit: pageSize, sort_by: sortBy, sort_order: sortOrder, title: debouncedKeyword || undefined },
+    { enabled: isInfiniteMode }
+  )
+
+  const jobs: ApiJob[] = useMemo(() => {
+    if (isInfiniteMode) {
+      const pages: Array<{ data: ApiJob[]; total?: number }> = infiniteData?.pages ?? []
+      const all = pages.flatMap((p: { data: ApiJob[] }) => p.data || [])
+      return all
+    }
+    return jobsData?.data ?? []
+  }, [isInfiniteMode, infiniteData, jobsData])
+
+  const total = isInfiniteMode ? (infiniteData?.pages?.[0]?.total ?? 0) : (jobsData?.total ?? 0)
+  const pageCount = Math.max(1, Math.ceil((total || 0) / pageSize))
   const canPrev = page > 0
   const canNext = total ? page + 1 < pageCount : jobs.length === pageSize
   // 串行：在拿到 jobs 后再请求申请状态
@@ -169,6 +191,33 @@ export default function JobsListPage() {
 
   const isPublishActive = sortBy === JobsSortBy.PublishTime
   const isSalaryActive = sortBy === JobsSortBy.SalaryMax
+
+  // 移动端/小程序：滚动加载（IntersectionObserver 观察列表尾部）
+  const listContainerRef = useRef<HTMLDivElement | null>(null)
+  const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!isInfiniteMode) return
+    const sentinel = loadMoreSentinelRef.current
+    const rootEl = listContainerRef.current
+    if (!sentinel || !rootEl) return
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0]
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      {
+        root: rootEl,
+        rootMargin: '0px 0px 200px 0px',
+        threshold: 0.1,
+      }
+    )
+    io.observe(sentinel)
+    return () => io.disconnect()
+  }, [isInfiniteMode, fetchNextPage, hasNextPage, isFetchingNextPage])
 
   return (
     <>
@@ -267,9 +316,113 @@ export default function JobsListPage() {
         <div className='relative -mb-8 flex md:h-[calc(100vh-10rem)] h-[calc(100vh-12rem)] flex-col gap-6 lg:flex-row'>
           {/* 左侧：职位列表 */}
           <div className='flex-1 flex flex-col min-h-0'>
+            {isInfiniteMode ? (
+              <div ref={listContainerRef} className='flex-1 min-h-0 md:h-[calc(100vh-10rem)] h-[calc(100vh-12rem)] pr-1 overflow-auto'>
+                <ul className='space-y-2 pb-4'>
+                  {(isLoadingInfinite && jobs.length === 0)
+                    ? Array.from({ length: 8 }).map((_, index: number) => (
+                        <li key={`skeleton-${index}`}>
+                          <div className='w-full rounded-md border p-4'>
+                            <div className='flex items-center justify-between gap-4'>
+                              <div className='min-w-0'>
+                                <Skeleton className='mb-2 h-5 w-40' />
+                                <Skeleton className='h-3 w-24' />
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <Skeleton className='h-6 w-16' />
+                                <Skeleton className='h-6 w-28' />
+                                <Skeleton className='h-6 w-12' />
+                              </div>
+                            </div>
+                          </div>
+                        </li>
+                      ))
+                    : jobs.length === 0 ? (
+                      <li>
+                        <div className='w-full py-16 text-center'>
+                          <div className='mx-auto mb-4 h-16 w-16 opacity-80'>
+                            <img src={searchPng} alt='' className='h-16 w-16 mx-auto' aria-hidden='true' />
+                          </div>
+                          <h3 className='text-base font-semibold'>未找到相关职位</h3>
+                          <p className='text-muted-foreground text-sm mt-1'>试试调整关键词{keyword ? '，或清空搜索' : ''}</p>
+                          {keyword ? (
+                            <div className='mt-4'>
+                              <Button size='sm' variant='secondary' onClick={() => setKeyword('')}>清空搜索</Button>
+                            </div>
+                          ) : null}
+                        </div>
+                      </li>
+                    ) : ([...jobs].map((job: ApiJob) => {
+                        const isActive = String(selectedJobId ?? selectedJob?.id ?? '') === String(job.id)
+                        return (
+                          <li key={job.id}>
+                            <div
+                              role='button'
+                              tabIndex={0}
+                              onClick={() => handleSelectJob(job)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ')
+                                  handleSelectJob(job)
+                              }}
+                              className={
+                                'hover:bg-accent w-full cursor-pointer rounded-md border p-4 text-left transition-colors ' +
+                                (isActive
+                                  ? 'border-primary ring-primary/30'
+                                  : 'border-border')
+                              }
+                            >
+                              <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4'>
+                                <div>
+                                  <h3 className='font-medium inline-flex items-center gap-2'>
+                                    {job.title}
+                                  </h3>
+                                  <p className='text-muted-foreground text-xs'>
+                                    {formatPublishTime(job.created_at)}
+                                  </p>
+                                </div>
+                                <div className='mt-2 sm:mt-0 flex items-center gap-2 sm:justify-end'>
+                                  {(() => {
+                                    const statusItem = applyStatusMap?.[String(job.id)]
+                                    if (!statusItem || statusItem.job_apply_status !== JobApplyStatus.Applied) return null
+                                    const pill = mapCurrentNodeStatusToPill(statusItem.current_node_status, statusItem.progress, statusItem.total_step)
+                                    return (
+                                      <span className={
+                                        'inline-flex w-28 items-center justify-center py-1 gap-2 rounded-full leading-[1.6] tracking-[0.35px] text-xs ' +
+                                        pill.classes
+                                      }>
+                                        {pill.text}
+                                      </span>
+                                    )
+                                  })()}
+                                  <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal'>
+                                    <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
+                                    {job.salary_max && job.salary_max > 0 
+                                      ? `¥${job.salary_min ?? 0} - ¥${job.salary_max} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
+                                      : `¥${job.salary_min ?? 0} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
+                                    }
+                                  </Badge>
+                                   <Badge
+                                       className='inline-flex items-center justify-center px-2 py-1 font-normal tracking-[0.25px] text-[#4E02E4] bg-[#4E02E40D] rounded'
+                                     >
+                                       {jobTypeMapping[job.job_type as keyof typeof jobTypeMapping] || ''}
+                                   </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </li>
+                        )
+                      }))}
+                </ul>
+                {/* Sentinel & footer states */}
+                <div ref={loadMoreSentinelRef} className='h-6' />
+                <div className='pb-4 text-center text-xs text-muted-foreground mb-24'>
+                  {isFetchingNextPage ? '加载中…' : hasNextPage ? '向下滚动加载更多' : jobs.length > 0 ? '没有更多了' : ''}
+                </div>
+              </div>
+            ) : (
             <ScrollArea className='flex-1 min-h-0 md:h-[calc(100vh-10rem)] h-[calc(100vh-12rem)] pr-1'>
               <ul className='space-y-2 pb-4'>
-                {isLoading
+                {isLoadingPaged
                   ? Array.from({ length: 8 }).map((_, index: number) => (
                       <li key={`skeleton-${index}`}>
                         <div className='w-full rounded-md border p-4'>
@@ -364,8 +517,10 @@ export default function JobsListPage() {
                     }))}
               </ul>
             </ScrollArea>
-            {/* 分页控制：固定在列表下方可见 */}
-            <div className={cn('flex items-center justify-end gap-2 pt-2', env === 'mobile' && 'pb-6')}>
+            )}
+            {/* 分页控制：固定在列表下方可见（仅桌面显示） */}
+            {!isInfiniteMode && (
+            <div className={cn('flex items-center justify-end gap-2 pt-2')}> 
               <button
                 type='button'
                 className={cn('inline-flex h-8 items-center rounded-md border px-3 text-xs', !canPrev && 'opacity-50 cursor-not-allowed')}
@@ -384,6 +539,7 @@ export default function JobsListPage() {
                 下一页
               </button>
             </div>
+            )}
           </div>
           {/* 职位详情：Drawer 展示 */}
           <JobDetailDrawer

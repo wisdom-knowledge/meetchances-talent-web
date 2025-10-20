@@ -1,4 +1,4 @@
-import { useQuery, UseQueryOptions } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, type UseQueryOptions, type UseInfiniteQueryResult, type InfiniteData } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 
 export interface JobsListParams {
@@ -92,6 +92,13 @@ async function fetchJobs(
   return { data: [] }
 }
 
+export type JobsPage = { data: ApiJob[]; total?: number }
+
+type JobsQueryOptions = Omit<
+  UseQueryOptions<JobsPage, Error, JobsPage, ['jobs', JobsListParams]>,
+  'queryKey' | 'queryFn'
+>
+
 export function useJobsQuery(
   params: JobsListParams = {
     skip: 0,
@@ -99,12 +106,51 @@ export function useJobsQuery(
     sort_by: JobsSortBy.PublishTime,
     sort_order: JobsSortOrder.Desc,
   },
-  options?: UseQueryOptions<{ data: ApiJob[]; total?: number }>
+  options?: JobsQueryOptions
 ) {
-  return useQuery({
+  return useQuery<JobsPage, Error, JobsPage, ['jobs', JobsListParams]>({
     queryKey: ['jobs', params],
     queryFn: () => fetchJobs(params),
     ...options,
+  })
+}
+
+/**
+ * 基于 skip/limit 的无限加载查询
+ * - pageParam 表示第几页（从 0 开始），内部换算为 skip = pageParam * limit
+ * - 是否还有下一页：优先根据 total 判断；无 total 时以 data.length === limit 作为启发
+ */
+export type UseInfiniteJobsResult = UseInfiniteQueryResult<InfiniteData<JobsPage>, Error>
+
+export function useInfiniteJobsQuery(
+  params: Omit<JobsListParams, 'skip'> = {
+    limit: 20,
+    sort_by: JobsSortBy.PublishTime,
+    sort_order: JobsSortOrder.Desc,
+  },
+  options?: { enabled?: boolean }
+): UseInfiniteJobsResult {
+  const { limit = 20, sort_by = JobsSortBy.PublishTime, sort_order = JobsSortOrder.Desc, title } = params
+
+  return useInfiniteQuery<JobsPage, Error, InfiniteData<JobsPage>, [string, Omit<JobsListParams, 'skip'>], number>({
+    queryKey: ['jobs-infinite', { limit, sort_by, sort_order, title }],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) =>
+      fetchJobs({
+        skip: pageParam * limit,
+        limit,
+        sort_by,
+        sort_order,
+        title,
+      }),
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const total = lastPage.total
+      const currentPage = typeof lastPageParam === 'number' ? lastPageParam : 0
+      const pageCount = total ? Math.max(1, Math.ceil(total / limit)) : undefined
+      const hasMore = typeof pageCount === 'number' ? currentPage + 1 < pageCount : lastPage.data.length === limit
+      return hasMore ? currentPage + 1 : undefined
+    },
+    enabled: options?.enabled ?? true,
   })
 }
 
