@@ -23,7 +23,10 @@ export interface ApiApplyListItem {
   phone: string
   created_at: number
   updated_at: number
-  job_detail: ApiJob & { online_status?: number; company?: { name?: string } } // 岗位详细信息（扩展 online_status）
+  job_detail: ApiJob & { 
+    online_status?: number; // 岗位状态：20-暂停中，0-已关闭
+    company?: { name?: string } 
+  } // 岗位详细信息（扩展 online_status）
   progress: number // 当前进度
   total_step: number // 总步骤数
   /**
