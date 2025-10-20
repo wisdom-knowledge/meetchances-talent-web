@@ -36,6 +36,12 @@ export interface ApiApplyListItem {
    * '50': 打回(视为进行中)
    */
   current_node_status?: '0' | '10' | '20' | '30' | '40' | '50'
+  /**
+   * 岗位状态枚举
+   * 20: 暂停中
+   * 0: 已关闭
+   */
+  status?: number
 }
 
 // Important tasks (data-driven)

@@ -155,10 +155,27 @@ export default function HomeViewPage() {
                 {!loadingApps &&
                   applications.map((item) => {
                     const jd = item.job_detail
-                    // 根据最新需求：根据 current_node_status 展示状态 Pill
-                    const status = item.current_node_status ?? '0'
+                    
+                    // 岗位状态显示 - 优先显示岗位状态，替代申请流程状态
+                    const jobStatus = item.status
                     type Pill = { text: string; classes: string }
                     const pill: Pill = (() => {
+                      // 优先显示岗位状态
+                      if (jobStatus === 20) {
+                        return { 
+                          text: '暂时满员', 
+                          classes: 'bg-[#FFF3CD] text-[#856404]' // 黄色系，表示暂停状态
+                        }
+                      }
+                      if (jobStatus === 0) {
+                        return { 
+                          text: '停止招聘', 
+                          classes: 'bg-[#F8D7DA] text-[#721C24]' // 红色系，表示停止状态
+                        }
+                      }
+                      
+                      // 岗位正常时，显示申请流程状态
+                      const status = item.current_node_status ?? '0'
                       // 颜色：绿色 #00BD65；红色 #F4490B
                       // 0/10/50 -> 进行中；20 -> 审核中；30 -> 通过；40 -> 已拒绝
                       if (status === '30')
