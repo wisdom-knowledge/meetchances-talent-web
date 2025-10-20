@@ -120,11 +120,16 @@ export async function fetchMyApplications(
   }
 }
 
+type MyApplicationsQueryOptions = Omit<
+  UseQueryOptions<MyApplicationsResultRaw, Error, MyApplicationsResultRaw, ['my-applications', MyApplicationsParams]>,
+  'queryKey' | 'queryFn'
+>
+
 export function useMyApplicationsQuery(
   params: MyApplicationsParams,
-  options?: UseQueryOptions<MyApplicationsResultRaw>
+  options?: MyApplicationsQueryOptions
 ) {
-  return useQuery({
+  return useQuery<MyApplicationsResultRaw, Error, MyApplicationsResultRaw, ['my-applications', MyApplicationsParams]>({
     queryKey: ['my-applications', params],
     queryFn: () => fetchMyApplications(params),
     ...options,
