@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import MockEmptyState from '@/features/mock-interview/components/empty-state'
 import MockCard from '@/features/mock-interview/components/mock-card'
-import { fetchMockInterviewList, fetchMockCategories } from '../api'
+import { fetchMockInterviewList, fetchMockCategories, useInfiniteMockInterviewList } from '../api'
 import type { BackendMockJobItem } from '../types'
 
 type CategoryOption = {
@@ -44,6 +44,7 @@ export default function MockInterviewList() {
   const [canScrollRight, setCanScrollRight] = useState(false)
   const [page, setPage] = useState(search.page ?? 1)
   const [pageSize] = useState(search.pageSize ?? 12)
+  const isInfiniteMode = env === 'mobile' || env === 'wechat-miniprogram'
 
   // 同步状态到 URL
   useEffect(() => {
@@ -69,11 +70,28 @@ export default function MockInterviewList() {
         limit: pageSize,
         q: undefined,
       }),
-    enabled: categories.length !== 0 && category !== undefined,
+    enabled: categories.length !== 0 && category !== undefined && !isInfiniteMode,
   })
 
-  const items = useMemo(() => data?.items ?? [], [data])
-  const total = data?.count ?? 0
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteMockInterviewList(
+    { limit: pageSize, name: q, category_id: category, q: undefined },
+    { enabled: categories.length !== 0 && category !== undefined && isInfiniteMode }
+  )
+
+  const items = useMemo(() => {
+    if (isInfiniteMode) {
+      const pages = infiniteData?.pages ?? []
+      return pages.flatMap((p) => p.items ?? [])
+    }
+    return data?.items ?? []
+  }, [isInfiniteMode, infiniteData, data])
+
+  const total = isInfiniteMode ? (infiniteData?.pages?.[0]?.count ?? 0) : (data?.count ?? 0)
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
   // 拉取分类
@@ -198,7 +216,6 @@ export default function MockInterviewList() {
                   setCategory(id)
                 }}
                 className='group inline-flex max-w-[120px] min-w-[76px] shrink-0 flex-col items-center gap-2 text-sm'
-                aria-pressed={active ? 'true' : 'false'}
               >
                 <span
                   className={[
@@ -262,6 +279,8 @@ export default function MockInterviewList() {
       <div className='flex flex-1 flex-col min-h-0'>
         {items.length === 0 ? (
           <MockEmptyState />
+        ) : isInfiniteMode ? (
+          <InfiniteGrid />
         ) : (
           <div className='grid grid-cols-2 gap-x-2 gap-y-2 overflow-y-auto pr-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pb-2'>
             {items.map((it: BackendMockJobItem, idx: number) => (
@@ -284,8 +303,9 @@ export default function MockInterviewList() {
         )}
       </div>
 
-      {/* 分页 */}
-      <div className={cn('my-4 flex items-center justify-end gap-4 shrink-0', env === 'mobile' && 'pb-12')}>
+      {/* 分页（桌面） */}
+      {!isInfiniteMode && (
+      <div className={cn('my-4 flex items-center justify-end gap-4 shrink-0')}>
         <div className='text-muted-foreground text-sm'>共 {total} 条</div>
         <div className='flex items-center gap-1'>
           <Button
@@ -322,6 +342,54 @@ export default function MockInterviewList() {
           </Button>
         </div>
       </div>
+      )}
     </div>
   )
+
+  function InfiniteGrid() {
+    const containerRef = useRef<HTMLDivElement | null>(null)
+    const sentinelRef = useRef<HTMLDivElement | null>(null)
+
+    useEffect(() => {
+      const rootEl = containerRef.current
+      const sentinel = sentinelRef.current
+      if (!rootEl || !sentinel) return
+      const io = new IntersectionObserver(
+        (es) => {
+          const e = es[0]
+          if (e.isIntersecting && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage()
+          }
+        },
+        { root: rootEl, rootMargin: '0px 0px 200px 0px', threshold: 0.1 }
+      )
+      io.observe(sentinel)
+      return () => io.disconnect()
+    }, [hasNextPage, isFetchingNextPage])
+
+    return (
+      <div ref={containerRef} className='grid grid-cols-2 gap-x-2 gap-y-2 overflow-y-auto pr-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pb-2'>
+        {items.map((it: BackendMockJobItem, idx: number) => (
+          <MockCard
+            key={it.id}
+            item={{
+              interview_id: it.id,
+              title: it.title,
+              summary: it.description,
+              durationMinutes: it.interview_duration_minutes,
+              category: it.category_name,
+              category_id: it.category_id,
+              id: it.id,
+            }}
+            index={idx}
+            categories={categories}
+          />
+        ))}
+        <div ref={sentinelRef} className='h-6 col-span-full' />
+        <div className='col-span-full text-center text-xs text-muted-foreground pb-2 mb-24'>
+          {isFetchingNextPage ? '加载中…' : hasNextPage ? '向下滚动加载更多' : items.length > 0 ? '没有更多了' : ''}
+        </div>
+      </div>
+    )
+  }
 }
