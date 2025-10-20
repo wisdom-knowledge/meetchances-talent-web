@@ -301,7 +301,7 @@ export default function HomeViewPage() {
                     const jd = item.job_detail
                     
                     // 岗位状态显示 - 优先显示岗位状态，替代申请流程状态
-                    const jobStatus = item.status
+                    const jobStatus = jd?.online_status
                     type Pill = { text: string; classes: string }
                     const pill: Pill = (() => {
                       // 优先显示岗位状态
