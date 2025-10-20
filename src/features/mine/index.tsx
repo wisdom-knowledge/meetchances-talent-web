@@ -98,11 +98,14 @@ function handleLogout() {
     const env = detectRuntimeEnvSync()
     if (env === 'wechat-miniprogram') {
       const g = window as unknown as {
-        wx?: { miniProgram?: { postMessage?: (message: { data: unknown }) => void } }
+        wx?: { miniProgram?: { redirectTo?: (opts: { url: string }) => void } }
       }
-      const postMessage = g.wx?.miniProgram?.postMessage
-      if (typeof postMessage === 'function') {
-        postMessage({ data: { event: 'logout' } })
+      const redirectTo = g.wx?.miniProgram?.redirectTo
+      if (typeof redirectTo === 'function') {
+        const target = '/pages/authorize/authorize?redirect_url=' + encodeURIComponent(window.location.href)
+        redirectTo({ url: target })
+        // location.replace('https://baidu.com')
+        return
       }
     }
   } catch (_e) {
