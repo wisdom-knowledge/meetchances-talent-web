@@ -104,8 +104,6 @@ function handleLogout() {
       if (typeof redirectTo === 'function') {
         const target = '/pages/authorize/authorize?redirect_url=' + encodeURIComponent(window.location.href)
         redirectTo({ url: target })
-        // location.replace('https://baidu.com')
-        return
       }
     }
   } catch (_e) {
