@@ -4,9 +4,11 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil } from '@tabler/icons-react'
+import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil, IconBell } from '@tabler/icons-react'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import { detectRuntimeEnvSync } from '@/lib/env'
+import { useUnreadCount } from '@/components/notification-content'
+import { Badge } from '@/components/ui/badge'
 
 export default function MinePage() {
   const user = useAuthStore((s) => s.auth.user)
@@ -47,6 +49,7 @@ export default function MinePage() {
         {/* 菜单 */}
         <div className='space-y-2'>
           <MenuItem to='/resume' icon={<IconId />} label='我的简历' />
+          <NotificationMenuItem />
           {!isMiniProgram && <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />}
           {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
           {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
@@ -57,14 +60,17 @@ export default function MinePage() {
   )
 }
 
-function MenuItem({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+function MenuItem({ to, icon, label, badge }: { to: string; icon: React.ReactNode; label: string; badge?: React.ReactNode }) {
   return (
     <Link
       to={to}
       className='flex items-center justify-between rounded-lg px-2 py-3 hover:bg-accent active:bg-accent/80 transition-[transform,background-color] duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 touch-manipulation'
     >
       <div className='flex items-center gap-3'>
-        {icon}
+        <div className='relative'>
+          {icon}
+          {badge}
+        </div>
         <span className='text-base'>{label}</span>
       </div>
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><path d='m9 18 6-6-6-6' /></svg>
@@ -122,6 +128,29 @@ function UserIcon() {
 function BuildingIcon() {
   return (
     <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' className='lucide lucide-building2-icon lucide-building-2'><path d='M10 12h4'/><path d='M10 8h4'/><path d='M14 21v-3a2 2 0 0 0-4 0v3'/><path d='M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2'/><path d='M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16'/></svg>
+  )
+}
+
+function NotificationMenuItem() {
+  const unreadCount = useUnreadCount()
+  
+  // 所有设备都跳转到通知页面，显示未读数徽章
+  const badge = unreadCount > 0 ? (
+    <Badge
+      variant='destructive'
+      className='absolute -top-1 -right-1 h-4 px-1 text-[9px]'
+    >
+      {unreadCount > 99 ? '99+' : unreadCount}
+    </Badge>
+  ) : null
+  
+  return (
+    <MenuItem 
+      to='/notifications' 
+      icon={<IconBell className='h-6 w-6' />} 
+      label='通知' 
+      badge={badge}
+    />
   )
 }
 
