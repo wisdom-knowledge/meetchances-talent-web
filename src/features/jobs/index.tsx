@@ -415,7 +415,7 @@ export default function JobsListPage() {
                 </ul>
                 {/* Sentinel & footer states */}
                 <div ref={loadMoreSentinelRef} className='h-6' />
-                <div className='pb-3 text-center text-xs text-muted-foreground'>
+                <div className='pb-4 text-center text-xs text-muted-foreground mb-24'>
                   {isFetchingNextPage ? '加载中…' : hasNextPage ? '向下滚动加载更多' : jobs.length > 0 ? '没有更多了' : ''}
                 </div>
               </div>
