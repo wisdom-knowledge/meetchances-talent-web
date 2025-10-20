@@ -50,7 +50,7 @@ export default function MinePage() {
           {!isMiniProgram && <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />}
           {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
           {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
-          {!isMiniProgram && <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />}
+          <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />
         </div>
       </Main>
     </>
