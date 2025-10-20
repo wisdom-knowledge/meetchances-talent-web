@@ -2,14 +2,16 @@ import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
-import { ProfileDropdown } from '@/components/profile-dropdown'
 import MockInterviewList from '@/features/mock-interview/components/mock-interview-list'
 import MockInterviewRecords from '@/features/mock-interview/components/mock-interview-records'
 import { MockInterviewTab, DEFAULT_MOCK_INTERVIEW_TAB } from '@/features/mock-interview/constants'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+// import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 
 export default function MockInterviewTabsPage() {
   const navigate = useNavigate()
   const search = useSearch({ from: '/_public/mock-interview/' })
+  // const env = useRuntimeEnv()
   
   // 从 URL 参数获取当前 tab，如果为空则使用默认值
   const activeTab = search.tab || DEFAULT_MOCK_INTERVIEW_TAB
@@ -52,7 +54,7 @@ export default function MockInterviewTabsPage() {
         </div>
       </Header>
 
-      <Main fixed className='pt-0'>
+      <Main fixed className='pt-0 md:mx-16 md:p-0'>
         <Tabs value={activeTab} onValueChange={handleTabChange} className='flex-1 flex flex-col min-h-0'>
             <div className='flex border-b border-border shrink-0'>
               <button

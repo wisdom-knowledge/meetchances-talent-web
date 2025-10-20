@@ -98,6 +98,28 @@ initApm()
     let shareUserId: string | null = null
     shareUserId = localStorage.getItem('shareUserId')
     const sp = new URLSearchParams(window.location.search)
+    // 将 URL 中的通用访问令牌写入 Cookie
+    {
+      const writeTokenCookie = (paramName: string) => {
+        const tokenFromUrl = sp.get(paramName)
+        if (!tokenFromUrl) return
+        const trimmed = tokenFromUrl.trim()
+        if (!trimmed) return
+        const isProdHost = /(^|\.)meetchances\.com$/i.test(window.location.hostname)
+        const cookieParts = [
+          `${paramName}=${encodeURIComponent(trimmed)}`,
+          'path=/',
+        ]
+        // 仅在正式域名下设置跨子域 Cookie；本地 (localhost) 使用 host-only Cookie
+        if (isProdHost) cookieParts.push('domain=.meetchances.com')
+        if (window.location.protocol === 'https:') cookieParts.push('Secure')
+        cookieParts.push('SameSite=Lax')
+        document.cookie = cookieParts.join('; ')
+      }
+
+      writeTokenCookie('boe_talent_access_token')
+      writeTokenCookie('prod_talent_access_token')
+    }
     if (!fr) {
       const fromUrl = sp.get('_fr')
       if (fromUrl && fromUrl.trim()) {
@@ -114,7 +136,9 @@ initApm()
     }
     if (fr) setApmContext({ fr })
     if (shareUserId) setApmContext({ 'share_user_id': shareUserId })
-  } catch (_e) {}
+  } catch (_e) {
+    // intentionally ignored: reading URL/localStorage can fail in restricted environments
+  }
   if (user) startApm()
 }
 

@@ -46,16 +46,17 @@ jobs:
         env:
           CI: false
           NODE_ENV: production
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-          VITE_AUTH_LOGIN_URL: ${{ secrets.VITE_AUTH_LOGIN_URL }}
-          VITE_AUTH_LOGOUT_URL: ${{ secrets.VITE_AUTH_LOGOUT_URL }}
-          VITE_INVITE_REDIRECT_URL: ${{ secrets.VITE_INVITE_REDIRECT_URL }}
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
-          VITE_APM_APP_ID: ${{ secrets.VITE_APM_APP_ID }}
-          VITE_APM_APP_TOKEN: ${{ secrets.VITE_APM_APP_TOKEN }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || secrets.VITE_API_BASE_URL }}
+          VITE_AUTH_LOGIN_URL: ${{ vars.VITE_AUTH_LOGIN_URL || secrets.VITE_AUTH_LOGIN_URL }}
+          VITE_AUTH_LOGOUT_URL: ${{ vars.VITE_AUTH_LOGOUT_URL || secrets.VITE_AUTH_LOGOUT_URL }}
+          VITE_INVITE_REDIRECT_URL: ${{ vars.VITE_INVITE_REDIRECT_URL || secrets.VITE_INVITE_REDIRECT_URL }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ vars.VITE_CLERK_PUBLISHABLE_KEY || secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_APM_APP_ID: ${{ vars.VITE_APM_APP_ID || secrets.VITE_APM_APP_ID }}
+          VITE_APM_APP_TOKEN: ${{ vars.VITE_APM_APP_TOKEN || secrets.VITE_APM_APP_TOKEN }}
           VITE_APP_ENV: ${{ vars.VITE_APP_ENV }}
           VITE_RTC_APP_ID: ${{ vars.VITE_RTC_APP_ID }}
           VITE_XPERT_STUDIO_DOMAIN: ${{ vars.VITE_XPERT_STUDIO_DOMAIN }}
+          VITE_IM_APP_ID: ${{ vars.VITE_IM_APP_ID }}
         run: pnpm run build
 
       - name: 验证构建产物
@@ -75,9 +76,9 @@ jobs:
 
       - name: 配置OSS访问
         env:
-          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT || 'oss-cn-beijing.aliyuncs.com' }}
-          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
-          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT || secrets.OSS_ENDPOINT || 'oss-cn-beijing.aliyuncs.com' }}
+          OSS_ACCESS_KEY_ID: ${{ vars.OSS_ACCESS_KEY_ID || secrets.OSS_ACCESS_KEY_ID }}
+          OSS_ACCESS_KEY_SECRET: ${{ vars.OSS_ACCESS_KEY_SECRET || secrets.OSS_ACCESS_KEY_SECRET }}
         run: |
           if [ -z "$OSS_ACCESS_KEY_ID" ]; then
             echo "::error::OSS_ACCESS_KEY_ID secret 未设置或为空!"
@@ -92,8 +93,8 @@ jobs:
 
       - name: 上传文件到OSS
         env:
-          OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
-          OSS_PATH_PREFIX: ${{ secrets.OSS_PATH_PREFIX || '' }}
+          OSS_BUCKET: ${{ vars.OSS_BUCKET || secrets.OSS_BUCKET }}
+          OSS_PATH_PREFIX: ${{ vars.OSS_PATH_PREFIX || secrets.OSS_PATH_PREFIX || '' }}
         run: |
           echo "🔍 当前分支: ${{ github.ref }}"
           echo "📦 目标OSS Bucket: $OSS_BUCKET"
@@ -110,7 +111,7 @@ jobs:
       - name: 部署成功通知
         if: success()
         env:
-          OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
+          OSS_BUCKET: ${{ vars.OSS_BUCKET || secrets.OSS_BUCKET }}
         run: |
           echo "🎉 部署成功!"
           echo "✅ 项目构建完成"

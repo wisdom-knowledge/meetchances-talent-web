@@ -3,6 +3,7 @@ import { Talent, TalentParams } from '@/stores/authStore'
 import { reportApiBusinessError, reportApiResponse, userEvent } from '@/lib/apm'
 import { noTalentMeRoutes } from '@/components/layout/data/sidebar-data'
 import { getReferralParams } from '@/lib/referral'
+import { detectRuntimeEnvSync } from '@/lib/env'
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
@@ -69,6 +70,40 @@ export const api = axios.create({
 // 登录地址（通过一个统一的环境变量覆盖）
 const LOGIN_URL = import.meta.env.VITE_AUTH_LOGIN_URL
 
+type WxWithMiniProgram = { miniProgram?: { redirectTo?: (opts: { url: string, data?: Record<string, string> }) => void } }
+
+// 统一处理未登录/登录失效后的跳转逻辑
+function handleUnauthorizedRedirect(): void {
+  if (typeof window === 'undefined') return
+  const isSpecialPage = noTalentMeRoutes.includes(window.location.pathname)
+  if (isSpecialPage) return
+
+  try {
+    const env = detectRuntimeEnvSync()
+    if (env === 'wechat-miniprogram') {
+      // 路由白名单：这些页面在小程序环境下也不进行 redirectTo
+      const pathname = window.location.pathname
+      const whiteList = ['/jobs', '/mock-interview', '/mine']
+      if (whiteList.some((p) => pathname.startsWith(p))) return
+      // 在小程序内，使用小程序路由跳转
+      const wxAny = (window as unknown as { wx?: unknown }).wx as
+        | undefined
+        | WxWithMiniProgram
+      const target = '/pages/authorize/authorize?redirect_url=' + encodeURIComponent(window.location.href)
+      // const url = target.startsWith('/') ? target : `/${target}`
+      wxAny?.miniProgram?.redirectTo?.({ url: target })
+      return
+    }
+  } catch (_e) {
+    // ignore
+  }
+
+  const loginUrl = LOGIN_URL
+  if (loginUrl) {
+    window.location.href = loginUrl
+  }
+}
+
 // 响应拦截器：统一解包 { status_code, status_msg, data }
 api.interceptors.response.use(
   (response) => {
@@ -81,11 +116,7 @@ api.interceptors.response.use(
     const dataUnknown = config?.data
     // 明确处理未登录/登录失效
     if (status === 401) {
-      const isSpecialPage = noTalentMeRoutes.includes(window.location.pathname)
-      const loginUrl = LOGIN_URL
-      if (typeof window !== 'undefined' && !isSpecialPage) {
-        window.location.href = loginUrl!
-      }
+      handleUnauthorizedRedirect()
       return Promise.reject({ status_code: 401, status_msg: 'Unauthorized' })
     }
     // 若没有通用外层，直接返回原始数据
@@ -217,4 +248,119 @@ export async function fetchWeChatSignature(
       url,
     },
   }) as unknown as Promise<WeChatSignatureResponse>
+}
+
+/**
+ * 消息接口类型定义（后端接口格式）
+ */
+export interface MessageItem {
+  message_id: number
+  sender_id: number
+  sender_user_name: string
+  title: string
+  sender_user_avatar: string
+  message_type: number
+  content_type: number
+  text: string
+  created_at?: string
+  is_read?: boolean
+}
+
+/**
+ * 消息列表响应（后端接口格式）
+ */
+export interface MessagesResponse {
+  data: MessageItem[]
+  count: number
+}
+
+/**
+ * 消息列表请求参数
+ */
+export interface MessagesParams {
+  cursor?: number | null
+  count?: number
+}
+
+/**
+ * 获取消息列表
+ * @param params 请求参数
+ * @param params.cursor 游标，用于分页（可选）
+ * @param params.count 每页数量，默认 20，最大 100
+ */
+export async function fetchMessages(params: MessagesParams = {}): Promise<MessagesResponse> {
+  const { cursor, count = 20 } = params
+
+  const queryParams = new URLSearchParams()
+  if (cursor !== undefined && cursor !== null) {
+    queryParams.append('cursor', String(cursor))
+  }
+  queryParams.append('count', String(count))
+
+  const response = await api.get<MessagesResponse>(`/messages/?${queryParams.toString()}`)
+  return response as unknown as MessagesResponse
+}
+
+/**
+ * 标记消息已读响应接口
+ */
+export interface MarkReadResponse {
+  updated: number
+}
+
+/**
+ * 标记单条消息为已读
+ * @param messageId 消息 ID
+ */
+export async function markMessageAsRead(messageId: number): Promise<MarkReadResponse> {
+  const response = await api.post<MarkReadResponse>('/messages/mark-read', {
+    message_ids: [messageId],
+  })
+  return response as unknown as MarkReadResponse
+}
+
+/**
+ * 批量标记消息为已读
+ * @param messageIds 消息 ID 数组
+ */
+export async function markMessagesAsRead(messageIds: number[]): Promise<MarkReadResponse> {
+  const response = await api.post<MarkReadResponse>('/messages/mark-read', {
+    message_ids: messageIds,
+  })
+  return response as unknown as MarkReadResponse
+}
+
+/**
+ * 火山 IM Token 响应接口
+ */
+export interface IMTokenResponse {
+  token: string
+  expire_at: number
+}
+
+/**
+ * 获取火山 IM Token
+ */
+export async function fetchIMToken(): Promise<IMTokenResponse> {
+  return api.get('/messages/im/token') as unknown as Promise<IMTokenResponse>
+}
+
+/**
+ * 未读消息数响应接口
+ */
+export interface UnreadCountResponse {
+  unread_count: number
+}
+
+/**
+ * 获取未读消息数
+ */
+export async function fetchUnreadCount(): Promise<number> {
+  try {
+    const response = await api.get<UnreadCountResponse>('/messages/unread_count')
+    return (response as unknown as UnreadCountResponse).unread_count
+  } catch (_error) {
+    // 接口调用失败时返回 0
+    return 0
+  }
 }

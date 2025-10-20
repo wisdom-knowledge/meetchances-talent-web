@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as JobsJob_idRouteImport } from './routes/jobs/$job_id'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
@@ -35,6 +36,7 @@ import { Route as AuthenticatedTalentPoolIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedResumeIndexRouteImport } from './routes/_authenticated/resume/index'
 import { Route as AuthenticatedResumeUploadIndexRouteImport } from './routes/_authenticated/resume-upload/index'
+import { Route as AuthenticatedMineIndexRouteImport } from './routes/_authenticated/mine/index'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs/index'
 import { Route as AuthenticatedJobRecommendIndexRouteImport } from './routes/_authenticated/job-recommend/index'
 import { Route as AuthenticatedJobDetailIndexRouteImport } from './routes/_authenticated/job-detail/index'
@@ -87,6 +89,12 @@ const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   path: '/wallet',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const errors503Route = errors503RouteImport.update({
   id: '/(errors)/503',
   path: '/503',
@@ -191,6 +199,11 @@ const AuthenticatedResumeUploadIndexRoute =
     path: '/resume-upload/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMineIndexRoute = AuthenticatedMineIndexRouteImport.update({
+  id: '/mine/',
+  path: '/mine/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
   id: '/jobs/',
   path: '/jobs/',
@@ -338,6 +351,7 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/': typeof AuthenticatedIndexRoute
@@ -364,6 +378,7 @@ export interface FileRoutesByFullPath {
   '/job-detail': typeof AuthenticatedJobDetailIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
+  '/mine': typeof AuthenticatedMineIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
   '/resume': typeof AuthenticatedResumeIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -384,6 +399,7 @@ export interface FileRoutesByTo {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/': typeof AuthenticatedIndexRoute
@@ -410,6 +426,7 @@ export interface FileRoutesByTo {
   '/job-detail': typeof AuthenticatedJobDetailIndexRoute
   '/job-recommend': typeof AuthenticatedJobRecommendIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
+  '/mine': typeof AuthenticatedMineIndexRoute
   '/resume-upload': typeof AuthenticatedResumeUploadIndexRoute
   '/resume': typeof AuthenticatedResumeIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -436,6 +453,7 @@ export interface FileRoutesById {
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -462,6 +480,7 @@ export interface FileRoutesById {
   '/_authenticated/job-detail/': typeof AuthenticatedJobDetailIndexRoute
   '/_authenticated/job-recommend/': typeof AuthenticatedJobRecommendIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/_authenticated/mine/': typeof AuthenticatedMineIndexRoute
   '/_authenticated/resume-upload/': typeof AuthenticatedResumeUploadIndexRoute
   '/_authenticated/resume/': typeof AuthenticatedResumeIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -486,6 +505,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/notifications'
     | '/wallet'
     | '/jobs/$job_id'
     | '/'
@@ -512,6 +532,7 @@ export interface FileRouteTypes {
     | '/job-detail'
     | '/job-recommend'
     | '/jobs'
+    | '/mine'
     | '/resume-upload'
     | '/resume'
     | '/settings/'
@@ -532,6 +553,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/notifications'
     | '/wallet'
     | '/jobs/$job_id'
     | '/'
@@ -558,6 +580,7 @@ export interface FileRouteTypes {
     | '/job-detail'
     | '/job-recommend'
     | '/jobs'
+    | '/mine'
     | '/resume-upload'
     | '/resume'
     | '/settings'
@@ -583,6 +606,7 @@ export interface FileRouteTypes {
     | '/(errors)/404'
     | '/(errors)/500'
     | '/(errors)/503'
+    | '/_authenticated/notifications'
     | '/_authenticated/wallet'
     | '/jobs/$job_id'
     | '/_authenticated/'
@@ -609,6 +633,7 @@ export interface FileRouteTypes {
     | '/_authenticated/job-detail/'
     | '/_authenticated/job-recommend/'
     | '/_authenticated/jobs/'
+    | '/_authenticated/mine/'
     | '/_authenticated/resume-upload/'
     | '/_authenticated/resume/'
     | '/_authenticated/settings/'
@@ -677,6 +702,13 @@ declare module '@tanstack/react-router' {
       path: '/wallet'
       fullPath: '/wallet'
       preLoaderRoute: typeof AuthenticatedWalletRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/(errors)/503': {
@@ -817,6 +849,13 @@ declare module '@tanstack/react-router' {
       path: '/resume-upload'
       fullPath: '/resume-upload'
       preLoaderRoute: typeof AuthenticatedResumeUploadIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mine/': {
+      id: '/_authenticated/mine/'
+      path: '/mine'
+      fullPath: '/mine'
+      preLoaderRoute: typeof AuthenticatedMineIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/jobs/': {
@@ -1008,6 +1047,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedInterviewPrepareRoute: typeof AuthenticatedInterviewPrepareRoute
@@ -1025,6 +1065,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobDetailIndexRoute: typeof AuthenticatedJobDetailIndexRoute
   AuthenticatedJobRecommendIndexRoute: typeof AuthenticatedJobRecommendIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
+  AuthenticatedMineIndexRoute: typeof AuthenticatedMineIndexRoute
   AuthenticatedResumeUploadIndexRoute: typeof AuthenticatedResumeUploadIndexRoute
   AuthenticatedResumeIndexRoute: typeof AuthenticatedResumeIndexRoute
   AuthenticatedTalentPoolIndexRoute: typeof AuthenticatedTalentPoolIndexRoute
@@ -1034,6 +1075,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedInterviewPrepareRoute: AuthenticatedInterviewPrepareRoute,
@@ -1053,6 +1095,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJobDetailIndexRoute: AuthenticatedJobDetailIndexRoute,
   AuthenticatedJobRecommendIndexRoute: AuthenticatedJobRecommendIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
+  AuthenticatedMineIndexRoute: AuthenticatedMineIndexRoute,
   AuthenticatedResumeUploadIndexRoute: AuthenticatedResumeUploadIndexRoute,
   AuthenticatedResumeIndexRoute: AuthenticatedResumeIndexRoute,
   AuthenticatedTalentPoolIndexRoute: AuthenticatedTalentPoolIndexRoute,

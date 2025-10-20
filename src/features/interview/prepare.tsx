@@ -3,6 +3,7 @@ import { RichText } from '@/components/ui/rich-text'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from '@tanstack/react-router'
 import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
+import { salaryTypeMapping, salaryTypeUnitMapping } from '@/features/jobs/constants'
 import { IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { IconLoader2 } from '@tabler/icons-react'
@@ -292,6 +293,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const cam = useMediaDeviceSelect({ kind: 'videoinput', requestPermissions: viewMode === ViewMode.InterviewPrepare })
   const [_joining, triggerJoin] = useJoin()
   const setRtcConnectionInfo = useRoomStore((s) => s.setRtcConnectionInfo)
+  // 问卷轮询的最大次数，默认 100 次
+  const MAX_QUESTIONNAIRE_POLL_COUNT = 100
   // 当视频设备自动选择时，保存为默认选择
   useEffect(() => {
     if (viewMode !== ViewMode.InterviewPrepare) return
@@ -323,6 +326,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   }, [])
 
   const hasReportedSessionRefresh = useRef(false)
+  const questionnairePollCountRef = useRef(0)
 
   // 当页面来源为 session 页面刷新时，上报页面刷新事件
   useEffect(() => {
@@ -422,18 +426,18 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const handleBackClick = useCallback(() => {
     // 先主动释放媒体资源，再进行跳转
     releaseAllMediaStreams()
-    let isExternalReferrer = false
+    let isNeedToHome = false
     try {
       const ref = document.referrer
       if (!ref) {
-        isExternalReferrer = true
+        isNeedToHome = true
       } else {
         try {
           const refOrigin = new URL(ref).origin
-          isExternalReferrer = refOrigin !== window.location.origin
+          isNeedToHome = refOrigin !== window.location.origin && window.innerWidth > 699
         } catch {
           // ref 不是合法 URL，视为外部来源
-          isExternalReferrer = true
+          isNeedToHome = true
         }
       }
     } catch {
@@ -442,7 +446,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
 
     if (
       viewMode === ViewMode.InterviewPendingReview ||
-      isExternalReferrer || isFromSessionRefresh
+      isNeedToHome || isFromSessionRefresh
     ) {
       // 使用原生 API 替换跳转，便于更好地释放设备权限（摄像头/麦克风）
       window.location.replace('/home')
@@ -579,7 +583,18 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       !isMock
 
     if (isQuestionnaireInProgress) {
+      // 若已达到最大次数，则不再启动新的轮询
+      if (questionnairePollCountRef.current >= MAX_QUESTIONNAIRE_POLL_COUNT) {
+        return
+      }
+
       const pollInterval = setInterval(async () => {
+        // 已达上限则停止
+        if (questionnairePollCountRef.current >= MAX_QUESTIONNAIRE_POLL_COUNT) {
+          clearInterval(pollInterval)
+          return
+        }
+        questionnairePollCountRef.current += 1
         // 刷新工作流数据，这会触发本 useEffect 重新执行
         await queryClient.invalidateQueries({
           queryKey: ['job-apply-workflow', jobApplyId],
@@ -589,6 +604,9 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
       return () => {
         clearInterval(pollInterval)
       }
+    } else {
+      // 非问卷阶段或已结束时，重置计数
+      questionnairePollCountRef.current = 0
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress, isMock])
@@ -863,6 +881,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         {viewMode === ViewMode.AnnotateTestInProgress && (
           <ViewModeAnnotateTestInProgress
             nodeData={currentNodeData ?? undefined}
+            jobApplyId={jobApplyId ?? null}
             onTaskSubmit={async () => {
               if (currentNodeData && currentNodeData.id) {
                 const nodeId = currentNodeData.id as number
@@ -1028,7 +1047,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                         <div className='flex items-center gap-4 text-primary mb-2'>
                           <div className='flex items-center'>
                             <IconBriefcase className='h-4 w-4 mr-1' />
-                            <span className='text-[14px]'>时薪制</span>
+                            <span className='text-[14px]'>{salaryTypeMapping[job.salary_type as keyof typeof salaryTypeMapping] || '时'}薪制</span>
                           </div>
                           <div className='flex items-center'>
                             <IconWorldPin className='h-4 w-4 mr-1' />
@@ -1042,9 +1061,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     !isMock && (
                       <div className='hidden md:flex flex-col items-end min-w-[140px]'>
                         <div className='text-xl font-semibold text-foreground mb-1'>
-                          ¥{job.salary_min ?? 0}~¥{job.salary_max ?? 0}
+                          {job.salary_max && job.salary_max > 0 
+                            ? `¥${job.salary_min ?? 0}~¥${job.salary_max}` 
+                            : `¥${job.salary_min ?? 0}`}
                         </div>
-                        <div className='text-xs text-muted-foreground mb-3'>每小时</div>
+                        <div className='text-xs text-muted-foreground mb-3'>每{salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}</div>
                       </div>
                     )
                   }

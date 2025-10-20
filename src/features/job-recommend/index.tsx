@@ -8,6 +8,7 @@ import { useNavigate, useRouterState } from '@tanstack/react-router'
 import { useMemo, useState, useCallback } from 'react'
 import { useJobApplyListQuery } from './api'
 import { useJobDetailQuery } from '@/features/jobs/api'
+import { salaryTypeMapping, salaryTypeUnitMapping } from '@/features/jobs/constants'
 
 export default function JobRecommendPage() {
   const navigate = useNavigate()
@@ -51,7 +52,7 @@ export default function JobRecommendPage() {
             <div className='mb-2 flex items-center gap-4 text-primary'>
               <div className='flex items-center'>
                 <IconBriefcase className='mr-1 h-4 w-4' />
-                <span className='text-[14px]'>时薪制</span>
+                <span className='text-[14px]'>{jobDetail ? `${salaryTypeMapping[jobDetail.salary_type as keyof typeof salaryTypeMapping] || '时'}薪制` : '时薪制'}</span>
               </div>
               <div className='flex items-center'>
                 <IconWorldPin className='mr-1 h-4 w-4' />
@@ -61,9 +62,11 @@ export default function JobRecommendPage() {
           </div>
           <div className='hidden min-w-[140px] flex-col items-end md:flex'>
             <div className='mb-1 text-xl font-semibold text-foreground'>
-              ¥{jobDetail?.salary_min ?? 0}~¥{jobDetail?.salary_max ?? 0}
+              {jobDetail && jobDetail.salary_max && jobDetail.salary_max > 0 
+                ? `¥${jobDetail.salary_min ?? 0}~¥${jobDetail.salary_max}` 
+                : `¥${jobDetail?.salary_min ?? 0}`}
             </div>
-            <div className='mb-3 text-xs text-muted-foreground'>每小时</div>
+            <div className='mb-3 text-xs text-muted-foreground'>每{jobDetail ? salaryTypeUnitMapping[jobDetail.salary_type as keyof typeof salaryTypeUnitMapping] || '小时' : '小时'}</div>
             <div className='flex gap-2'>
             <Button variant='default' onClick={() => navigate({ to: '/resume-upload' })}>上传新简历</Button>
           </div>

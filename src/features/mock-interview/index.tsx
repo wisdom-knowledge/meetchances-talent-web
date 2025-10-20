@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+// import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import MockEmptyState from '@/features/mock-interview/components/empty-state'
 import MockCard from '@/features/mock-interview/components/mock-card'
 import { fetchMockInterviewList, fetchMockCategories } from './api'
@@ -33,13 +34,30 @@ export default function MockInterviewPage() {
     category?: string
   }
   const navigate = useNavigate()
-
+  // const env = useRuntimeEnv()
   const [q, setQ] = useState(search.q ?? '')
   const [qInput, setQInput] = useState(search.q ?? '')
   const [category, setCategory] = useState<number | undefined>(
     search.category ? Number(search.category) : undefined
   )
-  const [categories, setCategories] = useState<CategoryOption[]>([])
+  // 分类数据：改为 useQuery 缓存，避免严格模式下的二次请求
+  const { data: categoryList } = useQuery({
+    queryKey: ['mock-categories'],
+    queryFn: () => fetchMockCategories(),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
+  const categories: CategoryOption[] = useMemo(() => {
+    const list = Array.isArray(categoryList) ? categoryList : []
+    const fallbackIcon = IconDeviceLaptop
+    return list.map((it) => ({
+      id: it.category_id,
+      label: it.category_name,
+      icon: it.image,
+      Icon: fallbackIcon,
+    }))
+  }, [categoryList])
   const catScrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
@@ -77,33 +95,12 @@ export default function MockInterviewPage() {
   const total = data?.count ?? 0
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
-  // 拉取分类
+  // 初始化默认分类
   useEffect(() => {
-    let mounted = true
-    ;(async () => {
-      try {
-        const list = await fetchMockCategories()
-        if (!mounted) return
-        const fallbackIcon = IconDeviceLaptop
-        const mapped: CategoryOption[] = (list || []).map((it) => ({
-          id: it.category_id,
-          label: it.category_name,
-          icon: it.image,
-          Icon: fallbackIcon, // 兜底使用统一图标；若后续需要根据 icon 动态渲染，可扩展
-        }))
-        setCategories(mapped)
-        // 只在初始化时设置默认分类
-        if (search.category === undefined && mapped.length > 0) {
-          setCategory(mapped[0].id)
-        }
-      } catch {
-        setCategories([])
-      }
-    })()
-    return () => {
-      mounted = false
+    if (search.category === undefined && category === undefined && categories.length > 0) {
+      setCategory(categories[0].id)
     }
-  }, [search.category])
+  }, [search.category, category, categories])
 
   // 计算分类横向滚动的左右可滚动状态
   useEffect(() => {
@@ -220,7 +217,6 @@ export default function MockInterviewPage() {
                     setCategory(id)
                   }}
                   className='group inline-flex max-w-[120px] min-w-[88px] shrink-0 flex-col items-center gap-2 text-sm'
-                  aria-pressed={active ? 'true' : 'false'}
                 >
                   <span
                     className={[

@@ -12,9 +12,10 @@ export interface SectionNavItem {
 interface SectionNavProps {
   items: SectionNavItem[]
   className?: string
+  activeId?: string
 }
 
-export default function SectionNav({ items, className }: SectionNavProps) {
+export default function SectionNav({ items, className, activeId }: SectionNavProps) {
   const handleClick = useCallback((id: string) => {
     const el = document.getElementById(id)
     if (el) {
@@ -40,8 +41,10 @@ export default function SectionNav({ items, className }: SectionNavProps) {
               onClick={() => handleClick(item.id)}
               className={cn(
                 buttonVariants({ variant: 'ghost' }),
-                'justify-start h-9 px-4 py-2 has-[>svg]:px-3 hover:bg-transparent hover:underline'
+                'justify-start h-9 px-4 py-2 has-[>svg]:px-3 hover:bg-transparent hover:underline',
+                activeId === item.id && 'text-primary'
               )}
+              aria-current={activeId === item.id ? 'true' : undefined}
             >
               <span className='mr-2'>{item.icon}</span>
               {item.title}
@@ -59,8 +62,10 @@ export default function SectionNav({ items, className }: SectionNavProps) {
               onClick={() => handleClick(item.id)}
               className={cn(
                 buttonVariants({ variant: 'ghost' }),
-                'whitespace-nowrap h-9 px-3'
+                'whitespace-nowrap h-9 px-3',
+                activeId === item.id && 'text-primary'
               )}
+              aria-current={activeId === item.id ? 'true' : undefined}
             >
               {item.title}
             </button>
