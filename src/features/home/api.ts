@@ -35,7 +35,7 @@ export interface ApiApplyListItem {
    * '10': 进行中
    * '20': 审核中
    * '30': 通过
-   * '40': 已拒绝
+   * '40': 未录取
    * '50': 打回(视为进行中)
    */
   current_node_status?: '0' | '10' | '20' | '30' | '40' | '50'
