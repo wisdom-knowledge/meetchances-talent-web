@@ -201,7 +201,7 @@ export default function HomeViewPage() {
                     type Pill = { text: string; classes: string }
                     const pill: Pill = (() => {
                       if (status === '30') return { text: '已通过', classes: 'bg-[#D7FCE3] text-[#00BD65]' }
-                      if (status === '40') return { text: '已拒绝', classes: 'bg-[#FFDEDD] text-[#F4490B]' }
+                      if (status === '40') return { text: '未录取', classes: 'bg-[#FFDEDD] text-[#F4490B]' }
                       if (status === '20') return { text: '审核中', classes: 'bg-[#4E02E41A] text-[#4E02E4]' }
                       {
                         const progress = item.progress ?? 0
