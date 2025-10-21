@@ -321,11 +321,11 @@ export default function HomeViewPage() {
                       // 岗位正常时，显示申请流程状态
                       const status = item.current_node_status ?? '0'
                       // 颜色：绿色 #00BD65；红色 #F4490B
-                      // 0/10/50 -> 进行中；20 -> 审核中；30 -> 通过；40 -> 已拒绝
+                      // 0/10/50 -> 进行中；20 -> 审核中；30 -> 通过；40 -> 未录取
                       if (status === '30')
                         return { text: '已通过', classes: 'bg-[#D7FCE3] text-[#00BD65]' }
                       if (status === '40')
-                        return { text: '已拒绝', classes: 'bg-[#FFDEDD] text-[#F4490B]' }
+                        return { text: '未录取', classes: 'bg-[#FFDEDD] text-[#F4490B]' }
                       if (status === '20')
                         return {
                           text: '审核中',
