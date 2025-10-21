@@ -248,6 +248,7 @@ function DesktopViewModeInterviewPrepare({
   const [retakeSignal, setRetakeSignal] = useState(0)
   const [isTestAudioPlaying, setIsTestAudioPlaying] = useState(false)
   const [isMicRecording, setIsMicRecording] = useState(false)
+  const [pendingConnect, setPendingConnect] = useState(false)
   const [playSignal, setPlaySignal] = useState(0)
 
   // 通用 handler
@@ -281,6 +282,14 @@ function DesktopViewModeInterviewPrepare({
   // 桌面端使用通用组件
   const renderTwoActionButtonsDesktop = () => {
     const isAudioStep = preparationStep === 'audio'
+    const handleRightClick = () => {
+      if (preparationStep === 'final') setPendingConnect(true)
+      try {
+        buttonConfig.onClick()
+      } catch {
+        // ignore
+      }
+    }
     return (
       <TwoActionButtons
         leftLabel={isAudioStep ? '重新播放' : '重录'}
@@ -294,9 +303,9 @@ function DesktopViewModeInterviewPrepare({
         }
         leftDisabled={isAudioStep ? isTestAudioPlaying : isMicRecording}
         rightClassName={`flex-1 ${buttonConfig.className}`}
-        rightDisabled={buttonConfig.disabled}
-        rightOnClick={buttonConfig.onClick}
-        rightText={buttonConfig.text}
+        rightDisabled={buttonConfig.disabled || pendingConnect}
+        rightOnClick={handleRightClick}
+        rightText={pendingConnect ? '面试间连接中...' : buttonConfig.text}
       />
     )
   }
@@ -361,10 +370,13 @@ function DesktopViewModeInterviewPrepare({
           ) : (
             <Button
               className={buttonConfig.className}
-              disabled={buttonConfig.disabled}
-              onClick={buttonConfig.onClick}
+              disabled={buttonConfig.disabled || pendingConnect}
+              onClick={() => {
+                if (preparationStep === 'final') setPendingConnect(true)
+                buttonConfig.onClick()
+              }}
             >
-              {buttonConfig.text}
+              {pendingConnect ? '面试间连接中...' : buttonConfig.text}
             </Button>
           )}
           <p className='text-muted-foreground mt-4 text-xs'>
@@ -406,9 +418,10 @@ function MobileViewModeInterviewPrepare({
   const [retakeSignal, setRetakeSignal] = useState(0)
   const [isTestAudioPlaying, setIsTestAudioPlaying] = useState(false)
   const [isMicRecording, setIsMicRecording] = useState(false)
+  const [pendingConnect, setPendingConnect] = useState(false)
 
   // 通用 handler
-  const { handleCameraConfirm, handleAudioConfirm, handleMicConfirm, handleFinalConfirm, handleReplayAudio } = _createPrepareFlowActions({
+  const { handleCameraConfirm, handleAudioConfirm, handleFinalConfirm, handleReplayAudio } = _createPrepareFlowActions({
     onCameraConfirmed,
     onHeadphoneConfirm,
     onMicConfirmed,
@@ -431,7 +444,7 @@ function MobileViewModeInterviewPrepare({
     micRecorded,
     onCameraClick: handleCameraConfirm,
     onAudioClick: handleAudioConfirm,
-    onMicClick: handleMicConfirm,
+    onMicClick: () => { onMicConfirmed(); handleFinalConfirm() },
     onFinalClick: handleFinalConfirm,
   })
   return (
@@ -496,17 +509,24 @@ function MobileViewModeInterviewPrepare({
             }
             leftDisabled={preparationStep === 'audio' ? isTestAudioPlaying : isMicRecording}
             rightClassName={`flex-1 ${buttonConfig.className}`}
-            rightDisabled={buttonConfig.disabled}
-            rightOnClick={buttonConfig.onClick}
-            rightText={buttonConfig.text}
+            rightDisabled={buttonConfig.disabled || pendingConnect}
+            rightOnClick={() => {
+              // 移动端最后一步：确认麦克风即进入面试
+              if (preparationStep === 'audioQuality') setPendingConnect(true)
+              buttonConfig.onClick()
+            }}
+            rightText={pendingConnect ? '面试间连接中...' : buttonConfig.text}
           />
         ) : (
           <Button
             className={buttonConfig.className}
-            disabled={buttonConfig.disabled}
-            onClick={buttonConfig.onClick}
+            disabled={buttonConfig.disabled || pendingConnect}
+            onClick={() => {
+              if (preparationStep === 'final') setPendingConnect(true)
+              buttonConfig.onClick()
+            }}
           >
-            {buttonConfig.text}
+            {pendingConnect ? '面试间连接中...' : buttonConfig.text}
           </Button>
         )}
       </div>
