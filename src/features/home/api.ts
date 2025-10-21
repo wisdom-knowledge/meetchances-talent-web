@@ -1,4 +1,4 @@
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, type UseQueryOptions, type UseInfiniteQueryResult, type InfiniteData } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 // import { api } from '@/lib/api'
 import { ApiJob } from '../jobs/api'
@@ -123,14 +123,43 @@ export async function fetchMyApplications(
   }
 }
 
+type MyApplicationsQueryOptions = Omit<
+  UseQueryOptions<MyApplicationsResultRaw, Error, MyApplicationsResultRaw, ['my-applications', MyApplicationsParams]>,
+  'queryKey' | 'queryFn'
+>
+
 export function useMyApplicationsQuery(
   params: MyApplicationsParams,
-  options?: UseQueryOptions<MyApplicationsResultRaw>
+  options?: MyApplicationsQueryOptions
 ) {
-  return useQuery({
+  return useQuery<MyApplicationsResultRaw, Error, MyApplicationsResultRaw, ['my-applications', MyApplicationsParams]>({
     queryKey: ['my-applications', params],
     queryFn: () => fetchMyApplications(params),
     ...options,
+  })
+}
+
+// ===== 我的申请（无限加载） =====
+export type MyApplicationsPage = MyApplicationsResultRaw
+export type UseInfiniteMyApplicationsResult = UseInfiniteQueryResult<InfiniteData<MyApplicationsPage>, Error>
+
+export function useInfiniteMyApplicationsQuery(
+  params: Omit<MyApplicationsParams, 'skip'> = { limit: 10 },
+  options?: { enabled?: boolean }
+): UseInfiniteMyApplicationsResult {
+  const { limit = 10 } = params
+  return useInfiniteQuery<MyApplicationsPage, Error, InfiniteData<MyApplicationsPage>, [string, { limit: number }], number>({
+    queryKey: ['my-applications-infinite', { limit }],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) => fetchMyApplications({ skip: pageParam * limit, limit }),
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const total = lastPage?.total ?? 0
+      const currentPage = typeof lastPageParam === 'number' ? lastPageParam : 0
+      const pageCount = total ? Math.max(1, Math.ceil(total / limit)) : undefined
+      const hasMore = typeof pageCount === 'number' ? currentPage + 1 < pageCount : (lastPage?.data?.length ?? 0) === limit
+      return hasMore ? currentPage + 1 : undefined
+    },
+    enabled: options?.enabled ?? true,
   })
 }
 
