@@ -94,6 +94,22 @@ function MenuAction({ onClick, icon, label }: { onClick: () => void; icon: React
 }
 
 function handleLogout() {
+  try {
+    const env = detectRuntimeEnvSync()
+    if (env === 'wechat-miniprogram') {
+      const g = window as unknown as {
+        wx?: { miniProgram?: { redirectTo?: (opts: { url: string }) => void } }
+      }
+      const redirectTo = g.wx?.miniProgram?.redirectTo
+      if (typeof redirectTo === 'function') {
+        const target = '/pages/authorize/authorize?redirect_url=' + encodeURIComponent(window.location.href)
+        redirectTo({ url: target })
+      }
+    }
+  } catch (_e) {
+    // ignore
+  }
+
   const baseLogoutUrl = import.meta.env.VITE_AUTH_LOGOUT_URL as string | undefined
   if (baseLogoutUrl) {
     location.replace(baseLogoutUrl)
