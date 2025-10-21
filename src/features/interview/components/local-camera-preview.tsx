@@ -665,10 +665,6 @@ export function LocalCameraPreview({
                         <div className={cn('absolute left-0 top-0 h-2 rounded-full bg-primary', progressWidthClass)} />
                       </div>
                     </div>
-                    <div className='flex items-center gap-2 w-full sm:w-auto'>
-                      <Button size='sm' variant='secondary' onClick={handleRetake} className='flex-1 sm:flex-none text-xs sm:text-sm'>重录</Button>
-                      {/* 确认音质正常按钮现在在右侧 */}
-                    </div>
                   </div>
                 )}
               </div>
