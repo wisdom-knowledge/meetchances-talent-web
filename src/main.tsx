@@ -7,6 +7,7 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
+import { setRouterInstance } from '@/lib/router-ref'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/authStore'
 import { handleServerError } from '@/utils/handle-server-error'
@@ -75,6 +76,9 @@ const router = createRouter({
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
 })
+
+// expose router instance for imperative navigation helpers
+setRouterInstance(router)
 
 // Register the router instance for type safety
 declare module '@tanstack/react-router' {

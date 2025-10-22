@@ -31,6 +31,11 @@ declare global {
         cancel?: () => void
       }) => void
       // 可以根据需要扩展更多微信API
+      miniProgram?: {
+        navigateTo?: (config: { url: string }) => void
+        redirectTo?: (config: { url: string }) => void
+        getEnv?: (cb: (res: { miniprogram: boolean }) => void) => void
+      }
     }
   }
 }
