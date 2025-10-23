@@ -47,14 +47,14 @@ jobs:
 
       - name: 校验覆盖率 100%
         run: |
-          if [ ! -f "coverage/coverage-final.json" ]; then
-            echo "::error::未生成覆盖率报告 coverage/coverage-final.json"
+          if [ ! -f "coverage/coverage-summary.json" ]; then
+            echo "::error::未生成覆盖率报告 coverage/coverage-summary.json"
             exit 1
           fi
-          LINES=$(node -e "const r=require('./coverage/coverage-final.json');const f=Object.values(r)[0];console.log(f.total.lines.pct)")
-          FUNCS=$(node -e "const r=require('./coverage/coverage-final.json');const f=Object.values(r)[0];console.log(f.total.functions.pct)")
-          BRANCHES=$(node -e "const r=require('./coverage/coverage-final.json');const f=Object.values(r)[0];console.log(f.total.branches.pct)")
-          STATEMENTS=$(node -e "const r=require('./coverage/coverage-final.json');const f=Object.values(r)[0];console.log(f.total.statements.pct)")
+          LINES=$(node -e "const {readFileSync}=require('fs');const s=JSON.parse(readFileSync('coverage/coverage-summary.json','utf8'));console.log(s.total.lines.pct)")
+          FUNCS=$(node -e "const {readFileSync}=require('fs');const s=JSON.parse(readFileSync('coverage/coverage-summary.json','utf8'));console.log(s.total.functions.pct)")
+          BRANCHES=$(node -e "const {readFileSync}=require('fs');const s=JSON.parse(readFileSync('coverage/coverage-summary.json','utf8'));console.log(s.total.branches.pct)")
+          STATEMENTS=$(node -e "const {readFileSync}=require('fs');const s=JSON.parse(readFileSync('coverage/coverage-summary.json','utf8'));console.log(s.total.statements.pct)")
           echo "Lines: $LINES, Functions: $FUNCS, Branches: $BRANCHES, Statements: $STATEMENTS"
           if [ "$LINES" != "100" ] || [ "$FUNCS" != "100" ] || [ "$BRANCHES" != "100" ] || [ "$STATEMENTS" != "100" ]; then
             echo "::error::测试覆盖率未达 100%"
