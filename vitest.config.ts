@@ -8,6 +8,7 @@ export default defineConfig({
       provider: 'v8',
       all: true,
       include: ['src/utils/avatar.ts'],
+      reporter: ['text', 'json', 'html', 'json-summary'],
       thresholds: {
         lines: 100,
         functions: 100,
