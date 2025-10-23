@@ -111,7 +111,7 @@ export default function InterviewReports() {
 
         {/* 页面主体内容 */}
         <div className='space-y-6'>
-          {report ? <CandidateInfoCard data={report} /> : null}
+          {report ? <CandidateInfoCard data={report} userId={user?.id ?? undefined} /> : null}
           <AiInterviewSection
             data={report?.ai_interview}
             videoUrl={report?.video_url || ''}
