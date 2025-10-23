@@ -5,7 +5,7 @@ import type { InterviewReportData } from '../data/interview-report-types.ts'
 
 interface Props {
   data: InterviewReportData
-  userId: number
+  userId: number | undefined
 }
 
 // 候选人信息卡片骨架屏组件
