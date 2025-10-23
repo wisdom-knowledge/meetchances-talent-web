@@ -1,9 +1,11 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { getUserAvatarUrl } from '@/utils/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { InterviewReportData } from '../data/interview-report-types.ts'
 
 interface Props {
   data: InterviewReportData
+  userId: number
 }
 
 // 候选人信息卡片骨架屏组件
@@ -37,7 +39,7 @@ export function CandidateInfoSkeleton() {
   )
 }
 
-export function CandidateInfoCard({ data }: Props) {
+export function CandidateInfoCard({ data, userId }: Props) {
   const candidateName = data.resume_name || '候选人'
 
   // 获取姓名的第一个字符作为头像显示
@@ -98,7 +100,7 @@ export function CandidateInfoCard({ data }: Props) {
         <AvatarFallback className='bg-blue-100 text-xl font-medium text-blue-600'>
           {data.avatar_url ? (
             <img
-              src={data.avatar_url}
+              src={getUserAvatarUrl({ userId, avatarUrl: data.avatar_url })}
               alt={candidateName}
               className='h-full w-full object-cover'
             />

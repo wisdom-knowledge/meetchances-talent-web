@@ -42,6 +42,25 @@ jobs:
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
 
+      - name: 运行单元测试（覆盖率 100% 必须）
+        run: pnpm run test:coverage
+
+      - name: 校验覆盖率 100%
+        run: |
+          if [ ! -f "coverage/coverage-summary.json" ]; then
+            echo "::error::未生成覆盖率报告 coverage/coverage-summary.json"
+            exit 1
+          fi
+          LINES=$(node -e "const {readFileSync}=require('fs');const s=JSON.parse(readFileSync('coverage/coverage-summary.json','utf8'));console.log(s.total.lines.pct)")
+          FUNCS=$(node -e "const {readFileSync}=require('fs');const s=JSON.parse(readFileSync('coverage/coverage-summary.json','utf8'));console.log(s.total.functions.pct)")
+          BRANCHES=$(node -e "const {readFileSync}=require('fs');const s=JSON.parse(readFileSync('coverage/coverage-summary.json','utf8'));console.log(s.total.branches.pct)")
+          STATEMENTS=$(node -e "const {readFileSync}=require('fs');const s=JSON.parse(readFileSync('coverage/coverage-summary.json','utf8'));console.log(s.total.statements.pct)")
+          echo "Lines: $LINES, Functions: $FUNCS, Branches: $BRANCHES, Statements: $STATEMENTS"
+          if [ "$LINES" != "100" ] || [ "$FUNCS" != "100" ] || [ "$BRANCHES" != "100" ] || [ "$STATEMENTS" != "100" ]; then
+            echo "::error::测试覆盖率未达 100%"
+            exit 1
+          fi
+
       - name: 构建项目
         env:
           CI: false
