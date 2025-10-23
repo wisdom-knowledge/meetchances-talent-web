@@ -6,6 +6,7 @@ import { sidebarData } from './data/sidebar-data'
 import { useAuthStore } from '@/stores/authStore'
 import logoCircle from '@/assets/images/logo-circle.svg'
 import { useMemo } from 'react'
+import { getUserAvatarUrl } from '@/utils/avatar'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useNavigate } from '@tanstack/react-router'
 
@@ -16,7 +17,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const userForSidebar = useMemo(() => {
     const name = authUser?.full_name || authUser?.accountNo || (authUser?.email ? authUser.email.split('@')[0] : '')
     const email = authUser?.email || ''
-    const avatar = authUser?.avatar_url || '/avatars/shadcn.jpg'
+    const avatar = getUserAvatarUrl({ userId: authUser?.id ?? 0, avatarUrl: authUser?.avatar_url })
     return { name, email, avatar }
   }, [authUser])
 

@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { getUserAvatarUrl } from '@/utils/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { InterviewReportData } from '../data/interview-report-types.ts'
 
@@ -98,7 +99,7 @@ export function CandidateInfoCard({ data }: Props) {
         <AvatarFallback className='bg-blue-100 text-xl font-medium text-blue-600'>
           {data.avatar_url ? (
             <img
-              src={data.avatar_url}
+              src={getUserAvatarUrl({ userId: data?.talent_id ?? 0, avatarUrl: data.avatar_url })}
               alt={candidateName}
               className='h-full w-full object-cover'
             />
