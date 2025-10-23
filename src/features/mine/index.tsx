@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { getUserAvatarUrl } from '@/utils/avatar'
 import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil, IconBell } from '@tabler/icons-react'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import { detectRuntimeEnvSync } from '@/lib/env'
@@ -27,7 +28,7 @@ export default function MinePage() {
         <div className='flex flex-col items-center py-6 mb-2'>
           <button type='button' onClick={gotoAccountInfo} className='relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 transition-transform'>
             <Avatar className='h-24 w-24 rounded-full'>
-              <AvatarImage src={(user as unknown as { avatar_url?: string })?.avatar_url || ''} alt={user?.full_name || ''} />
+              <AvatarImage src={getUserAvatarUrl({ userId: user?.id, avatarUrl: (user as unknown as { avatar_url?: string })?.avatar_url })} alt={user?.full_name || ''} />
               <AvatarFallback className='rounded-full'>
                 {(user?.full_name || 'U').charAt(0)}
               </AvatarFallback>
