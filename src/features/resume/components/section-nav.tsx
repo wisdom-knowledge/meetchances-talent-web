@@ -1,4 +1,4 @@
-import { type JSX, useCallback } from 'react'
+import { type JSX, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -16,12 +16,72 @@ interface SectionNavProps {
 }
 
 export default function SectionNav({ items, className, activeId }: SectionNavProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const underlineRef = useRef<HTMLDivElement | null>(null)
+  const rafIdRef = useRef<number | null>(null)
+  const scheduleIdle = useRef<((cb: () => void) => void) | null>(null)
   const handleClick = useCallback((id: string) => {
     const el = document.getElementById(id)
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [])
+
+  const updateUnderline = useCallback(() => {
+    const container = containerRef.current
+    if (!container) return
+    if (!activeId) return
+    const btn = buttonRefs.current.get(activeId)
+    if (!btn) return
+    const left = btn.offsetLeft - container.scrollLeft
+    const width = btn.offsetWidth
+    const el = underlineRef.current
+    if (!el) return
+    const tx = Math.max(0, left)
+    el.style.width = `${width}px`
+    el.style.transform = `translate3d(${tx}px,0,0)`
+  }, [activeId])
+
+  useLayoutEffect(() => {
+    // 初始化 idle 调度器
+    scheduleIdle.current = (cb: () => void) => {
+      try {
+        const ric = (window as unknown as { requestIdleCallback?: (cb: IdleRequestCallback, opts?: { timeout?: number }) => number }).requestIdleCallback
+        if (typeof ric === 'function') {
+          ric(() => cb(), { timeout: 120 })
+        } else {
+          window.requestAnimationFrame(() => cb())
+        }
+      } catch {
+        window.requestAnimationFrame(() => cb())
+      }
+    }
+    updateUnderline()
+  }, [updateUnderline, items.length])
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const onScroll = () => {
+      if (rafIdRef.current != null) return
+      rafIdRef.current = window.requestAnimationFrame(() => {
+        rafIdRef.current = null
+        updateUnderline()
+      })
+    }
+    const onResize = () => {
+      const scheduler = scheduleIdle.current
+      if (scheduler) scheduler(() => updateUnderline())
+      else updateUnderline()
+    }
+    container.addEventListener('scroll', onScroll)
+    window.addEventListener('resize', onResize)
+    return () => {
+      container.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [updateUnderline])
 
   return (
     <>
@@ -54,10 +114,17 @@ export default function SectionNav({ items, className, activeId }: SectionNavPro
       </ScrollArea>
 
       <div className='p-1 lg:hidden'>
-        <div className='flex gap-2 overflow-x-auto'>
+        <div
+          ref={containerRef}
+          className='relative flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+        >
           {items.map((item) => (
             <button
               key={item.id}
+              ref={(el) => {
+                if (!el) return
+                buttonRefs.current.set(item.id, el)
+              }}
               type='button'
               onClick={() => handleClick(item.id)}
               className={cn(
@@ -70,6 +137,11 @@ export default function SectionNav({ items, className, activeId }: SectionNavPro
               {item.title}
             </button>
           ))}
+          <div
+            ref={underlineRef}
+            className='pointer-events-none absolute bottom-0 h-[2px] rounded bg-primary transition-transform duration-300 ease-out will-change-transform'
+            style={{ width: '0px', transform: 'translate3d(0,0,0)' }}
+          />
         </div>
       </div>
     </>

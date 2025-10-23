@@ -88,4 +88,33 @@ export function useInfiniteMockInterviewList(
   })
 }
 
+// --- Infinite Query for Mock Interview Records ---
+export type MockRecordsPage = MockInterviewRecordsResponse
+export type UseInfiniteMockInterviewRecordsResult = UseInfiniteQueryResult<InfiniteData<MockRecordsPage>, Error>
+
+export function useInfiniteMockInterviewRecords(
+  params: { limit?: number } = { limit: 10 },
+  options?: { enabled?: boolean }
+): UseInfiniteMockInterviewRecordsResult {
+  const { limit = 10 } = params
+
+  return useInfiniteQuery<MockRecordsPage, Error, InfiniteData<MockRecordsPage>, [string, { limit: number }], number>({
+    queryKey: ['mock-interview-records-infinite', { limit }],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const skip = pageParam * limit
+      const res = await fetchMockInterviewRecords({ skip, limit, q: undefined })
+      return res
+    },
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const total = lastPage?.count ?? 0
+      const currentPage = typeof lastPageParam === 'number' ? lastPageParam : 0
+      const pageCount = total ? Math.max(1, Math.ceil(total / limit)) : undefined
+      const hasMore = typeof pageCount === 'number' ? currentPage + 1 < pageCount : (lastPage?.items?.length ?? 0) === limit
+      return hasMore ? currentPage + 1 : undefined
+    },
+    enabled: options?.enabled ?? true,
+  })
+}
+
 
