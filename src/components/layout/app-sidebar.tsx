@@ -17,7 +17,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const userForSidebar = useMemo(() => {
     const name = authUser?.full_name || authUser?.accountNo || (authUser?.email ? authUser.email.split('@')[0] : '')
     const email = authUser?.email || ''
-    const avatar = getUserAvatarUrl({ userId: authUser?.id ?? 0, avatarUrl: authUser?.avatar_url })
+    const avatar = getUserAvatarUrl({ userId: authUser?.id, avatarUrl: authUser?.avatar_url })
     return { name, email, avatar }
   }, [authUser])
 
