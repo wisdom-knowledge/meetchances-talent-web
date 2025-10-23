@@ -48,6 +48,10 @@ export interface AvatarInput {
  */
 export function getUserAvatarUrl({ userId, avatarUrl }: AvatarInput): string {
   const url = (avatarUrl || '').trim()
+  // 未提供 userId 时，直接返回固定占位头像
+  if (userId === undefined || userId === null) {
+    return '/avatars/shadcn.jpg'
+  }
   const isDefaultAuthing = url === DEFAULT_AUTHING_AVATAR_URL
 
   if (!url || isDefaultAuthing) {
