@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { navigate } from '@/lib/navigation'
 import { Button } from '@/components/ui/button'
 import MockEmptyState from '@/features/mock-interview/components/empty-state'
 import { useQuery } from '@tanstack/react-query'
@@ -91,7 +91,7 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
           {reportReady ? '查看面试报告' : '面试报告生成中'}
         </Button>
         <div className='relative group'>
-          <button type='button' onClick={onMore} className='px-2 py-1 text-sm text-[#4E02E4] hover:underline'>
+          <button type='button' onClick={onMore} className='px-2 py-1 text-sm text-[#4E02E4] hover:underline' aria-label='更多操作' title='更多操作'>
             <IconDots className='h-4 w-4' />
           </button>
           <div className='absolute right-0 top-full z-10 hidden group-hover:block'>
@@ -130,7 +130,6 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
 }
 
 export default function MockInterviewRecords() {
-  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const { data } = useQuery({
@@ -153,9 +152,9 @@ export default function MockInterviewRecords() {
                 <RecordCard
                   key={(it.job_id ?? 0) || idx}
                   item={it}
-                  onReport={() => navigate({ to: '/interview-reports', search: { job_id: (it.job_id ?? 0) || idx + 1 } })}
+                  onReport={() => navigate('/interview-reports', { job_id: (it.job_id ?? 0) || idx + 1 })}
                   onMore={() => {}}
-                  onReinterview={() => navigate({ to: '/interview/prepare', search: { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}andcountdown${it.interview_duration_minutes}` } as unknown as Record<string, unknown> })}
+                  onReinterview={() => navigate('/interview/prepare', { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}andcountdown${it.interview_duration_minutes}` })}
                 />
               ))}
             </div>
