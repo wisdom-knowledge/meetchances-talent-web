@@ -1,16 +1,12 @@
 import React from 'react'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
+import TitleBar from '@/components/title-bar'
 import { NotificationContent, NotificationContentHandle } from '@/components/notification-content'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { Button } from '@/components/ui/button'
-import { ChevronLeft } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 
 export default function NotificationPage() {
-  const isMobile = useIsMobile()
   const navigate = useNavigate()
   const contentRef = React.useRef<NotificationContentHandle>(null)
   
@@ -22,31 +18,21 @@ export default function NotificationPage() {
         </div>
       </Header>
 
-      <Main fixed>
-        <div className='space-y-0.5'>
-          <div className='flex items-center gap-3'>
-            {isMobile && (
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => {
-                  const inDetail = contentRef.current?.isInDetail?.() ?? false
-                  if (inDetail) {
-                    contentRef.current?.backToList?.()
-                    return
-                  }
-                  navigate({ to: '/mine' })
-                }}
-                className='h-8 w-8 p-0'
-              >
-                <ChevronLeft className='h-4 w-4' />
-              </Button>
-            )}
-            <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>通知中心</h1>
-          </div>
-          <p className='text-muted-foreground'>查看您的所有通知消息</p>
-        </div>
-        <Separator className='my-4 lg:my-6' />
+      <Main fixed className='md:mx-16 py-0'>
+        <TitleBar
+          title='通知中心'
+          back
+          subtitle='查看您的所有通知消息'
+          separator
+          onBack={() => {
+            const inDetail = contentRef.current?.isInDetail?.() ?? false
+            if (inDetail) {
+              contentRef.current?.backToList?.()
+              return
+            }
+            navigate({ to: '/mine' })
+          }}
+        />
 
         {/* 通知内容 */}
         <div className='space-y-6'>

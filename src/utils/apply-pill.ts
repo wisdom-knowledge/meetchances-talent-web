@@ -13,12 +13,12 @@ export function mapCurrentNodeStatusToPill(
 ): Pill {
   const status = normalizeStatus(statusInput)
   // 颜色：绿色 #00BD65；红色 #F4490B
-  // 0/10/50 -> 进行中；20 -> 审核中；30 -> 通过；40 -> 已拒绝
+  // 0/10/50 -> 进行中；20 -> 审核中；30 -> 通过；40 -> 未录取
   if (status === '30') {
     return { text: '已通过', classes: 'bg-[#D7FCE3] text-[#00BD65]' }
   }
   if (status === '40') {
-    return { text: '已拒绝', classes: 'bg-[#FFDEDD] text-[#F4490B]' }
+    return { text: '未录取', classes: 'bg-[#FFDEDD] text-[#F4490B]' }
   }
   if (status === '20') {
     return { text: '审核中', classes: 'bg-[#4E02E41A] text-[#4E02E4]' }

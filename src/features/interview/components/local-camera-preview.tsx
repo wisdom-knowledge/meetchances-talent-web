@@ -14,6 +14,7 @@ import { setAudioSinkId } from '@/lib/devices'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 type DeviceStage = 'headphone' | 'mic' | 'camera'
+type PreparationStep = 'camera' | 'audio' | 'audioQuality' | 'final'
 
 interface LocalCameraPreviewProps extends React.HTMLAttributes<HTMLDivElement> {
   onStatusChange?: (status: DeviceTestStatus) => void
@@ -26,8 +27,21 @@ interface LocalCameraPreviewProps extends React.HTMLAttributes<HTMLDivElement> {
   onCameraDeviceResolved?: (deviceId: string | null) => void
   onCameraConfirmed?: () => void
   onMicConfirmed?: () => void
-  disableHeadphoneActions?: boolean
   disableCameraConfirm?: boolean
+  preparationStep?: PreparationStep
+  audioConfirmed?: boolean
+  onReplayAudio?: () => void
+  onHasIssueChange?: (hasIssue: boolean) => void
+  // 当该信号递增时，在“耳机”阶段触发播放测试音频
+  playTestAudioSignal?: number
+  // 麦克风录音完成的回调（从 recording 切换到 playback 时触发）
+  onMicRecordComplete?: () => void
+  // 外部触发重新录制麦克风
+  retakeMicSignal?: number
+  // 测试音频播放状态变更
+  onTestAudioPlayingChange?: (playing: boolean) => void
+  // 麦克风是否处于录制状态
+  onMicRecordingChange?: (recording: boolean) => void
 }
 
 export function LocalCameraPreview({
@@ -42,8 +56,15 @@ export function LocalCameraPreview({
   onCameraDeviceResolved,
   onCameraConfirmed,
   onMicConfirmed,
-  disableHeadphoneActions = false,
-  disableCameraConfirm = true,
+  disableCameraConfirm: _disableCameraConfirm = true,
+  preparationStep = 'camera',
+  audioConfirmed: _audioConfirmed = false,
+  onReplayAudio: _onReplayAudio,
+  onHasIssueChange,
+  playTestAudioSignal,
+  retakeMicSignal,
+  onTestAudioPlayingChange,
+  onMicRecordingChange,
   ...props
 }: LocalCameraPreviewProps) {
   const isMobile = useIsMobile()
@@ -71,8 +92,10 @@ export function LocalCameraPreview({
       } else {
         onStatusChange?.(DeviceTestStatus.Testing) // 检测通过时设为测试中，允许用户确认
       }
+      // 通知父组件 hasIssue 状态变化
+      onHasIssueChange?.(hasIssue)
     }
-  }, [hasIssue, stage, onStatusChange])
+  }, [hasIssue, stage, onStatusChange, onHasIssueChange])
 
   // 当扬声器设备切换时，更新现有音频元素的sinkId
   useEffect(() => {
@@ -93,8 +116,8 @@ export function LocalCameraPreview({
     void updateAudioSinkId()
   }, [speakerDeviceId])
 
-  const shouldShowHeadphoneUI = stage === 'headphone'
-  const shouldShowMicUI = stage === 'mic'
+  const shouldShowHeadphoneUI = stage === 'headphone' && preparationStep === 'audio'
+  const shouldShowMicUI = stage === 'mic' && (preparationStep === 'audio' || preparationStep === 'audioQuality')
   const lottieUrl = useMemo(
     () => 'https://dnu-cdn.xpertiise.com/common/0601997c-a415-41e3-ac07-680f610f417c.json',
     []
@@ -241,6 +264,11 @@ export function LocalCameraPreview({
       }
 
       setIsPlayingTestAudio(true)
+      try {
+        onTestAudioPlayingChange?.(true)
+      } catch (e) {
+        void e
+      }
       await audio.play().catch(() => undefined)
 
       // optional forced stop after duration
@@ -252,31 +280,41 @@ export function LocalCameraPreview({
             void _err
           }
           setIsPlayingTestAudio(false)
+          try {
+            onTestAudioPlayingChange?.(false)
+          } catch (e) {
+            void e
+          }
         }, Math.max(500, testAudioDurationMs))
       }
     } catch (_e) {
       void _e
       setIsPlayingTestAudio(false)
+      try {
+        onTestAudioPlayingChange?.(false)
+      } catch (e) {
+        void e
+      }
     }
   }
 
-  const handleHeadphoneConfirmClick = () => {
-    // stop test audio immediately if playing
-    if (stopTimerRef.current) {
-      window.clearTimeout(stopTimerRef.current)
-      stopTimerRef.current = null
-    }
-    try {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current.currentTime = 0
-      }
-    } catch {
-      // ignore
-    }
-    setIsPlayingTestAudio(false)
-    onHeadphoneConfirm?.()
-  }
+  // 外部触发测试音频播放：当信号变化且处于耳机阶段时执行
+  useEffect(() => {
+    if (!shouldShowHeadphoneUI) return
+    if (!playTestAudioSignal) return
+    void handlePlayTestAudio()
+    // 仅在数值变化时触发
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playTestAudioSignal, shouldShowHeadphoneUI])
+
+  // 外部触发重录（在展示麦克风 UI 时才响应）
+  useEffect(() => {
+    if (!shouldShowMicUI) return
+    if (!retakeMicSignal) return
+    handleRetake()
+    // 仅在数值变化时触发
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retakeMicSignal, shouldShowMicUI])
 
   // ---------- Mic stage: capture mic, visualize, 5s record & playback ----------
   const micStreamRef = useRef<MediaStream | null>(null)
@@ -338,6 +376,11 @@ export function LocalCameraPreview({
         micChunksRef.current = []
         const recorder = new MediaRecorder(micStream)
         micRecorderRef.current = recorder
+        try {
+          onMicRecordingChange?.(true)
+        } catch (e) {
+          void e
+        }
         recorder.ondataavailable = (e) => {
           if (e.data && e.data.size > 0) micChunksRef.current.push(e.data)
         }
@@ -347,6 +390,17 @@ export function LocalCameraPreview({
             const url = URL.createObjectURL(blob)
             setPlaybackUrl(url)
             setMicMode('playback')
+            // 通知父组件录音已完成
+            try {
+              props.onMicRecordComplete?.()
+            } catch (e) {
+              void e
+            }
+            try {
+              onMicRecordingChange?.(false)
+            } catch (e) {
+              void e
+            }
           } catch {
             // ignore
           }
@@ -386,6 +440,11 @@ export function LocalCameraPreview({
         }
       } catch {
         // ignore
+      }
+      try {
+        onMicRecordingChange?.(false)
+      } catch (e) {
+        void e
       }
       micRecorderRef.current = null
       micChunksRef.current = []
@@ -472,21 +531,6 @@ export function LocalCameraPreview({
     }
   }
 
-  const handleMicConfirmed = () => {
-    // Restart playback when confirming
-    const audio = micPlaybackAudioRef.current
-    if (audio) {
-      try {
-        audio.currentTime = 0
-        setPlaybackProgress(0)
-        void audio.play().catch(() => undefined)
-      } catch {
-        // ignore
-      }
-    }
-    onMicConfirmed?.()
-  }
-
   const handleRetake = () => {
     // cleanup playback
     if (micPlaybackAudioRef.current) {
@@ -539,21 +583,6 @@ export function LocalCameraPreview({
                   </div>
                 </>
               ) : null}
-
-              {/* Bottom controls */}
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className='absolute inset-x-0 bottom-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 px-4'
-              >
-                <Button size='sm' onClick={handlePlayTestAudio} disabled={disableHeadphoneActions || isPlayingTestAudio || !speakerDeviceId} className='disabled:backdrop-blur-[20px] w-full sm:w-auto text-xs sm:text-sm'>
-                  播放测试音频
-                </Button>
-                <Button size='sm' variant='secondary' onClick={handleHeadphoneConfirmClick} disabled={disableHeadphoneActions || !speakerDeviceId} className='w-full sm:w-auto text-xs sm:text-sm'>
-                  我能听到
-                </Button>
-              </motion.div>
             </>
           ) : null}
 
@@ -610,25 +639,9 @@ export function LocalCameraPreview({
                         <div className={cn('absolute left-0 top-0 h-2 rounded-full bg-primary', progressWidthClass)} />
                       </div>
                     </div>
-                    <div className='flex items-center gap-2 w-full sm:w-auto'>
-                      <Button size='sm' variant='secondary' onClick={handleRetake} className='flex-1 sm:flex-none text-xs sm:text-sm'>重录</Button>
-                      <Button size='sm' variant='default' onClick={handleMicConfirmed} className='flex-1 sm:flex-none text-xs sm:text-sm'>确认音质正常</Button>
-                    </div>
                   </div>
                 )}
               </div>
-            </motion.div>
-          ) : null}
-
-          {/* Camera stage simple action */}
-          {stage === 'camera' ? (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className='absolute inset-x-0 bottom-3 flex items-center justify-center px-4'
-            >
-              <Button size='sm' variant='default' onClick={onCameraConfirmed} disabled={disableCameraConfirm || hasIssue} className='w-full sm:w-auto text-xs sm:text-sm'>确认摄像头状态正常</Button>
             </motion.div>
           ) : null}
         </div>

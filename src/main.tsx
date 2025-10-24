@@ -17,6 +17,7 @@ import './index.css'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
 import { initApm, startApm, isApmStarted, setApmAuth, setApmContext } from '@/lib/apm'
+import { detectRuntimeEnvSync } from '@/lib/env'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +96,9 @@ initApm()
   const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
   setApmContext({ env: appEnv })
   setApmContext({ app: 'talent' })
+  const runtimeEnv = detectRuntimeEnvSync()
+  const platform = runtimeEnv === 'wechat-miniprogram' ? 'mp' : runtimeEnv
+  setApmContext({ platform })
   // 初始化 APM context.fr：首次进入页面时读取 `_fr`
   try {
     let fr: string | null = null
@@ -153,6 +157,9 @@ useAuthStore.subscribe((state) => {
   const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
   setApmContext({ env: appEnv })
   setApmContext({ app: 'talent' })
+  const runtimeEnv = detectRuntimeEnvSync()
+  const platform = runtimeEnv === 'wechat-miniprogram' ? 'mp' : runtimeEnv
+  setApmContext({ platform })
   if (user && !isApmStarted()) startApm()
 })
 
