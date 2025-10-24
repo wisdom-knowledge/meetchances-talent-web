@@ -133,7 +133,6 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
 export default function MockInterviewRecords() {
   const env = useRuntimeEnv()
   const isInfiniteMode = env === 'mobile' || env === 'wechat-miniprogram'
-  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const { data } = useQuery({
@@ -259,7 +258,6 @@ function InfiniteList({
   hasNextPage: boolean
   isFetchingNextPage: boolean
 }) {
-  const navigate = useNavigate()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
@@ -287,9 +285,9 @@ function InfiniteList({
           <RecordCard
             key={(it.job_id ?? 0) || idx}
             item={it}
-            onReport={() => navigate({ to: '/interview-reports', search: { job_id: (it.job_id ?? 0) || idx + 1 } })}
+            onReport={() => navigate('/interview-reports', { job_id: (it.job_id ?? 0) || idx + 1 })}
             onMore={() => {}}
-            onReinterview={() => navigate({ to: '/interview/prepare', search: { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}andcountdown${it.interview_duration_minutes}` } as unknown as Record<string, unknown> })}
+            onReinterview={() => navigate('/interview/prepare', { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}andcountdown${it.interview_duration_minutes}` })}
           />
         ))}
         <div ref={sentinelRef} className='h-6' />
