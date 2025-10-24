@@ -101,7 +101,7 @@ export default function HomeViewPage() {
         </div>
       </Header>
 
-      <Main fixed className='md:mx-16 py-0'>
+      <Main className='md:mx-16 py-0'>
         <div className='md:flex md:items-end'>
           <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>
             欢迎回来{displayName ? `，${displayName}` : ''}
@@ -181,8 +181,8 @@ export default function HomeViewPage() {
                 className={cn(
                   'pr-1 overflow-y-auto',
                   loadingTasks || visibleTasks.length > 0
-                    ? 'h-[calc(100vh-28rem)]'
-                    : 'h-[calc(100vh-17rem)]'
+                    ? 'h-[calc(100vh-25rem)]'
+                    : 'h-[calc(100vh-14rem)]'
                 )}
               >
                 <div className='space-y-3 px-1 py-2 no-scrollbar'>
@@ -240,8 +240,8 @@ export default function HomeViewPage() {
                               </div>
                             </div>
                             <div className='text-muted-foreground text-xs'>
-                              {jd && jd.salary_max && jd.salary_max > 0 
-                                ? `${jd.salary_min ?? 0}-${jd.salary_max}` 
+                              {jd && jd.salary_max && jd.salary_max > 0
+                                ? `${jd.salary_min ?? 0}-${jd.salary_max}`
                                 : jd?.salary_min ?? 0} / {jd ? salaryTypeUnitMapping[jd.salary_type as keyof typeof salaryTypeUnitMapping] || '小时' : '小时'}
                               <span className='mx-2'>|</span>
                               远程
@@ -277,7 +277,7 @@ export default function HomeViewPage() {
                 </div>
               </div>
             ) : (
-            <ScrollArea 
+            <ScrollArea
               className={cn(
                 'pr-1',
                 loadingTasks || visibleTasks.length > 0
@@ -299,25 +299,25 @@ export default function HomeViewPage() {
                 {!loadingAppsPaged &&
                   applications.map((item) => {
                     const jd = item.job_detail
-                    
+
                     // 岗位状态显示 - 优先显示岗位状态，替代申请流程状态
                     const jobStatus = jd?.online_status
                     type Pill = { text: string; classes: string }
                     const pill: Pill = (() => {
                       // 优先显示岗位状态
                       if (jobStatus === 20) {
-                        return { 
-                          text: '暂时满员', 
+                        return {
+                          text: '暂时满员',
                           classes: 'bg-[#FFF3CD] text-[#856404]' // 黄色系，表示暂停状态
                         }
                       }
                       if (jobStatus === 0) {
-                        return { 
-                          text: '停止招聘', 
+                        return {
+                          text: '停止招聘',
                           classes: 'bg-[#F8D7DA] text-[#721C24]' // 红色系，表示停止状态
                         }
                       }
-                      
+
                       // 岗位正常时，显示申请流程状态
                       const status = item.current_node_status ?? '0'
                       // 颜色：绿色 #00BD65；红色 #F4490B
@@ -372,8 +372,8 @@ export default function HomeViewPage() {
                               </div>
                             </div>
                             <div className='text-muted-foreground text-xs'>
-                              {jd && jd.salary_max && jd.salary_max > 0 
-                                ? `${jd.salary_min ?? 0}-${jd.salary_max}` 
+                              {jd && jd.salary_max && jd.salary_max > 0
+                                ? `${jd.salary_min ?? 0}-${jd.salary_max}`
                                 : jd?.salary_min ?? 0} / {jd ? salaryTypeUnitMapping[jd.salary_type as keyof typeof salaryTypeUnitMapping] || '小时' : '小时'}
                               <span className='mx-2'>|</span>
                               远程
@@ -432,7 +432,7 @@ export default function HomeViewPage() {
           </TabsContent>
 
           <TabsContent value='offer'>
-            <ScrollArea 
+            <ScrollArea
               className={cn(
                 'pr-1',
                 loadingTasks || visibleTasks.length > 0
