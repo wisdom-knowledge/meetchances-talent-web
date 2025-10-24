@@ -61,10 +61,10 @@ function navigateInMiniProgram(to: string, mode: JumpMode, query?: NavigateOptio
     return
   }
   if (mode === 'redirect') {
-    mp.redirectTo?.({ url })
+    mp.redirectTo?.({ url: '/pages/inner/inner?url=' + encodeURIComponent(url) })
     return
   }
-  mp.navigateTo?.({ url })
+  mp.navigateTo?.({ url: '/pages/inner/inner?url=' + encodeURIComponent(url) })
 }
 
 function navigateWithRouter(to: string, mode: JumpMode, query?: NavigateOptions['query']): void {

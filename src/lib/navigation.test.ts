@@ -1,3 +1,6 @@
+/**
+ * @vitest-environment jsdom
+ */
 // @ts-nocheck
 /// <reference types="vitest" />
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -118,7 +121,7 @@ describe('navigation', () => {
     setWxMiniProgramAvailable()
     appNavigate({ to: '/interview/prepare', mode: 'redirect', query: { j: 1 } })
     const wx = (window as unknown as { wx?: any }).wx!
-    expect(wx.miniProgram.redirectTo).toHaveBeenCalledWith({ url: '/interview/prepare?j=1' })
+    expect(wx.miniProgram.redirectTo).toHaveBeenCalledWith({ url: '/pages/inner/inner?url=' + encodeURIComponent('/interview/prepare?j=1') })
   })
 
   it('miniProgram navigateTo for non-tab with navigate', () => {
@@ -126,7 +129,7 @@ describe('navigation', () => {
     setWxMiniProgramAvailable()
     appNavigate({ to: '/resume-upload', mode: 'navigate', query: { from: 'x' } })
     const wx = (window as unknown as { wx?: any }).wx!
-    expect(wx.miniProgram.navigateTo).toHaveBeenCalledWith({ url: '/resume-upload?from=x' })
+    expect(wx.miniProgram.navigateTo).toHaveBeenCalledWith({ url: '/pages/inner/inner?url=' + encodeURIComponent('/resume-upload?from=x') })
   })
 })
 
