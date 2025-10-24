@@ -1,30 +1,31 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { navigate } from '@/lib/navigation'
 import { Button } from '@/components/ui/button'
 import MockEmptyState from '@/features/mock-interview/components/empty-state'
 import { useQuery } from '@tanstack/react-query'
-import { fetchMockInterviewRecords } from '@/features/mock-interview/api'
+import { fetchMockInterviewRecords, useInfiniteMockInterviewRecords } from '@/features/mock-interview/api'
 import type { MockInterviewRecordApiItem } from '@/features/mock-interview/types'
 import { IconDots } from '@tabler/icons-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useJobApplyWorkflow, getInterviewNodeId } from '@/features/interview/api'
 import { toast } from 'sonner'
+import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 
 function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInterviewRecordApiItem; onReport: () => void; onMore: () => void; onReinterview: () => void }) {
   const statusNum = typeof item.status === 'number' ? item.status : parseInt(String(item.status ?? '0'), 10)
   const reportReady = statusNum === 20
   const [isRetaking, setIsRetaking] = useState(false)
-  
+
   // 获取workflow信息以获取interview_node_id
   const { data: workflow } = useJobApplyWorkflow(item.job_apply_id ?? null, Boolean(item.job_apply_id))
   const interviewNodeId = getInterviewNodeId(workflow)
-  
+
   const handleReinterview = async () => {
     if (!interviewNodeId) {
       toast.error('无法获取面试节点信息，请稍后重试')
       return
     }
-    
+
     setIsRetaking(true)
     try {
       // const result = await postNodeAction({
@@ -32,7 +33,7 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
       //   trigger: NodeActionTrigger.Retake,
       //   result_data: {}
       // })
-      
+
       // if (result.success) {
       // 清除相关的查询缓存，确保prepare页面能获取到最新数据
       // queryClient.invalidateQueries({ queryKey: ['job-apply-workflow', item.job_apply_id] })
@@ -96,11 +97,11 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
           </button>
           <div className='absolute right-0 top-full z-10 hidden group-hover:block'>
             <div className='mt-1 rounded-md border bg-background p-1 shadow-md'>
-              <Button 
-                onClick={handleReinterview} 
+              <Button
+                onClick={handleReinterview}
                 disabled={isRetaking || !interviewNodeId}
-                variant='ghost' 
-                size='sm' 
+                variant='ghost'
+                size='sm'
                 className='w-full justify-start !text-[#4E02E4] text-xs hover:underline underline-offset-4 hover:!text-[#4E02E4] focus-visible:!text-[#4E02E4] active:!text-[#4E02E4] disabled:opacity-50'
               >
                 {isRetaking ? '处理中...' : '重新面试'}
@@ -109,7 +110,7 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
           </div>
         </div>
       </div>
-      
+
       {/* 移动端布局 - 上下排列 */}
       <div className='md:hidden flex flex-col items-end gap-1 shrink-0'>
         <Button
@@ -130,14 +131,31 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
 }
 
 export default function MockInterviewRecords() {
+  const env = useRuntimeEnv()
+  const isInfiniteMode = env === 'mobile' || env === 'wechat-miniprogram'
+  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const { data } = useQuery({
     queryKey: ['mock-interview-records', { page, pageSize }],
     queryFn: () => fetchMockInterviewRecords({ skip: (page - 1) * pageSize, limit: pageSize, q: undefined }),
+    enabled: !isInfiniteMode,
   })
-  const apiItems = useMemo<MockInterviewRecordApiItem[]>(() => (data?.items ?? []) as MockInterviewRecordApiItem[], [data])
-  const total = data?.count ?? 0
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteMockInterviewRecords({ limit: pageSize }, { enabled: isInfiniteMode })
+
+  const apiItems = useMemo<MockInterviewRecordApiItem[]>(() => {
+    if (isInfiniteMode) {
+      const pages = infiniteData?.pages ?? []
+      return pages.flatMap((p) => (p.items ?? [])) as MockInterviewRecordApiItem[]
+    }
+    return (data?.items ?? []) as MockInterviewRecordApiItem[]
+  }, [isInfiniteMode, infiniteData, data])
+  const total = isInfiniteMode ? (infiniteData?.pages?.[0]?.count ?? 0) : (data?.count ?? 0)
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
   return (
@@ -145,6 +163,13 @@ export default function MockInterviewRecords() {
       <div className='flex min-h-0 flex-1'>
         {apiItems.length === 0 ? (
           <MockEmptyState />
+        ) : isInfiniteMode ? (
+          <InfiniteList
+            items={apiItems}
+            fetchNextPage={fetchNextPage}
+            hasNextPage={!!hasNextPage}
+            isFetchingNextPage={!!isFetchingNextPage}
+          />
         ) : (
           <div className='flex-1 overflow-y-auto px-[4px] mx-[-4px] py-2'>
             <div className='space-y-3'>
@@ -162,7 +187,8 @@ export default function MockInterviewRecords() {
         )}
       </div>
 
-      {/* 移动端优化的分页组件 */}
+      {/* 移动端优化的分页组件（仅桌面/非无限模式显示） */}
+      {!isInfiniteMode && (
       <div className='mt-4 shrink-0'>
         {/* 桌面端布局 */}
         <div className='hidden md:flex items-center justify-end gap-3'>
@@ -194,20 +220,20 @@ export default function MockInterviewRecords() {
           <div className='flex items-center justify-between'>
             <div className='text-sm text-muted-foreground'>共 {total} 条</div>
             <div className='flex items-center gap-2'>
-              <Button 
-                variant='outline' 
-                size='sm' 
-                disabled={page <= 1} 
+              <Button
+                variant='outline'
+                size='sm'
+                disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className='px-3'
               >
                 上一页
               </Button>
               <span className='text-sm text-muted-foreground'>第 {page} / {totalPages} 页</span>
-              <Button 
-                variant='outline' 
-                size='sm' 
-                disabled={page >= totalPages} 
+              <Button
+                variant='outline'
+                size='sm'
+                disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 className='px-3'
               >
@@ -215,6 +241,60 @@ export default function MockInterviewRecords() {
               </Button>
             </div>
           </div>
+        </div>
+      </div>
+      )}
+    </div>
+  )
+}
+
+function InfiniteList({
+  items,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+}: {
+  items: MockInterviewRecordApiItem[]
+  fetchNextPage: () => void
+  hasNextPage: boolean
+  isFetchingNextPage: boolean
+}) {
+  const navigate = useNavigate()
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const rootEl = containerRef.current
+    const sentinel = sentinelRef.current
+    if (!rootEl || !sentinel) return
+    const io = new IntersectionObserver(
+      (es) => {
+        const e = es[0]
+        if (e.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { root: rootEl, rootMargin: '0px 0px 200px 0px', threshold: 0.1 }
+    )
+    io.observe(sentinel)
+    return () => io.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  return (
+    <div ref={containerRef} className='flex-1 overflow-y-auto px-[4px] mx-[-4px] py-2'>
+      <div className='space-y-3'>
+        {items.map((it, idx) => (
+          <RecordCard
+            key={(it.job_id ?? 0) || idx}
+            item={it}
+            onReport={() => navigate({ to: '/interview-reports', search: { job_id: (it.job_id ?? 0) || idx + 1 } })}
+            onMore={() => {}}
+            onReinterview={() => navigate({ to: '/interview/prepare', search: { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}andcountdown${it.interview_duration_minutes}` } as unknown as Record<string, unknown> })}
+          />
+        ))}
+        <div ref={sentinelRef} className='h-6' />
+        <div className='text-center text-xs text-muted-foreground pb-2 mb-24'>
+          {isFetchingNextPage ? '加载中…' : hasNextPage ? '向下滚动加载更多' : items.length > 0 ? '没有更多了' : ''}
         </div>
       </div>
     </div>

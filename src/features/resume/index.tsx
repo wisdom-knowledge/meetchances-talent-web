@@ -7,10 +7,10 @@ import { Main } from '@/components/layout/main'
 // import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import TitleBar from '@/components/title-bar'
-import { IconListDetails, IconStar, IconUser, IconWand, IconUpload, IconLoader2, IconTools, IconBallpen } from '@tabler/icons-react'
+import { IconListDetails, IconStar, IconUser, IconWand, IconTools, IconBallpen } from '@tabler/icons-react'
 
 // import { showSubmittedData } from '@/utils/show-submitted-data'
-import { Button } from '@/components/ui/button'
+// import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { resumeSchema, type ResumeFormValues } from './data/schema'
 import { fetchTalentResumeDetail, patchTalentResumeDetail, uploadTalentResume } from '@/features/resume-upload/utils/api'
@@ -23,6 +23,7 @@ import SectionNav, { type SectionNavItem } from './components/section-nav'
 import DynamicBasicForm from './components/dynamic-basic-form'
 import DynamicWorkExperience from './components/dynamic-work-experience'
 import ResumeSection from './components/resume-section'
+import ResumeActionsWrapper from './components/resume-actions-wrapper'
 
 export default function ResumePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -254,51 +255,30 @@ export default function ResumePage() {
           </aside>
 
           <div className='flex w-full overflow-y-hidden p-1'>
-            <div className='w-full pb-24'>
-              {/* 上传按钮 */}
-              <div className='w-full mb-6'>
-                <div className='flex items-center justify-between'>
-                  <div className='flex-1' />
-                  <div className='flex items-center gap-2'>
-                    <div className='flex gap-2'>
-                      <input
-                        ref={fileInputRef}
-                        type='file'
-                        className='hidden'
-                        accept='.pdf'
-                        aria-label='上传简历文件'
-                        title='上传简历文件'
-                        onChange={handleResumeFileChange}
-                      />
-                      <Button
-                        variant='outline'
-                        onClick={() => {
-                          if (uploadingResume) return
-                          userEvent('resume_uploaded', '简历上传', { page: 'resume', trigger: 'button_click' })
-                          fileInputRef.current?.click()
-                        }}
-                        className='h-10 px-4 py-2'
-                        disabled={uploadingResume}
-                      >
-                        {uploadingResume ? (
-                          <>
-                            <IconLoader2 className='h-4 w-4 animate-spin' /> 正在上传…
-                          </>
-                        ) : (
-                          <>
-                            <IconUpload className='h-4 w-4' /> 上传新简历
-                          </>
-                        )}
-                      </Button>
-                      <Button className='h-10 px-4 py-2' onClick={form.handleSubmit(onSubmit)} disabled={uploadingResume}>
-                        保存
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className='w-full pb-30 md:pb-24'>
+              {/* 全局隐藏文件输入（供上下两个工具栏共用） */}
+              <input
+                ref={fileInputRef}
+                type='file'
+                className='hidden'
+                accept='.pdf'
+                aria-label='上传简历文件'
+                title='上传简历文件'
+                onChange={handleResumeFileChange}
+              />
+              {/* 上传按钮（桌面端顶部可见） */}
+              <ResumeActionsWrapper
+                variant='top'
+                uploading={uploadingResume}
+                onUpload={() => {
+                  if (uploadingResume) return
+                  userEvent('resume_uploaded', '简历上传', { page: 'resume', trigger: 'button_click' })
+                  fileInputRef.current?.click()
+                }}
+                onSave={form.handleSubmit(onSubmit)}
+              />
 
-              <div ref={scrollContainerRef} className='space-y-10 faded-bottom h-full w-full overflow-y-auto scroll-smooth pr-4 pb-12 [overflow-anchor:none]'>
+              <div ref={scrollContainerRef} className='space-y-10 h-full w-full overflow-y-auto scroll-smooth pr-4 pb-24 [overflow-anchor:none]'>
                 {/* 基本信息 */}
                 <ResumeSection id='section-basic' title='基本信息'>
                   <Form {...form}>
@@ -362,6 +342,17 @@ export default function ResumePage() {
                     </Form>
                 </ResumeSection>
               </div>
+              {/* 上传按钮（移动端底部显示） */}
+              <ResumeActionsWrapper
+                variant='bottom'
+                uploading={uploadingResume}
+                onUpload={() => {
+                  if (uploadingResume) return
+                  userEvent('resume_uploaded', '简历上传', { page: 'resume', trigger: 'button_click' })
+                  fileInputRef.current?.click()
+                }}
+                onSave={form.handleSubmit(onSubmit)}
+              />
             </div>
           </div>
         </div>

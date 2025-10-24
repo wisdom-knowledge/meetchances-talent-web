@@ -62,6 +62,8 @@ export default function MockInterviewList() {
   const [page, setPage] = useState(search.page ?? 1)
   const [pageSize] = useState(search.pageSize ?? 12)
   const isInfiniteMode = env === 'mobile' || env === 'wechat-miniprogram'
+  const isCategoryScrollingRef = useRef(false)
+  const scrollStopTimerRef = useRef<number | null>(null)
 
   // 同步状态到 URL
   useEffect(() => {
@@ -136,6 +138,29 @@ export default function MockInterviewList() {
     }
   }, [categories.length])
 
+  function scrollByClamped(delta: number) {
+    const el = catScrollRef.current
+    if (!el) return
+    if (isCategoryScrollingRef.current) return
+    const maxLeft = Math.max(0, el.scrollWidth - el.clientWidth)
+    const targetLeft = Math.max(0, Math.min(el.scrollLeft + delta, maxLeft))
+    if (Math.abs(targetLeft - el.scrollLeft) < 1) return
+    isCategoryScrollingRef.current = true
+    try {
+      el.scrollTo({ left: targetLeft, behavior: 'smooth' })
+    } catch (_e) {
+      el.scrollLeft = targetLeft
+    }
+    const onScroll = () => {
+      if (scrollStopTimerRef.current) window.clearTimeout(scrollStopTimerRef.current)
+      scrollStopTimerRef.current = window.setTimeout(() => {
+        el.removeEventListener('scroll', onScroll)
+        isCategoryScrollingRef.current = false
+      }, 140) as unknown as number
+    }
+    el.addEventListener('scroll', onScroll)
+  }
+
   function buildPages(tp: number, current: number): Array<number | 'ellipsis'> {
     const pages: Array<number | 'ellipsis'> = []
     if (tp <= 7) {
@@ -183,16 +208,7 @@ export default function MockInterviewList() {
         <button
           type='button'
           aria-label='scroll-left'
-          onClick={() => {
-            try {
-              catScrollRef.current?.scrollBy({
-                left: -240,
-                behavior: 'smooth',
-              })
-            } catch (_e) {
-              /* noop */
-            }
-          }}
+          onClick={() => scrollByClamped(-240)}
           disabled={!canScrollLeft}
           className='hover:bg-muted absolute top-1/2 left-0 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full border bg-white shadow disabled:cursor-not-allowed disabled:opacity-40'
         >
@@ -211,7 +227,7 @@ export default function MockInterviewList() {
                   setPage(1)
                   setCategory(id)
                 }}
-                className='group inline-flex max-w-[120px] min-w-[76px] shrink-0 flex-col items-center gap-2 text-sm'
+                className='group inline-flex max-w-[120px] min-w-[35px] md:min-w-[76px] shrink-0 flex-col items-center gap-2 text-sm'
               >
                 <span
                   className={[
@@ -254,16 +270,7 @@ export default function MockInterviewList() {
         <button
           type='button'
           aria-label='scroll-right'
-          onClick={() => {
-            try {
-              catScrollRef.current?.scrollBy({
-                left: 240,
-                behavior: 'smooth',
-              })
-            } catch (_e) {
-              /* noop */
-            }
-          }}
+          onClick={() => scrollByClamped(240)}
           disabled={!canScrollRight}
           className='hover:bg-muted absolute top-1/2 right-0 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full border bg-white shadow disabled:cursor-not-allowed disabled:opacity-40'
         >
@@ -276,7 +283,13 @@ export default function MockInterviewList() {
         {items.length === 0 ? (
           <MockEmptyState />
         ) : isInfiniteMode ? (
-          <InfiniteGrid />
+          <InfiniteGrid
+            items={items}
+            categories={categories}
+            fetchNextPage={fetchNextPage}
+            hasNextPage={!!hasNextPage}
+            isFetchingNextPage={!!isFetchingNextPage}
+          />
         ) : (
           <div className='grid grid-cols-2 gap-x-2 gap-y-2 overflow-y-auto pr-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pb-2'>
             {items.map((it: BackendMockJobItem, idx: number) => (
@@ -342,50 +355,63 @@ export default function MockInterviewList() {
     </div>
   )
 
-  function InfiniteGrid() {
-    const containerRef = useRef<HTMLDivElement | null>(null)
-    const sentinelRef = useRef<HTMLDivElement | null>(null)
+}
 
-    useEffect(() => {
-      const rootEl = containerRef.current
-      const sentinel = sentinelRef.current
-      if (!rootEl || !sentinel) return
-      const io = new IntersectionObserver(
-        (es) => {
-          const e = es[0]
-          if (e.isIntersecting && hasNextPage && !isFetchingNextPage) {
-            fetchNextPage()
-          }
-        },
-        { root: rootEl, rootMargin: '0px 0px 200px 0px', threshold: 0.1 }
-      )
-      io.observe(sentinel)
-      return () => io.disconnect()
-    }, [hasNextPage, isFetchingNextPage])
+function InfiniteGrid({
+  items,
+  categories,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+}: {
+  items: BackendMockJobItem[]
+  categories: { id: number; label: string; icon?: string; Icon: React.ElementType }[]
+  fetchNextPage: () => void
+  hasNextPage: boolean
+  isFetchingNextPage: boolean
+}) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
 
-    return (
-      <div ref={containerRef} className='grid grid-cols-2 gap-x-2 gap-y-2 overflow-y-auto pr-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pb-2'>
-        {items.map((it: BackendMockJobItem, idx: number) => (
-          <MockCard
-            key={it.id}
-            item={{
-              interview_id: it.id,
-              title: it.title,
-              summary: it.description,
-              durationMinutes: it.interview_duration_minutes,
-              category: it.category_name,
-              category_id: it.category_id,
-              id: it.id,
-            }}
-            index={idx}
-            categories={categories}
-          />
-        ))}
-        <div ref={sentinelRef} className='h-6 col-span-full' />
-        <div className='col-span-full text-center text-xs text-muted-foreground pb-2 mb-24'>
-          {isFetchingNextPage ? '加载中…' : hasNextPage ? '向下滚动加载更多' : items.length > 0 ? '没有更多了' : ''}
-        </div>
-      </div>
+  useEffect(() => {
+    const rootEl = containerRef.current
+    const sentinel = sentinelRef.current
+    if (!rootEl || !sentinel) return
+    const io = new IntersectionObserver(
+      (es) => {
+        const e = es[0]
+        if (e.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { root: rootEl, rootMargin: '0px 0px 200px 0px', threshold: 0.1 }
     )
-  }
+    io.observe(sentinel)
+    return () => io.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  return (
+    <div ref={containerRef} className='grid grid-cols-2 gap-x-2 gap-y-2 overflow-y-auto pr-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pb-2'>
+      {items.map((it: BackendMockJobItem, idx: number) => (
+        <MockCard
+          key={it.id}
+          item={{
+            interview_id: it.id,
+            title: it.title,
+            summary: it.description,
+            durationMinutes: it.interview_duration_minutes,
+            category: it.category_name,
+            category_id: it.category_id,
+            id: it.id,
+          }}
+          index={idx}
+          categories={categories}
+        />
+      ))}
+      <div ref={sentinelRef} className='h-6 col-span-full' />
+      <div className='col-span-full text-center text-xs text-muted-foreground pb-2 mb-24'>
+        {isFetchingNextPage ? '加载中…' : hasNextPage ? '向下滚动加载更多' : items.length > 0 ? '没有更多了' : ''}
+      </div>
+    </div>
+  )
 }
