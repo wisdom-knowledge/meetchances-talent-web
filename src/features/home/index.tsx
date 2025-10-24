@@ -436,8 +436,8 @@ export default function HomeViewPage() {
               className={cn(
                 'pr-1',
                 loadingTasks || visibleTasks.length > 0
-                  ? 'h-[calc(100vh-28rem)]'
-                  : 'h-[calc(100vh-20rem)]'
+                  ? 'h-[calc(100vh-25rem)]'
+                  : 'h-[calc(100vh-14rem)]'
               )}
             >
               <div className='space-y-3'>
