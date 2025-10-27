@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { navigate as appNavigate } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { IconX, IconHelp } from '@tabler/icons-react'
@@ -26,7 +26,6 @@ import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 
 export default function HomeViewPage() {
   const env = useRuntimeEnv()
-  const navigate = useNavigate()
   const authUser = useAuthStore((s) => s.auth.user)
   const displayName = authUser?.full_name || authUser?.username || ''
   const { data: taskList = [], isLoading: loadingTasks } =
@@ -191,7 +190,7 @@ export default function HomeViewPage() {
                       <div className='text-muted-foreground flex flex-col items-center text-sm'>
                         <img src={noApplySvg} alt='no applications' className='mb-3 h-16 w-16 opacity-70' />
                         <div className='mb-3'>暂无申请记录</div>
-                        <Button variant={'outline'} onClick={() => navigate({ to: '/jobs' })}>立即申请</Button>
+                        <Button variant={'outline'} onClick={() => appNavigate('/jobs')}>立即申请</Button>
                       </div>
                     </div>
                   )}
@@ -223,12 +222,9 @@ export default function HomeViewPage() {
                         key={item.id}
                         className='hover:bg-accent/40 cursor-pointer border transition-colors'
                         onClick={() => {
-                          navigate({
-                            to: '/interview/prepare',
-                            search: {
-                              data: `job_id${item.job_id}andisSkipConfirm${true}`,
-                              job_apply_id: item.id,
-                            } as unknown as Record<string, unknown>,
+                          appNavigate('/interview/prepare', {
+                            data: `job_id${item.job_id}andisSkipConfirm${true}`,
+                            job_apply_id: item.id,
                           })
                         }}
                       >
@@ -292,7 +288,7 @@ export default function HomeViewPage() {
                     <div className='text-muted-foreground flex flex-col items-center text-sm'>
                       <img src={noApplySvg} alt='no applications' className='mb-3 h-16 w-16 opacity-70' />
                       <div className='mb-3'>暂无申请记录</div>
-                      <Button variant={"outline"} onClick={() => navigate({ to: '/jobs' })}>立即申请</Button>
+                      <Button variant={"outline"} onClick={() => appNavigate('/jobs')}>立即申请</Button>
                     </div>
                   </div>
                 )}
@@ -354,13 +350,10 @@ export default function HomeViewPage() {
                         key={item.id}
                         className='hover:bg-accent/40 cursor-pointer border transition-colors'
                         onClick={() => {
-                          navigate({
-                            to: '/interview/prepare',
-                            search: {
-                              data: `job_id${item.job_id}andisSkipConfirm${true}`,
-                              // 直接传递 job_apply_id，供目标页使用
-                              job_apply_id: item.id,
-                            } as unknown as Record<string, unknown>,
+                          appNavigate('/interview/prepare', {
+                            data: `job_id${item.job_id}andisSkipConfirm${true}`,
+                            // 直接传递 job_apply_id，供目标页使用
+                            job_apply_id: item.id,
                           })
                         }}
                       >
