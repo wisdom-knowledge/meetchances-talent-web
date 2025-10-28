@@ -5,7 +5,7 @@ import { Main } from '@/components/layout/main'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getUserAvatarUrl } from '@/utils/avatar'
-import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil, IconBell } from '@tabler/icons-react'
+import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil, IconBell, IconListDetails } from '@tabler/icons-react'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import { detectRuntimeEnvSync } from '@/lib/env'
 import { useUnreadCount } from '@/components/notification-content'
@@ -24,37 +24,41 @@ export default function MinePage() {
       </Header>
 
       <Main fixed>
-        {/* 顶部 头像（圆形） + 姓名 + 电话，垂直布局 */}
-        <div className='flex flex-col items-center py-6 mb-2'>
-          <button type='button' onClick={gotoAccountInfo} className='relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 transition-transform'>
-            <Avatar className='h-24 w-24 rounded-full'>
-              <AvatarImage src={getUserAvatarUrl({ userId: user?.id, avatarUrl: (user as unknown as { avatar_url?: string })?.avatar_url })} alt={user?.full_name || ''} />
-              <AvatarFallback className='rounded-full'>
-                {(user?.full_name || 'U').charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className='absolute -right-1 bottom-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#C994F7] p-1 aspect-square'>
-              <IconPencil className='h-3.5 w-3.5 text-white' />
-            </div>
-          </button>
-          <h1 className='mt-3 text-2xl font-bold tracking-tight md:text-3xl'>
-            {user?.full_name  || '未登录'}
-          </h1>
-          {user?.phone_number ? (
-            <div className='mt-2 flex items-center text-base'>
-              <IconPhone className='mr-2 h-5 w-5' />
-              <span>{maskPhoneNumber(user.phone_number)}</span>
-            </div>
-          ) : null}
-        </div>
-        {/* 菜单 */}
-        <div className='space-y-2'>
-          <MenuItem to='/resume' icon={<IconId />} label='我的简历' />
-          <NotificationMenuItem />
-          {!isMiniProgram && <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />}
-          {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
-          {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
-          <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />
+        <div className='flex h-full min-h-0 flex-col pb-[calc(env(safe-area-inset-bottom)+80px)] md:pb-4'>
+          {/* 顶部 头像（圆形） + 姓名 + 电话，垂直布局 */}
+          <div className='mb-2 flex flex-col items-center py-6'>
+            <button type='button' onClick={gotoAccountInfo} className='relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 transition-transform'>
+              <Avatar className='h-24 w-24 rounded-full'>
+                <AvatarImage src={getUserAvatarUrl({ userId: user?.id, avatarUrl: (user as unknown as { avatar_url?: string })?.avatar_url })} alt={user?.full_name || ''} />
+                <AvatarFallback className='rounded-full'>
+                  {(user?.full_name || 'U').charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div className='absolute -right-1 bottom-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#C994F7] p-1 aspect-square'>
+                <IconPencil className='h-3.5 w-3.5 text-white' />
+              </div>
+            </button>
+            <h1 className='mt-3 text-2xl font-bold tracking-tight md:text-3xl'>
+              {user?.full_name  || '未登录'}
+            </h1>
+            {user?.phone_number ? (
+              <div className='mt-2 flex items-center text-base'>
+                <IconPhone className='mr-2 h-5 w-5' />
+                <span>{maskPhoneNumber(user.phone_number)}</span>
+              </div>
+            ) : null}
+          </div>
+
+          {/* 菜单（可滚动） */}
+          <div className='flex-1 min-h-0 overflow-auto space-y-2 pr-1'>
+            <MenuItem to='/resume' icon={<IconId />} label='我的简历' />
+            <NotificationMenuItem />
+            {!isMiniProgram && <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />}
+            <MenuItem to='/study' icon={<IconListDetails />} label='流程学习' />
+            {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
+            {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
+            <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />
+          </div>
         </div>
       </Main>
     </>
