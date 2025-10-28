@@ -345,6 +345,7 @@ export async function fetchIMToken(): Promise<IMTokenResponse> {
   return api.get('/messages/im/token') as unknown as Promise<IMTokenResponse>
 }
 
+
 /**
  * 未读消息数响应接口
  */

@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as JobsJob_idRouteImport } from './routes/jobs/$job_id'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
+import { Route as AuthenticatedStudyRouteImport } from './routes/_authenticated/study'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
@@ -53,6 +54,7 @@ import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/c
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
 import { Route as PublicMockInterviewRecordsRouteImport } from './routes/_public/mock-interview/records'
+import { Route as AuthenticatedStudyTaskRouteImport } from './routes/_authenticated/study.task'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
@@ -87,6 +89,11 @@ const JobsJob_idRoute = JobsJob_idRouteImport.update({
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStudyRoute = AuthenticatedStudyRouteImport.update({
+  id: '/study',
+  path: '/study',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedNotificationsRoute =
@@ -294,6 +301,11 @@ const PublicMockInterviewRecordsRoute =
     path: '/mock-interview/records',
     getParentRoute: () => PublicRouteRoute,
   } as any)
+const AuthenticatedStudyTaskRoute = AuthenticatedStudyTaskRouteImport.update({
+  id: '/task',
+  path: '/task',
+  getParentRoute: () => AuthenticatedStudyRoute,
+} as any)
 const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsRouteImport.update({
     id: '/notifications',
@@ -352,6 +364,7 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/study': typeof AuthenticatedStudyRouteWithChildren
   '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/': typeof AuthenticatedIndexRoute
@@ -362,6 +375,7 @@ export interface FileRoutesByFullPath {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/study/task': typeof AuthenticatedStudyTaskRoute
   '/mock-interview/records': typeof PublicMockInterviewRecordsRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
@@ -400,6 +414,7 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/study': typeof AuthenticatedStudyRouteWithChildren
   '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/': typeof AuthenticatedIndexRoute
@@ -410,6 +425,7 @@ export interface FileRoutesByTo {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/study/task': typeof AuthenticatedStudyTaskRoute
   '/mock-interview/records': typeof PublicMockInterviewRecordsRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
@@ -454,6 +470,7 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/study': typeof AuthenticatedStudyRouteWithChildren
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -464,6 +481,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/_authenticated/study/task': typeof AuthenticatedStudyTaskRoute
   '/_public/mock-interview/records': typeof PublicMockInterviewRecordsRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
@@ -506,6 +524,7 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/notifications'
+    | '/study'
     | '/wallet'
     | '/jobs/$job_id'
     | '/'
@@ -516,6 +535,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/study/task'
     | '/mock-interview/records'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
@@ -554,6 +574,7 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/notifications'
+    | '/study'
     | '/wallet'
     | '/jobs/$job_id'
     | '/'
@@ -564,6 +585,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/study/task'
     | '/mock-interview/records'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
@@ -607,6 +629,7 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/notifications'
+    | '/_authenticated/study'
     | '/_authenticated/wallet'
     | '/jobs/$job_id'
     | '/_authenticated/'
@@ -617,6 +640,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/notifications'
+    | '/_authenticated/study/task'
     | '/_public/mock-interview/records'
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
@@ -702,6 +726,13 @@ declare module '@tanstack/react-router' {
       path: '/wallet'
       fullPath: '/wallet'
       preLoaderRoute: typeof AuthenticatedWalletRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/study': {
+      id: '/_authenticated/study'
+      path: '/study'
+      fullPath: '/study'
+      preLoaderRoute: typeof AuthenticatedStudyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/notifications': {
@@ -970,6 +1001,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicMockInterviewRecordsRouteImport
       parentRoute: typeof PublicRouteRoute
     }
+    '/_authenticated/study/task': {
+      id: '/_authenticated/study/task'
+      path: '/task'
+      fullPath: '/study/task'
+      preLoaderRoute: typeof AuthenticatedStudyTaskRouteImport
+      parentRoute: typeof AuthenticatedStudyRoute
+    }
     '/_authenticated/settings/notifications': {
       id: '/_authenticated/settings/notifications'
       path: '/notifications'
@@ -1045,9 +1083,21 @@ const AuthenticatedSettingsRouteRouteWithChildren =
     AuthenticatedSettingsRouteRouteChildren,
   )
 
+interface AuthenticatedStudyRouteChildren {
+  AuthenticatedStudyTaskRoute: typeof AuthenticatedStudyTaskRoute
+}
+
+const AuthenticatedStudyRouteChildren: AuthenticatedStudyRouteChildren = {
+  AuthenticatedStudyTaskRoute: AuthenticatedStudyTaskRoute,
+}
+
+const AuthenticatedStudyRouteWithChildren =
+  AuthenticatedStudyRoute._addFileChildren(AuthenticatedStudyRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedStudyRoute: typeof AuthenticatedStudyRouteWithChildren
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedInterviewPrepareRoute: typeof AuthenticatedInterviewPrepareRoute
@@ -1076,6 +1126,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedStudyRoute: AuthenticatedStudyRouteWithChildren,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedInterviewPrepareRoute: AuthenticatedInterviewPrepareRoute,
