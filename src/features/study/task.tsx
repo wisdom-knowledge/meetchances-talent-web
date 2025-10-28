@@ -6,7 +6,6 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { fetchStudyModules, type StudyModulesResponse, updateStudyStatus } from './api'
-import TitleBar from '@/components/title-bar'
 
 function findTask(modules: StudyModulesResponse, taskId: number) {
   for (const m of modules) {
@@ -94,10 +93,7 @@ export default function StudyTaskPage() {
   }
 
   return (
-    <div className='p-4 pb-[calc(env(safe-area-inset-bottom)+100px)] md:pb-4 flex min-h-screen flex-col gap-6'>
-      <div className='w-full max-w-[1056px] mx-auto'>
-        <TitleBar title='流程学习' back />
-      </div>
+    <div className='p-4 pb-[calc(env(safe-area-inset-bottom)+100px)] md:pb-8 flex min-h-screen flex-col gap-6'>
       <div className='md:mb-4 flex items-center justify-between'>
         {isFirst ? (
           <span />
@@ -186,7 +182,7 @@ export default function StudyTaskPage() {
         )}
       </div>
 
-      <div className='md:mt-6 flex justify-center'>
+      <div className='flex justify-center'>
         <Button
           disabled={isLoading || (!isLast && nextTaskId === undefined)}
           onClick={isLast ? handleFinish : handleNext}
