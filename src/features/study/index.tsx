@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import studyVideo from '@/assets/study.mp4'
 import { Button } from '@/components/ui/button'
 import TitleBar from '@/components/title-bar'
+import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { Main } from '@/components/layout/main'
 import { fetchStudyModules, type StudyModuleItem } from './api'
@@ -10,6 +11,8 @@ import { StudyCard } from './components/study-card'
 // 组件已抽离到 components/study-card.tsx
 
 export default function StudyPage() {
+  const env = useRuntimeEnv()
+  const isMobile = env === 'mobile'
   const routerState = useRouterState()
   const pathname = routerState.location.pathname
   const {
@@ -62,9 +65,11 @@ export default function StudyPage() {
 
   return (
     <Main fixed className='bg-[#FDFBFE] overflow-auto md:overflow-visible pb-[calc(env(safe-area-inset-bottom)+80px)] md:pb-0'>
-      <div className='w-full max-w-[1056px] mx-auto px-2 md:px-0'>
-        <TitleBar title='流程学习' back />
-      </div>
+      {isMobile && (
+        <div className='w-full max-w-[1056px] mx-auto px-2 md:px-0'>
+          <TitleBar title='流程学习' back />
+        </div>
+      )}
       <div className='flex w-full grow flex-col items-center justify-center'>
       {/* 第一行：左侧 Tip + 中间视频（保持原尺寸），整体垂直居中 */}
       <div className='w-full max-w-[1056px] mx-auto'>
