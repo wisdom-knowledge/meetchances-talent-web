@@ -52,7 +52,7 @@ export function StudyCard({ item, index: _index, locked }: StudyCardProps) {
         'relative z-10'
       )}
     >
-      <CardContent className='p-0'>
+      <CardContent className='p-0 relative z-10'>
         <div className='flex items-start justify-between'>
           <div className='min-w-0'>
             <div className='truncate text-[24px] leading-tight font-semibold'>
@@ -88,12 +88,12 @@ export function StudyCard({ item, index: _index, locked }: StudyCardProps) {
         <img
           src={ingBg}
           alt=''
-          className='pointer-events-none absolute right-0 bottom-0 select-none'
+          className='pointer-events-none absolute right-0 bottom-0 z-0 select-none'
         />
       )}
 
       {locked && item.status === 2 && (
-        <div className='absolute inset-0 grid place-items-center bg-white/70'>
+        <div className='absolute inset-0 z-20 grid place-items-center bg-white/70'>
           <div className='text-muted-foreground flex items-center gap-2'>
             <img src={iconLock} alt='' className='h-[29px] w-[29px]' />
             <span>完成前一模块后解锁</span>
