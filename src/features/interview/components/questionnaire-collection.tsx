@@ -98,7 +98,6 @@ export default function QuestionnaireCollection({
               </div>
             </div>
           )}
-          {questionnaireUrl}
           {/* iframe 内容 */}
           <iframe
             style={{ width: '100%', height: '100%', border: 'none' }}
