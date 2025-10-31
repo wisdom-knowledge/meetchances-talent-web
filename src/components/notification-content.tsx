@@ -18,10 +18,13 @@ import { useAuthStore } from '@/stores/authStore'
  * 1. 带自定义文字：{link=https://example.com}点击这里{/link}
  *    → <a href="https://example.com" target="_blank">点击这里</a>
  * 
- * 2. 不带自定义文字：{link=https://example.com}
+ * 2. 文字链：{link=https://example.com[查看详情]}
+ *    → <a href="https://example.com" target="_blank">查看详情</a>
+ * 
+ * 3. 不带自定义文字：{link=https://example.com}
  *    → <a href="https://example.com" target="_blank">https://example.com</a>
  * 
- * 3. 站内链接：{link=/jobs/123}查看详情{/link}
+ * 4. 站内链接：{link=/jobs/123}查看详情{/link}
  *    → <a href="/jobs/123">查看详情</a>
  * 
  * 注意：
@@ -30,6 +33,18 @@ import { useAuthStore } from '@/stores/authStore'
  */
 function linkifyText(text: string): string {
   let result = text
+  
+  // 0. 处理 {link=url[文字]} 格式（“文字链”写法）
+  const linkWithBracketTextRegex = /{link=((?:https?:\/\/|\/)[^\]}]+)\[([^\]]*?)\]}/g
+  result = result.replace(linkWithBracketTextRegex, (_match, url, linkText) => {
+    const displayText = (linkText as string).trim() || url
+    const isExternal = (url as string).startsWith('http')
+    
+    if (isExternal) {
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer">${displayText}</a>`
+    }
+    return `<a href="${url}">${displayText}</a>`
+  })
   
   // 1. 处理 {link=url}文字{/link} 格式（带自定义文字）
   const linkWithTextRegex = /{link=((?:https?:\/\/|\/)[^}]+)}([^{]*?){\/link}/g
@@ -44,7 +59,7 @@ function linkifyText(text: string): string {
   })
   
   // 2. 处理 {link=url} 格式（不带自定义文字）
-  const linkRegex = /{link=((?:https?:\/\/|\/)[^}]+)}/g
+  const linkRegex = /{link=((?:https?:\/\/|\/)[^}\]]+)}/g
   result = result.replace(linkRegex, (_match, url) => {
     const isExternal = url.startsWith('http')
     
