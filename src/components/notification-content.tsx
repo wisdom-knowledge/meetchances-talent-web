@@ -73,6 +73,48 @@ function linkifyText(text: string): string {
 }
 
 /**
+ * 将自定义链接与 HTML 标签转为纯文本（用于列表摘要/标题）
+ * - {link=url[文字]} → 文字 或 url
+ * - {link=url}文字{/link} → 文字 或 url
+ * - {link=url} → url
+ * - <a href="...">文字</a> → 文字
+ * - 移除其余 HTML 标签
+ */
+function plainifyText(text: string): string {
+  if (!text) return ''
+  let result = text
+
+  // {link=url[文字]} → 文字 或 url
+  const bracketRegex = /{link=((?:https?:\/\/|\/)[^\]}]+)\[([^\]]*?)\]}/g
+  result = result.replace(bracketRegex, (_match, url, linkText) => {
+    const displayText = (linkText as string).trim()
+    return displayText || (url as string)
+  })
+
+  // {link=url}文字{/link} → 文字 或 url
+  const pairRegex = /{link=((?:https?:\/\/|\/)[^}]+)}([^{]*?){\/link}/g
+  result = result.replace(pairRegex, (_match, url, linkText) => {
+    const displayText = (linkText as string).trim()
+    return displayText || (url as string)
+  })
+
+  // {link=url} → url
+  const singleRegex = /{link=((?:https?:\/\/|\/)[^}\]]+)}/g
+  result = result.replace(singleRegex, (_match, url) => url as string)
+
+  // 去除 HTML a 标签，但保留其内部文本
+  result = result.replace(/<a\b[^>]*>(.*?)<\/a>/gi, (_m, inner) => String(inner))
+
+  // 去除剩余的其他 HTML 标签
+  result = result.replace(/<[^>]+>/g, '')
+
+  // 规范空白
+  result = result.replace(/\s+/g, ' ').trim()
+
+  return result
+}
+
+/**
  * 通知内容组件属性
  */
 interface NotificationContentProps {
@@ -111,6 +153,7 @@ export const NotificationContent = forwardRef<NotificationContentHandle, Notific
 }: NotificationContentProps, ref) {
   const navigate = useNavigate()
   const contentRef = useRef<HTMLDivElement>(null)
+  const titleRef = useRef<HTMLHeadingElement>(null)
   const isMobile = useIsMobile()
   const [messages, setMessages] = useState<MessageItem[]>([])
   const [selectedMessage, setSelectedMessage] = useState<MessageItem | null>(null)
@@ -209,7 +252,7 @@ export const NotificationContent = forwardRef<NotificationContentHandle, Notific
 
   // 处理消息内容中的链接点击
   useEffect(() => {
-    if (!selectedMessage || !contentRef.current) return
+    if (!selectedMessage) return
 
     const handleLinkClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement
@@ -219,6 +262,19 @@ export const NotificationContent = forwardRef<NotificationContentHandle, Notific
         if (href) {
           // 检查是否是站内链接
           if (href.startsWith('/')) {
+            // 特殊处理 /jobs 路径：跳转到 /interview/prepare?data=job_id<id>
+            try {
+              const url = new URL(href, window.location.origin)
+              if (url.pathname.startsWith('/jobs')) {
+                const jobId = url.searchParams.get('job_id') || url.searchParams.get('jobId')
+                if (jobId) {
+                  navigate({ to: `/interview/prepare?data=job_id${jobId}` })
+                  return
+                }
+              }
+            } catch (_) {
+              // 解析失败则按原逻辑处理
+            }
             // 使用 React Router 导航
             navigate({ to: href })
           } else if (href.startsWith('http')) {
@@ -229,11 +285,20 @@ export const NotificationContent = forwardRef<NotificationContentHandle, Notific
       }
     }
 
+    const cleanups: Array<() => void> = []
     const contentElement = contentRef.current
-    contentElement.addEventListener('click', handleLinkClick)
+    if (contentElement) {
+      contentElement.addEventListener('click', handleLinkClick)
+      cleanups.push(() => contentElement.removeEventListener('click', handleLinkClick))
+    }
+    const titleElement = titleRef.current
+    if (titleElement) {
+      titleElement.addEventListener('click', handleLinkClick)
+      cleanups.push(() => titleElement.removeEventListener('click', handleLinkClick))
+    }
 
     return () => {
-      contentElement.removeEventListener('click', handleLinkClick)
+      cleanups.forEach((fn) => fn())
     }
   }, [selectedMessage, navigate])
 
@@ -290,7 +355,13 @@ export const NotificationContent = forwardRef<NotificationContentHandle, Notific
         // 消息详情视图
         <div className='p-4 space-y-4'>
           <div>
-            <h4 className='font-semibold text-base mb-2'>{selectedMessage.title || '-'}</h4>
+            <h4
+              ref={titleRef}
+              className='font-semibold text-base mb-2 prose prose-sm max-w-none [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-2 [&_a]:cursor-pointer [&_a]:font-medium [&_a]:transition-colors hover:[&_a]:text-primary/80 hover:[&_a]:decoration-primary/80'
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHTML(linkifyText(selectedMessage.title || '-')),
+              }}
+            />
             {selectedMessage.created_at && (
               <p className='text-xs text-muted-foreground mb-4'>
                 {new Date(selectedMessage.created_at).toLocaleString('zh-CN')}
@@ -330,7 +401,7 @@ export const NotificationContent = forwardRef<NotificationContentHandle, Notific
                     <div className='flex items-start gap-2'>
                       <div className='flex-1 min-w-0'>
                         <div className='flex items-center gap-2 mb-1'>
-                          <h4 className='font-medium text-sm truncate'>{message.title || '-'}</h4>
+                          <h4 className='font-medium text-sm truncate'>{plainifyText(message.title || '-')}</h4>
                           {!message.is_read && (
                             <Badge variant='destructive' className='h-4 px-1 text-[10px]'>
                               未读
@@ -338,7 +409,7 @@ export const NotificationContent = forwardRef<NotificationContentHandle, Notific
                           )}
                         </div>
                         <p className='text-xs text-muted-foreground line-clamp-1'>
-                          {message.text}
+                          {plainifyText(message.text)}
                         </p>
                       </div>
                     </div>
