@@ -1,5 +1,6 @@
 import { Link, useLocation } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
+import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import { shouldHideBottomTab } from '@/components/layout/data/bottom-tab-config'
 
 // 以 URL 方式引用构建后资源，避免类型问题（使用相对路径确保 Vite 解析）
@@ -30,8 +31,10 @@ const TABS: TabItem[] = [
 ]
 
 export function MobileBottomTab() {
+  const env = useRuntimeEnv()
   const { pathname } = useLocation()
 
+  if (env === 'desktop') return null
   if (shouldHideBottomTab(pathname)) return null
 
   return (
