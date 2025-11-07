@@ -34,8 +34,12 @@ export function MobileBottomTab() {
   const env = useRuntimeEnv()
   const { pathname } = useLocation()
 
-  if (env !== 'mobile') return null
+  if (env === 'desktop') return null
   if (shouldHideBottomTab(pathname)) return null
+
+  // 小程序端隐藏“主页 / 职位”两个 Tab
+  const tabs = env === 'wechat-miniprogram' ? TABS.filter((t) => t.to !== '/home' && t.to !== '/jobs') : TABS
+  const gridColsClass = tabs.length === 2 ? 'grid-cols-2' : tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-4'
 
   return (
     <nav
@@ -45,8 +49,8 @@ export function MobileBottomTab() {
       )}
       aria-label='Bottom Navigation'
     >
-      <ul className='mx-auto grid max-w-md grid-cols-4 items-center gap-1 px-2 py-2'>
-        {TABS.map((tab) => {
+      <ul className={cn('mx-auto grid max-w-md items-center gap-1 px-2 py-2', gridColsClass)}>
+        {tabs.map((tab) => {
           const active = tab.isActive(pathname)
           return (
             <li key={tab.to} className='flex items-center justify-center'>
