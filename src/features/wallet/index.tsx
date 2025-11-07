@@ -16,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import officialQr from '@/assets/images/home-official.jfif'
+import experienceQr from '@/assets/images/home-experience.jfif'
 
 type IncomeType = '任务收入' | '满单奖'
 type IncomeStatus = 'pending' | 'issued'
@@ -291,6 +293,8 @@ export default function WalletPage() {
     queryKey: ['wallet-dashboard'],
     queryFn: fetchWalletDashboard,
   })
+
+  const qrCodeImageSrc = import.meta.env.PROD ? officialQr : experienceQr
 
   const realNameForm = useForm<RealNameFormValues>({
     resolver: zodResolver(realNameFormSchema),
@@ -771,13 +775,39 @@ export default function WalletPage() {
           </DialogHeader>
 
           <div className='flex flex-col items-center gap-4'>
-            <div className='flex h-48 w-48 items-center justify-center rounded-xl border border-dashed border-muted-foreground/40 bg-muted/30'>
-              <span className='text-xs text-muted-foreground'>二维码占位符</span>
-            </div>
+            <img
+              src={qrCodeImageSrc}
+              alt='支付绑定小程序码'
+              className='h-48 w-48 rounded-xl border border-dashed border-muted-foreground/40 bg-muted/30 object-cover'
+            />
             <p className='text-xs text-muted-foreground text-center'>请使用微信扫一扫功能完成绑定。</p>
             {binding?.qrCodeDescription && (
               <p className='text-xs text-muted-foreground text-center'>{binding.qrCodeDescription}</p>
             )}
+            <Button
+              size='sm'
+              onClick={async () => {
+                await new Promise((resolve) => setTimeout(resolve, 300))
+                queryClient.setQueryData<WalletDashboard | undefined>(['wallet-dashboard'], (previous) => {
+                  if (!previous) return previous
+                  return {
+                    ...previous,
+                    binding: {
+                      ...previous.binding,
+                      isPaymentMethodBound: true,
+                    },
+                    paymentMethods: previous.paymentMethods.map((method) =>
+                      method.id === 'wechat-pay'
+                        ? { ...method, isBound: true, isSelected: true }
+                        : method,
+                    ),
+                  }
+                })
+                setBindingDialogOpen(false)
+              }}
+            >
+              已完成绑定，刷新状态
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
