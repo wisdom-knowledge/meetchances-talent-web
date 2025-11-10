@@ -1103,7 +1103,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         </button>
         {/* 悬停展示的提示图片 */}
         <img
-          src={'https://dnu-cdn.xpertiise.com/common/4c9d2d04-912e-4bde-ad30-af123145be94.jpeg'}
+          src={'https://dnu-cdn.xpertiise.com/common/674ad0d6-cee5-4349-b98a-782f8f63470f.jpeg'}
           alt='客服说明'
           onClick={() => setShowServiceTip(false)}
           className={cn(

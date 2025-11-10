@@ -18,6 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import officialQr from '@/assets/images/home-official.jfif'
 import experienceQr from '@/assets/images/home-experience.jfif'
+import { detectRuntimeEnvSync } from '@/lib/env'
 
 type IncomeType = '任务收入' | '满单奖'
 type IncomeStatus = 'pending' | 'issued'
@@ -379,6 +380,23 @@ export default function WalletPage() {
     realNameForm.reset({ fullName: normalizedFullName, idNumber: normalizedId })
   }
 
+  const handleBindClick = () => {
+    const env = detectRuntimeEnvSync()
+    // 小程序端直接跳转授权页面
+    if (env === 'wechat-miniprogram') {
+      if (typeof window !== 'undefined') {
+        const wxAny = (window as unknown as {
+          wx?: { miniProgram?: { navigateTo?: (config: { url: string }) => void } }
+        }).wx
+        wxAny?.miniProgram?.navigateTo?.({
+          url: 'pages/authorize/authorize?bind=2',
+        })
+        return
+      }
+    }
+    setBindingDialogOpen(true)
+  }
+
   return (
     <>
       <Header fixed>
@@ -440,7 +458,7 @@ export default function WalletPage() {
             )}
 
             {!isLoading && !binding?.isPaymentMethodBound && (
-              <Button size='sm' onClick={() => setBindingDialogOpen(true)}>
+              <Button size='sm' onClick={handleBindClick}>
                 绑定
               </Button>
             )}
@@ -672,7 +690,7 @@ export default function WalletPage() {
                         </div>
 
                         {!method.isBound && (
-                          <Button size='sm' onClick={() => setBindingDialogOpen(true)}>
+                          <Button size='sm' onClick={handleBindClick}>
                             绑定
                           </Button>
                         )}
