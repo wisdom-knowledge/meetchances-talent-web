@@ -389,7 +389,7 @@ export default function WalletPage() {
           wx?: { miniProgram?: { navigateTo?: (config: { url: string }) => void } }
         }).wx
         wxAny?.miniProgram?.navigateTo?.({
-          url: 'pages/authorize/authorize?bind=2',
+          url: `/pages/authorize/authorize?login_redirect=${encodeURIComponent('/pages/home/home?url=/wallet')}`,
         })
         return
       }
@@ -424,7 +424,7 @@ export default function WalletPage() {
                 </p>
               </div>
           </div>
-          
+
           <div className='flex-1 rounded-xl border border-[#4E02E40D] shadow-[0_0_4px_0_#0000001A] bg-card'>
             <div className='space-y-2 p-4 md:p-6'>
               <h3 className='text-sm font-medium text-muted-foreground'>待发放（税前）</h3>
