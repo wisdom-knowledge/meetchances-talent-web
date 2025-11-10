@@ -53,7 +53,7 @@ export default function MinePage() {
           <div className='flex-1 min-h-0 overflow-auto space-y-2 pr-1'>
             <MenuItem to='/resume' icon={<IconId />} label='我的简历' />
             <NotificationMenuItem />
-            {!isMiniProgram && <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />}
+            <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />
             <MenuItem to='/study' icon={<IconListDetails />} label='流程学习' />
             {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
             {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
@@ -154,7 +154,7 @@ function BuildingIcon() {
 
 function NotificationMenuItem() {
   const unreadCount = useUnreadCount()
-  
+
   // 所有设备都跳转到通知页面，显示未读数徽章
   const badge = unreadCount > 0 ? (
     <Badge
@@ -164,12 +164,12 @@ function NotificationMenuItem() {
       {unreadCount > 99 ? '99+' : unreadCount}
     </Badge>
   ) : null
-  
+
   return (
-    <MenuItem 
-      to='/notifications' 
-      icon={<IconBell className='h-6 w-6' />} 
-      label='通知' 
+    <MenuItem
+      to='/notifications'
+      icon={<IconBell className='h-6 w-6' />}
+      label='通知'
       badge={badge}
     />
   )
