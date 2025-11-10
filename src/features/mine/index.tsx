@@ -107,7 +107,7 @@ function handleLogout() {
       }
       const redirectTo = g.wx?.miniProgram?.redirectTo
       if (typeof redirectTo === 'function') {
-        const target = '/pages/authorize/authorize?redirect_url=' + encodeURIComponent(window.location.href)
+        const target = '/pages/authorize/authorize?login_redirect=' + encodeURIComponent(window.location.href)
         redirectTo({ url: target })
       }
     }

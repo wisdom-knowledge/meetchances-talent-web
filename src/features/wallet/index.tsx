@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import experienceQr from '@/assets/images/home-experience.jfif'
 import officialQr from '@/assets/images/home-official.jfif'
+import withdrawReleaseQr from '@/assets/images/withdraw_release.jfif'
+import withdrawTrialQr from '@/assets/images/withdraw_trial.jfif'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -104,6 +106,7 @@ const fetchWalletDashboard = async (): Promise<WalletDashboard> => {
 export default function WalletPage() {
   const [activeTab, setActiveTab] = useState('income')
   const [bindingDialogOpen, setBindingDialogOpen] = useState(false)
+  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false)
 
 
   const queryClient = useQueryClient()
@@ -113,6 +116,7 @@ export default function WalletPage() {
   })
 
   const qrCodeImageSrc = import.meta.env.PROD ? officialQr : experienceQr
+  const withdrawQrImageSrc = import.meta.env.PROD ? withdrawReleaseQr : withdrawTrialQr
 
 
 
@@ -164,11 +168,23 @@ export default function WalletPage() {
     setBindingDialogOpen(true)
   }
 
-
-
-
-
-
+   const handleWithdrawClick = () => {
+     const env = detectRuntimeEnvSync()
+     // 小程序端直接跳转提现页面
+     if (env === 'wechat-miniprogram') {
+       if (typeof window !== 'undefined') {
+         const wxAny = (window as unknown as {
+           wx?: { miniProgram?: { navigateTo?: (config: { url: string }) => void } }
+         }).wx
+         wxAny?.miniProgram?.navigateTo?.({
+           url: '/pages/withdraw/withdraw',
+         })
+         return
+       }
+     }
+     // 非小程序端，弹窗展示小程序码
+     setWithdrawDialogOpen(true)
+   }
 
   return (
     <>
@@ -234,10 +250,16 @@ export default function WalletPage() {
               </div>
             )}
 
-            {!isLoading && !isWeChatBound && (
-              <Button size='sm' onClick={handleBindClick}>
-                绑定
-              </Button>
+            {!isLoading && (
+              !isWeChatBound ? (
+                <Button size='sm' onClick={handleBindClick}>
+                  绑定
+                </Button>
+              ) : (
+                <Button size='sm' onClick={handleWithdrawClick}>
+                  提现
+                </Button>
+              )
             )}
           </div>
         </div>
@@ -326,6 +348,28 @@ export default function WalletPage() {
             >
               已完成绑定，刷新状态
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <DialogTitle>前往提现</DialogTitle>
+            <DialogDescription>
+              扫描下方小程序码，进入一面千识小程序提现页面。
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className='flex flex-col items-center gap-4'>
+            <img
+              src={withdrawQrImageSrc}
+              alt='提现小程序码'
+              className='border-muted-foreground/40 bg-muted/30 h-48 w-48 rounded-xl border border-dashed object-cover'
+            />
+            <p className='text-muted-foreground text-center text-xs'>
+              请使用微信扫一扫功能进入提现页面。
+            </p>
           </div>
         </DialogContent>
       </Dialog>
