@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   QuestionnaireStatus,
   CollectionStatus,
@@ -40,18 +40,13 @@ export default function QuestionnaireCollection({
   const questionnaireUrl =
     (nodeConfig?.survey_link as string)
 
-  // iframe 加载完成
-  const handleIframeLoad = () => {
+  // 若使用外链引导而非 iframe，确保不显示加载遮罩
+  useEffect(() => {
     setIsLoading(false)
-    setHasError(false)
-  }
+  }, [questionnaireUrl])
 
-  // iframe 加载失败
-  const handleIframeError = () => {
-    setIsLoading(false)
-    setHasError(true)
-  }
-    
+  // 预留 iframe 事件处理（当前未使用，若切回 iframe 再添加）
+
   return (
     <div className='h-full'>
       {/* 根据状态显示不同内容 */}
@@ -62,7 +57,7 @@ export default function QuestionnaireCollection({
             <div className='absolute inset-0 z-10 flex flex-col items-center justify-center bg-background'>
               <IconLoader2 className='mb-4 h-8 w-8 animate-spin text-primary' />
               <p className='text-sm text-muted-foreground'>问卷加载中...</p>
-              
+
               {/* 骨架屏 */}
               <div className='mt-8 w-full max-w-2xl space-y-4 px-8'>
                 <Skeleton className='h-8 w-3/4' />
@@ -102,14 +97,28 @@ export default function QuestionnaireCollection({
           )}
 
           {/* iframe 内容 */}
-          <iframe 
-            style={{ width: '100%', height: '100%', border: 'none' }} 
+          <div className='flex h-full w-full items-center justify-center'>
+            {questionnaireUrl ? (
+              <a
+                href={questionnaireUrl}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='text-blue-600 underline hover:text-blue-700'
+              >
+                在新标签页回答问卷
+              </a>
+            ) : (
+              <p className='text-sm text-muted-foreground'>未配置问卷链接</p>
+            )}
+          </div>
+          {/* <iframe
+            style={{ width: '100%', height: '100%', border: 'none' }}
             src={questionnaireUrl}
             title="问卷填写"
             onLoad={handleIframeLoad}
             onError={handleIframeError}
             className={isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}
-          />
+          /> */}
         </div>
       ) : (
         <div className='flex min-h-[400px] h-full flex-col items-center justify-center p-8'>
