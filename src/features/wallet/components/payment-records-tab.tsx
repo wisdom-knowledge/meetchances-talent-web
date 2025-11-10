@@ -140,7 +140,7 @@ export default function PaymentRecordsTab({ isActive }: Props) {
           )}
         </div>
       </CardContent>
-      <div className='w-full overflow-x-auto'>
+      <div className='w-full overflow-x-auto px-4'>
         <Table>
           <TableHeader>
             <TableRow>

@@ -147,7 +147,7 @@ export default function IncomeTab({ isActive }: Props) {
           )}
         </div>
       </CardContent>
-      <div className='w-full overflow-x-auto'>
+      <div className='w-full overflow-x-auto px-4'>
         <Table>
           <TableHeader>
             <TableRow>
