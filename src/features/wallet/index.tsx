@@ -115,10 +115,9 @@ export default function WalletPage() {
     queryFn: fetchWalletDashboard,
   })
 
-  const qrCodeImageSrc = import.meta.env.PROD ? officialQr : experienceQr
-  const withdrawQrImageSrc = import.meta.env.PROD ? withdrawReleaseQr : withdrawTrialQr
-
-
+  const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
+  const qrCodeImageSrc = appEnv === 'prod' ? officialQr : experienceQr
+  const withdrawQrImageSrc = appEnv === 'prod' ? withdrawReleaseQr : withdrawTrialQr
 
   // const overview = data?.overview
   const binding = data?.binding
