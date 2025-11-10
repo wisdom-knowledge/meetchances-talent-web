@@ -89,7 +89,7 @@ function handleUnauthorizedRedirect(): void {
       const wxAny = (window as unknown as { wx?: unknown }).wx as
         | undefined
         | WxWithMiniProgram
-      const target = '/pages/authorize/authorize?redirect_url=' + encodeURIComponent(window.location.href)
+      const target = '/pages/authorize/authorize?login_redirect=' + encodeURIComponent(window.location.href)
       // const url = target.startsWith('/') ? target : `/${target}`
       wxAny?.miniProgram?.redirectTo?.({ url: target })
       return
