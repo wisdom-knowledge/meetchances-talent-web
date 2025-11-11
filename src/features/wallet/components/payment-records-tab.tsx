@@ -10,7 +10,7 @@ import {
   type DisbursementRecordsResponse,
 } from '@/features/wallet/api'
 import { PAGE_SIZE_OPTIONS, type PageSize } from '@/features/wallet/constants'
-import { formatCurrency, formatDate } from '@/features/wallet/utils'
+import { formatCurrency, formatDateTime } from '@/features/wallet/utils'
 import { Badge } from '@/components/ui/badge'
 
 interface Props {
@@ -144,7 +144,7 @@ export default function PaymentRecordsTab({ isActive }: Props) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>付款信息</TableHead>
+              <TableHead>操作时间</TableHead>
               <TableHead>金额(税前)</TableHead>
               <TableHead>代扣税</TableHead>
               <TableHead>实发</TableHead>
@@ -177,16 +177,7 @@ export default function PaymentRecordsTab({ isActive }: Props) {
                     : '线下支付'
                 return (
                   <TableRow key={item.id}>
-                    <TableCell>
-                      <div className='space-y-1'>
-                        <p>{formatDate(item.payment_date)}</p>
-                        <p className='text-muted-foreground text-xs'>
-                          {item.payment_id}
-                          {item.split_total > 1 ? ` · 拆分 ${item.split_index}/${item.split_total}` : ''}
-                        </p>
-                        {item.batch_id && <p className='text-muted-foreground text-xs'>批次 {item.batch_id}</p>}
-                      </div>
-                    </TableCell>
+                    <TableCell>{formatDateTime(item.payment_date)}</TableCell>
                     <TableCell>{formatCurrency(item.total_amount)}</TableCell>
                     <TableCell>{formatCurrency(item.tax_amount)}</TableCell>
                     <TableCell className='font-semibold text-emerald-600'>
