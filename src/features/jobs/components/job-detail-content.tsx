@@ -16,6 +16,7 @@ import { salaryTypeUnitMapping } from '@/features/jobs/constants'
 import JobTitleAndTags from './job-title-and-tags'
 import PublisherSection from './publisher-section'
 import { navigate } from '@/lib/navigation'
+import ReferralSection from './referral-section'
 
 export interface JobDetailContentProps {
   job: ApiJob
@@ -224,6 +225,7 @@ export default function JobDetailContent({
             </div>
           )}
         </div>
+        <ReferralSection jobId={job.id} />
         <PublisherSection job={job} recommendName={recommendName} />
       </>
     )
