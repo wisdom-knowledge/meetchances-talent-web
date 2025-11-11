@@ -5,7 +5,7 @@ import { Main } from '@/components/layout/main'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getUserAvatarUrl } from '@/utils/avatar'
-import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil, IconBell, IconListDetails, IconCopy } from '@tabler/icons-react'
+import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil, IconBell, IconListDetails, IconCopy, IconUserPlus } from '@tabler/icons-react'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import { detectRuntimeEnvSync } from '@/lib/env'
 import { useUnreadCount } from '@/components/notification-content'
@@ -61,23 +61,23 @@ export default function MinePage() {
             </div>
           )}
           {user?.phone_number ? (
-              <div className='mt-2 flex items-center text-base'>
-                <IconPhone className='mr-2 h-5 w-5' />
-                <span>{maskPhoneNumber(user.phone_number)}</span>
-              </div>
-            ) : null}
-          </div>
+            <div className='mt-2 flex items-center text-base'>
+              <IconPhone className='mr-2 h-5 w-5' />
+              <span>{maskPhoneNumber(user.phone_number)}</span>
+            </div>
+          ) : null}
+        </div>
 
-          {/* 菜单（可滚动） */}
-          <div className='flex-1 min-h-0 overflow-auto space-y-2 pr-1'>
-            <MenuItem to='/resume' icon={<IconId />} label='我的简历' />
-            <NotificationMenuItem />
-            <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />
-            <MenuItem to='/study' icon={<IconListDetails />} label='流程学习' />
-            {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
-            {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
-            <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />
-          </div>
+        {/* 菜单（可滚动） */}
+        <div className='flex-1 min-h-0 overflow-auto space-y-2 pr-1'>
+          <MenuItem to='/resume' icon={<IconId />} label='我的简历' />
+          <NotificationMenuItem />
+          <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />
+          <MenuItem to='/referral' icon={<IconUserPlus />} label='内推' />
+          <MenuItem to='/study' icon={<IconListDetails />} label='流程学习' />
+          {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
+          {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
+          <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />
         </div>
       </Main>
     </>
