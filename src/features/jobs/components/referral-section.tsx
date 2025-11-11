@@ -78,7 +78,6 @@ function DesktopReferralSection({ jobId, className }: ReferralSectionProps) {
         <div className='relative'>
           {/* 标题 */}
           <div className='mb-3 flex items-center gap-2'>
-            <div className='h-1 w-1 rounded-full bg-[#4E02E4]' />
             <span className='bg-gradient-to-r from-[#4E02E4] to-[#8B5CF6] bg-clip-text text-base font-bold text-transparent'>
               限时内推活动
             </span>
@@ -186,7 +185,6 @@ function MobileReferralSection({ jobId, className }: ReferralSectionProps) {
         <div className='relative'>
           {/* 标题 */}
           <div className='mb-2.5 flex items-center gap-1.5'>
-            <div className='h-1 w-1 rounded-full bg-[#4E02E4]' />
             <span className='bg-gradient-to-r from-[#4E02E4] to-[#8B5CF6] bg-clip-text text-sm font-bold text-transparent'>
               限时内推活动
             </span>
