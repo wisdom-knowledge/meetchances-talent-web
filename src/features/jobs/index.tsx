@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { IconClockHour4, IconCurrencyYen, IconSearch } from '@tabler/icons-react'
+import { IconClockHour4, IconCurrencyYen, IconSearch, IconGift } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 // import { Search } from '@/components/search'
 // import { Button } from '@/components/ui/button'
@@ -18,6 +18,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { userEvent } from '@/lib/apm'
 import { useNavigate, useRouterState } from '@tanstack/react-router'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/authStore'
 
 // import { ExploreJobs } from './mockData.ts'
 import {
@@ -29,6 +31,8 @@ import {
   JobsSortOrder,
   useJobApplyStatus,
   JobApplyStatus,
+  generateInviteToken,
+  InviteTokenType,
 } from './api'
 import { jobTypeMapping, salaryTypeUnitMapping } from './constants'
 // import { useNavigate } from '@tanstack/react-router'
@@ -58,6 +62,7 @@ export default function JobsListPage() {
   const navigate = useNavigate()
   const { location } = useRouterState()
   const search = location.search as Record<string, unknown>
+  const { auth } = useAuthStore()
 
   const jobIdFromUrl = useMemo(() => {
     const v = search?.job_id
@@ -167,6 +172,37 @@ export default function JobsListPage() {
         return rest
       },
     })
+  }
+
+  // 处理内推标签点击
+  const handleReferralClick = async (job: ApiJob, e: React.MouseEvent) => {
+    e.stopPropagation() // 阻止冒泡，避免触发职位选择
+    
+    // 检查登录状态
+    if (!auth.user) {
+      // 未登录，跳转到登录页
+      navigate({ to: '/sign-in' })
+      return
+    }
+
+    // 已登录，生成内推码并复制
+    try {
+      const inviteToken = await generateInviteToken({
+        job_id: job.id,
+        token_type: InviteTokenType.ActiveApply,
+      })
+
+      if (inviteToken) {
+        // 复制到剪贴板
+        await navigator.clipboard.writeText(inviteToken)
+        toast.success('内推码已复制到剪贴板')
+        userEvent('referral_code_copied', '复制内推码', { job_id: job.id })
+      } else {
+        toast.error('获取内推码失败，请稍后重试')
+      }
+    } catch (_error) {
+      toast.error('获取内推码失败，请稍后重试')
+    }
   }
 
   // 当 URL 中存在 job_id 时，进入页面后自动展开并同步本地状态
@@ -371,43 +407,51 @@ export default function JobsListPage() {
                                   : 'border-border')
                               }
                             >
-                              <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4'>
-                                <div>
-                                  <h3 className='font-medium inline-flex items-center gap-2'>
-                                    {job.title}
-                                  </h3>
-                                  <p className='text-muted-foreground text-xs'>
-                                    {formatPublishTime(job.created_at)}
-                                  </p>
-                                </div>
-                                <div className='mt-2 sm:mt-0 flex items-center gap-2 sm:justify-end'>
-                                  {(() => {
-                                    const statusItem = applyStatusMap?.[String(job.id)]
-                                    if (!statusItem || statusItem.job_apply_status !== JobApplyStatus.Applied) return null
-                                    const pill = mapCurrentNodeStatusToPill(statusItem.current_node_status, statusItem.progress, statusItem.total_step)
-                                    return (
-                                      <span className={
-                                        'inline-flex w-28 items-center justify-center py-1 gap-2 rounded-full leading-[1.6] tracking-[0.35px] text-xs ' +
-                                        pill.classes
-                                      }>
-                                        {pill.text}
-                                      </span>
-                                    )
-                                  })()}
-                                  <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal'>
-                                    <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
-                                    {job.salary_max && job.salary_max > 0 
-                                      ? `¥${job.salary_min ?? 0} - ¥${job.salary_max} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
-                                      : `¥${job.salary_min ?? 0} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
-                                    }
-                                  </Badge>
-                                   <Badge
-                                       className='inline-flex items-center justify-center px-2 py-1 font-normal tracking-[0.25px] text-[#4E02E4] bg-[#4E02E40D] rounded'
-                                     >
-                                       {jobTypeMapping[job.job_type as keyof typeof jobTypeMapping] || ''}
-                                   </Badge>
-                                </div>
+                            <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4'>
+                              <div>
+                                <h3 className='font-medium inline-flex items-center gap-2'>
+                                  {job.title}
+                                </h3>
+                                <p className='text-muted-foreground text-xs'>
+                                  {formatPublishTime(job.created_at)}
+                                </p>
                               </div>
+                              <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
+                                {(() => {
+                                  const statusItem = applyStatusMap?.[String(job.id)]
+                                  if (!statusItem || statusItem.job_apply_status !== JobApplyStatus.Applied) return null
+                                  const pill = mapCurrentNodeStatusToPill(statusItem.current_node_status, statusItem.progress, statusItem.total_step)
+                                  return (
+                                    <span className={
+                                      'inline-flex w-28 items-center justify-center py-1 gap-2 rounded-full leading-[1.6] tracking-[0.35px] text-xs ' +
+                                      pill.classes
+                                    }>
+                                      {pill.text}
+                                    </span>
+                                  )
+                                })()}
+                                <Badge
+                                  variant='outline'
+                                  className='rounded-full py-1.5 px-3 gap-1.5 text-orange-600 border-orange-300 bg-orange-50 font-normal cursor-pointer hover:bg-orange-100 transition-colors shrink-0'
+                                  onClick={(e) => handleReferralClick(job, e)}
+                                >
+                                  <IconGift className='h-4 w-4' />
+                                  内推奖 ¥{job.referral_bonus || 0}
+                                </Badge>
+                                <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal shrink-0'>
+                                  <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
+                                  {job.salary_max && job.salary_max > 0 
+                                    ? `¥${job.salary_min ?? 0} - ¥${job.salary_max} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
+                                    : `¥${job.salary_min ?? 0} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
+                                  }
+                                </Badge>
+                                 <Badge
+                                     className='inline-flex items-center justify-center px-2 py-1 font-normal tracking-[0.25px] text-[#4E02E4] bg-[#4E02E40D] rounded shrink-0'
+                                   >
+                                     {jobTypeMapping[job.job_type as keyof typeof jobTypeMapping] || ''}
+                                 </Badge>
+                              </div>
+                            </div>
                             </div>
                           </li>
                         )
@@ -483,7 +527,7 @@ export default function JobsListPage() {
                                   {formatPublishTime(job.created_at)}
                                 </p>
                               </div>
-                              <div className='mt-2 sm:mt-0 flex items-center gap-2 sm:justify-end'>
+                              <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
                                 {(() => {
                                   const statusItem = applyStatusMap?.[String(job.id)]
                                   if (!statusItem || statusItem.job_apply_status !== JobApplyStatus.Applied) return null
@@ -497,7 +541,15 @@ export default function JobsListPage() {
                                     </span>
                                   )
                                 })()}
-                                <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal'>
+                                <Badge
+                                  variant='outline'
+                                  className='rounded-full py-1.5 px-3 gap-1.5 text-orange-600 border-orange-300 bg-orange-50 font-normal cursor-pointer hover:bg-orange-100 transition-colors shrink-0'
+                                  onClick={(e) => handleReferralClick(job, e)}
+                                >
+                                  <IconGift className='h-4 w-4' />
+                                  内推奖 ¥{job.referral_bonus || 0}
+                                </Badge>
+                                <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal shrink-0'>
                                   <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   {job.salary_max && job.salary_max > 0 
                                     ? `¥${job.salary_min ?? 0} - ¥${job.salary_max} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
@@ -505,7 +557,7 @@ export default function JobsListPage() {
                                   }
                                 </Badge>
                                  <Badge
-                                     className='inline-flex items-center justify-center px-2 py-1 font-normal tracking-[0.25px] text-[#4E02E4] bg-[#4E02E40D] rounded'
+                                     className='inline-flex items-center justify-center px-2 py-1 font-normal tracking-[0.25px] text-[#4E02E4] bg-[#4E02E40D] rounded shrink-0'
                                    >
                                      {jobTypeMapping[job.job_type as keyof typeof jobTypeMapping] || ''}
                                  </Badge>
