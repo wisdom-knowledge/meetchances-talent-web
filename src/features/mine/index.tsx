@@ -5,7 +5,7 @@ import { Main } from '@/components/layout/main'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getUserAvatarUrl } from '@/utils/avatar'
-import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil, IconBell, IconCopy } from '@tabler/icons-react'
+import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil, IconBell, IconCopy, IconUserPlus } from '@tabler/icons-react'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import { detectRuntimeEnvSync } from '@/lib/env'
 import { useUnreadCount } from '@/components/notification-content'
@@ -71,6 +71,7 @@ export default function MinePage() {
           <MenuItem to='/resume' icon={<IconId />} label='我的简历' />
           <NotificationMenuItem />
           <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />
+          <MenuItem to='/referral' icon={<IconUserPlus />} label='内推' />
           {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
           {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
           <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />

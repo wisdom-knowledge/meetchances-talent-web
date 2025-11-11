@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { IconClockHour4, IconCurrencyYen, IconSearch, IconGift } from '@tabler/icons-react'
+import { IconClockHour4, IconCurrencyYen, IconSearch } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 // import { Search } from '@/components/search'
 // import { Button } from '@/components/ui/button'
@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { mapCurrentNodeStatusToPill } from '@/utils/apply-pill'
 import moneySvg from '@/assets/images/money.svg'
+import giftSvg from './images/gift.svg'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
@@ -432,10 +433,14 @@ export default function JobsListPage() {
                                 })()}
                                 <Badge
                                   variant='outline'
-                                  className='rounded-full py-1.5 px-3 gap-1.5 text-orange-600 border-orange-300 bg-orange-50 font-normal cursor-pointer hover:bg-orange-100 transition-colors shrink-0'
+                                  className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
+                                  style={{ 
+                                    borderRadius: '16px',
+                                    background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)'
+                                  }}
                                   onClick={(e) => handleReferralClick(job, e)}
                                 >
-                                  <IconGift className='h-4 w-4' />
+                                  <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   内推奖 ¥{job.referral_bonus || 0}
                                 </Badge>
                                 <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal shrink-0'>
@@ -543,10 +548,14 @@ export default function JobsListPage() {
                                 })()}
                                 <Badge
                                   variant='outline'
-                                  className='rounded-full py-1.5 px-3 gap-1.5 text-orange-600 border-orange-300 bg-orange-50 font-normal cursor-pointer hover:bg-orange-100 transition-colors shrink-0'
+                                  className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
+                                  style={{ 
+                                    borderRadius: '16px',
+                                    background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)'
+                                  }}
                                   onClick={(e) => handleReferralClick(job, e)}
                                 >
-                                  <IconGift className='h-4 w-4' />
+                                  <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   内推奖 ¥{job.referral_bonus || 0}
                                 </Badge>
                                 <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal shrink-0'>
