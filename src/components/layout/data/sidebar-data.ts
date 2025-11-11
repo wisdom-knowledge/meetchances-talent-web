@@ -1,7 +1,8 @@
-import { IconBriefcase, IconId, IconHome, IconMicrophone, IconWallet, IconUserShare } from '@tabler/icons-react'
+import { IconBriefcase, IconId, IconHome, IconMicrophone, IconWallet } from '@tabler/icons-react'
 import { IconListDetails } from '@tabler/icons-react'
 // removed team switching assets
 import { type SidebarData } from '../types'
+import { HeliIcon } from '@/assets/heli-icon'
 
 export const sidebarData: SidebarData = {
   user: {
@@ -41,7 +42,7 @@ export const sidebarData: SidebarData = {
         {
           title: '内推',
           url: '/referral',
-          icon: IconUserShare,
+          icon: HeliIcon,
         },
         {
           title: '钱包',
