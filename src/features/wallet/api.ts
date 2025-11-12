@@ -5,6 +5,7 @@ export interface ExpenseDetail {
   project_id: number
   project_name: string
   payment_type?: string
+  task_id?: number | string
   actual_unit_price: number
   apply_amount: number
   payable_hours: number
