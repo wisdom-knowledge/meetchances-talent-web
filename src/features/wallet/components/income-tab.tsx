@@ -28,13 +28,18 @@ export default function IncomeTab({ isActive }: Props) {
       skip: number
       limit: number
       project_id?: number
-      expense_status?: number
+      expense_status?: number | number[]
       payment_status?: number
     } = { skip: incomeSkip, limit: incomeLimit }
     const pid = Number(projectId.trim())
     if (!Number.isNaN(pid) && projectId.trim() !== '') params.project_id = pid
-    const es = Number(expenseStatus)
-    if (!Number.isNaN(es) && expenseStatus !== 'all') params.expense_status = es
+    // 默认仅展示已批准(10)与已支付(20)
+    if (expenseStatus === 'all') {
+      params.expense_status = [10, 20]
+    } else {
+      const es = Number(expenseStatus)
+      if (!Number.isNaN(es)) params.expense_status = es
+    }
     const ps = Number(paymentStatus)
     if (!Number.isNaN(ps) && paymentStatus !== 'all') params.payment_status = ps
     return params
@@ -104,10 +109,8 @@ export default function IncomeTab({ isActive }: Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value='all'>全部</SelectItem>
-                <SelectItem value='0'>待处理</SelectItem>
                 <SelectItem value='10'>已批准</SelectItem>
                 <SelectItem value='20'>已支付</SelectItem>
-                <SelectItem value='30'>已拒绝</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -160,19 +163,18 @@ export default function IncomeTab({ isActive }: Props) {
               <TableHead>每条收入</TableHead>
             <TableHead>总金额(税前)</TableHead>
             <TableHead>费用状态</TableHead>
-            <TableHead>付款状态</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isIncomeLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className='text-muted-foreground h-24 text-center'>
+                <TableCell colSpan={9} className='text-muted-foreground h-24 text-center'>
                   数据加载中…
                 </TableCell>
               </TableRow>
             ) : expenseItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className='text-muted-foreground h-24 text-center'>
+                <TableCell colSpan={9} className='text-muted-foreground h-24 text-center'>
                   暂无数据
                 </TableCell>
               </TableRow>
@@ -184,7 +186,7 @@ export default function IncomeTab({ isActive }: Props) {
                     <TableCell className='font-medium'>{item.id}</TableCell>
                     <TableCell className='max-w-[220px] truncate'>{item.project_name}</TableCell>
                     <TableCell>{item.payment_type ?? '任务收入'}</TableCell>
-                    <TableCell>{item.other_id ?? '-'}</TableCell>
+                    <TableCell>{item.task_id ?? '-'}</TableCell>
                     <TableCell>{formatHours(item.payable_hours)}</TableCell>
                     <TableCell>{showHourly ? `${formatCurrency(item.actual_unit_price)} / 小时` : '-'}</TableCell>
                     <TableCell>{showHourly ? '-' : formatCurrency(item.actual_unit_price)}</TableCell>
@@ -192,7 +194,6 @@ export default function IncomeTab({ isActive }: Props) {
                       {formatCurrency(item.apply_amount)}
                     </TableCell>
                     <TableCell>{renderExpenseStatusBadge(item.expense_status)}</TableCell>
-                    <TableCell>{renderPaymentStatusBadge(item.payment_status)}</TableCell>
                   </TableRow>
                 )
               })
@@ -212,7 +213,7 @@ export default function IncomeTab({ isActive }: Props) {
               <SelectContent side='top' align='end'>
                 {PAGE_SIZE_OPTIONS.map((option) => (
                   <SelectItem key={option} value={String(option)}>
-                    每页 {option} 条
+                    {option} 条
                   </SelectItem>
                 ))}
               </SelectContent>

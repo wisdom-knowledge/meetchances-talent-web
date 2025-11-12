@@ -204,7 +204,7 @@ export default function PaymentRecordsTab({ isActive }: Props) {
               <SelectContent side='top' align='end'>
                 {PAGE_SIZE_OPTIONS.map((option) => (
                   <SelectItem key={option} value={String(option)}>
-                    每页 {option} 条
+                    {option} 条
                   </SelectItem>
                 ))}
               </SelectContent>
