@@ -76,7 +76,7 @@ export interface ExpenseQueryParams {
   skip: number
   limit: number
   project_id?: number
-  expense_status?: number
+  expense_status?: number | number[]
   payment_status?: number
 }
 

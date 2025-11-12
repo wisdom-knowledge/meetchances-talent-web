@@ -78,19 +78,6 @@ export default function IncomeTab({ isActive }: Props) {
     }
   }
 
-  const renderPaymentStatusBadge = (status?: number) => {
-    switch (status) {
-      case 0:
-        return <Badge variant='secondary'>未付款</Badge>
-      case 10:
-        return <Badge variant='default'>已付款</Badge>
-      case 20:
-        return <Badge variant='outline'>处理中</Badge>
-      default:
-        return <Badge variant='outline'>{status ?? '-'}</Badge>
-    }
-  }
-
   return (
     <Card className='border border-gray-200'>
       <CardContent className='flex flex-col gap-3 p-4'>
