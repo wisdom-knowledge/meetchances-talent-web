@@ -55,6 +55,8 @@ export interface Talent extends TalentParams {
   birth_month: string
   avatar_url: string
   is_superuser: boolean
+  // 新增：用于判断是否绑定了微信支付的小程序 openid
+  miniprogram_openid?: string
 }
 
 export interface InviteInfo {
