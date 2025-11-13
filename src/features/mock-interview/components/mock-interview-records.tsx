@@ -115,14 +115,17 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
       <div className='md:hidden flex flex-col items-end gap-1 shrink-0'>
         <Button
           size='sm'
-          onClick={() => { if (!reportReady) return; onReport() }}
+          onClick={() => { 
+            alert('test')
+            if (!reportReady) return; onReport()
+           }}
           className={
             reportReady
               ? 'text-xs text-white bg-[linear-gradient(89.99deg,_#4E02E4_9.53%,_#C994F7_99.99%)] hover:opacity-90 h-[28px]'
               : 'text-xs text-[#4E02E4] bg-[#4E02E41A] h-[28px] hover:bg-[#4E02E41A] hover:text-[#4E02E4] hover:opacity-100 focus-visible:ring-0 focus-visible:outline-none active:opacity-100 cursor-default'
           }
         >
-          {reportReady ? '查看面试报告' : '面试报告生成中'}
+          {reportReady ? '查看面试报告test' : '面试报告生成中'}
         </Button>
         {!reportReady && <span className='text-[12px] text-gray-400'>生成时间约30秒</span>}
       </div>
