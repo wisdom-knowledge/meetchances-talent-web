@@ -115,10 +115,11 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
       <div className='md:hidden flex flex-col items-end gap-1 shrink-0'>
         <Button
           size='sm'
-          onClick={() => { 
-            alert('test')
-            if (!reportReady) return; onReport()
-           }}
+          onClick={() => {
+            if (!reportReady) return
+            alert(`test${reportReady}${onReport}`)
+            onReport()
+          }}
           className={
             reportReady
               ? 'text-xs text-white bg-[linear-gradient(89.99deg,_#4E02E4_9.53%,_#C994F7_99.99%)] hover:opacity-90 h-[28px]'
@@ -288,7 +289,11 @@ function InfiniteList({
           <RecordCard
             key={(it.job_id ?? 0) || idx}
             item={it}
-            onReport={() => navigate('/interview-reports', { job_id: (it.job_id ?? 0) || idx + 1 })}
+            onReport={() => {
+              alert(`22222test${it.job_id}${idx + 1}`)
+              navigate('/interview-reports', { job_id: (it.job_id ?? 0) || idx + 1 })
+              alert(`33333test`)
+            }}
             onMore={() => {}}
             onReinterview={() => navigate('/interview/prepare', { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}andcountdown${it.interview_duration_minutes}` })}
           />
