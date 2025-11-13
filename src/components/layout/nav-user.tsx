@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ChevronsUpDown, LogOut, User as UserIcon } from 'lucide-react'
+import { ChevronsUpDown, LogOut, User as UserIcon, Copy } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -24,6 +24,7 @@ export function NavUser({
     name: string
     email: string
     avatar: string
+    id?: number
   }
 }) {
   const { state } = useSidebar()
@@ -82,6 +83,25 @@ export function NavUser({
                     <p className='text-sm leading-none font-medium'>
                       {user.name}
                     </p>
+                    {user.id ? (
+                      <p className='text-xs text-muted-foreground inline-flex items-center gap-1'>
+                        <span>ID: {user.id}</span>
+                        <button
+                          type='button'
+                          aria-label='复制用户ID'
+                          className='inline-flex items-center rounded p-0.5 hover:bg-accent'
+                          onClick={() => {
+                            try {
+                              navigator.clipboard.writeText(String(user.id))
+                            } catch (_e) {
+                              /* ignore */
+                            }
+                          }}
+                        >
+                          <Copy className='h-3.5 w-3.5' />
+                        </button>
+                      </p>
+                    ) : null}
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -146,6 +166,25 @@ export function NavUser({
                   <p className='text-sm leading-none font-medium'>
                     {user.name}
                   </p>
+                  {user.id ? (
+                    <p className='text-xs text-muted-foreground inline-flex items-center gap-1'>
+                      <span>ID: {user.id}</span>
+                      <button
+                        type='button'
+                        aria-label='复制用户ID'
+                        className='inline-flex items-center rounded p-0.5 hover:bg-accent'
+                        onClick={() => {
+                          try {
+                            navigator.clipboard.writeText(String(user.id))
+                          } catch (_e) {
+                            /* ignore */
+                          }
+                        }}
+                      >
+                        <Copy className='h-3.5 w-3.5' />
+                      </button>
+                    </p>
+                  ) : null}
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
