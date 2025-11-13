@@ -18,7 +18,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const name = authUser?.full_name || authUser?.accountNo || (authUser?.email ? authUser.email.split('@')[0] : '')
     const email = authUser?.email || ''
     const avatar = getUserAvatarUrl({ userId: authUser?.id, avatarUrl: authUser?.avatar_url })
-    return { name, email, avatar }
+    return { name, email, avatar, id: authUser?.id }
   }, [authUser])
 
   const handleLogoClick = () => {

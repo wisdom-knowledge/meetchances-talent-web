@@ -5,7 +5,7 @@ import { Main } from '@/components/layout/main'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getUserAvatarUrl } from '@/utils/avatar'
-import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil, IconBell } from '@tabler/icons-react'
+import { IconId, IconWallet, IconLogout2, IconPhone, IconPencil, IconBell, IconCopy } from '@tabler/icons-react'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import { detectRuntimeEnvSync } from '@/lib/env'
 import { useUnreadCount } from '@/components/notification-content'
@@ -40,6 +40,25 @@ export default function MinePage() {
           <h1 className='mt-3 text-2xl font-bold tracking-tight md:text-3xl'>
             {user?.full_name  || '未登录'}
           </h1>
+          {user?.id != null && (
+            <div className='mt-2 flex items-center text-sm text-muted-foreground'>
+              <span className='mr-2'>ID: {user.id}</span>
+              <button
+                type='button'
+                aria-label='复制用户ID'
+                className='inline-flex items-center rounded p-1 hover:bg-accent active:scale-95 transition'
+                onClick={() => {
+                  try {
+                    navigator.clipboard.writeText(String(user.id))
+                  } catch (_e) {
+                    /* ignore */
+                  }
+                }}
+              >
+                <IconCopy className='h-4 w-4' />
+              </button>
+            </div>
+          )}
           {user?.phone_number ? (
             <div className='mt-2 flex items-center text-base'>
               <IconPhone className='mr-2 h-5 w-5' />
