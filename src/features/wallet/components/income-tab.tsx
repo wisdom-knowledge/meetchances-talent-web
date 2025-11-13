@@ -32,9 +32,9 @@ export default function IncomeTab({ isActive }: Props) {
     } = { skip: incomeSkip, limit: incomeLimit }
     const pid = Number(projectId.trim())
     if (!Number.isNaN(pid) && projectId.trim() !== '') params.project_id = pid
-    // 默认仅展示已批准(10)与已支付(20)
+    // 默认仅展示已批准(10)
     if (expenseStatus === 'all') {
-      params.expense_status = [10, 20]
+      params.expense_status = 10
     } else {
       const es = Number(expenseStatus)
       if (!Number.isNaN(es)) params.expense_status = es
