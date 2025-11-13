@@ -161,7 +161,7 @@ export default function WalletPage() {
           wx?: { miniProgram?: { navigateTo?: (config: { url: string }) => void } }
         }).wx
         wxAny?.miniProgram?.navigateTo?.({
-          url: 'pages/authorize/authorize?bind=2',
+          url: '/pages/bind/bind',
         })
         return
       }
