@@ -115,11 +115,7 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
       <div className='md:hidden flex flex-col items-end gap-1 shrink-0'>
         <Button
           size='sm'
-          onClick={() => {
-            if (!reportReady) return
-            alert(`test${reportReady}${onReport}`)
-            onReport()
-          }}
+          onClick={() => {if (!reportReady) return; onReport()}}
           className={
             reportReady
               ? 'text-xs text-white bg-[linear-gradient(89.99deg,_#4E02E4_9.53%,_#C994F7_99.99%)] hover:opacity-90 h-[28px]'
