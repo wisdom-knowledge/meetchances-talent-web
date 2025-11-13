@@ -19,6 +19,7 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import TitleBar from '@/components/title-bar'
 import { getWalletDetails, type WalletDetailsResponse } from '@/features/wallet/api'
+import { fetchTalentMe } from '@/lib/api'
 import IncomeTab from '@/features/wallet/components/income-tab'
 import PaymentRecordsTab from '@/features/wallet/components/payment-records-tab'
 import PaymentMethodsTab from '@/features/wallet/components/payment-methods-tab'
@@ -323,25 +324,12 @@ export default function WalletPage() {
             <Button
               size='sm'
               onClick={async () => {
-                await new Promise((resolve) => setTimeout(resolve, 300))
-                queryClient.setQueryData<WalletDashboard | undefined>(
-                  ['wallet-dashboard'],
-                  (previous) => {
-                    if (!previous) return previous
-                    return {
-                      ...previous,
-                      binding: {
-                        ...previous.binding,
-                        isPaymentMethodBound: true,
-                      },
-                      paymentMethods: previous.paymentMethods.map((method) =>
-                        method.id === 'wechat-pay'
-                          ? { ...method, isBound: true, isSelected: true }
-                          : method
-                      ),
-                    }
-                  }
-                )
+                try {
+                  const user = await fetchTalentMe()
+                  queryClient.setQueryData(['current-user'], user)
+                } catch (_e) {
+                  // ignore
+                }
                 setBindingDialogOpen(false)
               }}
             >
