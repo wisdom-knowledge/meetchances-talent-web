@@ -256,7 +256,7 @@ export default function WalletPage() {
                 <Button size='sm' onClick={handleBindClick}>
                   绑定
                 </Button>
-              ) : (
+              ) : availableBalance > 10000 ? null : (
                 <Button size='sm' onClick={handleWithdrawClick}>
                   提现
                 </Button>
