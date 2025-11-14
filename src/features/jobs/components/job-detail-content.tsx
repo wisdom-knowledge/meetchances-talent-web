@@ -15,6 +15,7 @@ import type { ApiJob } from '@/features/jobs/api'
 import { salaryTypeUnitMapping } from '@/features/jobs/constants'
 import JobTitleAndTags from './job-title-and-tags'
 import PublisherSection from './publisher-section'
+import { navigate } from '@/lib/navigation'
 
 export interface JobDetailContentProps {
   job: ApiJob
@@ -93,18 +94,14 @@ export default function JobDetailContent({
     if (inviteToken) {
       params = `${params}andinvite_token${inviteToken}`
     }
-    let targetUrl
-    if (env === 'wechat-miniprogram') {
-      targetUrl = `/interview/prepare`
-    } else if (user) {
-      targetUrl = `/interview/prepare`
-    } else if (import.meta.env.DEV) {
-      targetUrl = `/interview/prepare`
+    if (env === 'wechat-miniprogram' || user || import.meta.env.DEV) {
+      navigate(`/interview/prepare?${params}`)
     } else {
-      targetUrl = import.meta.env.VITE_INVITE_REDIRECT_URL
+      const targetUrl = import.meta.env.VITE_INVITE_REDIRECT_URL;
+      if (!targetUrl) return;
+      navigate(`${targetUrl}?${params}`, { api: 'native' })
     }
 
-    window.location.href = `${targetUrl}?${params}`
   }, [env, job.id, job.job_type, inviteToken, user])
 
   const low = job.salary_min ?? 0

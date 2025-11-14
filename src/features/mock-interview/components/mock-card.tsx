@@ -26,11 +26,10 @@ export interface MockCardProps {
   categories: Array<{ id: number; icon?: string }>
 }
 
-import { useNavigate } from '@tanstack/react-router'
+import { navigate } from '@/lib/navigation'
 import { useEffect, useRef, useState } from 'react'
 
 export default function MockCard({ item, index, categories }: MockCardProps) {
-  const navigate = useNavigate()
   const isMobile = useIsMobile()
   const titleRef = useRef<HTMLDivElement>(null)
   const summaryRef = useRef<HTMLDivElement>(null)
@@ -52,9 +51,7 @@ export default function MockCard({ item, index, categories }: MockCardProps) {
       <div
         className="group relative flex h-[120px] w-full flex-col overflow-hidden rounded-xl border transition-shadow cursor-pointer border-[#4E02E40D] shadow-[0_0_4px_0_#0000001A] hover:border-[#4E02E4] hover:shadow-[0_0_12px_0_#4E02E433]"
         onClick={() => {
-          navigate({
-            to: `/jobs/${item.id}`,
-          }).catch(() => {})
+          navigate(`/jobs/${item.id}`)
         }}
       >
         {/* 渐变背景 */}
@@ -183,9 +180,7 @@ export default function MockCard({ item, index, categories }: MockCardProps) {
               <button
                 className='h-[28px] w-full inline-flex items-center justify-center rounded-md bg-gradient-to-r from-[#4E02E4] to-[#C994F7] px-[12px] text-white text-sm shadow opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 transition-all duration-300 ease-out'
                 onClick={() => {
-                  navigate({
-                    to: `/jobs/${item.id}`,
-                  }).catch(() => {})
+                  navigate(`/jobs/${item.id}`)
                 }}
               >
                 查看详情

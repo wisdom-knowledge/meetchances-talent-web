@@ -17,6 +17,7 @@ import './index.css'
 import { routeTree } from './routeTree.gen'
 import { initApm, startApm, isApmStarted, setApmAuth, setApmContext } from '@/lib/apm'
 import { detectRuntimeEnvSync } from '@/lib/env'
+import { setNavigationRouter } from '@/lib/navigation'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -83,6 +84,9 @@ declare module '@tanstack/react-router' {
     router: typeof router
   }
 }
+
+// 注入到统一导航适配层
+setNavigationRouter(router)
 
 // Init APM as early as possible
 initApm()
