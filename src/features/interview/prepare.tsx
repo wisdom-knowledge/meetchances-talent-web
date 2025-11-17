@@ -938,9 +938,14 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             - 仅展示祝贺与下一步提示文案，居中显示
         */}
         {viewMode === ViewMode.AllApproved && (
-          <div className='flex-1 flex items-center justify-center min-h-[60vh]'>
+          <div className='flex flex-1 flex-col items-center justify-center min-h-[60vh] space-y-6'>
+            <img 
+              className='w-auto max-w-[300px] h-auto object-contain' 
+              src='https://dnu-cdn.xpertiise.com/common/2292a9bb-d403-49e9-a600-97d5a0129557.png' 
+              alt='恭喜通过'
+            />
             <div className='text-center whitespace-pre-line text-xl font-semibold leading-relaxed text-foreground'>
-              {`恭喜你,你已通过本次筛选\n我们会尽快告知下一步`}
+              {`恭喜你,你已通过本次筛选\n请注意查收通知中心的通知`}
             </div>
           </div>
         )}
