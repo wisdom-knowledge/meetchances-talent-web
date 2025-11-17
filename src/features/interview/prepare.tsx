@@ -2,14 +2,13 @@ import { Main } from '@/components/layout/main'
 import { RichText } from '@/components/ui/rich-text'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from '@tanstack/react-router'
-import { applyJob, useJobDetailQuery } from '@/features/jobs/api'
+import { applyJob, generateInviteToken, InviteTokenType, useJobDetailQuery } from '@/features/jobs/api'
 import { salaryTypeMapping, salaryTypeUnitMapping } from '@/features/jobs/constants'
 import { IconBriefcase, IconWorldPin, IconVideo, IconVolume, IconMicrophone, IconCircleCheckFilled } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { IconLoader2 } from '@tabler/icons-react'
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
-import { useQueryClient, useQuery } from '@tanstack/react-query'
-import { fetchTalentMe } from '@/lib/api'
+import { useQueryClient } from '@tanstack/react-query'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -307,14 +306,6 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const user = useAuthStore((s) => s.auth.user)
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
-
-  // 获取当前用户信息（包含 referral_code）
-  const { data: currentUser } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: fetchTalentMe,
-    staleTime: 5 * 60 * 1000,
-    enabled: Boolean(user),
-  })
   const { data: progress, isLoading: isProgressLoading, refetch: refetchProgress } = useJobApplyProgress(jobApplyId ?? null, Boolean(jobApplyId))
   const { data: workflow } = useJobApplyWorkflow(jobApplyId ?? null, Boolean(jobApplyId))
   const interviewNodeId = useMemo(() => getInterviewNodeId(workflow), [workflow])
@@ -623,11 +614,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const handleApplyJob = useCallback(async () => {
     if (!jobId || isSkipConfirm) return
     try {
-      // 优先使用传入的 inviteToken，否则使用用户的 referral_code
-      const tokenToUse = inviteToken || currentUser?.referral_code
+      const tokenToUse = inviteToken ||
+        (await generateInviteToken({ job_id: jobId, token_type: InviteTokenType.ActiveApply }))
 
       if (!tokenToUse) {
-        throw new Error('邀请码尚未加载，请稍后重试')
+        throw new Error('生成申请令牌失败')
       }
 
       const id = await applyJob(jobId, tokenToUse)
@@ -635,7 +626,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     } catch (error) {
       handleServerError(error)
     }
-  }, [jobId, inviteToken, isSkipConfirm, currentUser?.referral_code])
+  }, [jobId, inviteToken, isSkipConfirm])
 
   useEffect(() => {
     if(!user) return
