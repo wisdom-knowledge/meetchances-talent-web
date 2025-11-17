@@ -66,18 +66,19 @@ export default function MinePage() {
               <span>{maskPhoneNumber(user.phone_number)}</span>
             </div>
           ) : null}
-        </div>
+          </div>
 
-        {/* 菜单（可滚动） */}
-        <div className='flex-1 min-h-0 overflow-auto space-y-2 pr-1'>
-          <MenuItem to='/resume' icon={<IconId />} label='我的简历' />
-          <NotificationMenuItem />
-          <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />
-          <MenuItem to='/referral' icon={<IconUserPlus />} label='内推' />
-          <MenuItem to='/study' icon={<IconListDetails />} label='流程学习' />
-          {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
-          {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
-          <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />
+          {/* 菜单（可滚动） */}
+          <div className='flex-1 min-h-0 overflow-auto space-y-2 pr-1'>
+            <MenuItem to='/resume' icon={<IconId />} label='我的简历' />
+            <NotificationMenuItem />
+            <MenuItem to='/wallet' icon={<IconWallet />} label='钱包' />
+            <MenuItem to='/referral' icon={<IconUserPlus />} label='内推' />
+            <MenuItem to='/study' icon={<IconListDetails />} label='流程学习' />
+            {!isMiniProgram && <MenuAction onClick={gotoAccountInfo} icon={<UserIcon />} label='账号信息' />}
+            {!isMiniProgram && <MenuAction onClick={() => window.open('http://meetchances.com/', '_blank', 'noopener,noreferrer')} icon={<BuildingIcon />} label='关于我们' />}
+            <MenuAction onClick={handleLogout} icon={<IconLogout2  />} label='退出登录' />
+          </div>
         </div>
       </Main>
     </>
