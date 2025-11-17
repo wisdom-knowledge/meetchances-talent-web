@@ -1,4 +1,4 @@
-import type { ReferralIncomeData, ReferralListItem, InviteCodeInfo, RecommendMeStatus } from './api'
+import type { ReferralIncomeData, ReferralListItem, InviteCodeInfo } from './api'
 
 // Mock 内推收入数据
 export const mockReferralIncome: ReferralIncomeData = {
@@ -49,10 +49,5 @@ export const mockInviteCodeMap: Record<string, InviteCodeInfo> = {
     name: '刘先',
     phone: '15628191221',
   },
-}
-
-// Mock 推荐我的状态（默认未被推荐）
-export const mockRecommendMeStatus: RecommendMeStatus = {
-  status: 'not_recommended',
 }
 

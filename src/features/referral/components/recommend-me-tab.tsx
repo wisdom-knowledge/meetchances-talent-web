@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { getRecommendMeStatus, validateInviteCode, bindInviteCode, type InviteCodeInfo } from '@/features/referral/api'
+import { validateInviteCode, bindInviteCode, type InviteCodeInfo } from '@/features/referral/api'
+import { fetchTalentMe } from '@/lib/api'
 
 interface Props {
   isActive: boolean
@@ -17,10 +18,10 @@ export default function RecommendMeTab({ isActive }: Props) {
   const [codeInfo, setCodeInfo] = useState<InviteCodeInfo | null>(null)
   const [isValidating, setIsValidating] = useState(false)
 
-  // 获取推荐我的状态
-  const { data: recommendStatus, isLoading } = useQuery({
-    queryKey: ['recommend-me-status'],
-    queryFn: getRecommendMeStatus,
+  // 获取当前用户信息
+  const { data: currentUser, isLoading: isLoadingUser } = useQuery({
+    queryKey: ['talent-me'],
+    queryFn: fetchTalentMe,
     enabled: isActive,
   })
 
@@ -35,7 +36,7 @@ export default function RecommendMeTab({ isActive }: Props) {
     try {
       const info = await validateInviteCode(code.trim())
       setCodeInfo(info)
-    } catch (error) {
+    } catch (_error) {
       setCodeInfo(null)
       // 静默处理错误，UI 会显示找不到的状态
     } finally {
@@ -61,8 +62,11 @@ export default function RecommendMeTab({ isActive }: Props) {
     mutationFn: bindInviteCode,
     onSuccess: () => {
       toast.success('邀请码绑定成功')
-      // 刷新推荐我的状态
-      queryClient.invalidateQueries({ queryKey: ['recommend-me-status'] })
+      // 清空输入
+      setInviteCode('')
+      setCodeInfo(null)
+      // 刷新用户信息以显示推荐人
+      queryClient.invalidateQueries({ queryKey: ['talent-me'] })
     },
     onError: () => {
       toast.error('邀请码绑定失败，请稍后重试')
@@ -81,7 +85,8 @@ export default function RecommendMeTab({ isActive }: Props) {
     bindMutation.mutate(inviteCode.trim())
   }
 
-  if (isLoading) {
+  // 加载中状态
+  if (isLoadingUser) {
     return (
       <Card className='border border-gray-200'>
         <CardContent className='space-y-4 p-6'>
@@ -91,21 +96,8 @@ export default function RecommendMeTab({ isActive }: Props) {
     )
   }
 
-  // 情况1: 自己注册的
-  if (recommendStatus?.status === 'self_registered') {
-    return (
-      <Card className='border border-gray-200'>
-        <CardContent className='space-y-4 p-6'>
-          <div className='text-center'>
-            <p className='text-foreground text-base'>您已经不需要被内推啦</p>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  // 情况2: 已经有推荐人
-  if (recommendStatus?.status === 'already_recommended') {
+  // 已经绑定过内推码
+  if (currentUser?.referred_by_code) {
     return (
       <Card className='border border-gray-200'>
         <CardContent className='space-y-4 p-6'>
@@ -113,16 +105,22 @@ export default function RecommendMeTab({ isActive }: Props) {
             <p className='text-foreground text-base'>
               你的推荐人是：
               <span className='ml-2 font-semibold'>
-                {recommendStatus.referrer_name}（{recommendStatus.referrer_phone}）
+                {currentUser.referrer_name || ''}
+                {currentUser.referrer_username ? ` ${currentUser.referrer_username}` : ''}
               </span>
             </p>
+            {currentUser.referrer_phone && (
+              <p className='text-muted-foreground mt-2 text-sm'>
+                手机号：{currentUser.referrer_phone}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
     )
   }
 
-  // 情况3: 未被推荐，需要输入邀请码
+  // 未绑定，显示输入框
   return (
     <Card className='border border-gray-200'>
       <CardContent className='space-y-6 p-6'>
@@ -144,7 +142,8 @@ export default function RecommendMeTab({ isActive }: Props) {
             )}
             {!isValidating && codeInfo && (
               <p className='text-xs text-emerald-600'>
-                邀请人：{codeInfo.name}（{codeInfo.phone}）
+                邀请人：{codeInfo.name}
+                {codeInfo.referrer_username && ` ${codeInfo.referrer_username}`}
               </p>
             )}
           </div>

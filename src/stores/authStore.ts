@@ -57,6 +57,14 @@ export interface Talent extends TalentParams {
   is_superuser: boolean
   // 新增：用于判断是否绑定了微信支付的小程序 openid
   miniprogram_openid?: string
+  // 邀请码（我的邀请码）
+  referral_code?: string
+  // 被推荐人的邀请码（我被谁推荐）
+  referred_by_code?: string
+  // 推荐人信息
+  referrer_name?: string
+  referrer_phone?: string
+  referrer_username?: string
 }
 
 export interface InviteInfo {
