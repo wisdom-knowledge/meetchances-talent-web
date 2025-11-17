@@ -189,8 +189,11 @@ export default function JobsListPage() {
     
     // 检查登录状态
     if (!auth.user) {
-      // 未登录，跳转到登录页
-      navigate({ to: '/sign-in' })
+      // 未登录，跳转到 OAuth 授权页面
+      const loginUrl = import.meta.env.VITE_AUTH_LOGIN_URL
+      if (loginUrl) {
+        window.location.href = loginUrl
+      }
       return
     }
 
