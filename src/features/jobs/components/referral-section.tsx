@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { IconCopy } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useAuthStore } from '@/stores/authStore'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { generateInviteToken, InviteTokenType } from '@/features/jobs/api'
+import { fetchTalentMe } from '@/lib/api'
 import { userEvent } from '@/lib/apm'
 
 export interface ReferralSectionProps {
@@ -18,32 +18,16 @@ export interface ReferralSectionProps {
 function DesktopReferralSection({ jobId, className }: ReferralSectionProps) {
   const navigate = useNavigate()
   const auth = useAuthStore((s) => s.auth)
-  const [inviteToken, setInviteToken] = useState<string>('')
-  const [isLoading, setIsLoading] = useState(false)
 
-  // 页面加载时获取邀请码
-  useEffect(() => {
-    const fetchInviteToken = async () => {
-      if (!auth.user) return
-      
-      setIsLoading(true)
-      try {
-        const token = await generateInviteToken({
-          job_id: jobId,
-          token_type: InviteTokenType.ActiveApply,
-        })
-        if (token) {
-          setInviteToken(token)
-        }
-      } catch (_error) {
-        // 静默处理错误，UI 会显示加载失败状态
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  // 从 /talent/me 接口获取用户邀请码
+  const { data: currentUser, isLoading } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: fetchTalentMe,
+    staleTime: 5 * 60 * 1000,
+    enabled: Boolean(auth.user),
+  })
 
-    fetchInviteToken()
-  }, [auth.user, jobId])
+  const inviteToken = currentUser?.referral_code || ''
 
   const handleCopyReferralCode = async () => {
     // 检查登录状态
@@ -123,32 +107,16 @@ function DesktopReferralSection({ jobId, className }: ReferralSectionProps) {
 function MobileReferralSection({ jobId, className }: ReferralSectionProps) {
   const navigate = useNavigate()
   const auth = useAuthStore((s) => s.auth)
-  const [inviteToken, setInviteToken] = useState<string>('')
-  const [isLoading, setIsLoading] = useState(false)
 
-  // 页面加载时获取邀请码
-  useEffect(() => {
-    const fetchInviteToken = async () => {
-      if (!auth.user) return
-      
-      setIsLoading(true)
-      try {
-        const token = await generateInviteToken({
-          job_id: jobId,
-          token_type: InviteTokenType.ActiveApply,
-        })
-        if (token) {
-          setInviteToken(token)
-        }
-      } catch (_error) {
-        // 静默处理错误，UI 会显示加载失败状态
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  // 从 /talent/me 接口获取用户邀请码
+  const { data: currentUser, isLoading } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: fetchTalentMe,
+    staleTime: 5 * 60 * 1000,
+    enabled: Boolean(auth.user),
+  })
 
-    fetchInviteToken()
-  }, [auth.user, jobId])
+  const inviteToken = currentUser?.referral_code || ''
 
   const handleCopyReferralCode = async () => {
     // 检查登录状态

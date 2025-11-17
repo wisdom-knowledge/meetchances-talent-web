@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import experienceQr from '@/assets/images/home-experience.jfif'
 import officialQr from '@/assets/images/home-official.jfif'
 import withdrawReleaseQr from '@/assets/images/withdraw_release.jfif'
@@ -17,52 +17,15 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { getReferralIncome, type ReferralIncomeData } from '@/features/referral/api'
+import { fetchTalentMe } from '@/lib/api'
 import { ReferralTab, DEFAULT_REFERRAL_TAB } from '@/features/referral/constants'
-import ReferralListTab from '@/features/referral/components/referral-list-tab'
 import RecommendMeTab from '@/features/referral/components/recommend-me-tab'
 import ShareBubble from '@/features/referral/components/share-bubble'
 import PosterGenerator from '@/features/referral/components/poster-generator'
-import PaymentRecordsTab from '@/features/wallet/components/payment-records-tab'
 import PaymentMethodsTab from '@/features/wallet/components/payment-methods-tab'
 import { formatCurrency } from '@/features/wallet/utils'
 import { detectRuntimeEnvSync } from '@/lib/env'
-import type { Talent } from '@/stores/authStore'
 import { toast } from 'sonner'
-
-interface PaymentMethod {
-  id: string
-  name: string
-  channel: '微信支付'
-  isBound: boolean
-  isSelected: boolean
-  description?: string
-}
-
-interface WalletDashboard {
-  paymentMethods: PaymentMethod[]
-}
-
-const fetchWalletDashboard = async (): Promise<WalletDashboard> => {
-  const isBound = false
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        paymentMethods: [
-          {
-            id: 'wechat-pay',
-            name: '微信支付',
-            channel: '微信支付',
-            isBound: isBound,
-            isSelected: isBound,
-            description: '用于千识任务与奖金额度的结算收款。',
-          },
-        ],
-      })
-    }, 320)
-  })
-}
 
 export default function ReferralPage() {
   const [activeTab, setActiveTab] = useState(DEFAULT_REFERRAL_TAB)
@@ -70,44 +33,24 @@ export default function ReferralPage() {
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false)
   const [shouldGeneratePoster, setShouldGeneratePoster] = useState(false)
 
-  const queryClient = useQueryClient()
-
-  // 获取付款方式mock数据（复用wallet的）
-  const { data: walletData, isLoading: isWalletLoading } = useQuery({
-    queryKey: ['wallet-dashboard'],
-    queryFn: fetchWalletDashboard,
-  })
-
   const appEnv = (import.meta.env.VITE_APP_ENV as string) || (import.meta.env.PROD ? 'prod' : 'dev')
   const qrCodeImageSrc = appEnv === 'prod' ? officialQr : experienceQr
   const withdrawQrImageSrc = appEnv === 'prod' ? withdrawReleaseQr : withdrawTrialQr
 
-  const paymentMethods = useMemo(
-    () => walletData?.paymentMethods ?? [],
-    [walletData?.paymentMethods]
-  )
-
-  // 使用 /talent/me 的 miniprogram_openid 判断是否绑定了微信支付
-  const currentUser = queryClient.getQueryData(['current-user']) as Talent | undefined
-  const isWeChatBound = Boolean(currentUser?.miniprogram_openid)
-  const patchedPaymentMethods = useMemo(
-    () =>
-      paymentMethods.map((m) =>
-        m.id === 'wechat-pay' ? { ...m, isBound: isWeChatBound, isSelected: isWeChatBound } : m,
-      ),
-    [paymentMethods, isWeChatBound],
-  )
-
-  // 获取内推收入数据
-  const { data: incomeData, isLoading: isIncomeLoading } = useQuery<ReferralIncomeData>({
-    queryKey: ['referral-income'],
-    queryFn: getReferralIncome,
-    staleTime: 30 * 1000,
+  // 获取当前用户信息
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: fetchTalentMe,
+    staleTime: 5 * 60 * 1000,
   })
 
-  const totalIncome = incomeData?.total_income ?? 0
-  const currentMonthIncome = incomeData?.current_month_income ?? 0
-  const pendingAmount = incomeData?.pending_amount ?? 0
+  // 使用 /talent/me 的 miniprogram_openid 判断是否绑定了微信支付
+  const isWeChatBound = Boolean(currentUser?.miniprogram_openid)
+
+  // 收入数据默认为 0，后续联调时再对接接口
+  const totalIncome = 0
+  const currentMonthIncome = 0
+  const pendingAmount = 0
 
   const handleBindClick = () => {
     const env = detectRuntimeEnvSync()
@@ -149,7 +92,11 @@ export default function ReferralPage() {
     if (shouldGeneratePoster) {
       return
     }
-    // 测试模式：邀请码已写死，不需要检查用户信息
+    // 检查是否有邀请码
+    if (!currentUser?.referral_code) {
+      toast.error('邀请码尚未加载，请稍后重试')
+      return
+    }
     setShouldGeneratePoster(true)
   }
 
@@ -159,7 +106,7 @@ export default function ReferralPage() {
     
     // 下载图片
     const link = document.createElement('a')
-    link.download = `内推海报_${currentUser?.username || 'poster'}.jpg`
+    link.download = `内推海报_${currentUser?.full_name || currentUser?.referral_code || 'poster'}.jpg`
     link.href = dataUrl
     link.style.display = 'none'
     document.body.appendChild(link)
@@ -188,12 +135,10 @@ export default function ReferralPage() {
           <p className='text-muted-foreground text-sm'>
             推荐朋友，共享快乐！
             <a
-              href='#'
+              href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
+              target='_blank'
+              rel='noopener noreferrer'
               className='ml-1 font-medium text-[#4E02E4] underline decoration-dotted underline-offset-2 transition-colors hover:text-[#3D01B3]'
-              onClick={(e) => {
-                e.preventDefault()
-                // TODO: 替换为实际的规则链接
-              }}
             >
               内推详细规则
             </a>
@@ -210,10 +155,10 @@ export default function ReferralPage() {
                 任务收入（税前）
               </h3>
               <p className='text-foreground text-3xl font-semibold'>
-                {isIncomeLoading ? '加载中…' : formatCurrency(totalIncome)}
+                {formatCurrency(totalIncome)}
               </p>
               <p className='text-muted-foreground text-sm'>
-                {isIncomeLoading ? '加载中…' : `${formatCurrency(currentMonthIncome)} 本月收入`}
+                {formatCurrency(currentMonthIncome)} 本月收入
               </p>
             </div>
           </div>
@@ -225,7 +170,7 @@ export default function ReferralPage() {
                 待发放（税前）
               </h3>
               <p className='text-foreground text-3xl font-semibold'>
-                {isIncomeLoading ? '加载中…' : formatCurrency(pendingAmount)}
+                {formatCurrency(pendingAmount)}
               </p>
             </div>
           </div>
@@ -234,11 +179,7 @@ export default function ReferralPage() {
       {/* 绑定/提现卡片 - 100%宽度 */}
       <div className='bg-card mb-6 rounded-xl border border-[#4E02E40D] shadow-[0_0_4px_0_#0000001A]'>
         <div className='flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between'>
-          {isWalletLoading ? (
-            <p className='text-muted-foreground text-sm'>
-              正在加载付款方式绑定信息…
-            </p>
-          ) : !isWeChatBound ? (
+          {!isWeChatBound ? (
             <div className='text-muted-foreground space-y-1 text-sm'>
               <p>您还没绑定付款方式，为顺利支付，请先绑定</p>
             </div>
@@ -252,16 +193,14 @@ export default function ReferralPage() {
             </div>
           )}
 
-          {!isWalletLoading && (
-            !isWeChatBound ? (
-              <Button size='sm' onClick={handleBindClick}>
-                绑定
-              </Button>
-            ) : (
-              <Button size='sm' onClick={handleWithdrawClick}>
-                提现
-              </Button>
-            )
+          {!isWeChatBound ? (
+            <Button size='sm' onClick={handleBindClick}>
+              绑定
+            </Button>
+          ) : (
+            <Button size='sm' onClick={handleWithdrawClick}>
+              提现
+            </Button>
           )}
         </div>
       </div>
@@ -270,24 +209,22 @@ export default function ReferralPage() {
       <div className='space-y-4'>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ReferralTab)}>
           <TabsList className='bg-muted text-muted-foreground inline-flex h-10 items-center justify-center rounded-md p-1'>
-            <TabsTrigger value={ReferralTab.LIST}>内推列表</TabsTrigger>
-            <TabsTrigger value={ReferralTab.PAYMENT_RECORDS}>付款记录</TabsTrigger>
             <TabsTrigger value={ReferralTab.PAYMENT_METHODS}>付款方式</TabsTrigger>
             <TabsTrigger value={ReferralTab.RECOMMEND_ME}>推荐我</TabsTrigger>
           </TabsList>
 
-          <TabsContent value={ReferralTab.LIST} className='space-y-4'>
-            <ReferralListTab isActive={activeTab === ReferralTab.LIST} />
-          </TabsContent>
-
-          <TabsContent value={ReferralTab.PAYMENT_RECORDS} className='space-y-4'>
-            <PaymentRecordsTab isActive={activeTab === ReferralTab.PAYMENT_RECORDS} />
-          </TabsContent>
-
           <TabsContent value={ReferralTab.PAYMENT_METHODS} className='space-y-4'>
             <PaymentMethodsTab
-              isLoading={isWalletLoading}
-              paymentMethods={patchedPaymentMethods}
+              isLoading={false}
+              paymentMethods={[
+                {
+                  id: 'wechat-pay',
+                  name: '微信支付',
+                  isBound: isWeChatBound,
+                  isSelected: isWeChatBound,
+                  description: '用于千识任务与奖金额度的结算收款。',
+                },
+              ]}
               onOpenBind={() => handleBindClick()}
             />
           </TabsContent>
@@ -345,12 +282,12 @@ export default function ReferralPage() {
       </Dialog>
 
       {/* 海报生成器（隐藏的canvas） */}
-      {shouldGeneratePoster && currentUser?.username && (
+      {shouldGeneratePoster && currentUser?.referral_code && (
         <PosterGenerator
           data={{
             totalIncome,
             currentMonthIncome,
-            inviteCode: currentUser.username,
+            inviteCode: currentUser.referral_code,
             userName: currentUser.full_name,
           }}
           onGenerated={handlePosterGenerated}
@@ -358,11 +295,13 @@ export default function ReferralPage() {
       )}
       </Main>
 
-      {/* 分享区域 - 固定定位在右侧 */}
-      <ShareBubble
-        totalIncome={totalIncome}
-        onGeneratePoster={handleGeneratePoster}
-      />
+      {/* 分享区域 - 固定定位在右侧，仅当任务收入大于 0 时显示 */}
+      {totalIncome > 0 && (
+        <ShareBubble
+          totalIncome={totalIncome}
+          onGeneratePoster={handleGeneratePoster}
+        />
+      )}
     </>
   )
 }

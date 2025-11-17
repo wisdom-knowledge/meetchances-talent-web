@@ -92,8 +92,8 @@ export default function PosterGenerator({ data, onGenerated }: PosterGeneratorPr
       ctx.textBaseline = 'alphabetic' // 底对齐
       ctx.fillText('元', startX + numberWidth + spacing, 260 * scale)
 
-      // 绘制内推码 (在底部白色区域右侧，8位，往下移动)
-      const testInviteCode = 'AB9C2XTT' // 测试用写死的内推码（8位）
+      // 绘制内推码 (在底部白色区域右侧，使用真实邀请码)
+      const inviteCode = data.inviteCode
       
       // 设置内推码样式（字号缩小）
       ctx.font = `bold ${Math.round(44 * scale)}px -apple-system, BlinkMacSystemFont, Arial, sans-serif`
@@ -104,12 +104,12 @@ export default function PosterGenerator({ data, onGenerated }: PosterGeneratorPr
       // 内推码位置：底部白色区域，更靠右，再向下移动5px
       const codeX = canvas.width - (35 * scale)
       const codeY = canvas.height - (30 * scale)
-      ctx.fillText(testInviteCode, codeX, codeY)
+      ctx.fillText(inviteCode, codeX, codeY)
       
       console.log('海报生成完成', {
         canvasSize: `${canvas.width}x${canvas.height}`,
         scale,
-        inviteCode: testInviteCode,
+        inviteCode,
         incomeYuan,
         incomePosition: `x: ${canvas.width / 2}, y: ${240 * scale}`,
         codePosition: `x: ${codeX}, y: ${codeY}`
