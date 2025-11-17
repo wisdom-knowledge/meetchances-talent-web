@@ -437,18 +437,20 @@ export default function JobsListPage() {
                                     </span>
                                   )
                                 })()}
-                                <Badge
-                                  variant='outline'
-                                  className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
-                                  style={{ 
-                                    borderRadius: '16px',
-                                    background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)'
-                                  }}
-                                  onClick={(e) => handleReferralClick(job, e)}
-                                >
-                                  <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
-                                  内推奖 ¥{job.referral_bonus || 0}
-                                </Badge>
+                                {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
+                                  <Badge
+                                    variant='outline'
+                                    className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
+                                    style={{ 
+                                      borderRadius: '16px',
+                                      background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)'
+                                    }}
+                                    onClick={(e) => handleReferralClick(job, e)}
+                                  >
+                                    <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
+                                    内推奖 ¥{job.referral_bonus}
+                                  </Badge>
+                                )}
                                 <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal shrink-0'>
                                   <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   {job.salary_max && job.salary_max > 0 
@@ -552,18 +554,20 @@ export default function JobsListPage() {
                                     </span>
                                   )
                                 })()}
-                                <Badge
-                                  variant='outline'
-                                  className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
-                                  style={{ 
-                                    borderRadius: '16px',
-                                    background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)'
-                                  }}
-                                  onClick={(e) => handleReferralClick(job, e)}
-                                >
-                                  <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
-                                  内推奖 ¥{job.referral_bonus || 0}
-                                </Badge>
+                                {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
+                                  <Badge
+                                    variant='outline'
+                                    className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
+                                    style={{ 
+                                      borderRadius: '16px',
+                                      background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)'
+                                    }}
+                                    onClick={(e) => handleReferralClick(job, e)}
+                                  >
+                                    <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
+                                    内推奖 ¥{job.referral_bonus}
+                                  </Badge>
+                                )}
                                 <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal shrink-0'>
                                   <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   {job.salary_max && job.salary_max > 0 

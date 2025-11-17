@@ -228,7 +228,9 @@ export default function JobDetailContent({
             </div>
           )}
         </div>
-        <ReferralSection jobId={job.id} />
+        {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
+          <ReferralSection jobId={job.id} referralBonus={job.referral_bonus} />
+        )}
         <PublisherSection job={job} recommendName={recommendName} />
       </>
     )
