@@ -69,7 +69,7 @@ export default function StudyTaskPage() {
         }
         toast.success('已完成该模块')
         queryClient.invalidateQueries({ queryKey: ['study-modules'] })
-        router.navigate({ to: '/study' })
+        // router.navigate({ to: '/study' })
       }
     } catch (_error) {
       toast.error('更新学习状态失败')
@@ -102,9 +102,9 @@ export default function StudyTaskPage() {
             返回上一章节
           </Button>
         )}
-        <Button variant='ghost' onClick={() => router.navigate({ to: '/study' })}>
+        {/* <Button variant='ghost' onClick={() => router.navigate({ to: '/study' })}>
           返回流程学习
-        </Button>
+        </Button> */}
       </div>
 
       <div className='bg-white p-0 rounded-xl shadow-sm flex flex-1 flex-col min-h-0'>
