@@ -15,7 +15,6 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as JobsJob_idRouteImport } from './routes/jobs/$job_id'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
-import { Route as AuthenticatedStudyRouteImport } from './routes/_authenticated/study'
 import { Route as AuthenticatedReferralRouteImport } from './routes/_authenticated/referral'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
@@ -63,6 +62,7 @@ import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_auth
 import { Route as AuthenticatedInterviewSession_viewRouteImport } from './routes/_authenticated/interview/session_view'
 import { Route as AuthenticatedInterviewSessionRouteImport } from './routes/_authenticated/interview/session'
 import { Route as AuthenticatedInterviewPrepareRouteImport } from './routes/_authenticated/interview/prepare'
+import { Route as AuthenticatedStudyRoute } from './routes/_authenticated/study'
 
 const ClerkRouteRoute = ClerkRouteRouteImport.update({
   id: '/clerk',
@@ -90,11 +90,6 @@ const JobsJob_idRoute = JobsJob_idRouteImport.update({
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedStudyRoute = AuthenticatedStudyRouteImport.update({
-  id: '/study',
-  path: '/study',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedReferralRoute = AuthenticatedReferralRouteImport.update({
@@ -370,7 +365,6 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/notifications': typeof AuthenticatedNotificationsRoute
-  '/study': typeof AuthenticatedStudyRouteWithChildren
   '/referral': typeof AuthenticatedReferralRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
@@ -421,7 +415,6 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/notifications': typeof AuthenticatedNotificationsRoute
-  '/study': typeof AuthenticatedStudyRouteWithChildren
   '/referral': typeof AuthenticatedReferralRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
@@ -478,7 +471,6 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
-  '/_authenticated/study': typeof AuthenticatedStudyRouteWithChildren
   '/_authenticated/referral': typeof AuthenticatedReferralRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
@@ -519,164 +511,161 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/clerk'
-    | '/settings'
-    | '/clerk/'
-    | '/forgot-password'
-    | '/otp'
-    | '/sign-in'
-    | '/sign-in-2'
-    | '/sign-up'
-    | '/401'
-    | '/403'
-    | '/404'
-    | '/500'
-    | '/503'
-    | '/notifications'
-    | '/study'
-    | '/referral'
-    | '/wallet'
-    | '/jobs/$job_id'
-    | '/'
-    | '/interview/prepare'
-    | '/interview/session'
-    | '/interview/session_view'
-    | '/settings/account'
-    | '/settings/appearance'
-    | '/settings/display'
-    | '/settings/notifications'
-    | '/study/task'
-    | '/mock-interview/records'
-    | '/clerk/sign-in'
-    | '/clerk/sign-up'
-    | '/clerk/user-management'
-    | '/annotate-report'
-    | '/apps'
-    | '/chats'
-    | '/finish'
-    | '/help-center'
-    | '/home'
-    | '/interview-reports'
-    | '/interview'
-    | '/invited'
-    | '/job-detail'
-    | '/job-recommend'
-    | '/jobs'
-    | '/mine'
-    | '/resume-upload'
-    | '/resume'
-    | '/settings/'
-    | '/talent-pool'
-    | '/tasks'
-    | '/users'
-    | '/mock-interview'
+  | '/clerk'
+  | '/settings'
+  | '/clerk/'
+  | '/forgot-password'
+  | '/otp'
+  | '/sign-in'
+  | '/sign-in-2'
+  | '/sign-up'
+  | '/401'
+  | '/403'
+  | '/404'
+  | '/500'
+  | '/503'
+  | '/notifications'
+  | '/referral'
+  | '/wallet'
+  | '/jobs/$job_id'
+  | '/'
+  | '/interview/prepare'
+  | '/interview/session'
+  | '/interview/session_view'
+  | '/settings/account'
+  | '/settings/appearance'
+  | '/settings/display'
+  | '/settings/notifications'
+  | '/study/task'
+  | '/mock-interview/records'
+  | '/clerk/sign-in'
+  | '/clerk/sign-up'
+  | '/clerk/user-management'
+  | '/annotate-report'
+  | '/apps'
+  | '/chats'
+  | '/finish'
+  | '/help-center'
+  | '/home'
+  | '/interview-reports'
+  | '/interview'
+  | '/invited'
+  | '/job-detail'
+  | '/job-recommend'
+  | '/jobs'
+  | '/mine'
+  | '/resume-upload'
+  | '/resume'
+  | '/settings/'
+  | '/talent-pool'
+  | '/tasks'
+  | '/users'
+  | '/mock-interview'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/clerk'
-    | '/forgot-password'
-    | '/otp'
-    | '/sign-in'
-    | '/sign-in-2'
-    | '/sign-up'
-    | '/401'
-    | '/403'
-    | '/404'
-    | '/500'
-    | '/503'
-    | '/notifications'
-    | '/study'
-    | '/referral'
-    | '/wallet'
-    | '/jobs/$job_id'
-    | '/'
-    | '/interview/prepare'
-    | '/interview/session'
-    | '/interview/session_view'
-    | '/settings/account'
-    | '/settings/appearance'
-    | '/settings/display'
-    | '/settings/notifications'
-    | '/study/task'
-    | '/mock-interview/records'
-    | '/clerk/sign-in'
-    | '/clerk/sign-up'
-    | '/clerk/user-management'
-    | '/annotate-report'
-    | '/apps'
-    | '/chats'
-    | '/finish'
-    | '/help-center'
-    | '/home'
-    | '/interview-reports'
-    | '/interview'
-    | '/invited'
-    | '/job-detail'
-    | '/job-recommend'
-    | '/jobs'
-    | '/mine'
-    | '/resume-upload'
-    | '/resume'
-    | '/settings'
-    | '/talent-pool'
-    | '/tasks'
-    | '/users'
-    | '/mock-interview'
+  | '/clerk'
+  | '/forgot-password'
+  | '/otp'
+  | '/sign-in'
+  | '/sign-in-2'
+  | '/sign-up'
+  | '/401'
+  | '/403'
+  | '/404'
+  | '/500'
+  | '/503'
+  | '/notifications'
+  | '/referral'
+  | '/wallet'
+  | '/jobs/$job_id'
+  | '/'
+  | '/interview/prepare'
+  | '/interview/session'
+  | '/interview/session_view'
+  | '/settings/account'
+  | '/settings/appearance'
+  | '/settings/display'
+  | '/settings/notifications'
+  | '/study/task'
+  | '/mock-interview/records'
+  | '/clerk/sign-in'
+  | '/clerk/sign-up'
+  | '/clerk/user-management'
+  | '/annotate-report'
+  | '/apps'
+  | '/chats'
+  | '/finish'
+  | '/help-center'
+  | '/home'
+  | '/interview-reports'
+  | '/interview'
+  | '/invited'
+  | '/job-detail'
+  | '/job-recommend'
+  | '/jobs'
+  | '/mine'
+  | '/resume-upload'
+  | '/resume'
+  | '/settings'
+  | '/talent-pool'
+  | '/tasks'
+  | '/users'
+  | '/mock-interview'
   id:
-    | '__root__'
-    | '/_authenticated'
-    | '/_public'
-    | '/clerk'
-    | '/_authenticated/settings'
-    | '/clerk/(auth)'
-    | '/clerk/_authenticated'
-    | '/(auth)/forgot-password'
-    | '/(auth)/otp'
-    | '/(auth)/sign-in'
-    | '/(auth)/sign-in-2'
-    | '/(auth)/sign-up'
-    | '/(errors)/401'
-    | '/(errors)/403'
-    | '/(errors)/404'
-    | '/(errors)/500'
-    | '/(errors)/503'
-    | '/_authenticated/notifications'
-    | '/_authenticated/study'
-    | '/_authenticated/referral'
-    | '/_authenticated/wallet'
-    | '/jobs/$job_id'
-    | '/_authenticated/'
-    | '/_authenticated/interview/prepare'
-    | '/_authenticated/interview/session'
-    | '/_authenticated/interview/session_view'
-    | '/_authenticated/settings/account'
-    | '/_authenticated/settings/appearance'
-    | '/_authenticated/settings/display'
-    | '/_authenticated/settings/notifications'
-    | '/_authenticated/study/task'
-    | '/_public/mock-interview/records'
-    | '/clerk/(auth)/sign-in'
-    | '/clerk/(auth)/sign-up'
-    | '/clerk/_authenticated/user-management'
-    | '/_authenticated/annotate-report/'
-    | '/_authenticated/apps/'
-    | '/_authenticated/chats/'
-    | '/_authenticated/finish/'
-    | '/_authenticated/help-center/'
-    | '/_authenticated/home/'
-    | '/_authenticated/interview-reports/'
-    | '/_authenticated/interview/'
-    | '/_authenticated/invited/'
-    | '/_authenticated/job-detail/'
-    | '/_authenticated/job-recommend/'
-    | '/_authenticated/jobs/'
-    | '/_authenticated/mine/'
-    | '/_authenticated/resume-upload/'
-    | '/_authenticated/resume/'
-    | '/_authenticated/settings/'
-    | '/_authenticated/talent-pool/'
-    | '/_authenticated/tasks/'
-    | '/_authenticated/users/'
-    | '/_public/mock-interview/'
+  | '__root__'
+  | '/_authenticated'
+  | '/_public'
+  | '/clerk'
+  | '/_authenticated/settings'
+  | '/clerk/(auth)'
+  | '/clerk/_authenticated'
+  | '/(auth)/forgot-password'
+  | '/(auth)/otp'
+  | '/(auth)/sign-in'
+  | '/(auth)/sign-in-2'
+  | '/(auth)/sign-up'
+  | '/(errors)/401'
+  | '/(errors)/403'
+  | '/(errors)/404'
+  | '/(errors)/500'
+  | '/(errors)/503'
+  | '/_authenticated/notifications'
+  | '/_authenticated/referral'
+  | '/_authenticated/wallet'
+  | '/jobs/$job_id'
+  | '/_authenticated/'
+  | '/_authenticated/interview/prepare'
+  | '/_authenticated/interview/session'
+  | '/_authenticated/interview/session_view'
+  | '/_authenticated/settings/account'
+  | '/_authenticated/settings/appearance'
+  | '/_authenticated/settings/display'
+  | '/_authenticated/settings/notifications'
+  | '/_authenticated/study/task'
+  | '/_public/mock-interview/records'
+  | '/clerk/(auth)/sign-in'
+  | '/clerk/(auth)/sign-up'
+  | '/clerk/_authenticated/user-management'
+  | '/_authenticated/annotate-report/'
+  | '/_authenticated/apps/'
+  | '/_authenticated/chats/'
+  | '/_authenticated/finish/'
+  | '/_authenticated/help-center/'
+  | '/_authenticated/home/'
+  | '/_authenticated/interview-reports/'
+  | '/_authenticated/interview/'
+  | '/_authenticated/invited/'
+  | '/_authenticated/job-detail/'
+  | '/_authenticated/job-recommend/'
+  | '/_authenticated/jobs/'
+  | '/_authenticated/mine/'
+  | '/_authenticated/resume-upload/'
+  | '/_authenticated/resume/'
+  | '/_authenticated/settings/'
+  | '/_authenticated/talent-pool/'
+  | '/_authenticated/tasks/'
+  | '/_authenticated/users/'
+  | '/_public/mock-interview/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -738,13 +727,6 @@ declare module '@tanstack/react-router' {
       path: '/wallet'
       fullPath: '/wallet'
       preLoaderRoute: typeof AuthenticatedWalletRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/study': {
-      id: '/_authenticated/study'
-      path: '/study'
-      fullPath: '/study'
-      preLoaderRoute: typeof AuthenticatedStudyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/referral': {
@@ -1088,14 +1070,14 @@ interface AuthenticatedSettingsRouteRouteChildren {
 }
 
 const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
-  {
-    AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
-    AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
-    AuthenticatedSettingsDisplayRoute: AuthenticatedSettingsDisplayRoute,
-    AuthenticatedSettingsNotificationsRoute:
-      AuthenticatedSettingsNotificationsRoute,
-    AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
-  }
+{
+  AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
+  AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
+  AuthenticatedSettingsDisplayRoute: AuthenticatedSettingsDisplayRoute,
+  AuthenticatedSettingsNotificationsRoute:
+    AuthenticatedSettingsNotificationsRoute,
+  AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
+}
 
 const AuthenticatedSettingsRouteRouteWithChildren =
   AuthenticatedSettingsRouteRoute._addFileChildren(
@@ -1116,7 +1098,6 @@ const AuthenticatedStudyRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
-  AuthenticatedStudyRoute: typeof AuthenticatedStudyRouteWithChildren
   AuthenticatedReferralRoute: typeof AuthenticatedReferralRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -1146,7 +1127,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
-  AuthenticatedStudyRoute: AuthenticatedStudyRouteWithChildren,
   AuthenticatedReferralRoute: AuthenticatedReferralRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
@@ -1211,10 +1191,10 @@ interface ClerkAuthenticatedRouteRouteChildren {
 }
 
 const ClerkAuthenticatedRouteRouteChildren: ClerkAuthenticatedRouteRouteChildren =
-  {
-    ClerkAuthenticatedUserManagementRoute:
-      ClerkAuthenticatedUserManagementRoute,
-  }
+{
+  ClerkAuthenticatedUserManagementRoute:
+    ClerkAuthenticatedUserManagementRoute,
+}
 
 const ClerkAuthenticatedRouteRouteWithChildren =
   ClerkAuthenticatedRouteRoute._addFileChildren(
