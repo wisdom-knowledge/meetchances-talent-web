@@ -1,7 +1,7 @@
 import { api } from '@/lib/api'
-import { mockReferralIncome, mockReferralList, mockInviteCodeMap, mockRecommendMeStatus } from './mock'
+import { mockReferralIncome, mockReferralList, mockInviteCodeMap } from './mock'
 
-const USE_MOCK = true // 开发时使用mock数据
+const USE_MOCK = false // 开发时使用mock数据
 
 // 内推列表项
 export interface ReferralListItem {
@@ -38,14 +38,9 @@ export interface ReferralIncomeData {
 export interface InviteCodeInfo {
   name: string
   phone: string
+  referrer_username?: string // 邀请人用户名
 }
 
-// 推荐我的状态
-export interface RecommendMeStatus {
-  status: 'self_registered' | 'already_recommended' | 'not_recommended' // 自己注册 | 已被推荐 | 未被推荐
-  referrer_name?: string // 推荐人姓名
-  referrer_phone?: string // 推荐人手机号
-}
 
 // 获取内推列表
 export async function getReferralList(params: ReferralListParams): Promise<ReferralListResponse> {
@@ -93,7 +88,7 @@ export async function validateInviteCode(code: string): Promise<InviteCodeInfo> 
       }, 300)
     })
   }
-  const res = await api.get('/talent/referral/validate-code', { params: { code } })
+  const res = await api.get('/talent/validate-referral-code', { params: { code } })
   return res as unknown as InviteCodeInfo
 }
 
@@ -111,20 +106,8 @@ export async function bindInviteCode(code: string): Promise<{ success: boolean }
       }, 500)
     })
   }
-  const res = await api.post('/talent/referral/bind-code', { code })
+  const res = await api.patch('/talent/me', { referred_by_code: code })
   return res as unknown as { success: boolean }
 }
 
-// 获取推荐我的状态
-export async function getRecommendMeStatus(): Promise<RecommendMeStatus> {
-  if (USE_MOCK) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(mockRecommendMeStatus)
-      }, 300)
-    })
-  }
-  const res = await api.get('/talent/referral/recommend-me-status')
-  return res as unknown as RecommendMeStatus
-}
 

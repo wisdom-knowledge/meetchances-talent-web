@@ -28,21 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { MonthPicker } from '@/components/month-picker'
-
-// Mock 邀请码验证接口
-const mockValidateReferralCode = async (
-  code: string
-): Promise<{ valid: boolean; referrerName?: string }> => {
-  // 模拟网络延迟
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  // 123456 是有效的邀请码
-  if (code === '123456') {
-    return { valid: true, referrerName: '张三' }
-  }
-
-  return { valid: false }
-}
+import { validateInviteCode } from '@/features/referral/api'
 
 const step1Schema = z.object({
   birthMonth: z.string().min(1, '请选择出生年月'),
@@ -72,6 +58,7 @@ export default function InvitedForm() {
     'idle' | 'validating' | 'valid' | 'invalid'
   >('idle')
   const [referrerName, setReferrerName] = useState<string>('')
+  const [referrerUsername, setReferrerUsername] = useState<string>('')
   const validateTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const formStep1 = useForm<Step1Values>({
@@ -113,6 +100,7 @@ export default function InvitedForm() {
     if (!code || code.trim() === '') {
       setReferralStatus('idle')
       setReferrerName('')
+      setReferrerUsername('')
       return
     }
 
@@ -122,17 +110,16 @@ export default function InvitedForm() {
     // 防抖：500ms 后执行验证
     validateTimerRef.current = setTimeout(async () => {
       try {
-        const result = await mockValidateReferralCode(code.trim())
-        if (result.valid) {
-          setReferralStatus('valid')
-          setReferrerName(result.referrerName || '')
-        } else {
-          setReferralStatus('invalid')
-          setReferrerName('')
-        }
+        const result = await validateInviteCode(code.trim())
+        // API 返回 { name, phone, referrer_username }，表示验证成功
+        setReferralStatus('valid')
+        setReferrerName(result.name || '')
+        setReferrerUsername(result.referrer_username || '')
       } catch (_error) {
+        // API 抛出错误表示验证失败
         setReferralStatus('invalid')
         setReferrerName('')
+        setReferrerUsername('')
       }
     }, 500)
   }, [])
@@ -369,7 +356,7 @@ export default function InvitedForm() {
                     {referralStatus === 'invalid' &&
                       '无效的邀请码，请检查后重试'}
                     {referralStatus === 'valid' &&
-                      `你的推荐人是：${referrerName}`}
+                      `你的推荐人是：${referrerName}${referrerUsername ? ` ${referrerUsername}` : ''}`}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
