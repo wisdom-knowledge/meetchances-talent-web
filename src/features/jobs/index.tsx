@@ -21,6 +21,8 @@ import { useNavigate, useRouterState } from '@tanstack/react-router'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/authStore'
+import { useQuery } from '@tanstack/react-query'
+import { fetchTalentMe } from '@/lib/api'
 
 // import { ExploreJobs } from './mockData.ts'
 import {
@@ -32,8 +34,6 @@ import {
   JobsSortOrder,
   useJobApplyStatus,
   JobApplyStatus,
-  generateInviteToken,
-  InviteTokenType,
 } from './api'
 import { jobTypeMapping, salaryTypeUnitMapping } from './constants'
 // import { useNavigate } from '@tanstack/react-router'
@@ -64,6 +64,14 @@ export default function JobsListPage() {
   const { location } = useRouterState()
   const search = location.search as Record<string, unknown>
   const { auth } = useAuthStore()
+
+  // 获取当前用户信息（包含 referral_code）
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: fetchTalentMe,
+    staleTime: 5 * 60 * 1000,
+    enabled: Boolean(auth.user),
+  })
 
   const jobIdFromUrl = useMemo(() => {
     const v = search?.job_id
@@ -186,23 +194,21 @@ export default function JobsListPage() {
       return
     }
 
-    // 已登录，生成内推码并复制
-    try {
-      const inviteToken = await generateInviteToken({
-        job_id: job.id,
-        token_type: InviteTokenType.ActiveApply,
-      })
+    // 从用户信息中获取邀请码
+    const referralCode = currentUser?.referral_code
 
-      if (inviteToken) {
-        // 复制到剪贴板
-        await navigator.clipboard.writeText(inviteToken)
-        toast.success('内推码已复制到剪贴板')
-        userEvent('referral_code_copied', '复制内推码', { job_id: job.id })
-      } else {
-        toast.error('获取内推码失败，请稍后重试')
-      }
+    if (!referralCode) {
+      toast.error('邀请码尚未加载，请稍后重试')
+      return
+    }
+
+    // 复制邀请码到剪贴板
+    try {
+      await navigator.clipboard.writeText(referralCode)
+      toast.success('邀请码已复制到剪贴板')
+      userEvent('referral_code_copied', '复制邀请码', { job_id: job.id })
     } catch (_error) {
-      toast.error('获取内推码失败，请稍后重试')
+      toast.error('复制失败，请稍后重试')
     }
   }
 

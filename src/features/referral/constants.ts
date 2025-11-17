@@ -23,5 +23,5 @@ export const REFERRAL_TAB_VALUES = Object.values(ReferralTab) as string[]
 /**
  * 默认 Tab
  */
-export const DEFAULT_REFERRAL_TAB = ReferralTab.LIST
+export const DEFAULT_REFERRAL_TAB = ReferralTab.RECOMMEND_ME
 
