@@ -16,6 +16,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as JobsJob_idRouteImport } from './routes/jobs/$job_id'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedStudyRouteImport } from './routes/_authenticated/study'
+import { Route as AuthenticatedReferralRouteImport } from './routes/_authenticated/referral'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
@@ -94,6 +95,11 @@ const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
 const AuthenticatedStudyRoute = AuthenticatedStudyRouteImport.update({
   id: '/study',
   path: '/study',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReferralRoute = AuthenticatedReferralRouteImport.update({
+  id: '/referral',
+  path: '/referral',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedNotificationsRoute =
@@ -365,6 +371,7 @@ export interface FileRoutesByFullPath {
   '/503': typeof errors503Route
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/study': typeof AuthenticatedStudyRouteWithChildren
+  '/referral': typeof AuthenticatedReferralRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/': typeof AuthenticatedIndexRoute
@@ -415,6 +422,7 @@ export interface FileRoutesByTo {
   '/503': typeof errors503Route
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/study': typeof AuthenticatedStudyRouteWithChildren
+  '/referral': typeof AuthenticatedReferralRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/': typeof AuthenticatedIndexRoute
@@ -471,6 +479,7 @@ export interface FileRoutesById {
   '/(errors)/503': typeof errors503Route
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/study': typeof AuthenticatedStudyRouteWithChildren
+  '/_authenticated/referral': typeof AuthenticatedReferralRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -525,6 +534,7 @@ export interface FileRouteTypes {
     | '/503'
     | '/notifications'
     | '/study'
+    | '/referral'
     | '/wallet'
     | '/jobs/$job_id'
     | '/'
@@ -575,6 +585,7 @@ export interface FileRouteTypes {
     | '/503'
     | '/notifications'
     | '/study'
+    | '/referral'
     | '/wallet'
     | '/jobs/$job_id'
     | '/'
@@ -630,6 +641,7 @@ export interface FileRouteTypes {
     | '/(errors)/503'
     | '/_authenticated/notifications'
     | '/_authenticated/study'
+    | '/_authenticated/referral'
     | '/_authenticated/wallet'
     | '/jobs/$job_id'
     | '/_authenticated/'
@@ -733,6 +745,13 @@ declare module '@tanstack/react-router' {
       path: '/study'
       fullPath: '/study'
       preLoaderRoute: typeof AuthenticatedStudyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/referral': {
+      id: '/_authenticated/referral'
+      path: '/referral'
+      fullPath: '/referral'
+      preLoaderRoute: typeof AuthenticatedReferralRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/notifications': {
@@ -1098,6 +1117,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedStudyRoute: typeof AuthenticatedStudyRouteWithChildren
+  AuthenticatedReferralRoute: typeof AuthenticatedReferralRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedInterviewPrepareRoute: typeof AuthenticatedInterviewPrepareRoute
@@ -1127,6 +1147,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedStudyRoute: AuthenticatedStudyRouteWithChildren,
+  AuthenticatedReferralRoute: AuthenticatedReferralRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedInterviewPrepareRoute: AuthenticatedInterviewPrepareRoute,
