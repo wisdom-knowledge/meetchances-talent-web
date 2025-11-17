@@ -68,7 +68,6 @@ export default function ReferralPage() {
   const [activeTab, setActiveTab] = useState(DEFAULT_REFERRAL_TAB)
   const [bindingDialogOpen, setBindingDialogOpen] = useState(false)
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false)
-  const [posterDataUrl, setPosterDataUrl] = useState<string>('')
   const [shouldGeneratePoster, setShouldGeneratePoster] = useState(false)
 
   const queryClient = useQueryClient()
@@ -157,7 +156,6 @@ export default function ReferralPage() {
   const handlePosterGenerated = (dataUrl: string) => {
     // 立即设置状态，防止重复生成
     setShouldGeneratePoster(false)
-    setPosterDataUrl(dataUrl)
     
     // 下载图片
     const link = document.createElement('a')
@@ -270,7 +268,7 @@ export default function ReferralPage() {
 
       {/* Tab切换 */}
       <div className='space-y-4'>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ReferralTab)}>
           <TabsList className='bg-muted text-muted-foreground inline-flex h-10 items-center justify-center rounded-md p-1'>
             <TabsTrigger value={ReferralTab.LIST}>内推列表</TabsTrigger>
             <TabsTrigger value={ReferralTab.PAYMENT_RECORDS}>付款记录</TabsTrigger>
