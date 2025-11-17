@@ -233,6 +233,7 @@ export default function JobDetailContent({
             jobId={job.id} 
             referralBonus={job.referral_bonus}
             campaign={job.campaign}
+            project={job.project}
           />
         )}
         <PublisherSection job={job} recommendName={recommendName} />

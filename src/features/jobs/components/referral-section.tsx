@@ -25,15 +25,22 @@ export interface Campaign {
   updated_at: string
 }
 
+export interface Project {
+  id?: number
+  alias?: string
+  name?: string
+}
+
 export interface ReferralSectionProps {
   jobId: string | number
   referralBonus: number
   campaign?: Campaign
+  project?: Project
   className?: string
 }
 
 // 格式化活动描述
-function formatCampaignDescription(campaign?: Campaign, fallbackBonus?: number): string {
+function formatCampaignDescription(campaign?: Campaign, project?: Project, fallbackBonus?: number): string {
   if (!campaign) {
     // 没有 campaign 数据时，使用 fallbackBonus
     if (fallbackBonus && fallbackBonus > 0) {
@@ -42,7 +49,8 @@ function formatCampaignDescription(campaign?: Campaign, fallbackBonus?: number):
     return '您邀请的新用户被录取至该项目并完成任务后，即可获得内推奖励！'
   }
 
-  const projectName = campaign.name || '该项目'
+  // 优先使用 project.alias，其次使用 project.name，最后使用 '该项目'
+  const projectName = project?.alias || project?.name || '该项目'
   const endDate = campaign.end_date || ''
   const quantity = campaign.quantity || 0
   const reward = campaign.reward || '0'
@@ -60,7 +68,7 @@ function formatCampaignDescription(campaign?: Campaign, fallbackBonus?: number):
 }
 
 // PC 端组件
-function DesktopReferralSection({ jobId, referralBonus, campaign, className }: ReferralSectionProps) {
+function DesktopReferralSection({ jobId, referralBonus, campaign, project, className }: ReferralSectionProps) {
   const navigate = useNavigate()
   const auth = useAuthStore((s) => s.auth)
 
@@ -75,7 +83,7 @@ function DesktopReferralSection({ jobId, referralBonus, campaign, className }: R
   const inviteToken = currentUser?.referral_code || ''
   
   // 生成活动描述
-  const description = formatCampaignDescription(campaign, referralBonus)
+  const description = formatCampaignDescription(campaign, project, referralBonus)
 
   const handleCopyReferralCode = async () => {
     // 检查登录状态
@@ -151,7 +159,7 @@ function DesktopReferralSection({ jobId, referralBonus, campaign, className }: R
 }
 
 // 移动端组件
-function MobileReferralSection({ jobId, referralBonus, campaign, className }: ReferralSectionProps) {
+function MobileReferralSection({ jobId, referralBonus, campaign, project, className }: ReferralSectionProps) {
   const navigate = useNavigate()
   const auth = useAuthStore((s) => s.auth)
 
@@ -166,7 +174,7 @@ function MobileReferralSection({ jobId, referralBonus, campaign, className }: Re
   const inviteToken = currentUser?.referral_code || ''
   
   // 生成活动描述
-  const description = formatCampaignDescription(campaign, referralBonus)
+  const description = formatCampaignDescription(campaign, project, referralBonus)
 
   const handleCopyReferralCode = async () => {
     // 检查登录状态
