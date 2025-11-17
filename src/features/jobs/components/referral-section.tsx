@@ -11,11 +11,12 @@ import { userEvent } from '@/lib/apm'
 
 export interface ReferralSectionProps {
   jobId: string | number
+  referralBonus: number
   className?: string
 }
 
 // PC 端组件
-function DesktopReferralSection({ jobId, className }: ReferralSectionProps) {
+function DesktopReferralSection({ jobId, referralBonus, className }: ReferralSectionProps) {
   const navigate = useNavigate()
   const auth = useAuthStore((s) => s.auth)
 
@@ -69,8 +70,9 @@ function DesktopReferralSection({ jobId, className }: ReferralSectionProps) {
 
           {/* 活动说明 */}
           <div className='mb-4 rounded-lg bg-white/60 p-3 text-sm leading-relaxed text-gray-700 backdrop-blur-sm'>
-            您邀请的新用户被录取至前端工程师项目并于2025年11月2日前通过1道题，您本人即可获得
-            <span className='mx-1 font-semibold text-[#4E02E4]'>¥160</span>。
+            您邀请的新用户被录取至该项目并完成任务后，您本人即可获得
+            <span className='mx-1 font-semibold text-[#4E02E4]'>¥{referralBonus}</span>
+            内推奖励。
             <a
               href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
               target='_blank'
@@ -104,7 +106,7 @@ function DesktopReferralSection({ jobId, className }: ReferralSectionProps) {
 }
 
 // 移动端组件
-function MobileReferralSection({ jobId, className }: ReferralSectionProps) {
+function MobileReferralSection({ jobId, referralBonus, className }: ReferralSectionProps) {
   const navigate = useNavigate()
   const auth = useAuthStore((s) => s.auth)
 
@@ -158,8 +160,9 @@ function MobileReferralSection({ jobId, className }: ReferralSectionProps) {
 
           {/* 活动说明 */}
           <div className='mb-3 rounded-lg bg-white/60 p-2.5 text-xs leading-relaxed text-gray-700 backdrop-blur-sm'>
-            您邀请的新用户被录取至前端工程师项目并于2025年11月2日前通过1道题，您本人即可获得
-            <span className='mx-0.5 font-semibold text-[#4E02E4]'>¥160</span>。
+            您邀请的新用户被录取至该项目并完成任务后，您本人即可获得
+            <span className='mx-0.5 font-semibold text-[#4E02E4]'>¥{referralBonus}</span>
+            内推奖励。
             <a
               href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
               target='_blank'

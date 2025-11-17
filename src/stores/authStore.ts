@@ -62,9 +62,8 @@ export interface Talent extends TalentParams {
   // 被推荐人的邀请码（我被谁推荐）
   referred_by_code?: string
   // 推荐人信息
-  referrer_name?: string
-  referrer_phone?: string
-  referrer_username?: string
+  referred_by_username?: string  // 推荐人用户名
+  referred_by_phone?: string      // 推荐人手机号
 }
 
 export interface InviteInfo {
