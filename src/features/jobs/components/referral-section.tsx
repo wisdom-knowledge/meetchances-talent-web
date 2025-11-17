@@ -9,14 +9,58 @@ import { Button } from '@/components/ui/button'
 import { fetchTalentMe } from '@/lib/api'
 import { userEvent } from '@/lib/apm'
 
+// Campaign 类型定义
+export interface Campaign {
+  name: string
+  project_id?: number
+  status: 'ACTIVE' | 'ENDED'
+  type: 'referral_reward' | 'full_order_reward'
+  start_date?: string
+  end_date?: string
+  condition_type: 'pass_questions' | 'complete_working_hours'
+  quantity?: number
+  reward?: string
+  id: number
+  created_at: string
+  updated_at: string
+}
+
 export interface ReferralSectionProps {
   jobId: string | number
   referralBonus: number
+  campaign?: Campaign
   className?: string
 }
 
+// 格式化活动描述
+function formatCampaignDescription(campaign?: Campaign, fallbackBonus?: number): string {
+  if (!campaign) {
+    // 没有 campaign 数据时，使用 fallbackBonus
+    if (fallbackBonus && fallbackBonus > 0) {
+      return `您邀请的新用户被录取至该项目并完成任务后，即可获得¥${fallbackBonus}！`
+    }
+    return '您邀请的新用户被录取至该项目并完成任务后，即可获得内推奖励！'
+  }
+
+  const projectName = campaign.name || '该项目'
+  const endDate = campaign.end_date || ''
+  const quantity = campaign.quantity || 0
+  const reward = campaign.reward || '0'
+
+  // 根据完成条件类型生成文案
+  const conditionText = 
+    campaign.condition_type === 'pass_questions' 
+      ? `结算${quantity}道题` 
+      : `完成${quantity}小时工作`
+
+  // 日期部分
+  const dateText = endDate ? `并于${endDate}前` : ''
+
+  return `您邀请的新用户被录取至${projectName}${dateText}${conditionText}，即可获得¥${reward}！`
+}
+
 // PC 端组件
-function DesktopReferralSection({ jobId, referralBonus, className }: ReferralSectionProps) {
+function DesktopReferralSection({ jobId, referralBonus, campaign, className }: ReferralSectionProps) {
   const navigate = useNavigate()
   const auth = useAuthStore((s) => s.auth)
 
@@ -29,6 +73,9 @@ function DesktopReferralSection({ jobId, referralBonus, className }: ReferralSec
   })
 
   const inviteToken = currentUser?.referral_code || ''
+  
+  // 生成活动描述
+  const description = formatCampaignDescription(campaign, referralBonus)
 
   const handleCopyReferralCode = async () => {
     // 检查登录状态
@@ -70,9 +117,7 @@ function DesktopReferralSection({ jobId, referralBonus, className }: ReferralSec
 
           {/* 活动说明 */}
           <div className='mb-4 rounded-lg bg-white/60 p-3 text-sm leading-relaxed text-gray-700 backdrop-blur-sm'>
-            您邀请的新用户被录取至该项目并完成任务后，您本人即可获得
-            <span className='mx-1 font-semibold text-[#4E02E4]'>¥{referralBonus}</span>
-            内推奖励。
+            {description}
             <a
               href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
               target='_blank'
@@ -106,7 +151,7 @@ function DesktopReferralSection({ jobId, referralBonus, className }: ReferralSec
 }
 
 // 移动端组件
-function MobileReferralSection({ jobId, referralBonus, className }: ReferralSectionProps) {
+function MobileReferralSection({ jobId, referralBonus, campaign, className }: ReferralSectionProps) {
   const navigate = useNavigate()
   const auth = useAuthStore((s) => s.auth)
 
@@ -119,6 +164,9 @@ function MobileReferralSection({ jobId, referralBonus, className }: ReferralSect
   })
 
   const inviteToken = currentUser?.referral_code || ''
+  
+  // 生成活动描述
+  const description = formatCampaignDescription(campaign, referralBonus)
 
   const handleCopyReferralCode = async () => {
     // 检查登录状态
@@ -160,9 +208,7 @@ function MobileReferralSection({ jobId, referralBonus, className }: ReferralSect
 
           {/* 活动说明 */}
           <div className='mb-3 rounded-lg bg-white/60 p-2.5 text-xs leading-relaxed text-gray-700 backdrop-blur-sm'>
-            您邀请的新用户被录取至该项目并完成任务后，您本人即可获得
-            <span className='mx-0.5 font-semibold text-[#4E02E4]'>¥{referralBonus}</span>
-            内推奖励。
+            {description}
             <a
               href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
               target='_blank'

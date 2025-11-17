@@ -33,6 +33,20 @@ export type ApiJob = {
   salary_min: number
   salary_max: number
   referral_bonus?: number
+  campaign?: {
+    name: string
+    project_id?: number
+    status: 'ACTIVE' | 'ENDED'
+    type: 'referral_reward' | 'full_order_reward'
+    start_date?: string
+    end_date?: string
+    condition_type: 'pass_questions' | 'complete_working_hours'
+    quantity?: number
+    reward?: string
+    id: number
+    created_at: string
+    updated_at: string
+  }
   online_status?: number
   start_date?: string
   end_date?: string
