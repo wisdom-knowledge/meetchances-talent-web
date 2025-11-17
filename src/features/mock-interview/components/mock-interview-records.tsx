@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { navigate } from '@/lib/navigation'
 import { Button } from '@/components/ui/button'
 import MockEmptyState from '@/features/mock-interview/components/empty-state'
 import { useQuery } from '@tanstack/react-query'
@@ -15,17 +15,17 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
   const statusNum = typeof item.status === 'number' ? item.status : parseInt(String(item.status ?? '0'), 10)
   const reportReady = statusNum === 20
   const [isRetaking, setIsRetaking] = useState(false)
-  
+
   // 获取workflow信息以获取interview_node_id
   const { data: workflow } = useJobApplyWorkflow(item.job_apply_id ?? null, Boolean(item.job_apply_id))
   const interviewNodeId = getInterviewNodeId(workflow)
-  
+
   const handleReinterview = async () => {
     if (!interviewNodeId) {
       toast.error('无法获取面试节点信息，请稍后重试')
       return
     }
-    
+
     setIsRetaking(true)
     try {
       // const result = await postNodeAction({
@@ -33,7 +33,7 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
       //   trigger: NodeActionTrigger.Retake,
       //   result_data: {}
       // })
-      
+
       // if (result.success) {
       // 清除相关的查询缓存，确保prepare页面能获取到最新数据
       // queryClient.invalidateQueries({ queryKey: ['job-apply-workflow', item.job_apply_id] })
@@ -92,16 +92,16 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
           {reportReady ? '查看面试报告' : '面试报告生成中'}
         </Button>
         <div className='relative group'>
-          <button type='button' onClick={onMore} className='px-2 py-1 text-sm text-[#4E02E4] hover:underline'>
+          <button type='button' onClick={onMore} className='px-2 py-1 text-sm text-[#4E02E4] hover:underline' aria-label='更多操作' title='更多操作'>
             <IconDots className='h-4 w-4' />
           </button>
           <div className='absolute right-0 top-full z-10 hidden group-hover:block'>
             <div className='mt-1 rounded-md border bg-background p-1 shadow-md'>
-              <Button 
-                onClick={handleReinterview} 
+              <Button
+                onClick={handleReinterview}
                 disabled={isRetaking || !interviewNodeId}
-                variant='ghost' 
-                size='sm' 
+                variant='ghost'
+                size='sm'
                 className='w-full justify-start !text-[#4E02E4] text-xs hover:underline underline-offset-4 hover:!text-[#4E02E4] focus-visible:!text-[#4E02E4] active:!text-[#4E02E4] disabled:opacity-50'
               >
                 {isRetaking ? '处理中...' : '重新面试'}
@@ -110,7 +110,7 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
           </div>
         </div>
       </div>
-      
+
       {/* 移动端布局 - 上下排列 */}
       <div className='md:hidden flex flex-col items-end gap-1 shrink-0'>
         <Button
@@ -133,7 +133,6 @@ function RecordCard({ item, onReport, onMore, onReinterview }: { item: MockInter
 export default function MockInterviewRecords() {
   const env = useRuntimeEnv()
   const isInfiniteMode = env === 'mobile' || env === 'wechat-miniprogram'
-  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const { data } = useQuery({
@@ -177,9 +176,9 @@ export default function MockInterviewRecords() {
                 <RecordCard
                   key={(it.job_id ?? 0) || idx}
                   item={it}
-                  onReport={() => navigate({ to: '/interview-reports', search: { job_id: (it.job_id ?? 0) || idx + 1 } })}
+                  onReport={() => navigate('/interview-reports', { job_id: (it.job_id ?? 0) || idx + 1 })}
                   onMore={() => {}}
-                  onReinterview={() => navigate({ to: '/interview/prepare', search: { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}andcountdown${it.interview_duration_minutes}` } as unknown as Record<string, unknown> })}
+                  onReinterview={() => navigate('/interview/prepare', { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}andcountdown${it.interview_duration_minutes}` })}
                 />
               ))}
             </div>
@@ -220,20 +219,20 @@ export default function MockInterviewRecords() {
           <div className='flex items-center justify-between'>
             <div className='text-sm text-muted-foreground'>共 {total} 条</div>
             <div className='flex items-center gap-2'>
-              <Button 
-                variant='outline' 
-                size='sm' 
-                disabled={page <= 1} 
+              <Button
+                variant='outline'
+                size='sm'
+                disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className='px-3'
               >
                 上一页
               </Button>
               <span className='text-sm text-muted-foreground'>第 {page} / {totalPages} 页</span>
-              <Button 
-                variant='outline' 
-                size='sm' 
-                disabled={page >= totalPages} 
+              <Button
+                variant='outline'
+                size='sm'
+                disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 className='px-3'
               >
@@ -259,7 +258,6 @@ function InfiniteList({
   hasNextPage: boolean
   isFetchingNextPage: boolean
 }) {
-  const navigate = useNavigate()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
@@ -287,9 +285,9 @@ function InfiniteList({
           <RecordCard
             key={(it.job_id ?? 0) || idx}
             item={it}
-            onReport={() => navigate({ to: '/interview-reports', search: { job_id: (it.job_id ?? 0) || idx + 1 } })}
+            onReport={() => navigate('/interview-reports', { job_id: (it.job_id ?? 0) || idx + 1 })}
             onMore={() => {}}
-            onReinterview={() => navigate({ to: '/interview/prepare', search: { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}andcountdown${it.interview_duration_minutes}` } as unknown as Record<string, unknown> })}
+            onReinterview={() => navigate('/interview/prepare', { data: `job_id${(it.job_id ?? 0) || idx + 1}andisMock${true}andcountdown${it.interview_duration_minutes}` })}
           />
         ))}
         <div ref={sentinelRef} className='h-6' />

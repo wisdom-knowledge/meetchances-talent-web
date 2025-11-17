@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { navigate as appNavigate } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { IconX, IconHelp } from '@tabler/icons-react'
@@ -26,7 +26,6 @@ import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 
 export default function HomeViewPage() {
   const env = useRuntimeEnv()
-  const navigate = useNavigate()
   const authUser = useAuthStore((s) => s.auth.user)
   const displayName = authUser?.full_name || authUser?.username || ''
   const { data: taskList = [], isLoading: loadingTasks } =
@@ -101,7 +100,7 @@ export default function HomeViewPage() {
         </div>
       </Header>
 
-      <Main fixed className='md:mx-16 py-0'>
+      <Main className='md:mx-16 py-0'>
         <div className='md:flex md:items-end'>
           <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>
             欢迎回来{displayName ? `，${displayName}` : ''}
@@ -181,8 +180,8 @@ export default function HomeViewPage() {
                 className={cn(
                   'pr-1 overflow-y-auto',
                   loadingTasks || visibleTasks.length > 0
-                    ? 'h-[calc(100vh-28rem)]'
-                    : 'h-[calc(100vh-17rem)]'
+                    ? 'h-[calc(100vh-25rem)]'
+                    : 'h-[calc(100vh-14rem)]'
                 )}
               >
                 <div className='space-y-3 px-1 py-2 no-scrollbar'>
@@ -191,7 +190,7 @@ export default function HomeViewPage() {
                       <div className='text-muted-foreground flex flex-col items-center text-sm'>
                         <img src={noApplySvg} alt='no applications' className='mb-3 h-16 w-16 opacity-70' />
                         <div className='mb-3'>暂无申请记录</div>
-                        <Button variant={'outline'} onClick={() => navigate({ to: '/jobs' })}>立即申请</Button>
+                        <Button variant={'outline'} onClick={() => appNavigate('/jobs')}>立即申请</Button>
                       </div>
                     </div>
                   )}
@@ -223,12 +222,9 @@ export default function HomeViewPage() {
                         key={item.id}
                         className='hover:bg-accent/40 cursor-pointer border transition-colors'
                         onClick={() => {
-                          navigate({
-                            to: '/interview/prepare',
-                            search: {
-                              data: `job_id${item.job_id}andisSkipConfirm${true}`,
-                              job_apply_id: item.id,
-                            } as unknown as Record<string, unknown>,
+                          appNavigate('/interview/prepare', {
+                            data: `job_id${item.job_id}andisSkipConfirm${true}`,
+                            job_apply_id: item.id,
                           })
                         }}
                       >
@@ -240,8 +236,8 @@ export default function HomeViewPage() {
                               </div>
                             </div>
                             <div className='text-muted-foreground text-xs'>
-                              {jd && jd.salary_max && jd.salary_max > 0 
-                                ? `${jd.salary_min ?? 0}-${jd.salary_max}` 
+                              {jd && jd.salary_max && jd.salary_max > 0
+                                ? `${jd.salary_min ?? 0}-${jd.salary_max}`
                                 : jd?.salary_min ?? 0} / {jd ? salaryTypeUnitMapping[jd.salary_type as keyof typeof salaryTypeUnitMapping] || '小时' : '小时'}
                               <span className='mx-2'>|</span>
                               远程
@@ -277,7 +273,7 @@ export default function HomeViewPage() {
                 </div>
               </div>
             ) : (
-            <ScrollArea 
+            <ScrollArea
               className={cn(
                 'pr-1',
                 loadingTasks || visibleTasks.length > 0
@@ -292,32 +288,32 @@ export default function HomeViewPage() {
                     <div className='text-muted-foreground flex flex-col items-center text-sm'>
                       <img src={noApplySvg} alt='no applications' className='mb-3 h-16 w-16 opacity-70' />
                       <div className='mb-3'>暂无申请记录</div>
-                      <Button variant={"outline"} onClick={() => navigate({ to: '/jobs' })}>立即申请</Button>
+                      <Button variant={"outline"} onClick={() => appNavigate('/jobs')}>立即申请</Button>
                     </div>
                   </div>
                 )}
                 {!loadingAppsPaged &&
                   applications.map((item) => {
                     const jd = item.job_detail
-                    
+
                     // 岗位状态显示 - 优先显示岗位状态，替代申请流程状态
                     const jobStatus = jd?.online_status
                     type Pill = { text: string; classes: string }
                     const pill: Pill = (() => {
                       // 优先显示岗位状态
                       if (jobStatus === 20) {
-                        return { 
-                          text: '暂时满员', 
+                        return {
+                          text: '暂时满员',
                           classes: 'bg-[#FFF3CD] text-[#856404]' // 黄色系，表示暂停状态
                         }
                       }
                       if (jobStatus === 0) {
-                        return { 
-                          text: '停止招聘', 
+                        return {
+                          text: '停止招聘',
                           classes: 'bg-[#F8D7DA] text-[#721C24]' // 红色系，表示停止状态
                         }
                       }
-                      
+
                       // 岗位正常时，显示申请流程状态
                       const status = item.current_node_status ?? '0'
                       // 颜色：绿色 #00BD65；红色 #F4490B
@@ -354,13 +350,10 @@ export default function HomeViewPage() {
                         key={item.id}
                         className='hover:bg-accent/40 cursor-pointer border transition-colors'
                         onClick={() => {
-                          navigate({
-                            to: '/interview/prepare',
-                            search: {
-                              data: `job_id${item.job_id}andisSkipConfirm${true}`,
-                              // 直接传递 job_apply_id，供目标页使用
-                              job_apply_id: item.id,
-                            } as unknown as Record<string, unknown>,
+                          appNavigate('/interview/prepare', {
+                            data: `job_id${item.job_id}andisSkipConfirm${true}`,
+                            // 直接传递 job_apply_id，供目标页使用
+                            job_apply_id: item.id,
                           })
                         }}
                       >
@@ -372,8 +365,8 @@ export default function HomeViewPage() {
                               </div>
                             </div>
                             <div className='text-muted-foreground text-xs'>
-                              {jd && jd.salary_max && jd.salary_max > 0 
-                                ? `${jd.salary_min ?? 0}-${jd.salary_max}` 
+                              {jd && jd.salary_max && jd.salary_max > 0
+                                ? `${jd.salary_min ?? 0}-${jd.salary_max}`
                                 : jd?.salary_min ?? 0} / {jd ? salaryTypeUnitMapping[jd.salary_type as keyof typeof salaryTypeUnitMapping] || '小时' : '小时'}
                               <span className='mx-2'>|</span>
                               远程
@@ -432,12 +425,12 @@ export default function HomeViewPage() {
           </TabsContent>
 
           <TabsContent value='offer'>
-            <ScrollArea 
+            <ScrollArea
               className={cn(
                 'pr-1',
                 loadingTasks || visibleTasks.length > 0
-                  ? 'h-[calc(100vh-28rem)]'
-                  : 'h-[calc(100vh-20rem)]'
+                  ? 'h-[calc(100vh-25rem)]'
+                  : 'h-[calc(100vh-14rem)]'
               )}
             >
               <div className='space-y-3'>
