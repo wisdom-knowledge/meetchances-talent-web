@@ -88,12 +88,10 @@ function DesktopReferralSection({ jobId, className }: ReferralSectionProps) {
             您邀请的新用户被录取至前端工程师项目并于2025年11月2日前通过1道题，您本人即可获得
             <span className='mx-1 font-semibold text-[#4E02E4]'>¥160</span>。
             <a
-              href='#'
+              href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
+              target='_blank'
+              rel='noopener noreferrer'
               className='ml-1 font-medium text-[#4E02E4] underline decoration-dotted underline-offset-2 transition-colors hover:text-[#3D01B3]'
-              onClick={(e) => {
-                e.preventDefault()
-                // TODO: 替换为实际的规则链接
-              }}
             >
               查看详细规则 →
             </a>
@@ -195,12 +193,10 @@ function MobileReferralSection({ jobId, className }: ReferralSectionProps) {
             您邀请的新用户被录取至前端工程师项目并于2025年11月2日前通过1道题，您本人即可获得
             <span className='mx-0.5 font-semibold text-[#4E02E4]'>¥160</span>。
             <a
-              href='#'
+              href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
+              target='_blank'
+              rel='noopener noreferrer'
               className='ml-1 font-medium text-[#4E02E4] underline decoration-dotted underline-offset-2'
-              onClick={(e) => {
-                e.preventDefault()
-                // TODO: 替换为实际的规则链接
-              }}
             >
               查看规则 →
             </a>
