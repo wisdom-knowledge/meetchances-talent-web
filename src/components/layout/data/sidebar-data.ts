@@ -1,6 +1,7 @@
 import { IconBriefcase, IconId, IconHome, IconMicrophone, IconWallet } from '@tabler/icons-react'
 // removed team switching assets
 import { type SidebarData } from '../types'
+import { HeliIcon } from '@/assets/heli-icon'
 
 export const sidebarData: SidebarData = {
   user: {
@@ -36,6 +37,11 @@ export const sidebarData: SidebarData = {
           title: '我的简历',
           url: '/resume',
           icon: IconId,
+        },
+        {
+          title: '内推',
+          url: '/referral',
+          icon: HeliIcon,
         },
         {
           title: '钱包',

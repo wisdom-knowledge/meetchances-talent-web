@@ -33,6 +33,25 @@ export type ApiJob = {
   salary_min: number
   salary_max: number
   referral_bonus?: number
+  campaign?: {
+    name: string
+    project_id?: number
+    status: 'ACTIVE' | 'ENDED'
+    type: 'referral_reward' | 'full_order_reward'
+    start_date?: string
+    end_date?: string
+    condition_type: 'pass_questions' | 'complete_working_hours'
+    quantity?: number
+    reward?: string
+    id: number
+    created_at: string
+    updated_at: string
+  }
+  project?: {
+    id?: number
+    alias?: string
+    name?: string
+  }
   online_status?: number
   start_date?: string
   end_date?: string
@@ -258,16 +277,16 @@ export async function fetchJobApplyStatus(
     result[k] = {
       job_apply_id:
         typeof obj.job_apply_id === 'number' ||
-        typeof obj.job_apply_id === 'string'
+          typeof obj.job_apply_id === 'string'
           ? obj.job_apply_id
           : 0,
       job_apply_status: statusNum as JobApplyStatus,
       current_node_status:
         typeof obj.current_node_status === 'string' ||
-        typeof obj.current_node_status === 'number'
+          typeof obj.current_node_status === 'number'
           ? (String(
-              obj.current_node_status
-            ) as JobApplyStatusItem['current_node_status'])
+            obj.current_node_status
+          ) as JobApplyStatusItem['current_node_status'])
           : undefined,
       progress: typeof obj.progress === 'number' ? obj.progress : 0,
       total_step: typeof obj.total_step === 'number' ? obj.total_step : 0,
