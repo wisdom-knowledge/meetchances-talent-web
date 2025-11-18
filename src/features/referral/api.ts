@@ -1,7 +1,4 @@
 import { api } from '@/lib/api'
-import { mockReferralIncome, mockReferralList, mockInviteCodeMap } from './mock'
-
-const USE_MOCK = false // 开发时使用mock数据
 
 // 内推列表项
 export interface ReferralListItem {
@@ -44,68 +41,24 @@ export interface InviteCodeInfo {
 
 // 获取内推列表
 export async function getReferralList(params: ReferralListParams): Promise<ReferralListResponse> {
-  if (USE_MOCK) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const { skip, limit } = params
-        const allItems = mockReferralList
-        const items = allItems.slice(skip, skip + limit)
-        resolve({
-          data: items,
-          count: allItems.length,
-        })
-      }, 300)
-    })
-  }
   const res = await api.get('/talent/referral/list', { params })
   return res as unknown as ReferralListResponse
 }
 
 // 获取内推收入数据
 export async function getReferralIncome(): Promise<ReferralIncomeData> {
-  if (USE_MOCK) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(mockReferralIncome)
-      }, 300)
-    })
-  }
   const res = await api.get('/talent/referral/income')
   return res as unknown as ReferralIncomeData
 }
 
 // 验证邀请码
 export async function validateInviteCode(code: string): Promise<InviteCodeInfo> {
-  if (USE_MOCK) {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const info = mockInviteCodeMap[code]
-        if (info) {
-          resolve(info)
-        } else {
-          reject(new Error('邀请码不存在'))
-        }
-      }, 300)
-    })
-  }
   const res = await api.get('/talent/validate-referral-code', { params: { code } })
   return res as unknown as InviteCodeInfo
 }
 
 // 绑定邀请码
 export async function bindInviteCode(code: string): Promise<{ success: boolean }> {
-  if (USE_MOCK) {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const info = mockInviteCodeMap[code]
-        if (info) {
-          resolve({ success: true })
-        } else {
-          reject(new Error('邀请码不存在'))
-        }
-      }, 500)
-    })
-  }
   const res = await api.patch('/talent/me', { referred_by_code: code })
   return res as unknown as { success: boolean }
 }
