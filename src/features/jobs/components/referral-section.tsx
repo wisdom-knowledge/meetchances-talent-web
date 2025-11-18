@@ -1,4 +1,3 @@
-import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { IconCopy } from '@tabler/icons-react'
 import { toast } from 'sonner'
@@ -69,7 +68,6 @@ function formatCampaignDescription(campaign?: Campaign, project?: Project, fallb
 
 // PC 端组件
 function DesktopReferralSection({ jobId, referralBonus, campaign, project, className }: ReferralSectionProps) {
-  const navigate = useNavigate()
   const auth = useAuthStore((s) => s.auth)
 
   // 从 /talent/me 接口获取用户邀请码
@@ -88,8 +86,11 @@ function DesktopReferralSection({ jobId, referralBonus, campaign, project, class
   const handleCopyReferralCode = async () => {
     // 检查登录状态
     if (!auth.user) {
-      // 未登录，跳转到登录页
-      navigate({ to: '/sign-in' })
+      // 未登录，跳转到 OAuth 授权页面
+      const loginUrl = import.meta.env.VITE_AUTH_LOGIN_URL
+      if (loginUrl) {
+        window.location.href = loginUrl
+      }
       return
     }
 
@@ -139,7 +140,10 @@ function DesktopReferralSection({ jobId, referralBonus, campaign, project, class
           {/* 复制区域 */}
           <div className='flex items-center gap-3'>
             <div className='flex-1'>
-              <div className='rounded-lg border-2 border-dashed border-[#E0E7FF] bg-white px-4 py-3 text-sm font-medium text-gray-900 transition-colors hover:border-[#C994F7]'>
+              <div 
+                className='rounded-lg border-2 border-dashed border-[#E0E7FF] bg-white px-4 py-3 text-sm font-medium text-gray-900 transition-colors hover:border-[#C994F7]'
+                onClick={handleCopyReferralCode}
+              >
                 {isLoading ? '加载中...' : (inviteToken || (auth.user ? '邀请码加载失败' : '登录后即可获取邀请码'))}
               </div>
             </div>
@@ -160,7 +164,6 @@ function DesktopReferralSection({ jobId, referralBonus, campaign, project, class
 
 // 移动端组件
 function MobileReferralSection({ jobId, referralBonus, campaign, project, className }: ReferralSectionProps) {
-  const navigate = useNavigate()
   const auth = useAuthStore((s) => s.auth)
 
   // 从 /talent/me 接口获取用户邀请码
@@ -179,8 +182,11 @@ function MobileReferralSection({ jobId, referralBonus, campaign, project, classN
   const handleCopyReferralCode = async () => {
     // 检查登录状态
     if (!auth.user) {
-      // 未登录，跳转到登录页
-      navigate({ to: '/sign-in' })
+      // 未登录，跳转到 OAuth 授权页面
+      const loginUrl = import.meta.env.VITE_AUTH_LOGIN_URL
+      if (loginUrl) {
+        window.location.href = loginUrl
+      }
       return
     }
 
@@ -229,7 +235,10 @@ function MobileReferralSection({ jobId, referralBonus, campaign, project, classN
 
           {/* 复制区域 */}
           <div className='space-y-2.5'>
-            <div className='rounded-lg border-2 border-dashed border-[#E0E7FF] bg-white px-3 py-2.5 text-xs font-medium text-gray-900'>
+            <div 
+              className='rounded-lg border-2 border-dashed border-[#E0E7FF] bg-white px-3 py-2.5 text-xs font-medium text-gray-900'
+              onClick={handleCopyReferralCode}
+            >
               {isLoading ? '加载中...' : (inviteToken || (auth.user ? '邀请码加载失败' : '登录后即可获取邀请码'))}
             </div>
             <Button
