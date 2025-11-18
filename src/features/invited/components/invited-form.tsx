@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import {
   AcquistionChannel,
   PartTimeHours,
@@ -28,12 +29,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { MonthPicker } from '@/components/month-picker'
+import { validateInviteCode } from '@/features/referral/api'
 
 const step1Schema = z.object({
   birthMonth: z.string().min(1, '请选择出生年月'),
   city: z.string().min(1, '请输入常驻地'),
   weeklyHours: z.string().min(1, '请选择每周可兼职工作时长'),
   source: z.string().min(1, '请选择来源'),
+  referred_by_code: z.string().optional(), // 邀请码非必填
 })
 
 const step2Schema = z.object({
@@ -51,9 +54,23 @@ export default function InvitedForm() {
 
   const [step, setStep] = useState<1 | 2>(1)
 
+  // 邀请码验证状态
+  const [referralStatus, setReferralStatus] = useState<
+    'idle' | 'validating' | 'valid' | 'invalid'
+  >('idle')
+  const [referrerName, setReferrerName] = useState<string>('')
+  const [referrerUsername, setReferrerUsername] = useState<string>('')
+  const validateTimerRef = useRef<NodeJS.Timeout | null>(null)
+
   const formStep1 = useForm<Step1Values>({
     resolver: zodResolver(step1Schema),
-    defaultValues: { birthMonth: '', city: '', weeklyHours: '', source: '' },
+    defaultValues: {
+      birthMonth: '',
+      city: '',
+      weeklyHours: '',
+      source: '',
+      referred_by_code: '',
+    },
     mode: 'onTouched',
   })
 
@@ -73,7 +90,58 @@ export default function InvitedForm() {
     return params.get('inviteToken') ?? ''
   }, [])
 
+  // 防抖验证邀请码
+  const validateReferralCode = useCallback((code: string) => {
+    // 清除之前的定时器
+    if (validateTimerRef.current) {
+      clearTimeout(validateTimerRef.current)
+    }
+
+    // 如果为空，重置状态
+    if (!code || code.trim() === '') {
+      setReferralStatus('idle')
+      setReferrerName('')
+      setReferrerUsername('')
+      return
+    }
+
+    // 设置验证中状态
+    setReferralStatus('validating')
+
+    // 防抖：500ms 后执行验证
+    validateTimerRef.current = setTimeout(async () => {
+      try {
+        const result = await validateInviteCode(code.trim())
+        // API 返回 { name, phone, referrer_username }，表示验证成功
+        setReferralStatus('valid')
+        setReferrerName(result.name || '')
+        setReferrerUsername(result.referrer_username || '')
+      } catch (_error) {
+        // API 抛出错误表示验证失败
+        setReferralStatus('invalid')
+        setReferrerName('')
+        setReferrerUsername('')
+        // 验证失败时清空邀请码字段
+      }
+    }, 500)
+  }, [])
+
+  // 清理定时器
+  useEffect(() => {
+    return () => {
+      if (validateTimerRef.current) {
+        clearTimeout(validateTimerRef.current)
+      }
+    }
+  }, [])
+
   const handleNext = async () => {
+    // 检查邀请码是否在验证中
+    if (referralStatus === 'validating') {
+      toast.info('邀请码验证中，请稍候...')
+      return
+    }
+    
     const ok = await formStep1.trigger()
     if (!ok) return
     setStep(2)
@@ -83,13 +151,29 @@ export default function InvitedForm() {
     const ok = await formStep2.trigger()
     if (!ok) return
     const payload = { ...formStep1.getValues(), ...formStep2.getValues() }
-    fetchChangeTalnet({
+
+    // 准备提交数据，包含邀请码（如果有的话）
+    const submitData: {
+      birth_month: string
+      location: string
+      part_time_hours: number
+      acquisition_channel: number
+      top_skills: string
+      referred_by_code?: string
+    } = {
       birth_month: payload.birthMonth,
       location: payload.city,
       part_time_hours: Number(payload.weeklyHours),
       acquisition_channel: Number(payload.source),
       top_skills: [payload.skill1, payload.skill2, payload.skill3].join(','),
-    }).then((res) => {
+    }
+
+    // 如果填写了邀请码，添加到提交数据中
+    if (payload.referred_by_code && payload.referred_by_code.trim() !== '' && referralStatus === 'valid') {
+      submitData.referred_by_code = payload.referred_by_code.trim()
+    }
+
+    fetchChangeTalnet(submitData).then((res) => {
       setUser({
         id: res.id,
         email: res.email,
@@ -105,7 +189,7 @@ export default function InvitedForm() {
       navigate({
         to: '/interview/prepare',
         search: { job_id: Number(jobId), inviteToken: inviteToken },
-        replace: true
+        replace: true,
       })
     })
   }
@@ -243,6 +327,45 @@ export default function InvitedForm() {
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={formStep1.control}
+              name='referred_by_code'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>邀请码</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder='请输入邀请码'
+                      className='bg-[rgba(78,2,228,0.1)] text-[var(--color-blue-600)]'
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e)
+                        validateReferralCode(e.target.value)
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription
+                    className={
+                      referralStatus === 'invalid'
+                        ? 'text-destructive'
+                        : referralStatus === 'valid'
+                          ? 'text-green-600'
+                          : ''
+                    }
+                  >
+                    {referralStatus === 'idle' &&
+                      '请输入推荐人邀请码（如果有）'}
+                    {referralStatus === 'validating' && '验证中...'}
+                    {referralStatus === 'invalid' &&
+                      '无效的邀请码，请联系你的推荐人获取正确的邀请码'}
+                    {referralStatus === 'valid' &&
+                      `你的推荐人是：${referrerName}${referrerUsername ? ` ${referrerUsername}` : ''}`}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

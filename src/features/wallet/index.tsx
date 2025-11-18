@@ -221,6 +221,20 @@ export default function WalletPage() {
           <div className='bg-card flex-1 rounded-xl border border-[#4E02E40D] shadow-[0_0_4px_0_#0000001A]'>
             <div className='space-y-2 p-4 md:p-6'>
               <h3 className='text-muted-foreground text-sm font-medium'>
+                内推收入（税前）
+              </h3>
+              <p className='text-foreground text-3xl font-semibold'>
+                {formatCurrency(0)}
+              </p>
+              <p className='text-muted-foreground text-sm'>
+                {formatCurrency(0)} 本月收入
+              </p>
+            </div>
+          </div>
+
+          <div className='bg-card flex-1 rounded-xl border border-[#4E02E40D] shadow-[0_0_4px_0_#0000001A]'>
+            <div className='space-y-2 p-4 md:p-6'>
+              <h3 className='text-muted-foreground text-sm font-medium'>
                 待提现
               </h3>
               <p className='text-foreground text-3xl font-semibold'>
