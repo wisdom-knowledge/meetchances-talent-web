@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import {
   AcquistionChannel,
   PartTimeHours,
@@ -120,6 +121,7 @@ export default function InvitedForm() {
         setReferralStatus('invalid')
         setReferrerName('')
         setReferrerUsername('')
+        // 验证失败时清空邀请码字段
       }
     }, 500)
   }, [])
@@ -134,6 +136,12 @@ export default function InvitedForm() {
   }, [])
 
   const handleNext = async () => {
+    // 检查邀请码是否在验证中
+    if (referralStatus === 'validating') {
+      toast.info('邀请码验证中，请稍候...')
+      return
+    }
+    
     const ok = await formStep1.trigger()
     if (!ok) return
     setStep(2)
@@ -161,7 +169,7 @@ export default function InvitedForm() {
     }
 
     // 如果填写了邀请码，添加到提交数据中
-    if (payload.referred_by_code && payload.referred_by_code.trim() !== '') {
+    if (payload.referred_by_code && payload.referred_by_code.trim() !== '' && referralStatus === 'valid') {
       submitData.referred_by_code = payload.referred_by_code.trim()
     }
 
@@ -354,7 +362,7 @@ export default function InvitedForm() {
                       '请输入推荐人邀请码（如果有）'}
                     {referralStatus === 'validating' && '验证中...'}
                     {referralStatus === 'invalid' &&
-                      '无效的邀请码，请检查后重试'}
+                      '无效的邀请码，请联系你的推荐人获取正确的邀请码'}
                     {referralStatus === 'valid' &&
                       `你的推荐人是：${referrerName}${referrerUsername ? ` ${referrerUsername}` : ''}`}
                   </FormDescription>

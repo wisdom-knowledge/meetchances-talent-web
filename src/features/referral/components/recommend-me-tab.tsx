@@ -174,7 +174,7 @@ export default function RecommendMeTab({ isActive }: Props) {
               <p className='text-muted-foreground text-xs'>验证中...</p>
             )}
             {!isValidating && inviteCode.trim() && !codeInfo && (
-              <p className='text-xs text-destructive'>查不到该邀请码</p>
+              <p className='text-xs text-destructive'>无效的邀请码，请联系你的推荐人获取正确的邀请码</p>
             )}
             {!isValidating && codeInfo && (
               <p className='text-xs text-emerald-600'>
