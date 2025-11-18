@@ -18,7 +18,7 @@ export default function IncomeTab({ isActive }: Props) {
   const [incomePage, setIncomePage] = useState(1)
   const [projectId, _setProjectId] = useState<string>('') // 筛选：项目ID
   const [expenseStatus, _setExpenseStatus] = useState<string>('all') // 费用状态
-  const [paymentStatus, _setPaymentStatus] = useState<string>('all') // 付款状态
+  const [paymentStatus, _setPaymentStatus] = useState<string>('all') // 收款状态
 
   const incomeLimit = Math.min(incomePageSize, 100)
   const incomeSkip = Math.max(0, (incomePage - 1) * incomeLimit)

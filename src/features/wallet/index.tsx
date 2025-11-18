@@ -68,7 +68,7 @@ interface WalletDashboard {
 
 // 子组件各自处理分页与表单
 
-// 已移除本地 mock 列表，收入与付款记录由子组件各自请求
+// 已移除本地 mock 列表，收入与收款记录由子组件各自请求
 
 const fetchWalletDashboard = async (): Promise<WalletDashboard> => {
   const isBound = false
@@ -250,11 +250,11 @@ export default function WalletPage() {
           <div className='flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between'>
             {isLoading ? (
               <p className='text-muted-foreground text-sm'>
-                正在加载付款方式绑定信息…
+                正在加载收款方式绑定信息…
               </p>
             ) : !isWeChatBound ? (
               <div className='text-muted-foreground space-y-1 text-sm'>
-                <p>您还没绑定付款方式，为顺利支付，请先绑定</p>
+                <p>您还没绑定收款方式，为顺利支付，请先绑定</p>
               </div>
             ) : availableBalance > 10000 ? (
               <div className='text-muted-foreground space-y-1 text-sm'>
@@ -284,8 +284,8 @@ export default function WalletPage() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className='bg-muted text-muted-foreground inline-flex h-10 items-center justify-center rounded-md p-1'>
               <TabsTrigger value='income'>收入</TabsTrigger>
-              <TabsTrigger value='payment'>付款记录</TabsTrigger>
-              <TabsTrigger value='method'>付款方式</TabsTrigger>
+              <TabsTrigger value='payment'>收款记录</TabsTrigger>
+              <TabsTrigger value='method'>收款方式</TabsTrigger>
               {/* <TabsTrigger value='realname'>实名认证</TabsTrigger> */}
             </TabsList>
 
@@ -317,7 +317,7 @@ export default function WalletPage() {
       <Dialog open={bindingDialogOpen} onOpenChange={setBindingDialogOpen}>
         <DialogContent className='sm:max-w-md'>
           <DialogHeader>
-            <DialogTitle>绑定付款方式</DialogTitle>
+            <DialogTitle>绑定收款方式</DialogTitle>
             <DialogDescription>
               扫描下方小程序二维码，完成微信支付绑定后即可接收千识任务收入款项。
             </DialogDescription>

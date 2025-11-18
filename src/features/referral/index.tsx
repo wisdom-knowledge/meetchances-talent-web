@@ -3,14 +3,18 @@ import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { fetchTalentMe } from '@/lib/api'
 import RecommendMeTab from '@/features/referral/components/recommend-me-tab'
+import ReferralListTab from '@/features/referral/components/referral-list-tab'
 import ShareBubble from '@/features/referral/components/share-bubble'
 import PosterGenerator from '@/features/referral/components/poster-generator'
+import { ReferralTab, DEFAULT_REFERRAL_TAB } from '@/features/referral/constants'
 import { toast } from 'sonner'
 
 export default function ReferralPage() {
+  const [activeTab, setActiveTab] = useState<string>(DEFAULT_REFERRAL_TAB)
   const [shouldGeneratePoster, setShouldGeneratePoster] = useState(false)
 
   // 获取当前用户信息
@@ -83,10 +87,21 @@ export default function ReferralPage() {
         </div>
         <Separator className='my-4 lg:my-6' />
 
-        {/* 推荐我内容 */}
-        <div className='space-y-4'>
-          <RecommendMeTab isActive={true} />
-        </div>
+        {/* Tab 切换 */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
+          <TabsList className='grid w-full max-w-md grid-cols-2'>
+            <TabsTrigger value={ReferralTab.LIST}>内推列表</TabsTrigger>
+            <TabsTrigger value={ReferralTab.RECOMMEND_ME}>推荐我</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value={ReferralTab.LIST} className='space-y-4'>
+            <ReferralListTab isActive={activeTab === ReferralTab.LIST} />
+          </TabsContent>
+
+          <TabsContent value={ReferralTab.RECOMMEND_ME} className='space-y-4'>
+            <RecommendMeTab isActive={activeTab === ReferralTab.RECOMMEND_ME} />
+          </TabsContent>
+        </Tabs>
 
       {/* 海报生成器（隐藏的canvas） */}
       {shouldGeneratePoster && currentUser?.referral_code && (

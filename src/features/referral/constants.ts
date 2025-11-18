@@ -7,9 +7,9 @@ export type PageSize = (typeof PAGE_SIZE_OPTIONS)[number]
 export enum ReferralTab {
   /** 内推列表 */
   LIST = 'list',
-  /** 付款记录 */
+  /** 收款记录 */
   PAYMENT_RECORDS = 'payment-records',
-  /** 付款方式 */
+  /** 收款方式 */
   PAYMENT_METHODS = 'payment-methods',
   /** 推荐我 */
   RECOMMEND_ME = 'recommend-me',
@@ -23,5 +23,5 @@ export const REFERRAL_TAB_VALUES = Object.values(ReferralTab) as string[]
 /**
  * 默认 Tab
  */
-export const DEFAULT_REFERRAL_TAB = ReferralTab.RECOMMEND_ME
+export const DEFAULT_REFERRAL_TAB = ReferralTab.LIST
 
