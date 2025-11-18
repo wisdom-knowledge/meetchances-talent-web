@@ -35,7 +35,7 @@ const step1Schema = z.object({
   city: z.string().min(1, '请输入常驻地'),
   weeklyHours: z.string().min(1, '请选择每周可兼职工作时长'),
   source: z.string().min(1, '请选择来源'),
-  referralCode: z.string().optional(), // 邀请码非必填
+  referred_by_code: z.string().optional(), // 邀请码非必填
 })
 
 const step2Schema = z.object({
@@ -68,7 +68,7 @@ export default function InvitedForm() {
       city: '',
       weeklyHours: '',
       source: '',
-      referralCode: '',
+      referred_by_code: '',
     },
     mode: 'onTouched',
   })
@@ -151,7 +151,7 @@ export default function InvitedForm() {
       part_time_hours: number
       acquisition_channel: number
       top_skills: string
-      referral_code?: string
+      referred_by_code?: string
     } = {
       birth_month: payload.birthMonth,
       location: payload.city,
@@ -161,8 +161,8 @@ export default function InvitedForm() {
     }
 
     // 如果填写了邀请码，添加到提交数据中
-    if (payload.referralCode && payload.referralCode.trim() !== '') {
-      submitData.referral_code = payload.referralCode.trim()
+    if (payload.referred_by_code && payload.referred_by_code.trim() !== '') {
+      submitData.referred_by_code = payload.referred_by_code.trim()
     }
 
     fetchChangeTalnet(submitData).then((res) => {
@@ -326,7 +326,7 @@ export default function InvitedForm() {
 
             <FormField
               control={formStep1.control}
-              name='referralCode'
+              name='referred_by_code'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>邀请码</FormLabel>
