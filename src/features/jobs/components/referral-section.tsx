@@ -38,32 +38,61 @@ export interface ReferralSectionProps {
   className?: string
 }
 
-// 格式化活动描述
-function formatCampaignDescription(campaign?: Campaign, project?: Project, fallbackBonus?: number): string {
+// 格式化活动描述组件
+function CampaignDescription({ campaign, project, fallbackBonus }: { campaign?: Campaign, project?: Project, fallbackBonus?: number }) {
   if (!campaign) {
     // 没有 campaign 数据时，使用 fallbackBonus
     if (fallbackBonus && fallbackBonus > 0) {
-      return `您邀请的新用户被录取至该项目并完成任务后，即可获得¥${fallbackBonus}！`
+      return (
+        <>
+          您邀请的新专家加入该项目并通过录取后完成任务，您即可获得
+          <span className='mx-1 font-semibold text-gray-900'>¥{fallbackBonus}</span>
+          内推奖励！
+        </>
+      )
     }
-    return '您邀请的新用户被录取至该项目并完成任务后，即可获得内推奖励！'
+    return <>您邀请的新专家加入该项目并通过录取后完成任务，您即可获得内推奖励！</>
   }
 
   // 优先使用 project.alias，其次使用 project.name，最后使用 '该项目'
-  const projectName = project?.alias || project?.name || '该项目'
+  const projectName = (project?.alias || project?.name || '该项目').toUpperCase()
   const endDate = campaign.end_date || ''
   const quantity = campaign.quantity || 0
   const reward = campaign.reward || '0'
 
   // 根据完成条件类型生成文案
-  const conditionText = 
-    campaign.condition_type === 'pass_questions' 
-      ? `结算${quantity}道题` 
-      : `完成${quantity}小时工作`
-
-  // 日期部分
-  const dateText = endDate ? `并于${endDate}前` : ''
-
-  return `您邀请的新用户被录取至${projectName}${dateText}${conditionText}，即可获得¥${reward}！`
+  if (campaign.condition_type === 'pass_questions') {
+    return (
+      <>
+        您邀请的新专家加入
+        <span className='mx-1 font-semibold text-gray-900'>{projectName}</span>
+        项目并通过录取后，只需
+        {endDate && (
+          <>
+            在<span className='mx-1 font-semibold text-gray-900'>{endDate} 23:59</span>前
+          </>
+        )}
+        提交至少<span className='mx-1 font-semibold text-gray-900'>{quantity}</span>条任务，且该任务在后续审核中被结算，您即可获得
+        <span className='mx-1 font-semibold text-gray-900'>¥{reward}</span>内推奖励！
+      </>
+    )
+  } else {
+    return (
+      <>
+        您邀请的新专家加入
+        <span className='mx-1 font-semibold text-gray-900'>{projectName}</span>
+        项目并通过录取后，只需
+        {endDate && (
+          <>
+            在<span className='mx-1 font-semibold text-gray-900'>{endDate} 23:59</span>前
+          </>
+        )}
+        完成至少<span className='mx-1 font-semibold text-gray-900'>{quantity}</span>小时工作，且这
+        <span className='mx-1 font-semibold text-gray-900'>{quantity}</span>小时在后续审核中被结算，您即可获得
+        <span className='mx-1 font-semibold text-gray-900'>¥{reward}</span>内推奖励！
+      </>
+    )
+  }
 }
 
 // PC 端组件
@@ -79,9 +108,6 @@ function DesktopReferralSection({ jobId, referralBonus, campaign, project, class
   })
 
   const inviteToken = currentUser?.referral_code || ''
-  
-  // 生成活动描述
-  const description = formatCampaignDescription(campaign, project, referralBonus)
 
   const handleCopyReferralCode = async () => {
     // 检查登录状态
@@ -126,7 +152,7 @@ function DesktopReferralSection({ jobId, referralBonus, campaign, project, class
 
           {/* 活动说明 */}
           <div className='mb-4 rounded-lg bg-white/60 p-3 text-sm leading-relaxed text-gray-700 backdrop-blur-sm'>
-            {description}
+            <CampaignDescription campaign={campaign} project={project} fallbackBonus={referralBonus} />
             <a
               href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
               target='_blank'
@@ -175,9 +201,6 @@ function MobileReferralSection({ jobId, referralBonus, campaign, project, classN
   })
 
   const inviteToken = currentUser?.referral_code || ''
-  
-  // 生成活动描述
-  const description = formatCampaignDescription(campaign, project, referralBonus)
 
   const handleCopyReferralCode = async () => {
     // 检查登录状态
@@ -222,7 +245,7 @@ function MobileReferralSection({ jobId, referralBonus, campaign, project, classN
 
           {/* 活动说明 */}
           <div className='mb-3 rounded-lg bg-white/60 p-2.5 text-xs leading-relaxed text-gray-700 backdrop-blur-sm'>
-            {description}
+            <CampaignDescription campaign={campaign} project={project} fallbackBonus={referralBonus} />
             <a
               href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
               target='_blank'
