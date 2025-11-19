@@ -151,7 +151,7 @@ export default function WalletPage() {
       staleTime: 30 * 1000,
     })
   const availableBalance = walletDetails?.wallet.available_balance ?? 0
-  const taskIncomeTotal = walletDetails?.wallet.total_income ?? 0
+  const taskIncomeTotal = walletDetails?.wallet.task_income ?? 0
   const referIncomeTotal = walletDetails?.wallet.refer_income ?? 0
   const currentMonthIncome = walletDetails?.wallet.current_month_income ?? 0
 
