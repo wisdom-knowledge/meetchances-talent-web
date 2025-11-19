@@ -33,7 +33,7 @@ export default function ReferralPage() {
   })
 
   // 从钱包数据中获取任务收入
-  const totalIncome = walletDetails?.wallet.task_income ?? 0
+  const totalIncome = walletDetails?.wallet.refer_income ?? 0
 
   const handleGeneratePoster = () => {
     // 防止重复触发
