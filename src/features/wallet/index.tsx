@@ -153,6 +153,7 @@ export default function WalletPage() {
   const availableBalance = walletDetails?.wallet.available_balance ?? 0
   const taskIncomeTotal = walletDetails?.wallet.total_income ?? 0
   const referIncomeTotal = walletDetails?.wallet.refer_income ?? 0
+  const currentMonthIncome = walletDetails?.wallet.current_month_income ?? 0
 
   const handleBindClick = () => {
     const env = detectRuntimeEnvSync()
@@ -213,7 +214,7 @@ export default function WalletPage() {
                 {isWalletLoading
                   ? '加载中…'
                   : walletDetails?.wallet.current_month_income !== undefined
-                  ? `${formatCurrency(walletDetails.wallet.current_month_income)} 本月收入`
+                  ? `${formatCurrency(currentMonthIncome)} 本月收入`
                   : '-'}
               </p>
             </div>
@@ -254,7 +255,7 @@ export default function WalletPage() {
               <div className='text-muted-foreground space-y-1 text-sm'>
                 <p>您还没绑定收款方式，为顺利支付，请先绑定</p>
               </div>
-            ) : availableBalance > 10000 ? (
+            ) : Number(availableBalance) > 10000 ? (
               <div className='text-muted-foreground space-y-1 text-sm'>
                 <p>如需大额提现，请点击「需求帮助」联系客服</p>
               </div>
@@ -269,7 +270,7 @@ export default function WalletPage() {
                 <Button size='sm' onClick={handleBindClick}>
                   绑定
                 </Button>
-              ) : availableBalance > 10000 ? null : (
+              ) : Number(availableBalance) > 10000 ? null : (
                 <Button size='sm' onClick={handleWithdrawClick}>
                   提现
                 </Button>
