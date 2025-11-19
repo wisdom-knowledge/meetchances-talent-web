@@ -63,6 +63,8 @@ export interface WalletInfo {
   total_income: number
   total_withdrawal: number
   current_month_income?: number
+  refer_income?: number
+  current_month_refer_income?: number
   created_at: string
   updated_at: string
 }
