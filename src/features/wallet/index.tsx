@@ -23,6 +23,7 @@ import { fetchTalentMe } from '@/lib/api'
 import IncomeTab from '@/features/wallet/components/income-tab'
 import PaymentRecordsTab from '@/features/wallet/components/payment-records-tab'
 import PaymentMethodsTab from '@/features/wallet/components/payment-methods-tab'
+import ReferralIncomeTab from '@/features/wallet/components/referral-income-tab'
 // import RealNameTab from '@/features/wallet/components/realname-tab'
 import { formatCurrency } from '@/features/wallet/utils'
 import { detectRuntimeEnvSync } from '@/lib/env'
@@ -294,7 +295,7 @@ export default function WalletPage() {
             </TabsContent>
 
             <TabsContent value='referral-income' className='space-y-4'>
-              <IncomeTab isActive={activeTab === 'referral-income'} />
+              <ReferralIncomeTab isActive={activeTab === 'referral-income'} />
             </TabsContent>
 
             <TabsContent value='payment' className='space-y-4'>
