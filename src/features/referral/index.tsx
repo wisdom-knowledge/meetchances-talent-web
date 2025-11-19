@@ -76,7 +76,7 @@ export default function ReferralPage() {
         </div>
       </Header>
 
-      <Main fixed className='overflow-y-auto py-0 md:mx-16'>
+      <Main fixed className='overflow-y-auto py-0 pb-24 md:mx-16 md:pb-0'>
         {/* 标题和描述在一行 */}
         <div className='md:flex md:items-end md:gap-4'>
           <h1 className='text-xl font-bold tracking-tight md:text-2xl'>内推</h1>
@@ -94,9 +94,19 @@ export default function ReferralPage() {
         </div>
         <Separator className='my-4 lg:my-6' />
 
+        {/* 分享区域 - 移动端显示在 Tab 上方，桌面端固定在右侧 */}
+        {Number(totalIncome) > 0 && (
+          <ShareBubble
+            totalIncome={Number(totalIncome)}
+            onGeneratePoster={handleGeneratePoster}
+            className='mb-6 md:mb-0'
+            mobileInline
+          />
+        )}
+
         {/* Tab 切换 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
-          <TabsList className='mt-10 grid w-full max-w-md grid-cols-2 md:mt-0'>
+          <TabsList className='grid w-full max-w-md grid-cols-2'>
             <TabsTrigger value={ReferralTab.LIST}>内推列表</TabsTrigger>
             <TabsTrigger value={ReferralTab.RECOMMEND_ME}>推荐我</TabsTrigger>
           </TabsList>
@@ -122,14 +132,6 @@ export default function ReferralPage() {
         />
       )}
       </Main>
-
-      {/* 分享区域 - 固定定位在右侧，仅当任务收入大于 0 时显示 */}
-      {Number(totalIncome) > 0 && (
-        <ShareBubble
-          totalIncome={Number(totalIncome)}
-          onGeneratePoster={handleGeneratePoster}
-        />
-      )}
     </>
   )
 }

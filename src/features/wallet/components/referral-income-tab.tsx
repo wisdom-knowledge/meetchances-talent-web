@@ -108,7 +108,8 @@ export default function ReferralIncomeTab({ isActive }: Props) {
       </div>
       <div className='border-border flex flex-col gap-3 border-t p-4 md:flex-row md:items-center md:justify-between'>
         <p className='text-muted-foreground text-sm'>共 {count} 条已批准记录</p>
-        <div className='flex items-center gap-3'>
+        <div className='flex flex-col gap-3 md:flex-row md:items-center'>
+          {/* 移动端：select 单独一行 */}
           <div className='flex items-center gap-2'>
             <span className='text-muted-foreground text-sm'>每页显示</span>
             <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
@@ -124,20 +125,23 @@ export default function ReferralIncomeTab({ isActive }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <Button variant='outline' size='sm' onClick={handlePrev} disabled={currentPage === 1}>
-            上一页
-          </Button>
-          <span className='text-muted-foreground text-sm'>
-            第 {currentPage} 页 / 共 {totalPages} 页
-          </span>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={handleNext}
-            disabled={currentPage === totalPages}
-          >
-            下一页
-          </Button>
+          {/* 移动端：分页按钮单独一行 */}
+          <div className='flex items-center gap-3'>
+            <Button variant='outline' size='sm' onClick={handlePrev} disabled={currentPage === 1}>
+              上一页
+            </Button>
+            <span className='text-muted-foreground text-sm'>
+              第 {currentPage} 页 / 共 {totalPages} 页
+            </span>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={handleNext}
+              disabled={currentPage === totalPages}
+            >
+              下一页
+            </Button>
+          </div>
         </div>
       </div>
     </Card>
