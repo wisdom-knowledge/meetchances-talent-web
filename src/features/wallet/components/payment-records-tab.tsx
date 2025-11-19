@@ -194,7 +194,8 @@ export default function PaymentRecordsTab({ isActive }: Props) {
       </div>
       <div className='border-border flex flex-col gap-3 border-t p-4 md:flex-row md:items-center md:justify-between'>
         <p className='text-muted-foreground text-sm'>共 {disbursementCount} 条记录</p>
-        <div className='flex items-center gap-3'>
+        <div className='flex flex-col gap-3 md:flex-row md:items-center'>
+          {/* 移动端：select 单独一行 */}
           <div className='flex items-center gap-2'>
             <span className='text-muted-foreground text-sm'>每页显示</span>
             <Select value={String(paymentPageSize)} onValueChange={handlePaymentPageSizeChange}>
@@ -210,20 +211,23 @@ export default function PaymentRecordsTab({ isActive }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <Button variant='outline' size='sm' onClick={handlePaymentPrev} disabled={currentPaymentPage === 1}>
-            上一页
-          </Button>
-          <span className='text-muted-foreground text-sm'>
-            第 {currentPaymentPage} 页 / 共 {paymentTotalPages} 页
-          </span>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={handlePaymentNext}
-            disabled={currentPaymentPage === paymentTotalPages}
-          >
-            下一页
-          </Button>
+          {/* 移动端：分页按钮单独一行 */}
+          <div className='flex items-center gap-3'>
+            <Button variant='outline' size='sm' onClick={handlePaymentPrev} disabled={currentPaymentPage === 1}>
+              上一页
+            </Button>
+            <span className='text-muted-foreground text-sm'>
+              第 {currentPaymentPage} 页 / 共 {paymentTotalPages} 页
+            </span>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={handlePaymentNext}
+              disabled={currentPaymentPage === paymentTotalPages}
+            >
+              下一页
+            </Button>
+          </div>
         </div>
       </div>
     </Card>

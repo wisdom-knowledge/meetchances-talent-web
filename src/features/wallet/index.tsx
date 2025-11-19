@@ -199,7 +199,7 @@ export default function WalletPage() {
         </div>
       </Header>
 
-      <Main fixed className='overflow-y-auto py-0 md:mx-16'>
+      <Main fixed className='overflow-y-auto py-0 pb-24 md:mx-16 md:pb-0'>
         <TitleBar title='钱包' back separator />
 
         <div className='mb-6 flex flex-col gap-4 sm:flex-row sm:items-stretch'>

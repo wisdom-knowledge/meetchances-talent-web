@@ -7,13 +7,19 @@ interface ShareBubbleProps {
   totalIncome: number
   onGeneratePoster: () => void
   className?: string
+  mobileInline?: boolean // 移动端是否显示为内联元素（非固定定位）
 }
 
-export default function ShareBubble({ onGeneratePoster, className }: ShareBubbleProps) {
+export default function ShareBubble({ onGeneratePoster, className, mobileInline = false }: ShareBubbleProps) {
   const [isVisible, setIsVisible] = useState(true)
 
   return (
-    <div className={cn('fixed right-2 top-3 z-40 md:right-16 md:top-5', className)}>
+    <div className={cn(
+      mobileInline 
+        ? 'relative flex justify-end md:fixed md:right-16 md:top-5 md:z-40' 
+        : 'fixed right-2 top-3 z-40 md:right-16 md:top-5',
+      className
+    )}>
       {/* 动物形象和气泡框的容器 */}
       <div className='relative flex items-center justify-end'>
         {/* 气泡框 - 在动物左侧 */}
