@@ -151,7 +151,7 @@ export default function WalletPage() {
       staleTime: 30 * 1000,
     })
   const availableBalance = walletDetails?.wallet.available_balance ?? 0
-  const taskIncomeTotal = walletDetails?.wallet.total_income ?? 0
+  const taskIncomeTotal = walletDetails?.wallet.task_income ?? 0
   const referIncomeTotal = walletDetails?.wallet.refer_income ?? 0
   const currentMonthIncome = walletDetails?.wallet.current_month_income ?? 0
 
@@ -283,6 +283,7 @@ export default function WalletPage() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className='bg-muted text-muted-foreground inline-flex h-10 items-center justify-center rounded-md p-1'>
               <TabsTrigger value='income'>收入</TabsTrigger>
+              <TabsTrigger value='referral-income'>内推收入</TabsTrigger>
               <TabsTrigger value='payment'>收款记录</TabsTrigger>
               <TabsTrigger value='method'>收款方式</TabsTrigger>
               {/* <TabsTrigger value='realname'>实名认证</TabsTrigger> */}
@@ -290,6 +291,10 @@ export default function WalletPage() {
 
             <TabsContent value='income' className='space-y-4'>
               <IncomeTab isActive={activeTab === 'income'} />
+            </TabsContent>
+
+            <TabsContent value='referral-income' className='space-y-4'>
+              <IncomeTab isActive={activeTab === 'referral-income'} />
             </TabsContent>
 
             <TabsContent value='payment' className='space-y-4'>

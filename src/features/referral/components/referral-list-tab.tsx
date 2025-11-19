@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { getReferralList, type ReferralListItem, type ReferralListResponse, type ReferralStatus } from '@/features/referral/api'
+import { getReferralList, type ReferralListItem, type ReferralListResponse } from '@/features/referral/api'
 import { PAGE_SIZE_OPTIONS, type PageSize } from '@/features/referral/constants'
 import { formatCurrency, formatDateTime } from '@/features/wallet/utils'
 
@@ -31,22 +31,13 @@ function renderReferralStatusBadge(status: number) {
 export default function ReferralListTab({ isActive }: Props) {
   const [pageSize, setPageSize] = useState<PageSize>(PAGE_SIZE_OPTIONS[0])
   const [page, setPage] = useState(1)
-  const [statusFilter, setStatusFilter] = useState<ReferralStatus | 'all'>('all')
 
   const limit = Math.min(pageSize, 200)
   const skip = Math.max(0, (page - 1) * limit)
-  
-  const queryParams = useMemo(() => {
-    const params: { skip: number; limit: number; status?: ReferralStatus } = { skip, limit }
-    if (statusFilter !== 'all') {
-      params.status = statusFilter
-    }
-    return params
-  }, [skip, limit, statusFilter])
 
   const { data, isLoading } = useQuery<ReferralListResponse>({
-    queryKey: ['referral-list', queryParams],
-    queryFn: async () => getReferralList(queryParams),
+    queryKey: ['referral-list', skip, limit],
+    queryFn: async () => getReferralList({ skip, limit }),
     enabled: isActive,
   })
 
@@ -61,35 +52,11 @@ export default function ReferralListTab({ isActive }: Props) {
     setPage(1)
   }
 
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value as ReferralStatus | 'all')
-    setPage(1)
-  }
-
   const handlePrev = () => setPage((prev) => Math.max(1, prev - 1))
   const handleNext = () => setPage((prev) => Math.min(totalPages, prev + 1))
 
   return (
     <Card className='overflow-hidden border border-gray-200'>
-      {/* 筛选区域 */}
-      <div className='border-b p-4'>
-        <div className='flex items-center gap-2'>
-          <span className='text-sm text-muted-foreground'>状态筛选：</span>
-          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-            <SelectTrigger className='h-9 w-[180px]'>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='all'>全部</SelectItem>
-              <SelectItem value='pending'>待完成任务</SelectItem>
-              <SelectItem value='approved'>已批准</SelectItem>
-              <SelectItem value='paid'>已结算</SelectItem>
-              <SelectItem value='rejected'>已拒绝</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
       <div className='w-full overflow-x-auto px-4'>
         <Table>
           <TableHeader>
