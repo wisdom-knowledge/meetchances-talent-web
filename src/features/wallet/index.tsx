@@ -261,8 +261,9 @@ export default function WalletPage() {
                 <p>如需大额提现，请点击「需求帮助」联系客服</p>
               </div>
             ) : (
-              <div className='text-muted-foreground space-y-1 text-sm'>
+              <div className='space-y-1 text-sm'>
                 <p>请到一面千识微信小程序 - 钱包点击提现</p>
+                <p className='text-xs text-muted-foreground'>温馨提示：为了项目长期可持续性，数据提交后，以甲方审核结果为准，审核周期一般10个工作日左右（以实际项目为准），审核通过后即可提现……</p>
               </div>
             )}
 
