@@ -152,6 +152,7 @@ export default function WalletPage() {
     })
   const availableBalance = walletDetails?.wallet.available_balance ?? 0
   const taskIncomeTotal = walletDetails?.wallet.total_income ?? 0
+  const referIncomeTotal = walletDetails?.wallet.refer_income ?? 0
 
   const handleBindClick = () => {
     const env = detectRuntimeEnvSync()
@@ -224,10 +225,7 @@ export default function WalletPage() {
                 内推收入（税前）
               </h3>
               <p className='text-foreground text-3xl font-semibold'>
-                {formatCurrency(0)}
-              </p>
-              <p className='text-muted-foreground text-sm'>
-                {formatCurrency(0)} 本月收入
+                {isWalletLoading ? '加载中…' : formatCurrency(referIncomeTotal)}
               </p>
             </div>
           </div>
