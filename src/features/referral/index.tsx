@@ -25,15 +25,15 @@ export default function ReferralPage() {
     staleTime: 5 * 60 * 1000,
   })
 
-  // 获取钱包数据，用于判断内推收入
+  // 获取钱包数据，用于判断任务收入
   const { data: walletDetails } = useQuery<WalletDetailsResponse>({
     queryKey: ['wallet-details'],
     queryFn: async () => getWalletDetails(),
     staleTime: 30 * 1000,
   })
 
-  // 从钱包数据中获取内推收入
-  const totalIncome = walletDetails?.wallet.refer_income ?? 0
+  // 从钱包数据中获取任务收入
+  const totalIncome = walletDetails?.wallet.task_income ?? 0
 
   const handleGeneratePoster = () => {
     // 防止重复触发
