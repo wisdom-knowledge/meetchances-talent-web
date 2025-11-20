@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { IconUser, IconPhone, IconCheck } from '@tabler/icons-react'
+import { IconUser, IconPhone, IconCheck, IconRosette } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -92,6 +92,44 @@ export default function RecommendMeTab({ isActive }: Props) {
       <Card className='border border-gray-200'>
         <CardContent className='space-y-4 p-6'>
           <p className='text-muted-foreground text-sm'>正在加载…</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // 不需要被内推的状态（can_be_referred 为 false）
+  if (currentUser?.can_be_referred === false) {
+    return (
+      <Card className='overflow-hidden border border-[#E0E7FF] bg-gradient-to-br from-[#F5F3FF] via-white to-[#FAF5FF] shadow-sm'>
+        <CardContent className='p-8'>
+          {/* 中心图标和文字 */}
+          <div className='flex flex-col items-center justify-center space-y-4 text-center'>
+            {/* 顶部装饰图标 */}
+            <div className='relative'>
+              <div className='absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-[#4E02E4] to-[#8B5CF6] opacity-20 blur-xl'></div>
+              <div className='relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[#4E02E4] to-[#8B5CF6] shadow-lg'>
+                <IconRosette className='h-10 w-10 text-white' strokeWidth={2} />
+              </div>
+            </div>
+
+            {/* 主标题 */}
+            <div className='space-y-2'>
+              <h3 className='text-xl font-bold text-gray-900'>
+                您已经不需要被内推啦
+              </h3>
+            </div>
+
+            {/* 装饰性分隔线 */}
+            <div className='flex w-full max-w-xs items-center gap-3 pt-2'>
+              <div className='h-px flex-1 bg-gradient-to-r from-transparent via-[#4E02E4]/30 to-transparent'></div>
+              <div className='flex gap-1'>
+                <div className='h-1.5 w-1.5 rounded-full bg-[#4E02E4]/40'></div>
+                <div className='h-1.5 w-1.5 rounded-full bg-[#8B5CF6]/60'></div>
+                <div className='h-1.5 w-1.5 rounded-full bg-[#4E02E4]/40'></div>
+              </div>
+              <div className='h-px flex-1 bg-gradient-to-r from-transparent via-[#4E02E4]/30 to-transparent'></div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     )
