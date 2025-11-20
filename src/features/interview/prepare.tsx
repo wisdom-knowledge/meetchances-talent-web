@@ -678,11 +678,11 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   // 内容区域组件（PC和移动端共享）
   const renderContent = () => (
     <>
-      {/* ViewMode.Job
-          职位与简历上传阶段：
-          - 左侧展示职位基本信息与描述
-          - 右侧提供简历上传与回显，确认后进入面试准备
-      */}
+        {/* ViewMode.Job
+            职位与简历上传阶段：
+            - 左侧展示职位基本信息与描述
+            - 右侧提供简历上传与回显，确认后进入面试准备
+        */}
         {viewMode === ViewMode.Job && (
           <ViewModeJob
             job={job}
@@ -816,8 +816,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             - 可提供"重新面试""退出"等操作入口
         */}
         {viewMode === ViewMode.InterviewPendingReview && (
-          <div className='flex-1 flex items-center justify-start min-h-[calc(100vh-200px)] pl-16'>
-            <div className='flex flex-col lg:flex-row items-center justify-start gap-[120px]'>
+          <div className='flex-1 flex items-center justify-center min-h-[calc(100vh-200px)]'>
+            <div className='flex flex-col lg:flex-row items-center justify-center gap-[120px]'>
               {/* 左侧内容 */}
               <div className='flex flex-col items-start gap-8'>
                 {/* 标题和说明 */}
@@ -864,12 +864,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     {/* 提示信息 */}
                     <div className='flex items-center gap-1'>
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M5.83333 16.6667H9.16667C9.16667 17.5833 8.41667 18.3333 7.5 18.3333C6.58333 18.3333 5.83333 17.5833 5.83333 16.6667ZM4.16667 15.8333H10.8333V14.1667H4.16667V15.8333ZM13.75 7.91667C13.75 11.1 11.5333 12.8 10.6083 13.3333H4.39167C3.46667 12.8 1.25 11.1 1.25 7.91667C1.25 4.46667 4.05 1.66667 7.5 1.66667C10.95 1.66667 13.75 4.46667 13.75 7.91667ZM12.0833 7.91667C12.0833 5.39167 10.025 3.33333 7.5 3.33333C4.975 3.33333 2.91667 5.39167 2.91667 7.91667C2.91667 9.975 4.15833 11.1583 4.875 11.6667H10.125C10.8417 11.1583 12.0833 9.975 12.0833 7.91667ZM17.8083 6.14167L16.6667 6.66667L17.8083 7.19167L18.3333 8.33333L18.8583 7.19167L20 6.66667L18.8583 6.14167L18.3333 5L17.8083 6.14167ZM15.8333 5L16.6167 3.28333L18.3333 2.5L16.6167 1.71667L15.8333 0L15.05 1.71667L13.3333 2.5L15.05 3.28333L15.8333 5Z" fill="#4E02E4"/>
-                      </svg>
+                  <path d="M5.83333 16.6667H9.16667C9.16667 17.5833 8.41667 18.3333 7.5 18.3333C6.58333 18.3333 5.83333 17.5833 5.83333 16.6667ZM4.16667 15.8333H10.8333V14.1667H4.16667V15.8333ZM13.75 7.91667C13.75 11.1 11.5333 12.8 10.6083 13.3333H4.39167C3.46667 12.8 1.25 11.1 1.25 7.91667C1.25 4.46667 4.05 1.66667 7.5 1.66667C10.95 1.66667 13.75 4.46667 13.75 7.91667ZM12.0833 7.91667C12.0833 5.39167 10.025 3.33333 7.5 3.33333C4.975 3.33333 2.91667 5.39167 2.91667 7.91667C2.91667 9.975 4.15833 11.1583 4.875 11.6667H10.125C10.8417 11.1583 12.0833 9.975 12.0833 7.91667ZM17.8083 6.14167L16.6667 6.66667L17.8083 7.19167L18.3333 8.33333L18.8583 7.19167L20 6.66667L18.8583 6.14167L18.3333 5L17.8083 6.14167ZM15.8333 5L16.6167 3.28333L18.3333 2.5L16.6167 1.71667L15.8333 0L15.05 1.71667L13.3333 2.5L15.05 3.28333L15.8333 5Z" fill="#4E02E4"/>
+                </svg>
                       <span className='text-sm leading-[1.6] text-primary font-medium'>请注意查看通知</span>
-                    </div>
+              </div>
                   </div>
-                </div>
+                  </div>
 
                 {/* 按钮 */}
                 {interviewNodeStatus === JobApplyNodeStatus.CompletedPendingReview && (
@@ -887,8 +887,8 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
                     >
                       重新面试
                     </Button>
-                  </div>
-                )}
+                </div>
+              )}
               </div>
 
               {/* 右侧插画 */}
@@ -1068,7 +1068,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
               onSupportClick={() => setSupportOpen(true)}
             />
             {isMobile && (
-              <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
+          <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
             )}
 
             {/* 内容区 */}
