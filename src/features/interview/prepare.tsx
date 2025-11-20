@@ -33,6 +33,7 @@ import searchPng from '@/assets/images/search.png'
 import { ViewModeJob } from '@/features/interview/components/view-mode-job'
 import { ViewModeInterviewPrepare } from '@/features/interview/components/view-mode-interview-prepare'
 import { InterviewPrepareNav } from '@/features/interview/components/interview-prepare-nav'
+import { SidebarProgress } from '@/features/interview/components/sidebar-progress'
 import { getPreferredDeviceId, setPreferredDeviceIdSmart, clearAllPreferredDevices } from '@/lib/devices'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from 'sonner'
@@ -168,22 +169,22 @@ enum ViewMode {
     const renderStatus = (s: DeviceTestStatus) => {
       if (s === DeviceTestStatus.Success) {
         return (
-          <div className='text-xs text-primary flex items-center gap-1'>
-            <IconCircleCheckFilled className='h-4 w-4 text-primary' />
+          <div className='text-sm text-primary flex items-center gap-1'>
+            <IconCircleCheckFilled className='h-5 w-5 text-primary' />
             测试完成
           </div>
         )
       }
-      return <div className='text-xs text-muted-foreground'>{statusText(s)}</div>
+      return <div className='text-sm text-muted-foreground'>{statusText(s)}</div>
     }
 
     return (
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-9 md:grid-cols-3'>
 
         {/* 摄像头选择 */}
         <div className='flex flex-col gap-2 '>
-          <div className="flex items-center gap-2">
-            <IconVideo className='h-4 w-4' />
+          <div className="flex items-center gap-1">
+            <IconVideo className='h-5 w-5' />
             <SelectDropdown
               isControlled
               value={camActiveDeviceId}
@@ -200,8 +201,8 @@ enum ViewMode {
 
         {/* 耳机/扬声器 */}
         <div className='flex flex-col gap-2 '>
-          <div className='flex items-center gap-2'>
-            <IconVolume className='h-4 w-4' />
+          <div className='flex items-center gap-1'>
+            <IconVolume className='h-5 w-5' />
             <SelectDropdown
               isControlled
               value={displaySpkDeviceId}
@@ -233,8 +234,8 @@ enum ViewMode {
 
         {/* 麦克风 */}
         <div className='flex flex-col gap-2 '>
-          <div className='flex items-center gap-2'>
-            <IconMicrophone className='h-4 w-4' />
+          <div className='flex items-center gap-1'>
+            <IconMicrophone className='h-5 w-5' />
             <SelectDropdown
               isControlled
               value={mic.activeDeviceId}
@@ -674,22 +675,14 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
     )
   }
 
-  return (
+  // 内容区域组件（PC和移动端共享）
+  const renderContent = () => (
     <>
-      <Main fixed>
-        {/* 顶部工具栏：返回 + 寻求支持 */}
-        <InterviewPrepareNav
-          onBackClick={handleBackClick}
-          onSupportClick={() => setSupportOpen(true)}
-        />
-        {isMobile && (
-          <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
-        )}
-        {/* ViewMode.Job
-            职位与简历上传阶段：
-            - 左侧展示职位基本信息与描述
-            - 右侧提供简历上传与回显，确认后进入面试准备
-        */}
+      {/* ViewMode.Job
+          职位与简历上传阶段：
+          - 左侧展示职位基本信息与描述
+          - 右侧提供简历上传与回显，确认后进入面试准备
+      */}
         {viewMode === ViewMode.Job && (
           <ViewModeJob
             job={job}
@@ -823,7 +816,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             - 可提供“重新面试”“寻求帮助”等操作入口
         */}
         {viewMode === ViewMode.InterviewPendingReview && (
-          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
+          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12'>
             <div className='lg:col-span-12 flex flex-col items-center justify-center py-24'>
               <div className='w-36 rounded-2xl flex items-center justify-center mb-6'>
                 <img src={searchPng} alt='' className='' />
@@ -858,7 +851,7 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             - 占位区，后续将接入学历验证流程（材料上传、验证结果等）
         */}
         {viewMode === ViewMode.EducationEval && (
-          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12 max-w-screen-xl mx-auto'>
+          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12'>
             <div className='lg:col-span-7 space-y-6 pl-3'>
               <div className='text-2xl font-bold mb-2 leading-tight truncate'>学历验证</div>
               <p className='text-muted-foreground'>学历验证相关内容将在此展示。</p>
@@ -967,14 +960,60 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
             - 展示飞书问卷并等待用户填写
         */}
         {viewMode === ViewMode.Questionnaire && (
-          <div className='flex-1 w-full max-w-screen-xl mx-auto'>
+          <div className='flex-1 w-full'>
             <QuestionnaireCollection nodeData={currentNodeData ?? undefined} />
           </div>
         )}
+    </>
+  )
 
-        {/* 底部步骤与下一步 */}
-        {!isMobile && (
-          <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
+  return (
+    <>
+      <Main fixed>
+        {!isMobile ? (
+          /* PC端：左右分栏布局 */
+          <div className='flex gap-12 h-full pt-8 px-4'>
+            {/* 左侧边栏 */}
+            <div className='w-[245px] shrink-0 pr-6 border-r border-border'>
+              <SidebarProgress
+                jobApplyId={jobApplyId ?? null}
+                onBackClick={handleBackClick}
+                isMock={isMock}
+              />
+            </div>
+
+            {/* 右侧内容区 */}
+            <div className='flex-1 min-w-0 flex flex-col h-full'>
+              {/* 顶部工具栏：寻求支持 */}
+              <div className='flex justify-end mb-7 shrink-0'>
+                <button
+                  onClick={() => setSupportOpen(true)}
+                  className='px-2 py-2 border border-border rounded-lg text-primary text-sm font-medium hover:bg-accent transition-colors'
+                >
+                  寻求支持
+                </button>
+              </div>
+
+              {/* 内容区 */}
+              <div className='flex-1 min-h-0 overflow-auto'>
+                {renderContent()}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* 移动端：保持原有布局 */
+          <>
+            <InterviewPrepareNav
+              onBackClick={handleBackClick}
+              onSupportClick={() => setSupportOpen(true)}
+            />
+            {isMobile && (
+              <Steps jobApplyId={jobApplyId ?? null} isMock={isMock} />
+            )}
+
+            {/* 内容区 */}
+            {renderContent()}
+          </>
         )}
 
       </Main>

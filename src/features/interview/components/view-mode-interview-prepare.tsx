@@ -73,10 +73,19 @@ function TwoActionButtons({
 }) {
   return (
     <div className='flex gap-2.5'>
-      <Button variant='outline' onClick={leftOnClick} disabled={leftDisabled}>
+      <Button 
+        variant='outline' 
+        onClick={leftOnClick} 
+        disabled={leftDisabled}
+        className='px-7 py-3 text-[15px] font-medium'
+      >
         {leftLabel}
       </Button>
-      <Button className={rightClassName} disabled={rightDisabled} onClick={rightOnClick}>
+      <Button 
+        className={`${rightClassName} px-7 py-3 text-[15px] font-medium`} 
+        disabled={rightDisabled} 
+        onClick={rightOnClick}
+      >
         {rightText}
       </Button>
     </div>
@@ -311,65 +320,62 @@ function DesktopViewModeInterviewPrepare({
   }
 
   return (
-    <div className='mx-auto flex max-w-screen-xl flex-1 flex-col lg:grid lg:grid-cols-12 lg:gap-8'>
-      {/* 左：职位标题 + 设备检查 */}
-      <div className='flex flex-col justify-center space-y-6 px-3 md:col-span-7 md:pl-3'>
-        <div className='flex items-center justify-between'>
-          <div className='mb-2 truncate text-2xl leading-tight font-bold'>
-            {job?.title ?? (isLoading ? '加载中…' : '未找到职位')}
-          </div>
-          <div className='ml-4 flex-shrink-0'>
-            <ConnectionQualityBarsStandalone />
-          </div>
+    <div className='flex flex-1 flex-col justify-center gap-7 h-full min-h-[600px] -mt-12'>
+      {/* 标题区 */}
+      <h1 className='text-[36px] font-semibold leading-[1.5] tracking-[0.72px]'>
+        {job?.title ?? (isLoading ? '加载中…' : '未找到职位')}
+      </h1>
+
+      {/* 主内容区：左右布局 */}
+      <div className='flex gap-14 items-center w-full'>
+        {/* 左：设备检查区 2/3 */}
+        <div className='flex flex-col gap-2.5 flex-[2_0_0]'>
+          {/* 用户摄像头展示区域 */}
+          <LocalCameraPreview
+            stage={stage}
+            onHeadphoneConfirm={onHeadphoneConfirm}
+            onStatusChange={onCameraStatusChange}
+            deviceId={camActiveDeviceId}
+            speakerDeviceId={currentSpkDeviceId}
+            micDeviceId={currentMicDeviceId}
+            onCameraDeviceResolved={onCameraDeviceResolved}
+            onCameraConfirmed={onCameraConfirmed}
+            onMicConfirmed={onMicConfirmed}
+            disableCameraConfirm={cameraStatus === DeviceTestStatus.Failed}
+            preparationStep={preparationStep}
+            audioConfirmed={audioConfirmed}
+            onReplayAudio={handleReplayAudio}
+            onHasIssueChange={setHasIssue}
+            playTestAudioSignal={playSignal}
+            retakeMicSignal={retakeSignal}
+            onMicRecordComplete={() => setMicRecorded(true)}
+            onTestAudioPlayingChange={setIsTestAudioPlaying}
+            onMicRecordingChange={setIsMicRecording}
+          />
+
+          {/* 三个设备选择 + 状态 */}
+          <DeviceSelectorsRow
+            camActiveDeviceId={camActiveDeviceId}
+            camDevices={camDevices}
+            onCamChange={onCamChange}
+            cameraStatus={cameraStatus}
+            micStatus={micStatus}
+            spkStatus={spkStatus}
+            onMicStatusChange={() => {}}
+            onSpkStatusChange={() => {}}
+            onSpkDeviceChange={onSpkDeviceChange}
+            onMicDeviceChange={onMicDeviceChange}
+          />
         </div>
 
-        {/* 用户摄像头展示区域 */}
-        <LocalCameraPreview
-          stage={stage}
-          onHeadphoneConfirm={onHeadphoneConfirm}
-          onStatusChange={onCameraStatusChange}
-          deviceId={camActiveDeviceId}
-          speakerDeviceId={currentSpkDeviceId}
-          micDeviceId={currentMicDeviceId}
-          onCameraDeviceResolved={onCameraDeviceResolved}
-          onCameraConfirmed={onCameraConfirmed}
-          onMicConfirmed={onMicConfirmed}
-          disableCameraConfirm={cameraStatus === DeviceTestStatus.Failed}
-          preparationStep={preparationStep}
-          audioConfirmed={audioConfirmed}
-          onReplayAudio={handleReplayAudio}
-          onHasIssueChange={setHasIssue}
-          playTestAudioSignal={playSignal}
-          retakeMicSignal={retakeSignal}
-          onMicRecordComplete={() => setMicRecorded(true)}
-          onTestAudioPlayingChange={setIsTestAudioPlaying}
-          onMicRecordingChange={setIsMicRecording}
-        />
-
-        {/* 三个设备选择 + 状态 */}
-        <DeviceSelectorsRow
-          camActiveDeviceId={camActiveDeviceId}
-          camDevices={camDevices}
-          onCamChange={onCamChange}
-          cameraStatus={cameraStatus}
-          micStatus={micStatus}
-          spkStatus={spkStatus}
-          onMicStatusChange={() => {}}
-          onSpkStatusChange={() => {}}
-          onSpkDeviceChange={onSpkDeviceChange}
-          onMicDeviceChange={onMicDeviceChange}
-        />
-      </div>
-
-      {/* 右：操作区域（桌面端） */}
-      <div className='hidden flex-col justify-center p-6 md:sticky md:col-span-5 md:flex'>
-        <div className='lg:my-36'>
+        {/* 右：操作区域（桌面端） 1/3 */}
+        <div className='flex flex-[1_0_0] flex-col gap-4'>
           {/* 音频步骤的按钮组 */}
           {preparationStep === 'audio' || preparationStep === 'audioQuality' ? (
             renderTwoActionButtonsDesktop()
           ) : (
             <Button
-              className={buttonConfig.className}
+              className={`${buttonConfig.className} px-7 py-3 text-[15px] font-medium`}
               disabled={buttonConfig.disabled || pendingConnect}
               onClick={() => {
                 if (preparationStep === 'final') setPendingConnect(true)
@@ -379,8 +385,8 @@ function DesktopViewModeInterviewPrepare({
               {pendingConnect ? '面试间连接中...' : buttonConfig.text}
             </Button>
           )}
-          <p className='text-muted-foreground mt-4 text-xs'>
-            请在安静、独立的空间进行本次AI面试，确保评估效果最佳
+          <p className='text-muted-foreground text-[12px] leading-relaxed'>
+            请在安静、独立的空间进行本次AI面试，确保评估效果最佳。
           </p>
         </div>
       </div>
