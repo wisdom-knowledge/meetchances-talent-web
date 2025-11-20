@@ -811,36 +811,114 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
         )}
 
         {/* ViewMode.InterviewPendingReview
-            AI 面试已完成，处于“已完成待审核”(20) 状态：
+            AI 面试已完成，处于"已完成待审核"(20) 状态：
             - 展示审核中提示与说明
-            - 可提供“重新面试”“寻求帮助”等操作入口
+            - 可提供"重新面试""退出"等操作入口
         */}
         {viewMode === ViewMode.InterviewPendingReview && (
-          <div className='flex-1 grid grid-cols-1 gap-8 lg:grid-cols-12'>
-            <div className='lg:col-span-12 flex flex-col items-center justify-center py-24'>
-              <div className='w-36 rounded-2xl flex items-center justify-center mb-6'>
-                <img src={searchPng} alt='' className='' />
-              </div>
-              <h2 className='text-2xl font-bold tracking-tight mb-2'>审核中</h2>
-              <p className='text-muted-foreground text-center max-w-[560px]'>
-                感谢您完成面试，我们正在审核您的材料，请等待通知
-              </p>
-              <div className='flex items-center justify-center mt-5'>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="none">
-                  <path d="M5.83333 16.6667H9.16667C9.16667 17.5833 8.41667 18.3333 7.5 18.3333C6.58333 18.3333 5.83333 17.5833 5.83333 16.6667ZM4.16667 15.8333H10.8333V14.1667H4.16667V15.8333ZM13.75 7.91667C13.75 11.1 11.5333 12.8 10.6083 13.3333H4.39167C3.46667 12.8 1.25 11.1 1.25 7.91667C1.25 4.46667 4.05 1.66667 7.5 1.66667C10.95 1.66667 13.75 4.46667 13.75 7.91667ZM12.0833 7.91667C12.0833 5.39167 10.025 3.33333 7.5 3.33333C4.975 3.33333 2.91667 5.39167 2.91667 7.91667C2.91667 9.975 4.15833 11.1583 4.875 11.6667H10.125C10.8417 11.1583 12.0833 9.975 12.0833 7.91667ZM17.8083 6.14167L16.6667 6.66667L17.8083 7.19167L18.3333 8.33333L18.8583 7.19167L20 6.66667L18.8583 6.14167L18.3333 5L17.8083 6.14167ZM15.8333 5L16.6167 3.28333L18.3333 2.5L16.6167 1.71667L15.8333 0L15.05 1.71667L13.3333 2.5L15.05 3.28333L15.8333 5Z" fill="#4E02E4"/>
-                </svg>
-                <span className='ml-1 text-primary text-sm'>您可以离开当前页面啦</span>
-              </div>
-              {interviewNodeStatus === JobApplyNodeStatus.CompletedPendingReview && (
-                <div className='flex gap-4 items-center justify-center'>
-                  <div className='my-8'>
-                    <Button onClick={() => setReinterviewOpen(true)}>重新面试</Button>
+          <div className='flex-1 flex items-center justify-center min-h-[calc(100vh-200px)]'>
+            <div className='flex flex-col lg:flex-row items-center justify-center gap-16 max-w-6xl mx-auto px-8'>
+              {/* 左侧内容 */}
+              <div className='flex flex-col items-start max-w-md'>
+                <h2 className='text-[32px] font-semibold tracking-tight mb-6 text-foreground'>审核中...</h2>
+                <p className='text-foreground text-base leading-relaxed mb-6'>
+                  感谢您完成面试，我们正在审核您的材料，<br />
+                  预计48小时内通过以下方式向你反馈通知：
+                </p>
+                
+                {/* 通知方式图标 */}
+                <div className='flex items-center gap-6 mb-6'>
+                  <div className='flex flex-col items-center gap-2'>
+                    <div className='w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center'>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z" fill="#4E02E4"/>
+                      </svg>
+                    </div>
+                    <span className='text-xs text-foreground'>短信</span>
                   </div>
-                  <div className='my-8'>
-                    <Button variant='outline' onClick={() => navigate({ to: '/home' })}>回到首页</Button>
+                  <div className='flex flex-col items-center gap-2'>
+                    <div className='w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center'>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C10.9 22 10 21.1 10 20H14C14 21.1 13.1 22 12 22ZM18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="#4E02E4"/>
+                      </svg>
+                    </div>
+                    <span className='text-xs text-foreground'>站内通知</span>
+                  </div>
+                  <div className='flex flex-col items-center gap-2'>
+                    <div className='w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center'>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z" fill="#4E02E4"/>
+                      </svg>
+                    </div>
+                    <span className='text-xs text-foreground'>飞书消息</span>
                   </div>
                 </div>
-              )}
+
+                {/* 提示信息 */}
+                <div className='flex items-center gap-2 mb-8'>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="8" cy="8" r="6" fill="#4E02E4"/>
+                  </svg>
+                  <span className='text-sm text-primary font-medium'>请注意查看通知</span>
+                </div>
+
+                {/* 按钮 */}
+                {interviewNodeStatus === JobApplyNodeStatus.CompletedPendingReview && (
+                  <div className='flex gap-4'>
+                    <Button 
+                      onClick={() => navigate({ to: '/home' })}
+                      className='bg-primary hover:bg-primary/90 text-white px-8'
+                    >
+                      退出
+                    </Button>
+                    <Button 
+                      variant='outline' 
+                      onClick={() => setReinterviewOpen(true)}
+                      className='border-border hover:bg-accent px-6'
+                    >
+                      重新面试
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* 右侧插画 */}
+              <div className='hidden lg:block'>
+                <div className='w-[300px] h-[240px] flex items-center justify-center'>
+                  <svg width="300" height="240" viewBox="0 0 300 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g>
+                      {/* 海狸身体 */}
+                      <ellipse cx="180" cy="120" rx="60" ry="70" fill="#C994F7" opacity="0.9"/>
+                      {/* 海狸头部 */}
+                      <circle cx="180" cy="80" r="35" fill="#C994F7"/>
+                      {/* 耳朵 */}
+                      <ellipse cx="160" cy="60" rx="12" ry="18" fill="#C994F7"/>
+                      <ellipse cx="200" cy="60" rx="12" ry="18" fill="#C994F7"/>
+                      {/* 眼睛 */}
+                      <circle cx="170" cy="80" r="6" fill="white"/>
+                      <circle cx="190" cy="80" r="6" fill="white"/>
+                      <circle cx="172" cy="82" r="4" fill="#2D1B4E"/>
+                      <circle cx="192" cy="82" r="4" fill="#2D1B4E"/>
+                      {/* 鼻子和嘴 */}
+                      <circle cx="180" cy="92" r="3" fill="#2D1B4E"/>
+                      <path d="M175 95 Q180 98 185 95" stroke="#2D1B4E" strokeWidth="2" fill="none"/>
+                      {/* 胡须点 */}
+                      <circle cx="165" cy="88" r="2" fill="#2D1B4E"/>
+                      <circle cx="195" cy="88" r="2" fill="#2D1B4E"/>
+                      {/* 尾巴 */}
+                      <ellipse cx="220" cy="140" rx="25" ry="40" fill="#4E02E4" opacity="0.8"/>
+                      <path d="M215 120 L225 115 M218 130 L228 128 M220 140 L230 142" stroke="white" strokeWidth="2" opacity="0.6"/>
+                      {/* 电脑 */}
+                      <rect x="120" y="150" width="70" height="45" rx="3" fill="#5DD4F5"/>
+                      <rect x="125" y="155" width="60" height="35" fill="#3BA8C9"/>
+                      <circle cx="155" cy="172" r="3" fill="white" opacity="0.6"/>
+                      {/* 电脑底座 */}
+                      <rect x="145" y="195" width="20" height="3" fill="#5DD4F5"/>
+                      <rect x="140" y="198" width="30" height="2" fill="#5DD4F5"/>
+                    </g>
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         )}
