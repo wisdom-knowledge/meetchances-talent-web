@@ -64,6 +64,8 @@ export interface Talent extends TalentParams {
   // 推荐人信息
   referred_by_username?: string  // 推荐人用户名
   referred_by_phone?: string      // 推荐人手机号
+  // 是否可以被内推（用于判断是否显示内推绑定功能）
+  can_be_referred?: boolean
 }
 
 export interface InviteInfo {
