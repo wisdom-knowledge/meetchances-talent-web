@@ -29,7 +29,7 @@ import { confirmResume, useJobApplyWorkflow, postNodeAction, NodeActionTrigger, 
 import { useRoomStore } from '@/stores/interview/room'
 import { Steps } from '@/features/interview/components/steps'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
-import searchPng from '@/assets/images/search.png'
+// import searchPng from '@/assets/images/search.png'
 import { ViewModeJob } from '@/features/interview/components/view-mode-job'
 import { ViewModeInterviewPrepare } from '@/features/interview/components/view-mode-interview-prepare'
 import { InterviewPrepareNav } from '@/features/interview/components/interview-prepare-nav'
