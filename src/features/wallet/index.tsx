@@ -283,7 +283,7 @@ export default function WalletPage() {
         <div className='space-y-4'>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className='bg-muted text-muted-foreground inline-flex h-10 items-center justify-center rounded-md p-1'>
-              <TabsTrigger value='income'>收入</TabsTrigger>
+              <TabsTrigger value='income'>任务收入</TabsTrigger>
               <TabsTrigger value='referral-income'>内推收入</TabsTrigger>
               <TabsTrigger value='payment'>收款记录</TabsTrigger>
               <TabsTrigger value='method'>收款方式</TabsTrigger>
