@@ -11,6 +11,7 @@ import RecommendMeTab from '@/features/referral/components/recommend-me-tab'
 import ReferralListTab from '@/features/referral/components/referral-list-tab'
 import ShareBubble from '@/features/referral/components/share-bubble'
 import PosterGenerator from '@/features/referral/components/poster-generator'
+import ReferralFlowSection from '@/features/referral/components/referral-flow-section'
 import { ReferralTab, DEFAULT_REFERRAL_TAB } from '@/features/referral/constants'
 import { toast } from 'sonner'
 
@@ -110,6 +111,11 @@ export default function ReferralPage() {
             <TabsTrigger value={ReferralTab.LIST}>内推列表</TabsTrigger>
             <TabsTrigger value={ReferralTab.RECOMMEND_ME}>推荐我</TabsTrigger>
           </TabsList>
+
+          {/* 推荐流程 - 仅在内推列表 Tab 显示 */}
+          {activeTab === ReferralTab.LIST && (
+            <ReferralFlowSection />
+          )}
 
           <TabsContent value={ReferralTab.LIST} className='space-y-4'>
             <ReferralListTab isActive={activeTab === ReferralTab.LIST} />
