@@ -1,4 +1,7 @@
 import { cn } from '@/lib/utils'
+import step1Img from '@/features/referral/images/step1.png'
+import step2Img from '@/features/referral/images/step2.png'
+import step3Img from '@/features/referral/images/step3.png'
 
 interface ReferralFlowSectionProps {
   className?: string
@@ -10,16 +13,19 @@ const FLOW_STEPS = [
     title: '查看自己的推荐码',
     description: '您可以在岗位列表直接点击"内推"标签复制推荐码',
     subDescription: '也可以在岗位详情页复制邀请码',
+    image: step1Img,
   },
   {
     id: 2,
     title: '告诉您的朋友，让您的朋友在内推页面中，绑定内推码',
     description: '',
+    image: step2Img,
   },
   {
     id: 3,
     title: '辅导您的朋友，让他提交任务，结算后，您即可获得对应现金奖励，仅限对应岗位和新专家参与',
     description: '*详情可见内推详情规则',
+    image: step3Img,
   },
 ]
 
@@ -58,42 +64,13 @@ export default function ReferralFlowSection({ className }: ReferralFlowSectionPr
                   )}
                 </div>
 
-                {/* 插图占位区域 */}
-                <div className='flex min-h-[100px] items-center justify-center rounded-lg bg-white/50 p-4'>
-                  {/* 这里可以放置插图，目前用占位符 */}
-                  <div className='flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[#E0E7FF] to-[#DDD6FE]'>
-                    <svg
-                      className='h-10 w-10 text-[#4E02E4]'
-                      fill='none'
-                      viewBox='0 0 24 24'
-                      stroke='currentColor'
-                    >
-                      {step.id === 1 && (
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'
-                        />
-                      )}
-                      {step.id === 2 && (
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'
-                        />
-                      )}
-                      {step.id === 3 && (
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
-                        />
-                      )}
-                    </svg>
-                  </div>
+                {/* 插图区域 */}
+                <div className='flex min-h-[120px] items-center justify-center rounded-lg bg-white/50 p-3'>
+                  <img 
+                    src={step.image} 
+                    alt={step.title}
+                    className='h-auto w-full max-w-[200px] object-contain'
+                  />
                 </div>
 
                 {/* 说明文字 */}
