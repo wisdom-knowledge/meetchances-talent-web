@@ -310,10 +310,10 @@ export default function JobDetailContent({
 
           {isMock ? mockJobTitle : jobTitle}
 
-          {/* 申请进度 - 仅在非模拟职位且有 jobApplyId 时显示 */}
-          {!isMock && jobApplyId && (
+          {/* 申请进度 - 仅在非模拟职位时显示（jobApplyId 可以为 0，表示未申请但显示流程） */}
+          {!isMock && (
             <div className='mt-5'>
-              <JobProgressSection jobApplyId={jobApplyId} />
+              <JobProgressSection jobApplyId={jobApplyId} job={job} />
             </div>
           )}
 
