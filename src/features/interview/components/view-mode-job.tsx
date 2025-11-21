@@ -110,8 +110,7 @@ function DesktopViewModeJob({
           <Separator className='my-4' />
           {/* 发布者信息 */}
           {job && <PublisherSection job={job} />}
-          <Separator className='my-4' />
-          <div className='flex-1 min-h-0 text-foreground/90 leading-relaxed text-sm flex flex-col'>
+          <div className='flex-1 min-h-0 text-foreground/90 leading-relaxed text-sm flex flex-col mt-4'>
             {/* 限高 + 渐隐遮罩 */}
             <div className='relative flex-1 min-h-0 overflow-hidden'>
               <div 
