@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { getReferralList, type ReferralListItem, type ReferralListResponse } from '@/features/referral/api'
-import { PAGE_SIZE_OPTIONS, type PageSize } from '@/features/referral/constants'
+import { PAGE_SIZE_OPTIONS, type PageSize } from '@/features/wallet/constants'
 import { formatCurrency, formatDateTime } from '@/features/wallet/utils'
 
 interface Props {
@@ -28,16 +28,17 @@ function renderReferralStatusBadge(status: number) {
   }
 }
 
-export default function ReferralListTab({ isActive }: Props) {
+export default function ReferralIncomeTab({ isActive }: Props) {
   const [pageSize, setPageSize] = useState<PageSize>(PAGE_SIZE_OPTIONS[0])
   const [page, setPage] = useState(1)
 
-  const limit = Math.min(pageSize, 200)
+  const limit = Math.min(pageSize, 100)
   const skip = Math.max(0, (page - 1) * limit)
 
+  // 请求时添加 status = 'approved' 参数，只获取已批准的内推数据
   const { data, isLoading } = useQuery<ReferralListResponse>({
-    queryKey: ['referral-list', skip, limit],
-    queryFn: async () => getReferralList({ skip, limit }),
+    queryKey: ['referral-list-approved', skip, limit],
+    queryFn: async () => getReferralList({ skip, limit, status: 'approved' }),
     enabled: isActive,
   })
 
@@ -80,7 +81,7 @@ export default function ReferralListTab({ isActive }: Props) {
             ) : items.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className='text-muted-foreground h-24 text-center'>
-                  暂无数据
+                  暂无已批准的内推收入数据
                 </TableCell>
               </TableRow>
             ) : (
@@ -106,7 +107,7 @@ export default function ReferralListTab({ isActive }: Props) {
         </Table>
       </div>
       <div className='border-border flex flex-col gap-3 border-t p-4 md:flex-row md:items-center md:justify-between'>
-        <p className='text-muted-foreground text-sm'>共 {count} 条记录</p>
+        <p className='text-muted-foreground text-sm'>共 {count} 条已批准记录</p>
         <div className='flex flex-col gap-3 md:flex-row md:items-center'>
           {/* 移动端：select 单独一行 */}
           <div className='flex items-center gap-2'>
@@ -118,7 +119,7 @@ export default function ReferralListTab({ isActive }: Props) {
               <SelectContent side='top' align='end'>
                 {PAGE_SIZE_OPTIONS.map((option) => (
                   <SelectItem key={option} value={String(option)}>
-                    每页 {option} 条
+                    {option} 条
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -3,14 +3,19 @@ import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { fetchTalentMe } from '@/lib/api'
+import { getWalletDetails, type WalletDetailsResponse } from '@/features/wallet/api'
 import RecommendMeTab from '@/features/referral/components/recommend-me-tab'
+import ReferralListTab from '@/features/referral/components/referral-list-tab'
 import ShareBubble from '@/features/referral/components/share-bubble'
 import PosterGenerator from '@/features/referral/components/poster-generator'
+import { ReferralTab, DEFAULT_REFERRAL_TAB } from '@/features/referral/constants'
 import { toast } from 'sonner'
 
 export default function ReferralPage() {
+  const [activeTab, setActiveTab] = useState<string>(DEFAULT_REFERRAL_TAB)
   const [shouldGeneratePoster, setShouldGeneratePoster] = useState(false)
 
   // 获取当前用户信息
@@ -20,9 +25,15 @@ export default function ReferralPage() {
     staleTime: 5 * 60 * 1000,
   })
 
-  // 收入数据默认为 0，后续联调时再对接接口
-  const totalIncome = 0
-  const currentMonthIncome = 0
+  // 获取钱包数据，用于判断任务收入
+  const { data: walletDetails } = useQuery<WalletDetailsResponse>({
+    queryKey: ['wallet-details'],
+    queryFn: async () => getWalletDetails(),
+    staleTime: 30 * 1000,
+  })
+
+  // 从钱包数据中获取任务收入
+  const totalIncome = walletDetails?.wallet.refer_income ?? 0
 
   const handleGeneratePoster = () => {
     // 防止重复触发
@@ -65,7 +76,7 @@ export default function ReferralPage() {
         </div>
       </Header>
 
-      <Main fixed className='overflow-y-auto py-0 md:mx-16'>
+      <Main fixed className='overflow-y-auto py-0 pb-24 md:mx-16 md:pb-0'>
         {/* 标题和描述在一行 */}
         <div className='md:flex md:items-end md:gap-4'>
           <h1 className='text-xl font-bold tracking-tight md:text-2xl'>内推</h1>
@@ -83,17 +94,37 @@ export default function ReferralPage() {
         </div>
         <Separator className='my-4 lg:my-6' />
 
-        {/* 推荐我内容 */}
-        <div className='space-y-4'>
-          <RecommendMeTab isActive={true} />
-        </div>
+        {/* 分享区域 - 移动端显示在 Tab 上方，桌面端固定在右侧 */}
+        {Number(totalIncome) > 0 && (
+          <ShareBubble
+            totalIncome={Number(totalIncome)}
+            onGeneratePoster={handleGeneratePoster}
+            className='mb-6 md:mb-0'
+            mobileInline
+          />
+        )}
+
+        {/* Tab 切换 */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
+          <TabsList className='grid w-full max-w-md grid-cols-2'>
+            <TabsTrigger value={ReferralTab.LIST}>内推列表</TabsTrigger>
+            <TabsTrigger value={ReferralTab.RECOMMEND_ME}>推荐我</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value={ReferralTab.LIST} className='space-y-4'>
+            <ReferralListTab isActive={activeTab === ReferralTab.LIST} />
+          </TabsContent>
+
+          <TabsContent value={ReferralTab.RECOMMEND_ME} className='space-y-4'>
+            <RecommendMeTab isActive={activeTab === ReferralTab.RECOMMEND_ME} />
+          </TabsContent>
+        </Tabs>
 
       {/* 海报生成器（隐藏的canvas） */}
       {shouldGeneratePoster && currentUser?.referral_code && (
         <PosterGenerator
           data={{
             totalIncome,
-            currentMonthIncome,
             inviteCode: currentUser.referral_code,
             userName: currentUser.full_name,
           }}
@@ -101,14 +132,6 @@ export default function ReferralPage() {
         />
       )}
       </Main>
-
-      {/* 分享区域 - 固定定位在右侧，仅当任务收入大于 0 时显示 */}
-      {totalIncome > 0 && (
-        <ShareBubble
-          totalIncome={totalIncome}
-          onGeneratePoster={handleGeneratePoster}
-        />
-      )}
     </>
   )
 }

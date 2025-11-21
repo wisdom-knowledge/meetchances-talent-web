@@ -18,7 +18,7 @@ export default function IncomeTab({ isActive }: Props) {
   const [incomePage, setIncomePage] = useState(1)
   const [projectId, _setProjectId] = useState<string>('') // 筛选：项目ID
   const [expenseStatus, _setExpenseStatus] = useState<string>('all') // 费用状态
-  const [paymentStatus, _setPaymentStatus] = useState<string>('all') // 付款状态
+  const [paymentStatus, _setPaymentStatus] = useState<string>('all') // 收款状态
 
   const incomeLimit = Math.min(incomePageSize, 100)
   const incomeSkip = Math.max(0, (incomePage - 1) * incomeLimit)
@@ -115,7 +115,8 @@ export default function IncomeTab({ isActive }: Props) {
       </div>
       <div className='border-border flex flex-col gap-3 border-top border-t p-4 md:flex-row md:items-center md:justify-between'>
         <p className='text-muted-foreground text-sm'>共 {expenseCount} 条记录</p>
-        <div className='flex items-center gap-3'>
+        <div className='flex flex-col gap-3 md:flex-row md:items-center'>
+          {/* 移动端：select 单独一行 */}
           <div className='flex items-center gap-2'>
             <span className='text-muted-foreground text-sm'>每页显示</span>
             <Select value={String(incomePageSize)} onValueChange={handleIncomePageSizeChange}>
@@ -131,15 +132,18 @@ export default function IncomeTab({ isActive }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <Button variant='outline' size='sm' onClick={handleIncomePrev} disabled={currentIncomePage === 1}>
-            上一页
-          </Button>
-          <span className='text-muted-foreground text-sm'>
-            第 {currentIncomePage} 页 / 共 {incomeTotalPages} 页
-          </span>
-          <Button variant='outline' size='sm' onClick={handleIncomeNext} disabled={currentIncomePage === incomeTotalPages}>
-            下一页
-          </Button>
+          {/* 移动端：分页按钮单独一行 */}
+          <div className='flex items-center gap-3'>
+            <Button variant='outline' size='sm' onClick={handleIncomePrev} disabled={currentIncomePage === 1}>
+              上一页
+            </Button>
+            <span className='text-muted-foreground text-sm'>
+              第 {currentIncomePage} 页 / 共 {incomeTotalPages} 页
+            </span>
+            <Button variant='outline' size='sm' onClick={handleIncomeNext} disabled={currentIncomePage === incomeTotalPages}>
+              下一页
+            </Button>
+          </div>
         </div>
       </div>
     </Card>

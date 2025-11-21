@@ -23,6 +23,7 @@ import { fetchTalentMe } from '@/lib/api'
 import IncomeTab from '@/features/wallet/components/income-tab'
 import PaymentRecordsTab from '@/features/wallet/components/payment-records-tab'
 import PaymentMethodsTab from '@/features/wallet/components/payment-methods-tab'
+import ReferralIncomeTab from '@/features/wallet/components/referral-income-tab'
 // import RealNameTab from '@/features/wallet/components/realname-tab'
 import { formatCurrency } from '@/features/wallet/utils'
 import { detectRuntimeEnvSync } from '@/lib/env'
@@ -68,7 +69,7 @@ interface WalletDashboard {
 
 // 子组件各自处理分页与表单
 
-// 已移除本地 mock 列表，收入与付款记录由子组件各自请求
+// 已移除本地 mock 列表，收入与收款记录由子组件各自请求
 
 const fetchWalletDashboard = async (): Promise<WalletDashboard> => {
   const isBound = false
@@ -151,7 +152,9 @@ export default function WalletPage() {
       staleTime: 30 * 1000,
     })
   const availableBalance = walletDetails?.wallet.available_balance ?? 0
-  const taskIncomeTotal = walletDetails?.wallet.total_income ?? 0
+  const taskIncomeTotal = walletDetails?.wallet.task_income ?? 0
+  const referIncomeTotal = walletDetails?.wallet.refer_income ?? 0
+  const currentMonthIncome = walletDetails?.wallet.current_month_income ?? 0
 
   const handleBindClick = () => {
     const env = detectRuntimeEnvSync()
@@ -196,7 +199,7 @@ export default function WalletPage() {
         </div>
       </Header>
 
-      <Main fixed className='overflow-y-auto py-0 md:mx-16'>
+      <Main fixed className='overflow-y-auto py-0 pb-24 md:mx-16 md:pb-0'>
         <TitleBar title='钱包' back separator />
 
         <div className='mb-6 flex flex-col gap-4 sm:flex-row sm:items-stretch'>
@@ -212,7 +215,7 @@ export default function WalletPage() {
                 {isWalletLoading
                   ? '加载中…'
                   : walletDetails?.wallet.current_month_income !== undefined
-                  ? `${formatCurrency(walletDetails.wallet.current_month_income)} 本月收入`
+                  ? `${formatCurrency(currentMonthIncome)} 本月收入`
                   : '-'}
               </p>
             </div>
@@ -224,10 +227,7 @@ export default function WalletPage() {
                 内推收入（税前）
               </h3>
               <p className='text-foreground text-3xl font-semibold'>
-                {formatCurrency(0)}
-              </p>
-              <p className='text-muted-foreground text-sm'>
-                {formatCurrency(0)} 本月收入
+                {isWalletLoading ? '加载中…' : formatCurrency(referIncomeTotal)}
               </p>
             </div>
           </div>
@@ -250,13 +250,13 @@ export default function WalletPage() {
           <div className='flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between'>
             {isLoading ? (
               <p className='text-muted-foreground text-sm'>
-                正在加载付款方式绑定信息…
+                正在加载收款方式绑定信息…
               </p>
             ) : !isWeChatBound ? (
               <div className='text-muted-foreground space-y-1 text-sm'>
-                <p>您还没绑定付款方式，为顺利支付，请先绑定</p>
+                <p>您还没绑定收款方式，为顺利支付，请先绑定</p>
               </div>
-            ) : availableBalance > 10000 ? (
+            ) : Number(availableBalance) > 10000 ? (
               <div className='text-muted-foreground space-y-1 text-sm'>
                 <p>如需大额提现，请点击「需求帮助」联系客服</p>
               </div>
@@ -272,7 +272,7 @@ export default function WalletPage() {
                 <Button size='sm' onClick={handleBindClick}>
                   绑定
                 </Button>
-              ) : availableBalance > 10000 ? null : (
+              ) : Number(availableBalance) > 10000 ? null : (
                 <Button size='sm' onClick={handleWithdrawClick}>
                   提现
                 </Button>
@@ -284,14 +284,19 @@ export default function WalletPage() {
         <div className='space-y-4'>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className='bg-muted text-muted-foreground inline-flex h-10 items-center justify-center rounded-md p-1'>
-              <TabsTrigger value='income'>收入</TabsTrigger>
-              <TabsTrigger value='payment'>付款记录</TabsTrigger>
-              <TabsTrigger value='method'>付款方式</TabsTrigger>
+              <TabsTrigger value='income'>任务收入</TabsTrigger>
+              <TabsTrigger value='referral-income'>内推收入</TabsTrigger>
+              <TabsTrigger value='payment'>收款记录</TabsTrigger>
+              <TabsTrigger value='method'>收款方式</TabsTrigger>
               {/* <TabsTrigger value='realname'>实名认证</TabsTrigger> */}
             </TabsList>
 
             <TabsContent value='income' className='space-y-4'>
               <IncomeTab isActive={activeTab === 'income'} />
+            </TabsContent>
+
+            <TabsContent value='referral-income' className='space-y-4'>
+              <ReferralIncomeTab isActive={activeTab === 'referral-income'} />
             </TabsContent>
 
             <TabsContent value='payment' className='space-y-4'>
@@ -318,7 +323,7 @@ export default function WalletPage() {
       <Dialog open={bindingDialogOpen} onOpenChange={setBindingDialogOpen}>
         <DialogContent className='sm:max-w-md'>
           <DialogHeader>
-            <DialogTitle>绑定付款方式</DialogTitle>
+            <DialogTitle>绑定收款方式</DialogTitle>
             <DialogDescription>
               扫描下方小程序二维码，完成微信支付绑定后即可接收千识任务收入款项。
             </DialogDescription>

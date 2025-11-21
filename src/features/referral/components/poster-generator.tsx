@@ -4,7 +4,6 @@ import posterBg from '@/features/referral/images/poster.jpg'
 
 interface PosterData {
   totalIncome: number
-  currentMonthIncome: number
   inviteCode: string
   userName?: string
 }
@@ -61,7 +60,7 @@ export default function PosterGenerator({ data, onGenerated }: PosterGeneratorPr
       const scale = canvas.width / 750
 
       // 绘制收益金额 (稍微加粗，"元"字更小，底对齐)
-      const incomeYuan = (data.totalIncome / 100).toFixed(0)
+      const incomeYuan = Number(data.totalIncome).toFixed(0)
       const numberPart = `+${incomeYuan}`
       
       // 设置数字部分字体并测量宽度
