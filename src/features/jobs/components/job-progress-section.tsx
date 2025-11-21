@@ -138,8 +138,8 @@ export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps)
     return nodes.map((node, index) => ({
       id: index,
       node_name: nodeNameMap[node.name] || nodeNameMap[node.type] || node.name || '未知节点',
-      // 第一个节点为"进行中"状态，其他节点为"未开始"
-      node_status: index === 0 ? JobApplyNodeStatus.InProgress : JobApplyNodeStatus.NotStarted,
+      // 所有节点都是"未开始"状态（置灰）
+      node_status: JobApplyNodeStatus.NotStarted,
     }))
   }, [jobApplyId, job])
 
@@ -171,8 +171,16 @@ export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps)
       >
         <span className='text-base font-semibold text-foreground'>申请进度</span>
         <div className='flex items-center gap-1 text-sm'>
-          <span className='text-foreground'>已完成</span>
-          <span className='font-semibold text-primary'>
+          {/* 当 jobApplyId 为 0 时显示"未完成"，否则显示"已完成" */}
+          <span className={cn(
+            jobApplyId === 0 || jobApplyId === '0' ? 'text-muted-foreground' : 'text-foreground'
+          )}>
+            {jobApplyId === 0 || jobApplyId === '0' ? '未完成' : '已完成'}
+          </span>
+          <span className={cn(
+            'font-semibold',
+            jobApplyId === 0 || jobApplyId === '0' ? 'text-muted-foreground' : 'text-primary'
+          )}>
             {completedCount}/{totalCount}
           </span>
           {isExpanded ? (
