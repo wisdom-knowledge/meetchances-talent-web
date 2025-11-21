@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { IconChevronDown, IconChevronUp } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
+import type { ApiJob } from '@/features/jobs/api'
 
 interface JobProgressSectionProps {
   jobApplyId: string | number | null
+  job?: ApiJob | null
 }
 
 type VisualStepStatus = 'completed' | 'inProgress' | 'notStarted'
@@ -107,15 +109,54 @@ function mapNodeStatusToVisual(status: JobApplyNodeStatus): VisualStepStatus {
   }
 }
 
-export function JobProgressSection({ jobApplyId }: JobProgressSectionProps) {
+export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps) {
   const [isExpanded, setIsExpanded] = useState(true)
-  const { data, isLoading } = useJobApplyProgress(jobApplyId, Boolean(jobApplyId))
+  
+  // 只有当 jobApplyId 不为 0 时才调用进度接口
+  const shouldFetchProgress = Boolean(jobApplyId) && jobApplyId !== 0 && jobApplyId !== '0'
+  const { data, isLoading } = useJobApplyProgress(jobApplyId, shouldFetchProgress)
 
-  if (!jobApplyId) return null
+  // 当 jobApplyId 为 0 时，从 job 的 workflow_template 中获取节点信息
+  const templateNodes = useMemo(() => {
+    if (jobApplyId !== 0 && jobApplyId !== '0') return null
+    
+    const workflowTemplate = job?.workflow_template
+    if (!workflowTemplate?.template_def) return null
+    
+    const templateDef = workflowTemplate.template_def as { nodes?: Array<{ name: string; type: string; index?: number }> }
+    const nodes = templateDef.nodes || []
+    
+    // 节点名称映射
+    const nodeNameMap: Record<string, string> = {
+      'ResumeCheck': '简历分析',
+      'Interview': 'AI 面试',
+      'AnnotateTest': '测试任务',
+      'Survey': '问卷收集',
+      'EDUCATION_VERIFY': '学历验证',
+    }
+    
+    return nodes.map((node, index) => ({
+      id: index,
+      node_name: nodeNameMap[node.name] || nodeNameMap[node.type] || node.name || '未知节点',
+      // 第一个节点为"进行中"状态，其他节点为"未开始"
+      node_status: index === 0 ? JobApplyNodeStatus.InProgress : JobApplyNodeStatus.NotStarted,
+    }))
+  }, [jobApplyId, job])
 
-  const steps = data?.nodes ?? []
+  // 使用模板节点或实际进度节点
+  const steps = templateNodes || data?.nodes || []
   const completedCount = steps.filter((node) => node.node_status === JobApplyNodeStatus.Approved).length
   const totalCount = steps.length
+
+  // 如果 jobApplyId 为 null/undefined（但 0 是有效值），或者没有任何节点数据，不显示组件
+  if (jobApplyId === null || jobApplyId === undefined) {
+    return null
+  }
+  
+  // 如果不在加载中，且既没有模板节点也没有实际数据，不显示组件
+  if (!isLoading && !templateNodes && totalCount === 0) {
+    return null
+  }
 
   return (
     <div className='border-b border-gray-200 pb-5'>
@@ -123,7 +164,10 @@ export function JobProgressSection({ jobApplyId }: JobProgressSectionProps) {
       <button
         type='button'
         onClick={() => setIsExpanded(!isExpanded)}
-        className='flex w-full items-center justify-between py-4 text-left'
+        className={cn(
+          'flex w-full items-center justify-between text-left',
+          isExpanded && 'mb-3'
+        )}
       >
         <span className='text-base font-semibold text-foreground'>申请进度</span>
         <div className='flex items-center gap-1 text-sm'>
