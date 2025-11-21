@@ -14,76 +14,148 @@ const FLOW_STEPS = [
     description: '您可以在岗位列表直接点击"内推"标签复制推荐码',
     subDescription: '也可以在岗位详情页复制邀请码',
     image: step1Img,
+    imageAspect: 781 / 224, // 3.49:1
   },
   {
     id: 2,
     title: '告诉您的朋友，让您的朋友在内推页面中，绑定内推码',
     description: '',
     image: step2Img,
+    imageAspect: 746 / 304, // 2.45:1
   },
   {
     id: 3,
-    title: '辅导您的朋友，让他提交任务，结算后，您即可获得对应现金奖励，仅限对应岗位和新专家参与',
-    description: '*详情可见内推详情规则',
+    title: '辅导您的朋友，让他提交任务，结算后，您即可获得对应现金奖励，仅限对应岗位和',
+    description: '',
     image: step3Img,
+    imageAspect: 536 / 261, // 2.05:1
   },
 ]
 
 export default function ReferralFlowSection({ className }: ReferralFlowSectionProps) {
   return (
-    <div className={cn('rounded-lg border border-[#E0E7FF] bg-gradient-to-r from-[#F5F3FF] via-white to-[#FAF5FF] p-6 md:p-8', className)}>
-      <div className='grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8'>
-        {FLOW_STEPS.map((step, index) => {
-          const isLast = index === FLOW_STEPS.length - 1
-
+    <div className={cn('overflow-hidden', className)}>
+      <div className='relative flex flex-col gap-6 md:flex-row md:gap-8'>
+        {FLOW_STEPS.map((step) => {
           return (
-            <div key={step.id} className='relative flex flex-col'>
-              {/* 斜线分隔符（桌面端） */}
-              {!isLast && (
-                <div className='absolute -right-4 top-1/2 hidden h-[80%] w-[1px] -translate-y-1/2 rotate-12 bg-gradient-to-b from-transparent via-[#C4B5FD] to-transparent md:block' />
-              )}
+            <div key={step.id} className='relative flex-1'>
+              {/* 背景卡片 */}
+              <div className='relative h-full p-6'>
+                <div className='flex h-full flex-col'>
+                  {/* 标题区域 */}
+                  <div className='mb-4 flex items-start gap-2'>
+                    {/* 圆形编号 */}
+                    <div className='flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#4E02E4] text-sm font-bold text-white'>
+                      {step.id}
+                    </div>
 
-              <div className='flex flex-col space-y-3'>
-                {/* 标题区域 */}
-                <div className='flex items-start gap-3'>
-                  {/* 圆形编号 */}
-                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4E02E4] to-[#8B5CF6] text-sm font-bold text-white shadow-md'>
-                    {step.id}
+                    {/* 标题文字 */}
+                    <h3 className='flex-1 pt-0.5 text-base font-medium leading-tight text-gray-900'>
+                      {step.title}
+                      {step.id === 3 && (
+                        <>
+                          <span className='text-[#4E02E4]'>新专家</span>
+                          <span>参与</span>
+                        </>
+                      )}
+                    </h3>
                   </div>
 
-                  {/* 标题文字 */}
-                  <h3 className='flex-1 pt-1 text-sm font-semibold leading-tight text-gray-900'>
-                    {step.title}
-                  </h3>
-
-                  {/* Auto 标签（仅第2和第3步显示） */}
-                  {step.id !== 1 && (
-                    <div className='flex-shrink-0 rounded bg-[#4E02E4] px-2 py-0.5 text-xs font-medium text-white'>
-                      Auto
+                  {/* 步骤3特殊布局：图片和文案左右排列 */}
+                  {step.id === 3 ? (
+                    <div className='flex flex-1 items-end gap-4'>
+                      {/* 左侧图片 */}
+                      <div className='flex-1'>
+                        <div 
+                          className='relative w-full'
+                          style={{ 
+                            maxWidth: '100%',
+                            aspectRatio: step.imageAspect.toString()
+                          }}
+                        >
+                          <img 
+                            src={step.image} 
+                            alt={step.title}
+                            className='h-auto w-full object-contain'
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* 右下角文案 */}
+                      <div className='flex flex-shrink-0 flex-col items-end pb-1'>
+                        <p 
+                          className='text-sm leading-[150%] tracking-[0.28px] text-[rgba(0,0,0,0.70)]'
+                          style={{ fontFamily: 'PingFang SC' }}
+                        >
+                          *详情可见
+                        </p>
+                        <a 
+                          href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          className='text-sm leading-[150%] tracking-[0.28px] text-[#4E02E4] underline decoration-solid'
+                          style={{ fontFamily: 'PingFang SC' }}
+                        >
+                          内推详情规则
+                        </a>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  ) : (
+                    <>
+                      {/* 插图区域 */}
+                      <div className='mb-4 flex flex-1 items-center justify-center'>
+                        <div 
+                          className='relative w-full'
+                          style={{ 
+                            maxWidth: '100%',
+                            aspectRatio: step.imageAspect.toString()
+                          }}
+                        >
+                          <img 
+                            src={step.image} 
+                            alt={step.title}
+                            className='h-auto w-full object-contain'
+                          />
+                        </div>
+                      </div>
 
-                {/* 插图区域 */}
-                <div className='flex min-h-[120px] items-center justify-center rounded-lg bg-white/50 p-3'>
-                  <img 
-                    src={step.image} 
-                    alt={step.title}
-                    className='h-auto w-full max-w-[200px] object-contain'
-                  />
-                </div>
-
-                {/* 说明文字 */}
-                <div className='space-y-1'>
-                  {step.description && (
-                    <p className='text-xs leading-relaxed text-gray-600'>
-                      {step.description}
-                    </p>
-                  )}
-                  {step.subDescription && (
-                    <p className='text-xs leading-relaxed text-gray-500'>
-                      {step.subDescription}
-                    </p>
+                      {/* 说明文字 */}
+                      <div>
+                        {step.id === 1 ? (
+                          <div className='flex gap-4'>
+                            {step.description && (
+                              <p 
+                                className='flex-1 text-sm leading-[150%] tracking-[0.28px] text-[rgba(0,0,0,0.70)]'
+                                style={{ fontFamily: 'PingFang SC' }}
+                              >
+                                {step.description}
+                              </p>
+                            )}
+                            {step.subDescription && (
+                              <p 
+                                className='flex-1 text-sm leading-[150%] tracking-[0.28px] text-[rgba(0,0,0,0.70)]'
+                                style={{ fontFamily: 'PingFang SC' }}
+                              >
+                                {step.subDescription}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className='space-y-1'>
+                            {step.description && (
+                              <p className='text-sm leading-[150%] text-gray-700'>
+                                {step.description}
+                              </p>
+                            )}
+                            {step.subDescription && (
+                              <p className='text-sm leading-[150%] text-gray-600'>
+                                {step.subDescription}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
