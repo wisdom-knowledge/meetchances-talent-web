@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { getReferralList, type ReferralListItem, type ReferralListResponse } from '@/features/referral/api'
 import { PAGE_SIZE_OPTIONS, type PageSize } from '@/features/referral/constants'
 import { formatCurrency, formatDateTime } from '@/features/wallet/utils'
+import ReferralFlowSection from './referral-flow-section'
 
 interface Props {
   isActive: boolean
@@ -56,7 +57,9 @@ export default function ReferralListTab({ isActive }: Props) {
   const handleNext = () => setPage((prev) => Math.min(totalPages, prev + 1))
 
   return (
-    <Card className='overflow-hidden border border-gray-200'>
+    <div className='space-y-6'>
+      {/* 内推列表 */}
+      <Card className='overflow-hidden border border-gray-200'>
       <div className='w-full overflow-x-auto px-4'>
         <Table>
           <TableHeader>
@@ -143,7 +146,11 @@ export default function ReferralListTab({ isActive }: Props) {
           </div>
         </div>
       </div>
-    </Card>
+      </Card>
+
+      {/* 推荐流程 */}
+      <ReferralFlowSection />
+    </div>
   )
 }
 
