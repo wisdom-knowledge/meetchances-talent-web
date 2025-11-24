@@ -226,7 +226,7 @@ export default function RecommendMeTab({ isActive }: Props) {
             disabled={!codeInfo || bindMutation.isPending || isValidating}
             className='w-full'
           >
-            {bindMutation.isPending ? '绑定中...' : '确认绑定内推码'}
+            {bindMutation.isPending ? '绑定中...' : '确认绑定邀请码'}
           </Button>
         </div>
       </CardContent>

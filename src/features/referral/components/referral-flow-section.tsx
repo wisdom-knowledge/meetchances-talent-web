@@ -10,15 +10,15 @@ interface ReferralFlowSectionProps {
 const FLOW_STEPS = [
   {
     id: 1,
-    title: '查看自己的推荐码',
-    description: '您可以在岗位列表直接点击"内推"标签复制推荐码',
+    title: '查看自己的邀请码',
+    description: '您可以在岗位列表直接点击"内推"标签复制邀请码',
     subDescription: '也可以在岗位详情页复制邀请码',
     image: step1Img,
     imageAspect: 781 / 224, // 3.49:1
   },
   {
     id: 2,
-    title: '告诉您的朋友，让您的朋友在内推页面中，绑定内推码',
+    title: '告诉您的朋友，让您的朋友在内推页面中，绑定邀请码',
     description: '',
     image: step2Img,
     imageAspect: 746 / 304, // 2.45:1

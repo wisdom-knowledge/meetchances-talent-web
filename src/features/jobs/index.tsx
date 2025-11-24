@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { mapCurrentNodeStatusToPill } from '@/utils/apply-pill'
 import moneySvg from '@/assets/images/money.svg'
 import giftSvg from './images/gift.svg'
+import arrowSvg from './images/arrow.svg'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
@@ -411,7 +412,7 @@ export default function JobsListPage() {
                                   handleSelectJob(job)
                               }}
                               className={
-                                'hover:bg-accent w-full cursor-pointer rounded-md border p-4 text-left transition-colors ' +
+                                'group hover:bg-accent w-full cursor-pointer rounded-md border p-4 text-left transition-colors ' +
                                 (isActive
                                   ? 'border-primary ring-primary/30'
                                   : 'border-border')
@@ -427,19 +428,6 @@ export default function JobsListPage() {
                                 </p>
                               </div>
                               <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
-                                {(() => {
-                                  const statusItem = applyStatusMap?.[String(job.id)]
-                                  if (!statusItem || statusItem.job_apply_status !== JobApplyStatus.Applied) return null
-                                  const pill = mapCurrentNodeStatusToPill(statusItem.current_node_status, statusItem.progress, statusItem.total_step)
-                                  return (
-                                    <span className={
-                                      'inline-flex w-28 items-center justify-center py-1 gap-2 rounded-full leading-[1.6] tracking-[0.35px] text-xs ' +
-                                      pill.classes
-                                    }>
-                                      {pill.text}
-                                    </span>
-                                  )
-                                })()}
                                 {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
                                   <Badge
                                     variant='outline'
@@ -454,6 +442,19 @@ export default function JobsListPage() {
                                     内推奖 ¥{job.referral_bonus}
                                   </Badge>
                                 )}
+                                {(() => {
+                                  const statusItem = applyStatusMap?.[String(job.id)]
+                                  if (!statusItem || statusItem.job_apply_status !== JobApplyStatus.Applied) return null
+                                  const pill = mapCurrentNodeStatusToPill(statusItem.current_node_status, statusItem.progress, statusItem.total_step)
+                                  return (
+                                    <span className={
+                                      'inline-flex w-28 items-center justify-center py-1 gap-2 rounded-full leading-[1.6] tracking-[0.35px] text-xs ' +
+                                      pill.classes
+                                    }>
+                                      {pill.text}
+                                    </span>
+                                  )
+                                })()}
                                 <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal shrink-0'>
                                   <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   {job.salary_max && job.salary_max > 0 
@@ -528,7 +529,7 @@ export default function JobsListPage() {
                                 handleSelectJob(job)
                             }}
                             className={
-                              'hover:bg-accent w-full cursor-pointer rounded-md border p-4 text-left transition-colors ' +
+                              'group hover:bg-accent w-full cursor-pointer rounded-md border p-4 text-left transition-colors ' +
                               (isActive
                                 ? 'border-primary ring-primary/30'
                                 : 'border-border')
@@ -544,6 +545,26 @@ export default function JobsListPage() {
                                 </p>
                               </div>
                               <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
+                                {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
+                                  <>
+                                    <span className='hidden sm:flex items-center gap-1 text-xs text-black/20 opacity-0 group-hover:opacity-100 transition-opacity shrink-0'>
+                                      <img src={arrowSvg} alt='' className='h-6 w-6' aria-hidden='true' />
+                                      点击tag复制邀请码 发给朋友
+                                    </span>
+                                    <Badge
+                                      variant='outline'
+                                      className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
+                                      style={{ 
+                                        borderRadius: '16px',
+                                        background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)'
+                                      }}
+                                      onClick={(e) => handleReferralClick(job, e)}
+                                    >
+                                      <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
+                                      内推奖 ¥{job.referral_bonus}
+                                    </Badge>
+                                  </>
+                                )}
                                 {(() => {
                                   const statusItem = applyStatusMap?.[String(job.id)]
                                   if (!statusItem || statusItem.job_apply_status !== JobApplyStatus.Applied) return null
@@ -557,20 +578,6 @@ export default function JobsListPage() {
                                     </span>
                                   )
                                 })()}
-                                {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
-                                  <Badge
-                                    variant='outline'
-                                    className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
-                                    style={{ 
-                                      borderRadius: '16px',
-                                      background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)'
-                                    }}
-                                    onClick={(e) => handleReferralClick(job, e)}
-                                  >
-                                    <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
-                                    内推奖 ¥{job.referral_bonus}
-                                  </Badge>
-                                )}
                                 <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal shrink-0'>
                                   <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
                                   {job.salary_max && job.salary_max > 0 
