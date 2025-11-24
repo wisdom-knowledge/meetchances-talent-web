@@ -305,7 +305,7 @@ export default function JobDetailContent({
           isTwoColumn && 'grid grid-cols-1 gap-8 md:grid-cols-[1fr_320px]'
         )}
       >
-        <div className='max-h-[calc(100vh-80px)] flex flex-col'>
+        <div className={cn('flex flex-col', !isMobile && 'max-h-[calc(100vh-80px)]')}>
           {onBack && (isMock ? mockJobBack : jobBack)}
 
           {isMock ? mockJobTitle : jobTitle}
@@ -319,7 +319,7 @@ export default function JobDetailContent({
 
           <RichText
             content={job.description || '暂无描述'}
-            className={cn('mt-5 min-h-[100px] overflow-auto', isMobile && isMock ? '' : 'mb-8')}
+            className={cn('mt-5 min-h-[100px]', !isMobile && 'overflow-auto', isMobile && isMock ? '' : 'mb-8')}
           />
         </div>
         {isTwoColumn && !isMock && (
