@@ -76,9 +76,9 @@ function DesktopViewModeJob({
   }, [job?.description]) // 当职位描述变化时重新检查
 
   return (
-    <div className='flex flex-1 flex-row items-start justify-center w-full gap-6 overflow-hidden min-h-0'>
-      {/* 左：职位信息 flex-1 */}
-      <div className='flex-[1_0_0] space-y-3 flex flex-col h-full min-h-0 max-h-[calc(100vh-300px)] overflow-y-auto'>
+    <div className='flex flex-1 flex-row items-center w-full gap-4 lg:gap-6 max-w-screen-xl mx-auto overflow-hidden min-h-0 px-2 md:px-4'>
+      {/* 左：职位信息 - 占60%比例 */}
+      <div className='flex-[6] min-w-[400px] flex flex-col max-h-[650px] h-[650px]'>
         <div className='flex h-full flex-col min-h-0'>
           <div className='flex items-start justify-between gap-4'>
             <div className='min-w-0'>
@@ -107,15 +107,16 @@ function DesktopViewModeJob({
               </div>
             </div>
           )}
-          <Separator className='my-4' />
+          <Separator className='mt-2 mb-4' />
           {/* 发布者信息 */}
           {job && <PublisherSection job={job} />}
-          <div className='flex-1 min-h-0 text-foreground/90 leading-relaxed text-sm flex flex-col mt-4'>
-            {/* 限高 + 渐隐遮罩 */}
+          {/* 职位描述区域 */}
+          <div className='flex-1 min-h-0 text-foreground/90 leading-relaxed text-sm md:text-base flex flex-col overflow-hidden'>
+            {/* 滚动区域 + 渐隐遮罩 */}
             <div className='relative flex-1 min-h-0 overflow-hidden'>
               <div 
                 ref={contentRef}
-                className='h-full overflow-hidden'
+                className='h-full overflow-y-auto pr-2 py-4'
                 onScroll={handleScroll}
               >
                 {job?.description ? (
@@ -133,8 +134,8 @@ function DesktopViewModeJob({
             </div>
             {/* 查看更多按钮 - 只在内容超出时显示 */}
             {showMoreButton && (
-              <div className='mt-4 text-center'>
-                <Button variant='outline' onClick={onDrawerOpen}>
+              <div className='pt-2 pb-2 text-center shrink-0'>
+                <Button variant='outline' size='sm' onClick={onDrawerOpen}>
                   查看更多
                 </Button>
               </div>
@@ -143,28 +144,28 @@ function DesktopViewModeJob({
         </div>
       </div>
 
-      {/* 右：上传简历 固定宽度 */}
-      <div className='w-[554px] shrink-0 flex flex-col gap-6 mt-[95px]'>
-        <div className='flex flex-col gap-6'>
+      {/* 右：上传简历 - 占40%比例 */}
+      <div className='flex-[4] min-w-[320px] max-w-[500px] flex flex-col max-h-[650px] h-[650px] justify-center'>
+        <div className='relative my-8 w-full'>
           <UploadArea
-            className='h-[346px] border border-border rounded-xl'
+            className='my-4'
             uploader={uploadTalentResume}
             onUploadingChange={onUploadingChange}
             onUploadComplete={onUploadComplete}
           >
             {resumeValues && !uploadingResume && (
-              <div className='mb-4 flex items-center justify-between gap-6 rounded-md border p-5'>
-                <div className='text-base text-left flex-1'>
-                  <div className='font-medium mb-2'>姓名：{resumeValues.name || '—'}</div>
-                  <div className='text-muted-foreground'>电话：{resumeValues.phone || '—'}</div>
+              <div className='mb-4 flex items-center justify-between rounded-md border p-3'>
+                <div className='text-sm text-left'>
+                  <div className='font-medium'>姓名：{resumeValues.name || '—'}</div>
+                  <div className='text-muted-foreground mt-1'>电话：{resumeValues.phone || '—'}</div>
                 </div>
                 <Button
+                  size='sm'
                   variant='outline'
                   onClick={(e) => {
                     e.stopPropagation()
                     onResumeOpen()
                   }}
-                  className='shrink-0'
                 >
                   点击查看
                 </Button>
@@ -184,31 +185,33 @@ function DesktopViewModeJob({
             )}
           </UploadArea>
 
-          <Button
-            className={
-              !(uploadingResume || !resumeValues)
-                ? 'w-full bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)] h-11 text-base font-medium'
-                : 'w-full bg-[#C9C9C9] text-white h-11 text-base font-medium'
-            }
-            disabled={uploadingResume || !resumeValues}
-            onClick={onConfirmResumeClick}
-          >
-            {uploadingResume ? '正在分析简历…' : '确认简历，下一步'}
-          </Button>
-        </div>
-        {isMock && !resumeValues && (
-          <div className='inline-flex items-center gap-1.5 text-xs text-muted-foreground'>
-            <span>没有简历？</span>
-            <button
-              type='button'
-              onClick={onResumeOpen}
-              className='inline-flex items-center gap-1 text-primary hover:underline underline-offset-2'
+          <div className='my-4'>
+            <Button
+              className={
+                !(uploadingResume || !resumeValues)
+                  ? 'w-full bg-[linear-gradient(90deg,#4E02E4_10%,#C994F7_100%)]'
+                  : 'w-full bg-[#C9C9C9] text-white'
+              }
+              disabled={uploadingResume || !resumeValues}
+              onClick={onConfirmResumeClick}
             >
-              <IconEdit className='h-3.5 w-3.5' /> 手动填写
-            </button>
-            <span className='text-primary'>»</span>
+              {uploadingResume ? '正在分析简历…' : '确认简历，下一步'}
+            </Button>
+            {isMock && !resumeValues && (
+              <div className='mt-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground'>
+                <span>没有简历？</span>
+                <button
+                  type='button'
+                  onClick={onResumeOpen}
+                  className='inline-flex items-center gap-1 text-primary hover:underline underline-offset-2'
+                >
+                  <IconEdit className='h-3.5 w-3.5' /> 手动填写
+                </button>
+                <span className='text-primary'>»</span>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )
