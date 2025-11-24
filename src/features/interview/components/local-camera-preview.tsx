@@ -553,7 +553,7 @@ export function LocalCameraPreview({
   return (
     <div className={className} {...props}>
       <Card className='overflow-hidden py-0'>
-        <div className={cn('relative bg-black aspect-video w-full max-w-[720px] mx-auto')}>
+        <div className={cn('relative bg-black w-full aspect-video max-h-[calc(100vh-400px)] rounded-xl')}>
           <video
             ref={videoRef}
             playsInline

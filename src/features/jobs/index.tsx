@@ -630,6 +630,7 @@ export default function JobsListPage() {
               open ? setIsDrawerOpen(true) : handleCloseDrawer()
             }
             onBack={handleCloseDrawer}
+            jobApplyId={selectedJobId ? applyStatusMap?.[String(selectedJobId)]?.job_apply_id : null}
           />
         </div>
         </div>

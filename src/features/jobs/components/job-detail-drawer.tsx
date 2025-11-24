@@ -8,6 +8,7 @@ export interface JobDetailDrawerProps {
   onOpenChange: (open: boolean) => void
   onBack: () => void
   recommendName?: string
+  jobApplyId?: string | number | null
 }
 
 export default function JobDetailDrawer({
@@ -16,6 +17,7 @@ export default function JobDetailDrawer({
   onOpenChange,
   onBack,
   recommendName = '',
+  jobApplyId = null,
 }: JobDetailDrawerProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -26,6 +28,7 @@ export default function JobDetailDrawer({
             job={job}
             onBack={onBack}
             recommendName={recommendName}
+            jobApplyId={jobApplyId}
           />
         )}
       </SheetContent>

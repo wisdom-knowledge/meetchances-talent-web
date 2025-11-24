@@ -76,48 +76,47 @@ function DesktopViewModeJob({
   }, [job?.description]) // 当职位描述变化时重新检查
 
   return (
-    <div className='flex-1 flex flex-row items-stretch w-full justify-between max-w-screen-xl mx-auto overflow-hidden min-h-0'>
-      {/* 左：职位信息 */}
-      <div className='col-span-7 space-y-6 pl-3 flex flex-col h-full min-h-0 max-h-[600px] overflow-y-auto my-auto w-full'>
+    <div className='flex flex-1 flex-row items-center w-full gap-4 lg:gap-6 max-w-screen-xl mx-auto overflow-hidden min-h-0 px-2 md:px-4'>
+      {/* 左：职位信息 - 占60%比例 */}
+      <div className='flex-[6] min-w-[400px] flex flex-col max-h-[650px] h-[650px]'>
         <div className='flex h-full flex-col min-h-0'>
           <div className='flex items-start justify-between gap-4'>
             <div className='min-w-0'>
-              <div className='text-2xl font-bold mb-2 leading-tight truncate'>
+              <div className='text-2xl font-semibold leading-[1.5] tracking-[0.48px]'>
                 {job?.title ?? (isLoading ? '加载中…' : '未找到职位')}
               </div>
-              {!isMock && (
-                <div className='text-primary mb-2 flex items-center gap-4'>
-                  <div className='flex items-center'>
-                    <IconBriefcase className='mr-1 h-4 w-4' />
-                    <span className='text-[14px]'>{job ? `${salaryTypeMapping[job.salary_type as keyof typeof salaryTypeMapping] || '时'}薪制` : '时薪制'}</span>
-                  </div>
-                  <div className='flex items-center'>
-                    <IconWorldPin className='mr-1 h-4 w-4' />
-                    <span className='text-[14px]'>远程</span>
-                  </div>
-                </div>
-              )}
             </div>
-            {!isMock && (
-              <div className='hidden md:flex flex-col items-end min-w-[140px]'>
-                <div className='text-xl font-semibold text-foreground mb-1'>
-                  {job ? (job.salary_max && job.salary_max > 0 
-                    ? `¥${job.salary_min ?? 0}~¥${job.salary_max}` 
-                    : `¥${job.salary_min ?? 0}`) : '—'}
-                </div>
-                <div className='text-xs text-muted-foreground mb-3'>每{job ? salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时' : '小时'}</div>
-              </div>
-            )}
+            {/* 薪资显示移到了标题下方 */}
           </div>
-          <Separator className='mt-2' />
+          {!isMock && (
+            <div className='flex flex-col gap-2'>
+              <div className='text-sm font-semibold'>
+                {job ? (job.salary_max && job.salary_max > 0 
+                  ? `¥${job.salary_min ?? 0}~¥${job.salary_max}/小时` 
+                  : `¥${job.salary_min ?? 0}/小时`) : '—'}
+              </div>
+              <div className='flex items-center gap-4'>
+                <div className='flex items-center gap-1 text-primary'>
+                  <IconBriefcase className='h-5 w-5' />
+                  <span className='text-sm'>{job ? `${salaryTypeMapping[job.salary_type as keyof typeof salaryTypeMapping] || '时'}薪制` : '时薪制'}</span>
+                </div>
+                <div className='flex items-center gap-1 text-primary'>
+                  <IconWorldPin className='h-5 w-5' />
+                  <span className='text-sm'>远程</span>
+                </div>
+              </div>
+            </div>
+          )}
+          <Separator className='mt-2 mb-4' />
           {/* 发布者信息 */}
           {job && <PublisherSection job={job} />}
-          <div className='flex-1 min-h-0 text-foreground/90 leading-relaxed text-sm md:text-base py-4 flex flex-col'>
-            {/* 限高 + 渐隐遮罩 */}
+          {/* 职位描述区域 */}
+          <div className='flex-1 min-h-0 text-foreground/90 leading-relaxed text-sm md:text-base flex flex-col overflow-hidden'>
+            {/* 滚动区域 + 渐隐遮罩 */}
             <div className='relative flex-1 min-h-0 overflow-hidden'>
               <div 
                 ref={contentRef}
-                className='h-full overflow-hidden'
+                className='h-full overflow-y-auto pr-2 py-4'
                 onScroll={handleScroll}
               >
                 {job?.description ? (
@@ -135,8 +134,8 @@ function DesktopViewModeJob({
             </div>
             {/* 查看更多按钮 - 只在内容超出时显示 */}
             {showMoreButton && (
-              <div className='mt-4 text-center'>
-                <Button variant='outline' onClick={onDrawerOpen}>
+              <div className='pt-2 pb-2 text-center shrink-0'>
+                <Button variant='outline' size='sm' onClick={onDrawerOpen}>
                   查看更多
                 </Button>
               </div>
@@ -145,17 +144,17 @@ function DesktopViewModeJob({
         </div>
       </div>
 
-      {/* 右：上传简历 */}
-      <div className='col-span-5 flex flex-col h-full min-h-0 justify-center'>
-        <div className='p-4 relative my-8 pl-[36px]'>
+      {/* 右：上传简历 - 占40%比例 */}
+      <div className='flex-[4] min-w-[320px] max-w-[500px] flex flex-col max-h-[650px] h-[650px] justify-center'>
+        <div className='relative my-8 w-full'>
           <UploadArea
-            className='my-4 min-w-[420px]'
+            className='my-4'
             uploader={uploadTalentResume}
             onUploadingChange={onUploadingChange}
             onUploadComplete={onUploadComplete}
           >
             {resumeValues && !uploadingResume && (
-              <div className='mb-4 flex items-center justify-between rounded-md border p-3 min-w-[400px]'>
+              <div className='mb-4 flex items-center justify-between rounded-md border p-3'>
                 <div className='text-sm text-left'>
                   <div className='font-medium'>姓名：{resumeValues.name || '—'}</div>
                   <div className='text-muted-foreground mt-1'>电话：{resumeValues.phone || '—'}</div>

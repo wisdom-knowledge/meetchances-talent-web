@@ -16,6 +16,7 @@ import { salaryTypeUnitMapping } from '@/features/jobs/constants'
 import JobTitleAndTags from './job-title-and-tags'
 import PublisherSection from './publisher-section'
 import ReferralSection from './referral-section'
+import { JobProgressSection } from './job-progress-section'
 
 export interface JobDetailContentProps {
   job: ApiJob
@@ -25,6 +26,7 @@ export interface JobDetailContentProps {
   isTwoColumn?: boolean
   backLabel?: string
   applyButtonText?: string
+  jobApplyId?: string | number | null
 }
 
 export default function JobDetailContent({
@@ -35,6 +37,7 @@ export default function JobDetailContent({
   isTwoColumn = false,
   backLabel,
   applyButtonText = '立即申请',
+  jobApplyId = null,
 }: JobDetailContentProps) {
   const isMobile = useIsMobile()
   const user = useAuthStore((s) => s.auth.user)
@@ -302,14 +305,21 @@ export default function JobDetailContent({
           isTwoColumn && 'grid grid-cols-1 gap-8 md:grid-cols-[1fr_320px]'
         )}
       >
-        <div className='max-h-[calc(100vh-80px)] flex flex-col'>
+        <div className='flex flex-col'>
           {onBack && (isMock ? mockJobBack : jobBack)}
 
           {isMock ? mockJobTitle : jobTitle}
 
+          {/* 申请进度 - 仅在非模拟职位时显示（jobApplyId 可以为 0，表示未申请但显示流程） */}
+          {!isMock && (
+            <div className='mt-5'>
+              <JobProgressSection jobApplyId={jobApplyId} job={job} />
+            </div>
+          )}
+
           <RichText
             content={job.description || '暂无描述'}
-            className={cn('mt-5 min-h-[100px] overflow-auto', isMobile && isMock ? '' : 'mb-8')}
+            className={cn('mt-5 min-h-[100px]', isMobile && isMock ? '' : 'mb-8')}
           />
         </div>
         {isTwoColumn && !isMock && (
