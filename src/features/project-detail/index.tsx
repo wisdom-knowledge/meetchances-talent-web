@@ -304,23 +304,124 @@ export default function ProjectDetailPage() {
 
         {/* 飞书绑定弹窗 */}
         <Dialog open={feishuDialogOpen} onOpenChange={setFeishuDialogOpen}>
-          <DialogContent className='sm:max-w-md'>
-            <DialogHeader>
-              <DialogTitle>飞书绑定</DialogTitle>
-              <DialogDescription>
-                你已完成飞书绑定，请点击确认重新加载绑定状态
-              </DialogDescription>
-            </DialogHeader>
-            {!isFeishuBound && (
-              <DialogFooter>
-                <Button variant='outline' onClick={() => setFeishuDialogOpen(false)}>
-                  取消
-                </Button>
-                <Button onClick={confirmFeishuBind}>
-                  确认
-                </Button>
-              </DialogFooter>
-            )}
+          <DialogContent className='!w-[80vw] !max-w-none p-16'>
+            {/* 两步流程 */}
+            <div className='flex items-start justify-center gap-[200px]'>
+              {/* 步骤1 - 安装飞书 */}
+              <div className='relative flex w-[380px] flex-col gap-8'>
+                {/* 数字标识 */}
+                <div className='relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#C994F7]'>
+                  <span className='text-2xl font-semibold leading-[1.5] tracking-[0.48px] text-white'>1</span>
+                </div>
+                
+                {/* 步骤内容 */}
+                <div className='flex flex-col gap-5'>
+                  <div className='flex flex-col gap-3'>
+                    <h3 className='text-2xl font-semibold leading-[1.5] tracking-[0.48px] text-black'>
+                      安装飞书
+                    </h3>
+                    <div className='text-sm font-medium leading-[1.6] text-[rgba(0,0,0,0.7)]'>
+                      <p className='mb-0'>飞书是本项目的主要沟通软件，</p>
+                      <p className='mb-0'>项目的录取、培训、审核结果都会通过飞书通知来传达，</p>
+                    </div>
+                    <p className='text-sm font-medium leading-[1.6] text-black'>
+                      请注意开启消息提醒
+                    </p>
+                  </div>
+                  
+                  <a 
+                    href='https://www.feishu.cn/download'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-sm font-medium leading-[1.6] text-primary underline decoration-solid transition-colors hover:text-primary/80'
+                  >
+                    前往飞书官网下载
+                  </a>
+                </div>
+                
+                {/* 连接线 */}
+                <div className='absolute left-[56px] top-[18px] h-0 w-[504px]'>
+                  <svg width='504' height='2' viewBox='0 0 504 2' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                    <line x1='0' y1='1' x2='504' y2='1' stroke='#4E02E4' strokeWidth='2' strokeDasharray='4 4'/>
+                  </svg>
+                </div>
+              </div>
+              
+              {/* 步骤2 - 授权飞书机器人 */}
+              <div className='relative flex w-[380px] flex-col gap-8'>
+                {/* 数字标识 */}
+                <div className='relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#C994F7]'>
+                  <span className='text-2xl font-semibold leading-[1.5] tracking-[0.48px] text-white'>2</span>
+                </div>
+                
+                {/* 步骤标题 */}
+                <h3 className='text-2xl font-semibold leading-[1.5] tracking-[0.48px] text-black'>
+                  授权飞书机器人
+                </h3>
+                
+                {/* 图标展示区域 */}
+                <div className='flex items-center gap-12'>
+                  {/* 飞书图标 */}
+                  <div className='flex flex-col items-center gap-3'>
+                    <div className='h-[72px] w-[74px] overflow-hidden'>
+                      <img 
+                        src='https://www.figma.com/api/mcp/asset/c63f9aa4-e10b-4ccb-ac92-76317d76091c'
+                        alt='飞书'
+                        className='h-full w-full object-cover'
+                      />
+                    </div>
+                    <p className='text-center text-base font-semibold leading-[1.6] text-black'>飞书</p>
+                  </div>
+                  
+                  {/* 中间箭头 */}
+                  <div className='flex items-center justify-center'>
+                    <svg xmlns='http://www.w3.org/2000/svg' width='32' height='15' viewBox='0 0 32 15' fill='none'>
+                      <path d='M31.7071 8.07039C32.0976 7.67986 32.0976 7.0467 31.7071 6.65617L25.3431 0.292213C24.9526 -0.0983109 24.3195 -0.0983109 23.9289 0.292213C23.5384 0.682738 23.5384 1.3159 23.9289 1.70643L29.5858 7.36328L23.9289 13.0201C23.5384 13.4107 23.5384 14.0438 23.9289 14.4343C24.3195 14.8249 24.9526 14.8249 25.3431 14.4343L31.7071 8.07039ZM0 7.36328V8.36328H15.5V7.36328V6.36328H0V7.36328ZM15.5 7.36328V8.36328H31V7.36328V6.36328H15.5V7.36328Z' fill='black' fillOpacity='0.5'/>
+                    </svg>
+                  </div>
+                  
+                  {/* 一面千识图标 */}
+                  <div className='flex flex-col items-center gap-3'>
+                    <div className='h-[72px] w-[72px]'>
+                      <img 
+                        src='https://www.figma.com/api/mcp/asset/f2278b3a-6416-4f38-a7b4-3b904cc2fe4a'
+                        alt='一面千识'
+                        className='h-full w-full object-contain'
+                      />
+                    </div>
+                    <p className='text-center text-base font-semibold leading-[1.6] text-black'>一面千识</p>
+                  </div>
+                </div>
+                
+                {/* 说明文字 */}
+                <div className='flex flex-col gap-3 text-sm font-medium leading-[1.6]'>
+                  <p className='text-[rgba(0,0,0,0.7)]'>
+                    安装飞书客户端后，点击下面链接进行授权
+                  </p>
+                  <a 
+                    href='https://auth.feishu.com/'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-primary underline decoration-solid transition-colors hover:text-primary/80'
+                  >
+                    https://auth.feishu.com/
+                  </a>
+                </div>
+              </div>
+            </div>
+            
+            {/* 刷新状态提示和按钮 */}
+            <div className='mt-12 flex flex-col items-center gap-4 border-t border-black/10 pt-8'>
+              <p className='text-center text-sm leading-[1.6] text-black/70'>
+                完成飞书绑定后，点击下方按钮刷新绑定状态
+              </p>
+              <Button 
+                onClick={confirmFeishuBind}
+                className='h-11 rounded-lg px-8 text-base font-medium'
+              >
+                刷新绑定状态
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
 
