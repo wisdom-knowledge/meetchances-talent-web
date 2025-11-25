@@ -1,9 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { IconArrowLeft } from '@tabler/icons-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import { Main } from '@/components/layout/main'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,6 +33,8 @@ export default function ProjectDetailPage() {
   const [agreementDialogOpen, setAgreementDialogOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [expandedGuide, setExpandedGuide] = useState(false)
+  const [guideLoading, setGuideLoading] = useState(true)
+  const [shouldPreload, setShouldPreload] = useState(false)
 
   // 数据获取
   const { data: projectData, isLoading: projectLoading } = useProjectDetail(projectId)
@@ -51,6 +52,44 @@ export default function ProjectDetailPage() {
   const allBound = useMemo(() => {
     return isFeishuBound && isAgreementBound && isPaymentBound
   }, [isFeishuBound, isAgreementBound, isPaymentBound])
+
+  // 延迟触发预加载，避免影响初始加载性能
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShouldPreload(true)
+    }, 1000)
+    
+    return () => clearTimeout(timer)
+  }, [])
+
+  // 超时自动隐藏加载状态（避免 iframe onLoad 事件不触发）
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setGuideLoading(false)
+    }, 1500) // 1.5秒后自动隐藏加载提示
+    
+    return () => clearTimeout(timer)
+  }, [])
+
+  // 监听 ESC 键关闭全屏工作指南 & 阻止页面滚动
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && expandedGuide) {
+        setExpandedGuide(false)
+      }
+    }
+    
+    if (expandedGuide) {
+      // 阻止页面滚动
+      document.body.style.overflow = 'hidden'
+      window.addEventListener('keydown', handleEscape)
+    }
+    
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', handleEscape)
+    }
+  }, [expandedGuide])
 
   // 返回上一页
   const handleBack = () => {
@@ -121,7 +160,7 @@ export default function ProjectDetailPage() {
 
   return (
     <>
-      <Main fixed className='py-8 md:mx-16 lg:px-8'>
+      <Main className='min-h-screen py-8 pb-32 md:pb-8 md:mx-16 lg:px-8'>
         {/* 顶部导航栏 */}
         <div className='mb-8 flex items-center justify-between'>
           <button
@@ -292,10 +331,20 @@ export default function ProjectDetailPage() {
               </div>
               
               <div className='relative h-[600px] overflow-hidden rounded-xl border border-primary/20'>
+                {guideLoading && (
+                  <div className='absolute inset-0 z-10 flex items-center justify-center bg-white'>
+                    <div className='flex flex-col items-center gap-3'>
+                      <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent'></div>
+                      <p className='text-sm text-black/60'>加载中...</p>
+                    </div>
+                  </div>
+                )}
                 <iframe
                   src={projectData?.work_guide_url || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
                   className='h-full w-full border-0'
                   title='工作指南'
+                  onLoad={() => setGuideLoading(false)}
+                  loading='eager'
                 />
               </div>
             </div>
@@ -304,11 +353,11 @@ export default function ProjectDetailPage() {
 
         {/* 飞书绑定弹窗 */}
         <Dialog open={feishuDialogOpen} onOpenChange={setFeishuDialogOpen}>
-          <DialogContent className='!w-[80vw] !max-w-none p-16'>
+          <DialogContent className='!w-[95vw] sm:!w-[80vw] !max-w-none p-6 sm:p-16 max-h-[90vh] overflow-y-auto'>
             {/* 两步流程 */}
-            <div className='flex items-start justify-center gap-[200px]'>
+            <div className='flex flex-col sm:flex-row items-start justify-center gap-12 sm:gap-[200px]'>
               {/* 步骤1 - 安装飞书 */}
-              <div className='relative flex w-[380px] flex-col gap-8'>
+              <div className='relative flex w-full sm:w-[380px] flex-col gap-8'>
                 {/* 数字标识 */}
                 <div className='relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#C994F7]'>
                   <span className='text-2xl font-semibold leading-[1.5] tracking-[0.48px] text-white'>1</span>
@@ -339,8 +388,8 @@ export default function ProjectDetailPage() {
                   </a>
                 </div>
                 
-                {/* 连接线 */}
-                <div className='absolute left-[56px] top-[18px] h-0 w-[504px]'>
+                {/* 连接线 - 仅在桌面端显示 */}
+                <div className='absolute left-[56px] top-[18px] h-0 w-[504px] hidden sm:block'>
                   <svg width='504' height='2' viewBox='0 0 504 2' fill='none' xmlns='http://www.w3.org/2000/svg'>
                     <line x1='0' y1='1' x2='504' y2='1' stroke='#4E02E4' strokeWidth='2' strokeDasharray='4 4'/>
                   </svg>
@@ -348,7 +397,7 @@ export default function ProjectDetailPage() {
               </div>
               
               {/* 步骤2 - 授权飞书机器人 */}
-              <div className='relative flex w-[380px] flex-col gap-8'>
+              <div className='relative flex w-full sm:w-[380px] flex-col gap-8'>
                 {/* 数字标识 */}
                 <div className='relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#C994F7]'>
                   <span className='text-2xl font-semibold leading-[1.5] tracking-[0.48px] text-white'>2</span>
@@ -411,7 +460,7 @@ export default function ProjectDetailPage() {
             </div>
             
             {/* 刷新状态提示和按钮 */}
-            <div className='mt-12 flex flex-col items-center gap-4 border-t border-black/10 pt-8'>
+            <div className='mt-8 sm:mt-12 flex flex-col items-center gap-4 border-t border-black/10 pt-6 sm:pt-8'>
               <p className='text-center text-sm leading-[1.6] text-black/70'>
                 完成飞书绑定后，点击下方按钮刷新绑定状态
               </p>
@@ -420,7 +469,7 @@ export default function ProjectDetailPage() {
                 className='h-11 rounded-lg px-8 text-base font-medium'
               >
                 刷新绑定状态
-              </Button>
+                </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -457,7 +506,51 @@ export default function ProjectDetailPage() {
 
         {/* 寻求支持弹窗 */}
         <SupportDialog open={helpOpen} onOpenChange={setHelpOpen} />
+        
+        {/* 隐藏的预加载 iframe - 延迟1秒后加载 */}
+        {shouldPreload && (
+          <iframe
+            src={projectData?.work_guide_url || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
+            className='hidden'
+            title='工作指南预加载'
+            loading='eager'
+            aria-hidden='true'
+          />
+        )}
       </Main>
+
+      {/* 全屏工作指南 */}
+      {expandedGuide && (
+        <div 
+          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200'
+          onClick={() => setExpandedGuide(false)}
+        >
+          <div 
+            className='relative h-full w-full max-h-[calc(100vh-2rem)] max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200'
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 关闭按钮 */}
+            <button
+              onClick={() => setExpandedGuide(false)}
+              className='absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-black/70 shadow-md transition-all hover:bg-white hover:text-black hover:shadow-lg'
+              aria-label='关闭'
+            >
+              <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+                <line x1='18' y1='6' x2='6' y2='18'></line>
+                <line x1='6' y1='6' x2='18' y2='18'></line>
+              </svg>
+            </button>
+            
+            {/* iframe 内容 */}
+            <iframe
+              src={projectData?.work_guide_url || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
+              className='h-full w-full rounded-lg border-0'
+              title='工作指南（全屏）'
+              loading='eager'
+            />
+          </div>
+        </div>
+      )}
     </>
   )
 }
