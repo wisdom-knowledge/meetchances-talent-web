@@ -172,3 +172,161 @@ interface ForHelpParams {
 export async function fetchForHelp(params: ForHelpParams): Promise<null> {
   return await api.post('/interview/page/demand', params)
 }
+
+// ===== 我的项目列表 =====
+export interface ProjectListItem {
+  id: number
+  title: string
+  created_at: number
+  updated_at: number
+}
+
+export interface MyProjectsParams {
+  skip?: number
+  limit?: number
+}
+
+export interface MyProjectsResultRaw {
+  data: ProjectListItem[]
+  total: number
+}
+
+export async function fetchMyProjects(
+  params: MyProjectsParams = { skip: 0, limit: 10 }
+): Promise<MyProjectsResultRaw> {
+  const { skip = 0, limit = 10 } = params
+  
+  // Mock 数据
+  const mockProjects: ProjectListItem[] = [
+    {
+      id: 1,
+      title: 'Coding Rubric - AI 代码评审标注',
+      created_at: Date.now() / 1000 - 86400 * 2, // 2天前
+      updated_at: Date.now() / 1000,
+    },
+    {
+      id: 2,
+      title: '对话数据标注项目',
+      created_at: Date.now() / 1000 - 86400 * 5, // 5天前
+      updated_at: Date.now() / 1000,
+    },
+    {
+      id: 3,
+      title: '图像识别标注任务',
+      created_at: Date.now() / 1000 - 86400 * 10, // 10天前
+      updated_at: Date.now() / 1000,
+    },
+    {
+      id: 4,
+      title: '语音转文本校对项目',
+      created_at: Date.now() / 1000 - 86400 * 15, // 15天前
+      updated_at: Date.now() / 1000,
+    },
+    {
+      id: 5,
+      title: 'NLP 文本分类标注',
+      created_at: Date.now() / 1000 - 86400 * 20, // 20天前
+      updated_at: Date.now() / 1000,
+    },
+    {
+      id: 6,
+      title: '产品反馈情感分析',
+      created_at: Date.now() / 1000 - 86400 * 25, // 25天前
+      updated_at: Date.now() / 1000,
+    },
+    {
+      id: 7,
+      title: '医疗文本实体识别',
+      created_at: Date.now() / 1000 - 86400 * 30, // 30天前
+      updated_at: Date.now() / 1000,
+    },
+    {
+      id: 8,
+      title: '问答对质量评估',
+      created_at: Date.now() / 1000 - 86400 * 35, // 35天前
+      updated_at: Date.now() / 1000,
+    },
+  ]
+
+  // 尝试从后端获取，如果失败则使用 mock 数据
+  try {
+    const raw = await api.get('/talent/project_list', {
+      params: { skip, limit },
+    })
+    type Container = { data?: unknown; count?: unknown }
+    const top = raw as Container
+    const maybeNested = (top?.data ?? null) as Container | unknown[] | null
+    const container: Container = Array.isArray(top?.data)
+      ? (top as Container)
+      : ((maybeNested as Container) ?? top)
+
+    const listUnknown: unknown = container?.data ?? []
+    const totalUnknown: unknown = container?.count ?? 0
+
+    const list: ProjectListItem[] = Array.isArray(listUnknown)
+      ? (listUnknown as ProjectListItem[])
+      : []
+    const total: number = typeof totalUnknown === 'number' ? totalUnknown : 0
+
+    // 如果后端返回空数据，使用 mock 数据
+    if (list.length === 0) {
+      const paginatedMockData = mockProjects.slice(skip, skip + limit)
+      return {
+        data: paginatedMockData,
+        total: mockProjects.length,
+      }
+    }
+
+    return {
+      data: list,
+      total,
+    }
+  } catch (_error) {
+    // 后端接口失败时使用 mock 数据
+    const paginatedMockData = mockProjects.slice(skip, skip + limit)
+    return {
+      data: paginatedMockData,
+      total: mockProjects.length,
+    }
+  }
+}
+
+type MyProjectsQueryOptions = Omit<
+  UseQueryOptions<MyProjectsResultRaw, Error, MyProjectsResultRaw, ['my-projects', MyProjectsParams]>,
+  'queryKey' | 'queryFn'
+>
+
+export function useMyProjectsQuery(
+  params: MyProjectsParams,
+  options?: MyProjectsQueryOptions
+) {
+  return useQuery<MyProjectsResultRaw, Error, MyProjectsResultRaw, ['my-projects', MyProjectsParams]>({
+    queryKey: ['my-projects', params],
+    queryFn: () => fetchMyProjects(params),
+    ...options,
+  })
+}
+
+// ===== 我的项目（无限加载） =====
+export type MyProjectsPage = MyProjectsResultRaw
+export type UseInfiniteMyProjectsResult = UseInfiniteQueryResult<InfiniteData<MyProjectsPage>, Error>
+
+export function useInfiniteMyProjectsQuery(
+  params: Omit<MyProjectsParams, 'skip'> = { limit: 10 },
+  options?: { enabled?: boolean }
+): UseInfiniteMyProjectsResult {
+  const { limit = 10 } = params
+  return useInfiniteQuery<MyProjectsPage, Error, InfiniteData<MyProjectsPage>, [string, { limit: number }], number>({
+    queryKey: ['my-projects-infinite', { limit }],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) => fetchMyProjects({ skip: pageParam * limit, limit }),
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const total = lastPage?.total ?? 0
+      const currentPage = typeof lastPageParam === 'number' ? lastPageParam : 0
+      const pageCount = total ? Math.max(1, Math.ceil(total / limit)) : undefined
+      const hasMore = typeof pageCount === 'number' ? currentPage + 1 < pageCount : (lastPage?.data?.length ?? 0) === limit
+      return hasMore ? currentPage + 1 : undefined
+    },
+    enabled: options?.enabled ?? true,
+  })
+}

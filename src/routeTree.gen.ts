@@ -16,6 +16,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as JobsJob_idRouteImport } from './routes/jobs/$job_id'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedReferralRouteImport } from './routes/_authenticated/referral'
+import { Route as AuthenticatedProjectDetailRouteImport } from './routes/_authenticated/project-detail'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
@@ -95,6 +96,12 @@ const AuthenticatedReferralRoute = AuthenticatedReferralRouteImport.update({
   path: '/referral',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProjectDetailRoute =
+  AuthenticatedProjectDetailRouteImport.update({
+    id: '/project-detail',
+    path: '/project-detail',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
     id: '/notifications',
@@ -358,6 +365,7 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/project-detail': typeof AuthenticatedProjectDetailRoute
   '/referral': typeof AuthenticatedReferralRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
@@ -407,6 +415,7 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/project-detail': typeof AuthenticatedProjectDetailRoute
   '/referral': typeof AuthenticatedReferralRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
@@ -462,6 +471,7 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/project-detail': typeof AuthenticatedProjectDetailRoute
   '/_authenticated/referral': typeof AuthenticatedReferralRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/jobs/$job_id': typeof JobsJob_idRoute
@@ -515,6 +525,7 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/notifications'
+    | '/project-detail'
     | '/referral'
     | '/wallet'
     | '/jobs/$job_id'
@@ -564,6 +575,7 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/notifications'
+    | '/project-detail'
     | '/referral'
     | '/wallet'
     | '/jobs/$job_id'
@@ -618,6 +630,7 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/notifications'
+    | '/_authenticated/project-detail'
     | '/_authenticated/referral'
     | '/_authenticated/wallet'
     | '/jobs/$job_id'
@@ -721,6 +734,13 @@ declare module '@tanstack/react-router' {
       path: '/referral'
       fullPath: '/referral'
       preLoaderRoute: typeof AuthenticatedReferralRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/project-detail': {
+      id: '/_authenticated/project-detail'
+      path: '/project-detail'
+      fullPath: '/project-detail'
+      preLoaderRoute: typeof AuthenticatedProjectDetailRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/notifications': {
@@ -1067,6 +1087,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedProjectDetailRoute: typeof AuthenticatedProjectDetailRoute
   AuthenticatedReferralRoute: typeof AuthenticatedReferralRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -1096,6 +1117,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedProjectDetailRoute: AuthenticatedProjectDetailRoute,
   AuthenticatedReferralRoute: AuthenticatedReferralRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,

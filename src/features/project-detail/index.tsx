@@ -1,0 +1,363 @@
+import { useState, useMemo } from 'react'
+import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
+import { IconArrowLeft } from '@tabler/icons-react'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
+import { Main } from '@/components/layout/main'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { SupportDialog } from '@/features/interview/components/support-dialog'
+import { useProjectDetail, useBindingStatus, submitProject, bindDataAgreement } from './api'
+import type { Talent } from '@/stores/authStore'
+import titleIcon from './images/title.png'
+import feishuIcon from './images/feishu.png'
+import dataIcon from './images/data.png'
+import payIcon from './images/pay.png'
+
+export default function ProjectDetailPage() {
+  const navigate = useNavigate()
+  const search = useSearch({ strict: false }) as { project_id?: number }
+  const projectId = search.project_id ?? 1
+  const queryClient = useQueryClient()
+  
+  // 状态管理
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [feishuDialogOpen, setFeishuDialogOpen] = useState(false)
+  const [agreementDialogOpen, setAgreementDialogOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [expandedGuide, setExpandedGuide] = useState(false)
+
+  // 数据获取
+  const { data: projectData, isLoading: projectLoading } = useProjectDetail(projectId)
+  const { data: bindingStatus, refetch: refetchBinding } = useBindingStatus()
+  
+  // 获取用户信息以判断支付绑定状态
+  const currentUser = queryClient.getQueryData(['current-user']) as Talent | undefined
+  const isPaymentBound = Boolean(currentUser?.miniprogram_openid)
+
+  // 三个绑定状态（实际值从 API 获取，这里用 isPaymentBound 作为支付绑定状态）
+  const isFeishuBound = bindingStatus?.feishu_bound ?? false
+  const isAgreementBound = bindingStatus?.data_agreement_bound ?? false
+
+  // 是否所有绑定都完成
+  const allBound = useMemo(() => {
+    return isFeishuBound && isAgreementBound && isPaymentBound
+  }, [isFeishuBound, isAgreementBound, isPaymentBound])
+
+  // 返回上一页
+  const handleBack = () => {
+    navigate({ to: '/jobs' })
+  }
+
+  // 飞书绑定
+  const handleFeishuBind = () => {
+    if (isFeishuBound) return // 已绑定则不弹窗
+    setFeishuDialogOpen(true)
+  }
+
+  const confirmFeishuBind = async () => {
+    // 这里需要调用飞书绑定 API，暂时模拟成功
+    await refetchBinding()
+    setFeishuDialogOpen(false)
+    toast.success('飞书绑定状态已刷新')
+  }
+
+  // 数据协议绑定
+  const handleAgreementBind = () => {
+    if (isAgreementBound) return // 已绑定则不弹窗
+    setAgreementDialogOpen(true)
+  }
+
+  const confirmAgreementBind = async () => {
+    try {
+      await bindDataAgreement()
+      await refetchBinding()
+      setAgreementDialogOpen(false)
+      toast.success('已同意数据与工作协议')
+    } catch (_error) {
+      toast.error('绑定失败，请稍后重试')
+    }
+  }
+
+  // 支付绑定 - 跳转到钱包页面
+  const handlePaymentBind = () => {
+    if (isPaymentBound) return // 已绑定则不跳转
+    navigate({ to: '/wallet' })
+    // 在钱包页面会自动弹起绑定弹窗（需要在 wallet 页面添加相关逻辑）
+    // 可以通过 URL 参数传递信息，让钱包页面自动打开绑定弹窗
+  }
+
+  // 提交项目
+  const handleSubmit = async () => {
+    if (!allBound) {
+      toast.error('请先完成所有绑定')
+      return
+    }
+    
+    setSubmitting(true)
+    try {
+      await submitProject(projectId)
+      toast.success('提交成功')
+      // 提交成功后跳转到其他页面
+      navigate({ to: '/finish' })
+    } catch (_error) {
+      toast.error('提交失败，请稍后重试')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // 报酬类型文案
+  const paymentTypeLabel = projectData?.payment_type === 1 ? '按条计费' : '按小时计费'
+  const paymentUnit = projectData?.payment_type === 1 ? '审核通过条目' : '小时'
+
+  return (
+    <>
+      <Main fixed className='py-8 md:mx-16 lg:px-8'>
+        {/* 顶部导航栏 */}
+        <div className='mb-8 flex items-center justify-between'>
+          <button
+            onClick={handleBack}
+            className='flex items-center gap-1 rounded-lg border border-black/10 px-2 py-2 text-sm font-medium transition-colors hover:bg-gray-50'
+          >
+            <IconArrowLeft className='h-4 w-4' />
+            返回
+          </button>
+          <div className='flex items-center gap-5'>
+            <button
+              onClick={() => setHelpOpen(true)}
+              className='rounded-lg border border-black/10 px-2 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50'
+            >
+              寻求支持
+            </button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!allBound || submitting}
+              className='h-11 rounded-lg px-7 text-base font-medium disabled:bg-[#c9c9c9] disabled:text-white disabled:opacity-100 disabled:pointer-events-none'
+            >
+              {submitting ? '提交中...' : '提交'}
+            </Button>
+          </div>
+        </div>
+
+        <div className='flex flex-col gap-9 lg:flex-row'>
+          {/* 左侧区域 */}
+          <div className='flex flex-col gap-9 lg:w-[340px] lg:shrink-0'>
+            {/* 页面标题 */}
+            <div className='flex items-center gap-[10px]'>
+              <img src={titleIcon} alt='项目图标' className='h-8 w-8' />
+              <h1 className='text-2xl font-medium tracking-[0.48px]'>
+                {projectLoading ? '加载中...' : projectData?.title || 'Coding Rubric'}
+              </h1>
+            </div>
+
+            <div className='flex flex-col gap-6'>
+              {/* 任务报酬 */}
+              <div className='px-4 pb-4'>
+                <h2 className='mb-5 text-base font-semibold'>任务报酬</h2>
+                <div className='space-y-3'>
+                  <div className='flex items-center justify-between text-sm'>
+                    <span className='text-black'>{projectLoading ? '加载中...' : paymentTypeLabel}：</span>
+                    <span className='text-black/50'>
+                      {projectLoading ? '...' : `${projectData?.payment_amount || 200}/${paymentUnit}`}
+                    </span>
+                  </div>
+                  <div className='flex items-center justify-between text-sm'>
+                    <span className='text-black'>结算时间：</span>
+                    <span className='text-black/50'>
+                      {projectLoading ? '...' : (projectData?.settlement_time || '暂无')}
+                    </span>
+                  </div>
+                  <div className='flex items-center justify-between text-sm'>
+                    <span className='text-black'>结算条件：</span>
+                    <span className='text-black/50'>
+                      {projectLoading ? '...' : (projectData?.settlement_condition || '暂无')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 绑定状态卡片 */}
+              {/* 飞书绑定 */}
+              <button
+                onClick={handleFeishuBind}
+                className='flex w-full items-center justify-center rounded-xl border border-primary/20 p-6 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
+              >
+                <div className='flex flex-1 items-center justify-between'>
+                  <div className='flex items-center gap-4'>
+                    <img src={feishuIcon} alt='飞书' className='h-8 w-8' />
+                    <span className='text-base font-semibold'>飞书绑定</span>
+                  </div>
+                  {isFeishuBound ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <g clipPath="url(#clip0_8048_4957)">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M0 8C0 5.87827 0.842855 3.84344 2.34315 2.34315C3.84344 0.842855 5.87827 0 8 0C10.1217 0 12.1566 0.842855 13.6569 2.34315C15.1571 3.84344 16 5.87827 16 8C16 10.1217 15.1571 12.1566 13.6569 13.6569C12.1566 15.1571 10.1217 16 8 16C5.87827 16 3.84344 15.1571 2.34315 13.6569C0.842855 12.1566 0 10.1217 0 8ZM7.54347 11.424L12.1493 5.66613L11.3173 5.00053L7.38987 9.90827L4.608 7.5904L3.92533 8.4096L7.54347 11.424Z" fill="#4E02E4"/>
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_8048_4957">
+                          <rect width="16" height="16" fill="white"/>
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  ) : (
+                    <span className='text-sm font-medium text-primary underline decoration-solid'>待绑定</span>
+                  )}
+                </div>
+              </button>
+
+              {/* 数据与工作协议 */}
+              <button
+                onClick={handleAgreementBind}
+                className='flex w-full items-center justify-center rounded-xl border border-primary/20 p-6 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
+              >
+                <div className='flex flex-1 items-center justify-between'>
+                  <div className='flex items-center gap-4'>
+                    <img src={dataIcon} alt='数据协议' className='h-8 w-8' />
+                    <span className='text-base font-semibold'>数据与工作协议</span>
+                  </div>
+                  {isAgreementBound ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <g clipPath="url(#clip0_8048_4958)">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M0 8C0 5.87827 0.842855 3.84344 2.34315 2.34315C3.84344 0.842855 5.87827 0 8 0C10.1217 0 12.1566 0.842855 13.6569 2.34315C15.1571 3.84344 16 5.87827 16 8C16 10.1217 15.1571 12.1566 13.6569 13.6569C12.1566 15.1571 10.1217 16 8 16C5.87827 16 3.84344 15.1571 2.34315 13.6569C0.842855 12.1566 0 10.1217 0 8ZM7.54347 11.424L12.1493 5.66613L11.3173 5.00053L7.38987 9.90827L4.608 7.5904L3.92533 8.4096L7.54347 11.424Z" fill="#4E02E4"/>
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_8048_4958">
+                          <rect width="16" height="16" fill="white"/>
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  ) : (
+                    <span className='text-sm font-medium text-primary underline decoration-solid'>待确认</span>
+                  )}
+                </div>
+              </button>
+
+              {/* 支付绑定 */}
+              <button
+                onClick={handlePaymentBind}
+                className='flex w-full items-center justify-center rounded-xl border border-primary/20 p-6 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
+              >
+                <div className='flex flex-1 items-center justify-between'>
+                  <div className='flex items-center gap-4'>
+                    <img src={payIcon} alt='支付绑定' className='h-8 w-8' />
+                    <span className='text-base font-semibold'>支付绑定</span>
+                  </div>
+                  {isPaymentBound ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <g clipPath="url(#clip0_8048_4959)">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M0 8C0 5.87827 0.842855 3.84344 2.34315 2.34315C3.84344 0.842855 5.87827 0 8 0C10.1217 0 12.1566 0.842855 13.6569 2.34315C15.1571 3.84344 16 5.87827 16 8C16 10.1217 15.1571 12.1566 13.6569 13.6569C12.1566 15.1571 10.1217 16 8 16C5.87827 16 3.84344 15.1571 2.34315 13.6569C0.842855 12.1566 0 10.1217 0 8ZM7.54347 11.424L12.1493 5.66613L11.3173 5.00053L7.38987 9.90827L4.608 7.5904L3.92533 8.4096L7.54347 11.424Z" fill="#4E02E4"/>
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_8048_4959">
+                          <rect width="16" height="16" fill="white"/>
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  ) : (
+                    <span className='text-sm font-medium text-primary underline decoration-solid'>待绑定</span>
+                  )}
+                </div>
+              </button>
+            </div>
+
+          </div>
+
+          {/* 右侧区域 - 工作指南和提交记录 */}
+          <div className='flex flex-1 flex-col gap-6 min-w-0'>
+            {/* 工作指南 */}
+            <div className='flex flex-col gap-5'>
+              <div className='flex items-center justify-between'>
+                <h2 className='text-base font-semibold tracking-[0.32px]'>工作指南</h2>
+                <button
+                  onClick={() => setExpandedGuide(!expandedGuide)}
+                  className='flex h-6 w-6 items-center justify-center text-black/70 transition-colors hover:text-black'
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M19.3845 4C19.696 4 19.9535 4.23151 19.9943 4.53188L19.9999 4.61538V7.89744C19.9999 8.2373 19.7244 8.51282 19.3845 8.51282C19.073 8.51282 18.8155 8.28131 18.7747 7.98094L18.7691 7.89744V5.23077H16.1024C15.7909 5.23077 15.5334 4.99926 15.4927 4.69889L15.4871 4.61538C15.4871 4.30384 15.7186 4.04637 16.0189 4.00562L16.1024 4H19.3845Z" fill="currentColor"/>
+                    <path d="M18.9495 4.18024C19.1898 3.93992 19.5795 3.93992 19.8198 4.18024C20.0383 4.39872 20.0581 4.7406 19.8794 4.98151L19.8198 5.05053L14.8967 9.9736C14.6564 10.2139 14.2668 10.2139 14.0264 9.9736C13.808 9.75513 13.7881 9.41325 13.9668 9.17234L14.0264 9.10332L18.9495 4.18024Z" fill="currentColor"/>
+                    <path d="M4.61538 15.4883C4.92693 15.4883 5.1844 15.7198 5.22515 16.0202L5.23077 16.1037V18.7703H7.89744C8.20898 18.7703 8.46645 19.0018 8.5072 19.3022L8.51282 19.3857C8.51282 19.6973 8.28131 19.9547 7.98094 19.9955L7.89744 20.0011H4.61538C4.30384 20.0011 4.04637 19.7696 4.00562 19.4692L4 19.3857V16.1037C4 15.7638 4.27552 15.4883 4.61538 15.4883Z" fill="currentColor"/>
+                    <path d="M9.10332 14.0279C9.34364 13.7876 9.73328 13.7876 9.9736 14.0279C10.1921 14.2464 10.2119 14.5883 10.0332 14.8292L9.9736 14.8982L5.05053 19.8213C4.8102 20.0616 4.42056 20.0616 4.18024 19.8213C3.96177 19.6028 3.94191 19.2609 4.12066 19.02L4.18024 18.951L9.10332 14.0279Z" fill="currentColor"/>
+                    <path d="M11.1795 4.82031C11.5194 4.82031 11.7949 5.09583 11.7949 5.4357C11.7949 5.74724 11.5634 6.00472 11.263 6.04546L11.1795 6.05108H7.07697C6.54559 6.05108 6.1091 6.45436 6.05662 6.9718L6.05133 7.07672V11.1793C6.05133 11.5192 5.77581 11.7947 5.43594 11.7947C5.1244 11.7947 4.86692 11.5632 4.82617 11.2628L4.82056 11.1793V7.07672C4.82056 5.87636 5.75701 4.89544 6.93948 4.82443L7.07697 4.82031H11.1795Z" fill="currentColor"/>
+                    <path d="M18.564 12.207C18.8756 12.207 19.133 12.4385 19.1738 12.7389L19.1794 12.8224V16.925C19.1794 18.1253 18.2429 19.1063 17.0605 19.1773L16.923 19.1814H11.9999C11.66 19.1814 11.3845 18.9059 11.3845 18.566C11.3845 18.2545 11.616 17.997 11.9164 17.9562L11.9999 17.9506H16.923C17.4544 17.9506 17.8908 17.5473 17.9433 17.0299L17.9486 16.925V12.8224C17.9486 12.4825 18.2241 12.207 18.564 12.207Z" fill="currentColor"/>
+                  </svg>
+                </button>
+              </div>
+              
+              <div className='relative h-[600px] overflow-hidden rounded-xl border border-primary/20'>
+                <iframe
+                  src={projectData?.work_guide_url || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
+                  className='h-full w-full border-0'
+                  title='工作指南'
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 飞书绑定弹窗 */}
+        <Dialog open={feishuDialogOpen} onOpenChange={setFeishuDialogOpen}>
+          <DialogContent className='sm:max-w-md'>
+            <DialogHeader>
+              <DialogTitle>飞书绑定</DialogTitle>
+              <DialogDescription>
+                你已完成飞书绑定，请点击确认重新加载绑定状态
+              </DialogDescription>
+            </DialogHeader>
+            {!isFeishuBound && (
+              <DialogFooter>
+                <Button variant='outline' onClick={() => setFeishuDialogOpen(false)}>
+                  取消
+                </Button>
+                <Button onClick={confirmFeishuBind}>
+                  确认
+                </Button>
+              </DialogFooter>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* 数据协议弹窗 */}
+        <Dialog open={agreementDialogOpen} onOpenChange={setAgreementDialogOpen}>
+          <DialogContent className='sm:max-w-md'>
+            <DialogHeader>
+              <DialogTitle>数据与工作协议</DialogTitle>
+              <DialogDescription>
+                请确认您已阅读并同意了
+                <a 
+                  href='https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-primary underline hover:text-primary/80 transition-colors mx-1'
+                >
+                  《用户数据生产提交协议》
+                </a>
+              </DialogDescription>
+            </DialogHeader>
+            {!isAgreementBound && (
+              <DialogFooter>
+                <Button variant='outline' onClick={() => setAgreementDialogOpen(false)}>
+                  取消
+                </Button>
+                <Button onClick={confirmAgreementBind}>
+                  确认
+                </Button>
+              </DialogFooter>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* 寻求支持弹窗 */}
+        <SupportDialog open={helpOpen} onOpenChange={setHelpOpen} />
+      </Main>
+    </>
+  )
+}
+
