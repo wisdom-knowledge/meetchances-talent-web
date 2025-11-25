@@ -9,7 +9,7 @@ export function sanitizeHTML(html: string): string {
 
   // 允许的标签
   const allowedTags = ['a', 'p', 'br', 'strong', 'em', 'b', 'i', 'u', 'span', 'div']
-  
+
   // 允许的属性
   const allowedAttrs: Record<string, string[]> = {
     a: ['href', 'target', 'rel'],
@@ -19,13 +19,24 @@ export function sanitizeHTML(html: string): string {
   function cleanNode(node: Element): void {
     const tagName = node.tagName.toLowerCase()
 
+    // 先递归处理所有子节点（深度优先）
+    // 注意：必须先转为数组，因为后续操作可能修改 children 列表
+    const childrenArray = Array.from(node.children)
+    childrenArray.forEach((child) => {
+      cleanNode(child as Element)
+    })
+
     // 如果标签不在允许列表中，移除它（但保留其内容）
     if (!allowedTags.includes(tagName)) {
-      const fragment = document.createDocumentFragment()
-      while (node.firstChild) {
-        fragment.appendChild(node.firstChild)
+      const parent = node.parentNode
+      // 确保父节点存在且节点仍然是父节点的子节点
+      if (parent && parent.contains(node)) {
+        const fragment = document.createDocumentFragment()
+        while (node.firstChild) {
+          fragment.appendChild(node.firstChild)
+        }
+        parent.replaceChild(fragment, node)
       }
-      node.parentNode?.replaceChild(fragment, node)
       return
     }
 
@@ -50,11 +61,6 @@ export function sanitizeHTML(html: string): string {
         node.setAttribute('rel', 'noopener noreferrer')
       }
     }
-
-    // 递归处理子节点
-    Array.from(node.children).forEach((child) => {
-      cleanNode(child as Element)
-    })
   }
 
   // 清理所有子节点
