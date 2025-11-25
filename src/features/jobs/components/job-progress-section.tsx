@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { IconChevronDown, IconChevronUp } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
-import { useJobApplyProgress, JobApplyNodeStatus } from '@/features/interview/api'
+import { useJobApplyProgressForDetail, JobApplyNodeStatus } from '@/features/interview/api'
 import type { ApiJob } from '@/features/jobs/api'
 
 interface JobProgressSectionProps {
@@ -114,7 +114,7 @@ export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps)
   
   // 只有当 jobApplyId 不为 0 时才调用进度接口
   const shouldFetchProgress = Boolean(jobApplyId) && jobApplyId !== 0 && jobApplyId !== '0'
-  const { data, isLoading } = useJobApplyProgress(jobApplyId, shouldFetchProgress)
+  const { data, isLoading } = useJobApplyProgressForDetail(jobApplyId, shouldFetchProgress)
 
   // 当 jobApplyId 为 0 时，从 job 的 workflow_template 中获取节点信息
   const templateNodes = useMemo(() => {
