@@ -140,17 +140,17 @@ export interface UploadFileResponse {
 export async function uploadFile(file: File): Promise<UploadFileResponse> {
   const formData = new FormData()
   formData.append('file', file)
-  
+
   const response = await api.post('/upload/file', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   })
-  
+
   // API 拦截器在 status_code === 0 时返回的是 data 部分
   // 所以 response 直接就是文件数据，不需要再访问 .data
   const fileData = response as unknown as UploadFileResponse['data']
-  
+
   // 构造完整的响应格式以保持接口一致性
   return {
     status_code: 0,
@@ -295,6 +295,60 @@ export interface JobApplyProgressResult {
 export function useJobApplyProgress(jobApplyId: string | number | null, enabled = true) {
   return useQuery<JobApplyWorkflowResponse, unknown, JobApplyProgressResult>({
     queryKey: ['job-apply-workflow', jobApplyId],
+    queryFn: () => fetchJobApplyWorkflow(jobApplyId as string | number),
+    enabled: Boolean(jobApplyId) && enabled,
+    staleTime: 30_000,
+    refetchOnMount: false,
+    select: (obj) => {
+      const backendNodes = Array.isArray(obj?.nodes) ? obj.nodes! : []
+      const normalizeName = (n: JobApplyWorkflowNode): string => {
+        const type = String(n.node_type ?? '')
+        const key = String(n.node_key ?? '')
+        const name = String(n.node_name ?? '')
+        const lowerName = name.toLowerCase()
+        if (type === 'INTERVIEW' || key === 'Interview' || lowerName.includes('interview')) return 'AI 面试'
+        if (type === 'RESUME_CHECK' || key === 'ResumeCheck' || lowerName.includes('resume')) return '简历分析'
+        if (type === 'ANNOTATE_TEST' || key === 'AnnotateTest' || lowerName.includes('annotate')) return '测试任务'
+        if (type === 'EDUCATION_VERIFY' || lowerName.includes('education')) return '学历验证'
+        if (type === 'SURVEY' || key === 'Survey' || lowerName.includes('survey')) return '问卷收集'
+        return name || key || '—'
+      }
+      const normalizeStatus = (n: JobApplyWorkflowNode): JobApplyNodeStatus => {
+        const rawStatus = n.status
+        const num = typeof rawStatus === 'number' ? rawStatus : parseInt(String(rawStatus ?? '0'), 10)
+        switch (num) {
+          case 0:
+            return JobApplyNodeStatus.NotStarted
+          case 10:
+            return JobApplyNodeStatus.InProgress
+          case 15:
+            return JobApplyNodeStatus.AnnotateCompleted
+          case 20:
+            return JobApplyNodeStatus.CompletedPendingReview
+          case 30:
+            return JobApplyNodeStatus.Approved
+          case 40:
+            return JobApplyNodeStatus.Rejected
+          case 50:
+            return JobApplyNodeStatus.Returned
+          default:
+            return JobApplyNodeStatus.NotStarted
+        }
+      }
+      const nodes = backendNodes.map((n) => ({ ...n, node_name: normalizeName(n), node_status: normalizeStatus(n) }))
+      return { current_node_id: obj?.current_node_id, nodes }
+    },
+  })
+}
+
+/**
+ * 职位详情页专用的进度查询 hook
+ * 与 useJobApplyProgress 功能相同，但使用独立的 queryKey 避免与其他页面的缓存冲突
+ * 主要用于 JobProgressSection 组件
+ */
+export function useJobApplyProgressForDetail(jobApplyId: string | number | null, enabled = true) {
+  return useQuery<JobApplyWorkflowResponse, unknown, JobApplyProgressResult>({
+    queryKey: ['job-apply-progress-detail', jobApplyId],
     queryFn: () => fetchJobApplyWorkflow(jobApplyId as string | number),
     enabled: Boolean(jobApplyId) && enabled,
     staleTime: 30_000,
