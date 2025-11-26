@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { IconArrowLeft } from '@tabler/icons-react'
@@ -27,6 +27,9 @@ export default function ProjectDetailPage() {
   const projectId = search.project_id ?? 1
   const queryClient = useQueryClient()
   
+  // 用于检查组件是否已挂载的 ref
+  const isMountedRef = useRef(true)
+  
   // 状态管理
   const [helpOpen, setHelpOpen] = useState(false)
   const [feishuDialogOpen, setFeishuDialogOpen] = useState(false)
@@ -53,10 +56,21 @@ export default function ProjectDetailPage() {
     return isFeishuBound && isAgreementBound && isPaymentBound
   }, [isFeishuBound, isAgreementBound, isPaymentBound])
 
+  // 组件卸载时清理
+  useEffect(() => {
+    isMountedRef.current = true
+    
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
   // 延迟触发预加载，避免影响初始加载性能
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShouldPreload(true)
+      if (isMountedRef.current) {
+        setShouldPreload(true)
+      }
     }, 1000)
     
     return () => clearTimeout(timer)
@@ -65,7 +79,9 @@ export default function ProjectDetailPage() {
   // 超时自动隐藏加载状态（避免 iframe onLoad 事件不触发）
   useEffect(() => {
     const timer = setTimeout(() => {
-      setGuideLoading(false)
+      if (isMountedRef.current) {
+        setGuideLoading(false)
+      }
     }, 1500) // 1.5秒后自动隐藏加载提示
     
     return () => clearTimeout(timer)
@@ -93,7 +109,7 @@ export default function ProjectDetailPage() {
 
   // 返回上一页
   const handleBack = () => {
-    navigate({ to: '/jobs' })
+    window.history.back()
   }
 
   // 飞书绑定
@@ -343,7 +359,11 @@ export default function ProjectDetailPage() {
                   src={projectData?.work_guide_url || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
                   className='h-full w-full border-0'
                   title='工作指南'
-                  onLoad={() => setGuideLoading(false)}
+                  onLoad={() => {
+                    if (isMountedRef.current) {
+                      setGuideLoading(false)
+                    }
+                  }}
                   loading='eager'
                 />
               </div>
@@ -508,9 +528,9 @@ export default function ProjectDetailPage() {
         <SupportDialog open={helpOpen} onOpenChange={setHelpOpen} />
         
         {/* 隐藏的预加载 iframe - 延迟1秒后加载 */}
-        {shouldPreload && (
+        {shouldPreload && projectData?.work_guide_url && (
           <iframe
-            src={projectData?.work_guide_url || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
+            src={projectData.work_guide_url}
             className='hidden'
             title='工作指南预加载'
             loading='eager'

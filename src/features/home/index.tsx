@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { IconX, IconHelp } from '@tabler/icons-react'
@@ -29,12 +29,16 @@ import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 export default function HomeViewPage() {
   const env = useRuntimeEnv()
   const navigate = useNavigate()
+  const search = useSearch({ strict: false })
   const authUser = useAuthStore((s) => s.auth.user)
   const displayName = authUser?.full_name || authUser?.username || ''
   const { data: taskList = [], isLoading: loadingTasks } =
     useImportantTasksQuery()
   const [dismissed, setDismissed] = useState<Record<string, boolean>>({})
   const visibleTasks = taskList.filter((t) => !dismissed[t.id])
+
+  // 从 URL 参数读取当前 tab
+  const currentTab = (search as { tab?: string })?.tab === 'projects' ? 'projects' : 'applications'
 
   const [page, setPage] = useState(0)
   const pageSize = 10
@@ -97,7 +101,7 @@ export default function HomeViewPage() {
   const projectsTotal = isInfiniteMode ? (infiniteProjects?.pages?.[0]?.total ?? 0) : (projectsData?.total ?? 0)
   const projectsPageCount = Math.max(1, Math.ceil(projectsTotal / pageSize))
 
-  // 移动端/小程序：监听“我的申请”列表底部以加载下一页
+  // 移动端/小程序：监听"我的申请"列表底部以加载下一页
   useEffect(() => {
     if (!isInfiniteMode) return
     const rootEl = appsContainerRef.current
@@ -115,6 +119,25 @@ export default function HomeViewPage() {
     io.observe(sentinel)
     return () => io.disconnect()
   }, [isInfiniteMode, hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // 移动端/小程序：监听"项目"列表底部以加载下一页
+  useEffect(() => {
+    if (!isInfiniteMode) return
+    const rootEl = projectsContainerRef.current
+    const sentinel = projectsSentinelRef.current
+    if (!rootEl || !sentinel) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        const e = entries[0]
+        if (e.isIntersecting && hasNextProjectPage && !isFetchingNextProjectPage) {
+          fetchNextProjectPage()
+        }
+      },
+      { root: rootEl, rootMargin: '0px 0px 200px 0px', threshold: 0.1 }
+    )
+    io.observe(sentinel)
+    return () => io.disconnect()
+  }, [isInfiniteMode, hasNextProjectPage, isFetchingNextProjectPage, fetchNextProjectPage])
 
   const [helpOpen, setHelpOpen] = useState(false)
   const handleHelp = () => setHelpOpen(true)
@@ -185,7 +208,16 @@ export default function HomeViewPage() {
         )}
 
         {/* 标签 Tab：我的申请 */}
-        <Tabs defaultValue='applications'>
+        <Tabs 
+          value={currentTab}
+          onValueChange={(value) => {
+            const newSearch: Record<string, unknown> = {}
+            if (value === 'projects') {
+              newSearch.tab = 'projects'
+            }
+            navigate({ search: newSearch as never })
+          }}
+        >
           <div className='flex items-center justify-between'>
             <TabsList>
               <TabsTrigger value='applications'>我的申请</TabsTrigger>
