@@ -11,13 +11,21 @@ import { fetchTalentMe } from '@/lib/api'
 
 interface Props {
   isActive: boolean
+  initialInviteCode?: string
 }
 
-export default function RecommendMeTab({ isActive }: Props) {
+export default function RecommendMeTab({ isActive, initialInviteCode }: Props) {
   const queryClient = useQueryClient()
-  const [inviteCode, setInviteCode] = useState('')
+  const [inviteCode, setInviteCode] = useState(initialInviteCode || '')
   const [codeInfo, setCodeInfo] = useState<InviteCodeInfo | null>(null)
   const [isValidating, setIsValidating] = useState(false)
+
+  // 当 initialInviteCode 变化时，更新 inviteCode
+  useEffect(() => {
+    if (initialInviteCode) {
+      setInviteCode(initialInviteCode)
+    }
+  }, [initialInviteCode])
 
   // 获取当前用户信息
   const { data: currentUser, isLoading: isLoadingUser } = useQuery({
