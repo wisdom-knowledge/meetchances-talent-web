@@ -125,10 +125,14 @@ function DesktopReferralSection({ jobId, referralBonus, campaign, project, class
       return
     }
 
+    // 拼接完整的邀请链接
+    const origin = window.location.origin
+    const inviteUrl = `${origin}/referral?invitedCode=${inviteToken}`
+
     // 复制到剪贴板
     try {
-      await navigator.clipboard.writeText(inviteToken)
-      toast.success('邀请码已复制到剪贴板')
+      await navigator.clipboard.writeText(inviteUrl)
+      toast.success('邀请链接已复制到剪贴板')
       userEvent('referral_code_copied', '复制邀请码', { job_id: jobId })
     } catch (_error) {
       toast.error('复制失败，请稍后重试')
@@ -218,10 +222,14 @@ function MobileReferralSection({ jobId, referralBonus, campaign, project, classN
       return
     }
 
+    // 拼接完整的邀请链接
+    const origin = window.location.origin
+    const inviteUrl = `${origin}/referral?invitedCode=${inviteToken}`
+
     // 复制到剪贴板
     try {
-      await navigator.clipboard.writeText(inviteToken)
-      toast.success('邀请码已复制到剪贴板')
+      await navigator.clipboard.writeText(inviteUrl)
+      toast.success('邀请链接已复制到剪贴板')
       userEvent('referral_code_copied', '复制邀请码', { job_id: jobId })
     } catch (_error) {
       toast.error('复制失败，请稍后重试')
