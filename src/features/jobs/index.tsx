@@ -206,11 +206,16 @@ export default function JobsListPage() {
       return
     }
 
-    // 复制邀请码到剪贴板
+    // 拼接完整的邀请链接
+    const origin = window.location.origin
+    const inviteUrl = `${origin}/referral?invitedCode=${referralCode}`
+    const copyText = `立即点击链接参与内推，一键绑定邀请关系，绑定成功后参与首页岗位申请。${inviteUrl}`
+
+    // 复制邀请链接到剪贴板
     try {
-      await navigator.clipboard.writeText(referralCode)
-      toast.success('邀请码已复制到剪贴板')
-      userEvent('referral_code_copied', '复制邀请码', { job_id: job.id })
+      await navigator.clipboard.writeText(copyText)
+      toast.success('邀请链接已复制到剪贴板')
+      userEvent('referral_code_copied', '复制邀请链接', { job_id: job.id })
     } catch (_error) {
       toast.error('复制失败，请稍后重试')
     }
@@ -549,7 +554,7 @@ export default function JobsListPage() {
                                   <>
                                     <span className='hidden sm:flex items-center gap-1 text-xs text-black/20 opacity-0 group-hover:opacity-100 transition-opacity shrink-0'>
                                       <img src={arrowSvg} alt='' className='h-6 w-6' aria-hidden='true' />
-                                      点击tag复制邀请码 发给朋友
+                                      点击tag复制邀请链接 发给朋友
                                     </span>
                                     <Badge
                                       variant='outline'

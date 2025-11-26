@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useSearch } from '@tanstack/react-router'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
@@ -16,8 +17,21 @@ import { ReferralTab, DEFAULT_REFERRAL_TAB } from '@/features/referral/constants
 import { toast } from 'sonner'
 
 export default function ReferralPage() {
-  const [activeTab, setActiveTab] = useState<string>(DEFAULT_REFERRAL_TAB)
+  // 读取 URL 参数
+  const searchParams = useSearch({ from: '/_authenticated/referral' })
+  const invitedCodeFromUrl = searchParams.invitedCode
+
+  // 如果 URL 中有 invitedCode，自动切换到推荐我 tab
+  const initialTab = invitedCodeFromUrl ? ReferralTab.RECOMMEND_ME : DEFAULT_REFERRAL_TAB
+  const [activeTab, setActiveTab] = useState<string>(initialTab)
   const [shouldGeneratePoster, setShouldGeneratePoster] = useState(false)
+
+  // 当 URL 参数变化时，自动切换 tab
+  useEffect(() => {
+    if (invitedCodeFromUrl) {
+      setActiveTab(ReferralTab.RECOMMEND_ME)
+    }
+  }, [invitedCodeFromUrl])
 
   // 获取当前用户信息
   const { data: currentUser } = useQuery({
@@ -122,7 +136,10 @@ export default function ReferralPage() {
           </TabsContent>
 
           <TabsContent value={ReferralTab.RECOMMEND_ME} className='space-y-4'>
-            <RecommendMeTab isActive={activeTab === ReferralTab.RECOMMEND_ME} />
+            <RecommendMeTab 
+              isActive={activeTab === ReferralTab.RECOMMEND_ME} 
+              initialInviteCode={invitedCodeFromUrl}
+            />
           </TabsContent>
         </Tabs>
 

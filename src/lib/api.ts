@@ -53,7 +53,7 @@ function handleTalentMeSideEffects(user: Talent): void {
   if (!referral_source && !referral_uid) return
 
   // 忽略上报结果与错误
-  api.patch('/talent/me', { referral_source, referral_uid }).catch(() => {})
+  api.patch('/talent/me', { referral_source, referral_uid }).catch(() => { })
 }
 
 export const api = axios.create({
@@ -69,6 +69,8 @@ export const api = axios.create({
 
 // 登录地址（通过一个统一的环境变量覆盖）
 const LOGIN_URL = import.meta.env.VITE_AUTH_LOGIN_URL
+// 邀请场景专用的登录地址
+const INVITE_REDIRECT_URL = import.meta.env.VITE_INVITE_REDIRECT_URL
 
 type WxWithMiniProgram = { miniProgram?: { redirectTo?: (opts: { url: string, data?: Record<string, string> }) => void } }
 
@@ -98,9 +100,44 @@ function handleUnauthorizedRedirect(): void {
     // ignore
   }
 
-  const loginUrl = LOGIN_URL
-  if (loginUrl) {
-    window.location.href = loginUrl
+  const currentPath = window.location.pathname
+
+  // 针对 /referral 路径使用邀请专用登录地址
+  if (currentPath === '/referral') {
+    const inviteUrl = INVITE_REDIRECT_URL
+    if (inviteUrl) {
+      // INVITE_REDIRECT_URL 是完整的 Authing 登录 URL
+      const parsedUrl = new URL(inviteUrl)
+
+      // 从 state 参数中提取 redirect_uri，并更新为当前完整 URL
+      const stateParam = parsedUrl.searchParams.get('state')
+      if (stateParam) {
+        // 解析 state 参数（格式如：redirect_uri=https://talent.meetchances.com/interview/prepare?job_id=123）
+        const stateParams = new URLSearchParams(stateParam)
+        const redirectUri = stateParams.get('redirect_uri')
+
+        if (redirectUri) {
+          // 提取 redirect_uri 的基础 URL（origin）
+          const redirectUrl = new URL(redirectUri)
+          const baseUrl = redirectUrl.origin
+
+          // 构建新的 redirect_uri：基础 URL + 当前路径 + 当前查询参数
+          const newRedirectUri = baseUrl + window.location.pathname + window.location.search
+
+          // 更新 state 参数中的 redirect_uri
+          stateParams.set('redirect_uri', newRedirectUri)
+          parsedUrl.searchParams.set('state', stateParams.toString())
+        }
+      }
+
+      window.location.href = parsedUrl.toString()
+    }
+  } else {
+    // 其他路径使用通用登录地址
+    const loginUrl = LOGIN_URL
+    if (loginUrl) {
+      window.location.href = loginUrl
+    }
   }
 }
 

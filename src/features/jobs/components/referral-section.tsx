@@ -125,10 +125,15 @@ function DesktopReferralSection({ jobId, referralBonus, campaign, project, class
       return
     }
 
+    // 拼接完整的邀请链接
+    const origin = window.location.origin
+    const inviteUrl = `${origin}/referral?invitedCode=${inviteToken}`
+    const copyText = `立即点击链接参与内推，一键绑定邀请关系，绑定成功后参与首页岗位申请。${inviteUrl}`
+
     // 复制到剪贴板
     try {
-      await navigator.clipboard.writeText(inviteToken)
-      toast.success('邀请码已复制到剪贴板')
+      await navigator.clipboard.writeText(copyText)
+      toast.success('邀请链接已复制到剪贴板')
       userEvent('referral_code_copied', '复制邀请码', { job_id: jobId })
     } catch (_error) {
       toast.error('复制失败，请稍后重试')
@@ -179,7 +184,7 @@ function DesktopReferralSection({ jobId, referralBonus, campaign, project, class
               className='group flex h-11 items-center gap-2 !rounded-lg !bg-gradient-to-r !from-[#4E02E4] !to-[#8B5CF6] !px-5 !py-2.5 !text-sm !font-medium !text-white !shadow-lg !shadow-purple-500/30 !transition-all hover:!shadow-xl hover:!shadow-purple-500/40 disabled:!opacity-50'
             >
               <IconCopy className='h-4 w-4 transition-transform group-hover:scale-110' />
-              复制邀请码
+              复制邀请链接
             </Button>
           </div>
         </div>
@@ -218,10 +223,15 @@ function MobileReferralSection({ jobId, referralBonus, campaign, project, classN
       return
     }
 
+    // 拼接完整的邀请链接
+    const origin = window.location.origin
+    const inviteUrl = `${origin}/referral?invitedCode=${inviteToken}`
+    const copyText = `立即点击链接参与内推，一键绑定邀请关系，绑定成功后参与首页岗位申请。${inviteUrl}`
+
     // 复制到剪贴板
     try {
-      await navigator.clipboard.writeText(inviteToken)
-      toast.success('邀请码已复制到剪贴板')
+      await navigator.clipboard.writeText(copyText)
+      toast.success('邀请链接已复制到剪贴板')
       userEvent('referral_code_copied', '复制邀请码', { job_id: jobId })
     } catch (_error) {
       toast.error('复制失败，请稍后重试')
@@ -270,7 +280,7 @@ function MobileReferralSection({ jobId, referralBonus, campaign, project, classN
               className='group flex h-10 w-full items-center justify-center gap-2 !rounded-lg !bg-gradient-to-r !from-[#4E02E4] !to-[#8B5CF6] !px-4 !py-2 !text-sm !font-medium !text-white !shadow-lg !shadow-purple-500/30 disabled:!opacity-50'
             >
               <IconCopy className='h-4 w-4 transition-transform group-active:scale-95' />
-              复制邀请码
+              复制邀请链接
             </Button>
           </div>
         </div>
