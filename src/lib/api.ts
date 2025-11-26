@@ -53,7 +53,7 @@ function handleTalentMeSideEffects(user: Talent): void {
   if (!referral_source && !referral_uid) return
 
   // 忽略上报结果与错误
-  api.patch('/talent/me', { referral_source, referral_uid }).catch(() => {})
+  api.patch('/talent/me', { referral_source, referral_uid }).catch(() => { })
 }
 
 export const api = axios.create({
@@ -100,7 +100,18 @@ function handleUnauthorizedRedirect(): void {
 
   const loginUrl = LOGIN_URL
   if (loginUrl) {
-    window.location.href = loginUrl
+    // 只对 /referral 路径做重定向处理，保留完整 URL（包括查询参数）
+    // 例如：/referral?invitedCode=WF8RRLT
+    const currentPath = window.location.pathname
+    if (currentPath === '/referral') {
+      const currentUrl = window.location.href
+      const separator = loginUrl.includes('?') ? '&' : '?'
+      const redirectParam = `redirect_uri=${encodeURIComponent(currentUrl)}`
+      window.location.href = `${loginUrl}${separator}${redirectParam}`
+    } else {
+      // 其他路径保持原来的逻辑，直接跳转到登录页面
+      window.location.href = loginUrl
+    }
   }
 }
 
