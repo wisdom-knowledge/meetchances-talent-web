@@ -11,8 +11,8 @@ const FLOW_STEPS = [
   {
     id: 1,
     title: '查看自己的邀请码',
-    description: '您可以在岗位列表直接点击"内推"标签复制邀请码',
-    subDescription: '也可以在岗位详情页复制邀请码',
+    description: '您可以在岗位列表直接点击"内推"标签复制邀请链接',
+    subDescription: '也可以在岗位详情页复制邀请链接',
     image: step1Img,
     imageAspect: 781 / 224, // 3.49:1
   },
