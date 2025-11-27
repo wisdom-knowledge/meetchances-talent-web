@@ -23,7 +23,7 @@ export default function MinePage() {
         <div className='ml-auto' />
       </Header>
 
-      <Main fixed>
+      <Main className='flex-1 overflow-y-auto'>
         {/* 顶部 头像（圆形） + 姓名 + 电话，垂直布局 */}
         <div className='flex flex-col items-center py-6 mb-2'>
           <button type='button' onClick={gotoAccountInfo} className='relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 transition-transform'>

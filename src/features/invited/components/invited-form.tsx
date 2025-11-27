@@ -195,7 +195,7 @@ export default function InvitedForm() {
   }
 
   return (
-    <div className='mx-auto w-full max-w-[644px]'>
+    <div className='mx-auto w-full max-w-[644px] py-20 sm:py-0'>
       <div className='mb-[36px]'>
         {step === 1 && (
           <h1 className='text-2xl font-bold tracking-tight text-[var(--color-blue-600)] md:text-3xl'>
