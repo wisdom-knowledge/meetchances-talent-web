@@ -10,7 +10,7 @@ export default function InvitedPage() {
   // }, [user])
 
   return (
-    <Main className='flex h-full items-center justify-center'>
+    <Main className='flex-1 overflow-y-auto'>
       <InvitedForm />
     </Main>
   )
