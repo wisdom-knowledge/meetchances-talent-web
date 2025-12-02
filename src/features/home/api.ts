@@ -191,104 +191,51 @@ export interface MyProjectsResultRaw {
   total: number
 }
 
+// 使用真实接口：GET /talent/projects
+type BackendProjectItem = {
+  id: number
+  name?: string
+  alias?: string
+  created_at?: string | number
+  updated_at?: string | number
+}
+type BackendProjectsResponse = {
+  data?: BackendProjectItem[]
+  count?: number
+}
+
 export async function fetchMyProjects(
   params: MyProjectsParams = { skip: 0, limit: 10 }
 ): Promise<MyProjectsResultRaw> {
   const { skip = 0, limit = 10 } = params
-  
-  // Mock 数据
-  const mockProjects: ProjectListItem[] = [
-    {
-      id: 1,
-      title: 'Coding Rubric - AI 代码评审标注',
-      created_at: Date.now() / 1000 - 86400 * 2, // 2天前
-      updated_at: Date.now() / 1000,
-    },
-    {
-      id: 2,
-      title: '对话数据标注项目',
-      created_at: Date.now() / 1000 - 86400 * 5, // 5天前
-      updated_at: Date.now() / 1000,
-    },
-    {
-      id: 3,
-      title: '图像识别标注任务',
-      created_at: Date.now() / 1000 - 86400 * 10, // 10天前
-      updated_at: Date.now() / 1000,
-    },
-    {
-      id: 4,
-      title: '语音转文本校对项目',
-      created_at: Date.now() / 1000 - 86400 * 15, // 15天前
-      updated_at: Date.now() / 1000,
-    },
-    {
-      id: 5,
-      title: 'NLP 文本分类标注',
-      created_at: Date.now() / 1000 - 86400 * 20, // 20天前
-      updated_at: Date.now() / 1000,
-    },
-    {
-      id: 6,
-      title: '产品反馈情感分析',
-      created_at: Date.now() / 1000 - 86400 * 25, // 25天前
-      updated_at: Date.now() / 1000,
-    },
-    {
-      id: 7,
-      title: '医疗文本实体识别',
-      created_at: Date.now() / 1000 - 86400 * 30, // 30天前
-      updated_at: Date.now() / 1000,
-    },
-    {
-      id: 8,
-      title: '问答对质量评估',
-      created_at: Date.now() / 1000 - 86400 * 35, // 35天前
-      updated_at: Date.now() / 1000,
-    },
-  ]
 
-  // 尝试从后端获取，如果失败则使用 mock 数据
-  try {
-    const raw = await api.get('/talent/project_list', {
-      params: { skip, limit },
-    })
-    type Container = { data?: unknown; count?: unknown }
-    const top = raw as Container
-    const maybeNested = (top?.data ?? null) as Container | unknown[] | null
-    const container: Container = Array.isArray(top?.data)
-      ? (top as Container)
-      : ((maybeNested as Container) ?? top)
+  const res = (await api.get('/talent/projects', {
+    params: { skip, limit },
+  })) as unknown as BackendProjectsResponse
 
-    const listUnknown: unknown = container?.data ?? []
-    const totalUnknown: unknown = container?.count ?? 0
+  const items: BackendProjectItem[] = Array.isArray(res?.data) ? res.data : []
+  const total: number = typeof res?.count === 'number' ? res.count : 0
 
-    const list: ProjectListItem[] = Array.isArray(listUnknown)
-      ? (listUnknown as ProjectListItem[])
-      : []
-    const total: number = typeof totalUnknown === 'number' ? totalUnknown : 0
-
-    // 如果后端返回空数据，使用 mock 数据
-    if (list.length === 0) {
-      const paginatedMockData = mockProjects.slice(skip, skip + limit)
-      return {
-        data: paginatedMockData,
-        total: mockProjects.length,
-      }
+  const toSeconds = (value: string | number | undefined): number => {
+    if (typeof value === 'number') {
+      // 兼容毫秒级：判断是否远大于秒级
+      return value > 1e12 ? Math.floor(value / 1000) : value
     }
-
-    return {
-      data: list,
-      total,
+    if (typeof value === 'string' && value) {
+      const t = Date.parse(value)
+      if (!Number.isNaN(t)) return Math.floor(t / 1000)
     }
-  } catch (_error) {
-    // 后端接口失败时使用 mock 数据
-    const paginatedMockData = mockProjects.slice(skip, skip + limit)
-    return {
-      data: paginatedMockData,
-      total: mockProjects.length,
-    }
+    return Math.floor(Date.now() / 1000)
   }
+
+  const list: ProjectListItem[] = items.map((p) => ({
+    id: p.id,
+    title: (p.alias?.trim() || p.name?.trim() || '').trim(),
+    created_at: toSeconds(p.created_at),
+    updated_at: toSeconds(p.updated_at),
+  }))
+
+  return { data: list, total }
 }
 
 type MyProjectsQueryOptions = Omit<
