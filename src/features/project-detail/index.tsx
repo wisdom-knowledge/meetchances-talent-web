@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { useQueryClient } from '@tanstack/react-query'
+
 import { IconArrowLeft } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { Main } from '@/components/layout/main'
@@ -14,8 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
-import { useProjectDetail, useBindingStatus, submitProject, bindDataAgreement } from './api'
-import type { Talent } from '@/stores/authStore'
+import { useProjectDetail, useTalentAuthURL, bindDataAgreement } from './api'
 import titleIcon from './images/title.png'
 import feishuIcon from './images/feishu.png'
 import dataIcon from './images/data.png'
@@ -25,7 +24,6 @@ export default function ProjectDetailPage() {
   const navigate = useNavigate()
   const search = useSearch({ strict: false }) as { project_id?: number }
   const projectId = search.project_id ?? 1
-  const queryClient = useQueryClient()
   
   // 用于检查组件是否已挂载的 ref
   const isMountedRef = useRef(true)
@@ -34,27 +32,34 @@ export default function ProjectDetailPage() {
   const [helpOpen, setHelpOpen] = useState(false)
   const [feishuDialogOpen, setFeishuDialogOpen] = useState(false)
   const [agreementDialogOpen, setAgreementDialogOpen] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const [submitting] = useState(false)
   const [expandedGuide, setExpandedGuide] = useState(false)
   const [guideLoading, setGuideLoading] = useState(true)
   const [shouldPreload, setShouldPreload] = useState(false)
 
   // 数据获取
-  const { data: projectData, isLoading: projectLoading } = useProjectDetail(projectId)
-  const { data: bindingStatus, refetch: refetchBinding } = useBindingStatus()
+  const { data: projectData, isLoading: projectLoading, refetch: refetchProjectDetail } = useProjectDetail(projectId)
+  const { data: feishuAuth, isLoading: authLoading } = useTalentAuthURL(feishuDialogOpen)
   
-  // 获取用户信息以判断支付绑定状态
-  const currentUser = queryClient.getQueryData(['current-user']) as Talent | undefined
-  const isPaymentBound = Boolean(currentUser?.miniprogram_openid)
+  // 需求开关：来自 project
+  const requireFeishu = Boolean(projectData?.project?.require_feishu_binding)
+  const requireAgreement = Boolean(projectData?.project?.require_data_agreement)
+  const requirePayment = Boolean(projectData?.project?.require_payment_binding)
+
+  // 支付绑定状态来自项目详情的 personal_info
+  const isPaymentBound = Boolean(projectData?.personal_info?.miniprogram_openid)
 
   // 三个绑定状态（实际值从 API 获取，这里用 isPaymentBound 作为支付绑定状态）
-  const isFeishuBound = bindingStatus?.feishu_bound ?? false
-  const isAgreementBound = bindingStatus?.data_agreement_bound ?? false
+  const isFeishuBound = Boolean(projectData?.personal_info?.has_feishu)
+  const isAgreementBound = Boolean(projectData?.personal_info?.has_read_agreement)
 
   // 是否所有绑定都完成
   const allBound = useMemo(() => {
-    return isFeishuBound && isAgreementBound && isPaymentBound
-  }, [isFeishuBound, isAgreementBound, isPaymentBound])
+    const okFeishu = requireFeishu ? isFeishuBound : true
+    const okAgreement = requireAgreement ? isAgreementBound : true
+    const okPayment = requirePayment ? isPaymentBound : true
+    return okFeishu && okAgreement && okPayment
+  }, [requireFeishu, requireAgreement, requirePayment, isFeishuBound, isAgreementBound, isPaymentBound])
 
   // 组件卸载时清理
   useEffect(() => {
@@ -120,7 +125,7 @@ export default function ProjectDetailPage() {
 
   const confirmFeishuBind = async () => {
     // 这里需要调用飞书绑定 API，暂时模拟成功
-    await refetchBinding()
+    await refetchProjectDetail()
     setFeishuDialogOpen(false)
     toast.success('飞书绑定状态已刷新')
   }
@@ -133,8 +138,8 @@ export default function ProjectDetailPage() {
 
   const confirmAgreementBind = async () => {
     try {
-      await bindDataAgreement()
-      await refetchBinding()
+      await bindDataAgreement(projectId)
+      await refetchProjectDetail()
       setAgreementDialogOpen(false)
       toast.success('已同意数据与工作协议')
     } catch (_error) {
@@ -156,23 +161,20 @@ export default function ProjectDetailPage() {
       toast.error('请先完成所有绑定')
       return
     }
-    
-    setSubmitting(true)
-    try {
-      await submitProject(projectId)
-      toast.success('提交成功')
-      // 提交成功后跳转到其他页面
-      navigate({ to: '/finish' })
-    } catch (_error) {
-      toast.error('提交失败，请稍后重试')
-    } finally {
-      setSubmitting(false)
+
+    const url = projectData?.project?.questionnaire_url
+    if (!url) {
+      toast.error('暂无问卷地址，请稍后重试')
+      return
     }
+    // 跳转到问卷地址（同窗口）
+    window.location.href = url
   }
 
-  // 报酬类型文案
-  const paymentTypeLabel = projectData?.payment_type === 1 ? '按条计费' : '按小时计费'
-  const paymentUnit = projectData?.payment_type === 1 ? '审核通过条目' : '小时'
+  // 报酬类型文案（基于 unit：1->小时；其他->按条）
+  const unit = projectData?.project?.unit
+  const paymentTypeLabel = unit === 1 ? '按小时计费' : '按条计费'
+  const paymentUnit = unit === 1 ? '小时' : '审核通过条目'
 
   return (
     <>
@@ -195,7 +197,7 @@ export default function ProjectDetailPage() {
             </button>
             <Button
               onClick={handleSubmit}
-              disabled={!allBound || submitting}
+              disabled={projectLoading || !allBound || submitting}
               className='h-11 rounded-lg px-7 text-base font-medium disabled:bg-[#c9c9c9] disabled:text-white disabled:opacity-100 disabled:pointer-events-none'
             >
               {submitting ? '提交中...' : '提交'}
@@ -210,7 +212,7 @@ export default function ProjectDetailPage() {
             <div className='flex items-center gap-[10px]'>
               <img src={titleIcon} alt='项目图标' className='h-8 w-8' />
               <h1 className='text-2xl font-medium tracking-[0.48px]'>
-                {projectLoading ? '加载中...' : projectData?.title || 'Coding Rubric'}
+                {projectLoading ? '加载中...' : (projectData?.project?.alias || projectData?.project?.name || 'Coding Rubric')}
               </h1>
             </div>
 
@@ -222,19 +224,19 @@ export default function ProjectDetailPage() {
                   <div className='flex items-center justify-between text-sm'>
                     <span className='text-black'>{projectLoading ? '加载中...' : paymentTypeLabel}：</span>
                     <span className='text-black/50'>
-                      {projectLoading ? '...' : `${projectData?.payment_amount || 200}/${paymentUnit}`}
+                      {projectLoading ? '...' : `${projectData?.project?.price_per_unit ?? 200}/${paymentUnit}`}
                     </span>
                   </div>
                   <div className='flex items-center justify-between text-sm'>
                     <span className='text-black'>结算时间：</span>
                     <span className='text-black/50'>
-                      {projectLoading ? '...' : (projectData?.settlement_time || '暂无')}
+                      {projectLoading ? '...' : (projectData?.project?.settlement_time || '暂无')}
                     </span>
                   </div>
                   <div className='flex items-center justify-between text-sm'>
                     <span className='text-black'>结算条件：</span>
                     <span className='text-black/50'>
-                      {projectLoading ? '...' : (projectData?.settlement_condition || '暂无')}
+                      {projectLoading ? '...' : (projectData?.project?.settlement_condition || '暂无')}
                     </span>
                   </div>
                 </div>
@@ -242,6 +244,7 @@ export default function ProjectDetailPage() {
 
               {/* 绑定状态卡片 */}
               {/* 飞书绑定 */}
+              {requireFeishu && (
               <button
                 onClick={handleFeishuBind}
                 className='flex w-full items-center justify-center rounded-xl border border-primary/20 p-6 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
@@ -267,8 +270,10 @@ export default function ProjectDetailPage() {
                   )}
                 </div>
               </button>
+              )}
 
               {/* 数据与工作协议 */}
+              {requireAgreement && (
               <button
                 onClick={handleAgreementBind}
                 className='flex w-full items-center justify-center rounded-xl border border-primary/20 p-6 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
@@ -294,8 +299,10 @@ export default function ProjectDetailPage() {
                   )}
                 </div>
               </button>
+              )}
 
               {/* 支付绑定 */}
+              {requirePayment && (
               <button
                 onClick={handlePaymentBind}
                 className='flex w-full items-center justify-center rounded-xl border border-primary/20 p-6 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
@@ -321,6 +328,7 @@ export default function ProjectDetailPage() {
                   )}
                 </div>
               </button>
+              )}
             </div>
 
           </div>
@@ -356,7 +364,7 @@ export default function ProjectDetailPage() {
                   </div>
                 )}
                 <iframe
-                  src={projectData?.work_guide_url || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
+                  src={projectData?.project?.work_guide || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
                   className='h-full w-full border-0'
                   title='工作指南'
                   onLoad={() => {
@@ -468,12 +476,12 @@ export default function ProjectDetailPage() {
                     安装飞书客户端后，点击下面链接进行授权
                   </p>
                   <a 
-                    href='https://auth.feishu.com/'
+                    href={feishuAuth?.auth_url || '#'}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-primary underline decoration-solid transition-colors hover:text-primary/80'
+                    className='text-primary underline decoration-solid transition-colors hover:text-primary/80 break-all'
                   >
-                    https://auth.feishu.com/
+                    {authLoading ? '获取授权链接中…' : (feishuAuth?.auth_url || '无法获取授权链接')}
                   </a>
                 </div>
               </div>
@@ -502,7 +510,7 @@ export default function ProjectDetailPage() {
               <DialogDescription>
                 请确认您已阅读并同意了
                 <a 
-                  href='https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'
+                  href='https://meetchances.feishu.cn/wiki/L1BpwiRD1iDNqakKcW0cLhoxnbh'
                   target='_blank'
                   rel='noopener noreferrer'
                   className='text-primary underline hover:text-primary/80 transition-colors mx-1'
@@ -528,9 +536,9 @@ export default function ProjectDetailPage() {
         <SupportDialog open={helpOpen} onOpenChange={setHelpOpen} />
         
         {/* 隐藏的预加载 iframe - 延迟1秒后加载 */}
-        {shouldPreload && projectData?.work_guide_url && (
+        {shouldPreload && projectData?.project?.work_guide && (
           <iframe
-            src={projectData.work_guide_url}
+            src={projectData.project.work_guide}
             className='hidden'
             title='工作指南预加载'
             loading='eager'
@@ -563,7 +571,7 @@ export default function ProjectDetailPage() {
             
             {/* iframe 内容 */}
             <iframe
-              src={projectData?.work_guide_url || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
+              src={projectData?.project?.work_guide || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
               className='h-full w-full rounded-lg border-0'
               title='工作指南（全屏）'
               loading='eager'

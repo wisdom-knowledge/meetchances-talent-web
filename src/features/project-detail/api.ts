@@ -1,104 +1,68 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import logger from '@/utils/logger'
 
-// 项目详情接口
-export interface ProjectDetail {
+// ===== 类型定义（顶部集中管理） =====
+export interface BackendProject {
   id: number
-  title: string
-  // 报酬类型：1-按条计费，2-按小时计费
-  payment_type: 1 | 2
-  // 报酬金额
-  payment_amount: number
-  // 结算时间
+  name?: string
+  alias?: string
+  status?: number
+  project_type?: number
+  price_per_unit?: number
+  unit?: number
   settlement_time?: string
-  // 结算条件
   settlement_condition?: string
-  // 工作指南飞书文档链接
-  work_guide_url?: string
+  questionnaire_url?: string
+  work_guide?: string
+  require_payment_binding?: boolean
+  require_data_agreement?: boolean
+  require_feishu_binding?: boolean
+  trial_task_id?: number
+  new_user_settlement_priority?: number
+  created_at?: string
+  updated_at?: string
+  project_personnel_count?: number
 }
 
-export interface ProjectDetailResponse {
-  code: number
-  data: ProjectDetail
-  msg: string
+export interface BackendPersonalInfo {
+  has_feishu?: boolean
+  has_read_agreement?: boolean
+  miniprogram_openid?: string
 }
 
-// 绑定状态接口
-export interface BindingStatus {
-  // 飞书绑定状态
-  feishu_bound: boolean
-  // 数据协议绑定状态
-  data_agreement_bound: boolean
-  // 支付绑定状态
-  payment_bound: boolean
+export interface TalentProjectDetail {
+  project?: BackendProject
+  personal_info?: BackendPersonalInfo
 }
 
-export interface BindingStatusResponse {
-  code: number
-  data: BindingStatus
-  msg: string
+// 飞书授权 URL
+export interface TalentAuthURL {
+  auth_url: string
+  expires_in: number
 }
 
-// 获取项目详情
-export async function getProjectDetail(projectId: number): Promise<ProjectDetail> {
-  const response = await api.get(`/project/${projectId}`)
-  // 处理响应数据
-  if (typeof response === 'object' && response !== null) {
-    const data = (response as { data?: ProjectDetail }).data
-    if (data) return data
-  }
-  // 如果 API 还未实现，返回 mock 数据
-  return {
-    id: projectId,
-    title: 'Coding Rubric',
-    payment_type: 1,
-    payment_amount: 200,
-    settlement_time: '项目结束后 10 个工作日内',
-    settlement_condition: '审核通过的条目数量',
-    work_guide_url: 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe',
-  }
+// ===== API =====
+// 获取项目详情（直接返回后端原始结构）
+export async function getProjectDetail(projectId: number): Promise<TalentProjectDetail> {
+  const res = await api.get(`/talent/projects/${projectId}`)
+  return res as unknown as TalentProjectDetail
 }
 
-// 获取绑定状态
-export async function getBindingStatus(): Promise<BindingStatus> {
+// 更新协议状态
+export async function bindDataAgreement(projectId: number): Promise<void> {
   try {
-    const response = await api.get('/talent/binding-status')
-    if (typeof response === 'object' && response !== null) {
-      const data = (response as { data?: BindingStatus }).data
-      if (data) return data
-    }
-  } catch (_error) {
-    // 如果接口失败，返回 mock 数据
-  }
-  // Mock 数据
-  return {
-    feishu_bound: false,
-    data_agreement_bound: false,
-    payment_bound: false,
-  }
-}
-
-// 提交项目
-export async function submitProject(projectId: number): Promise<void> {
-  try {
-    await api.post(`/project/${projectId}/submit`)
+    await api.patch('/talent/projects/agreement-status', {
+      project_id: projectId,
+      has_read_agreement: true,
+    })
   } catch (error) {
-    console.error('提交项目失败:', error)
+    logger.error('绑定数据协议失败:', error)
     throw error
   }
 }
 
-// 绑定数据协议
-export async function bindDataAgreement(): Promise<void> {
-  try {
-    await api.post('/talent/bind-data-agreement')
-  } catch (error) {
-    console.error('绑定数据协议失败:', error)
-    throw error
-  }
-}
-
-// 使用 React Query Hooks
+// ===== Hooks =====
 export function useProjectDetail(projectId: number, enabled = true) {
   return useQuery({
     queryKey: ['project-detail', projectId],
@@ -107,12 +71,19 @@ export function useProjectDetail(projectId: number, enabled = true) {
   })
 }
 
-export function useBindingStatus(enabled = true) {
+// 获取飞书授权 URL
+export async function fetchTalentAuthURL(): Promise<TalentAuthURL> {
+  // 拦截器已解包，直接返回 data：{ auth_url, expires_in }
+  const res = await api.get('/talent/get-auth-url')
+  return res as unknown as TalentAuthURL
+}
+
+export function useTalentAuthURL(enabled = true) {
   return useQuery({
-    queryKey: ['binding-status'],
-    queryFn: getBindingStatus,
+    queryKey: ['feishu-auth-url'],
+    queryFn: fetchTalentAuthURL,
     enabled,
-    staleTime: 30 * 1000, // 30秒内不重新获取
+    refetchOnWindowFocus: false,
   })
 }
 
