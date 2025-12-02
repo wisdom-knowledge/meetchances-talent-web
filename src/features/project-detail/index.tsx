@@ -442,7 +442,7 @@ export default function ProjectDetailPage() {
                   <div className='flex flex-col items-center gap-3'>
                     <div className='h-[72px] w-[74px] overflow-hidden'>
                       <img 
-                        src='https://www.figma.com/api/mcp/asset/c63f9aa4-e10b-4ccb-ac92-76317d76091c'
+                        src='/images/feishu.png'
                         alt='飞书'
                         className='h-full w-full object-cover'
                       />
@@ -461,7 +461,7 @@ export default function ProjectDetailPage() {
                   <div className='flex flex-col items-center gap-3'>
                     <div className='h-[72px] w-[72px]'>
                       <img 
-                        src='https://www.figma.com/api/mcp/asset/f2278b3a-6416-4f38-a7b4-3b904cc2fe4a'
+                        src='/images/logo-circle.svg'
                         alt='一面千识'
                         className='h-full w-full object-contain'
                       />
@@ -473,16 +473,20 @@ export default function ProjectDetailPage() {
                 {/* 说明文字 */}
                 <div className='flex flex-col gap-3 text-sm font-medium leading-[1.6]'>
                   <p className='text-[rgba(0,0,0,0.7)]'>
-                    安装飞书客户端后，点击下面链接进行授权
+                    安装飞书客户端后，点击下面按钮进行跳转授权
                   </p>
-                  <a 
-                    href={feishuAuth?.auth_url || '#'}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='text-primary underline decoration-solid transition-colors hover:text-primary/80 break-all'
+                  <Button
+                    type='button'
+                    onClick={() => {
+                      if (feishuAuth?.auth_url) {
+                        window.open(feishuAuth.auth_url, '_blank', 'noopener,noreferrer')
+                      }
+                    }}
+                    disabled={authLoading || !feishuAuth?.auth_url}
+                    className='w-fit'
                   >
-                    {authLoading ? '获取授权链接中…' : (feishuAuth?.auth_url || '无法获取授权链接')}
-                  </a>
+                    {authLoading ? '获取授权链接中…' : '前往授权'}
+                  </Button>
                 </div>
               </div>
             </div>
