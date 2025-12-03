@@ -18,7 +18,7 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import TitleBar from '@/components/title-bar'
-import { getWalletDetails, type WalletDetailsResponse } from '@/features/wallet/api'
+import { getWalletDetails, getDisbursementRecords, type WalletDetailsResponse } from '@/features/wallet/api'
 import { fetchTalentMe } from '@/lib/api'
 import IncomeTab from '@/features/wallet/components/income-tab'
 import PaymentRecordsTab from '@/features/wallet/components/payment-records-tab'
@@ -156,6 +156,20 @@ export default function WalletPage() {
   const referIncomeTotal = walletDetails?.wallet.refer_income ?? 0
   const currentMonthIncome = walletDetails?.wallet.current_month_income ?? 0
 
+  // 获取待确认的提现记录
+  const { data: pendingDisbursements, isLoading: isPendingLoading } = useQuery({
+    queryKey: ['pending-disbursements'],
+    queryFn: async () => getDisbursementRecords({
+      skip: 0,
+      limit: 50,
+      disbursement_status: 0,
+    }),
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
+  })
+  const pendingCount = pendingDisbursements?.data?.length ?? 0
+
   const handleBindClick = () => {
     const env = detectRuntimeEnvSync()
     // 小程序端直接跳转授权页面
@@ -246,6 +260,26 @@ export default function WalletPage() {
           </div>
         </div>
 
+        {/* 待确认提现款项 */}
+        {!isPendingLoading && pendingCount > 0 && (
+          <div className='bg-card mb-6 rounded-xl border border-[#4E02E40D] shadow-[0_0_4px_0_#0000001A]'>
+            <div className='flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between'>
+              <div className='space-y-1 text-sm'>
+                <p>你有 {pendingCount} 笔待确认的提现款项</p>
+              </div>
+              <button
+                onClick={handleWithdrawClick}
+                className='flex h-9 items-center justify-center gap-1 rounded-lg border border-[#4e02e4] bg-white px-3 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-80'
+              >
+                <span className='text-sm font-medium tracking-[0.4px] text-black'>
+                  提现
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 提现区域 */}
         <div className='bg-card mb-6 rounded-xl border border-[#4E02E40D] shadow-[0_0_4px_0_#0000001A]'>
           <div className='flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between'>
             {isLoading ? (
