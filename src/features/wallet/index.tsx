@@ -267,9 +267,9 @@ export default function WalletPage() {
               </div>
               <button
                 onClick={handleWithdrawClick}
-                className='flex items-center justify-center gap-1 rounded-lg border border-[#4e02e4] bg-white px-7 py-4 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-80'
+                className='flex h-9 items-center justify-center gap-1 rounded-lg border border-[#4e02e4] bg-white px-3 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-80'
               >
-                <span className='text-base font-medium tracking-[0.4px] text-black'>
+                <span className='text-sm font-medium tracking-[0.4px] text-black'>
                   提现
                 </span>
               </button>
@@ -301,23 +301,13 @@ export default function WalletPage() {
 
             {!isLoading && (
               !isWeChatBound ? (
-                <button
-                  onClick={handleBindClick}
-                  className='flex items-center justify-center gap-1 rounded-lg border border-[#4e02e4] bg-white px-7 py-4 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-80'
-                >
-                  <span className='text-base font-medium tracking-[0.4px] text-black'>
-                    绑定
-                  </span>
-                </button>
+                <Button size='sm' onClick={handleBindClick}>
+                  绑定
+                </Button>
               ) : Number(availableBalance) > 10000 ? null : (
-                <button
-                  onClick={handleWithdrawClick}
-                  className='flex items-center justify-center gap-1 rounded-lg border border-[#4e02e4] bg-white px-7 py-4 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-80'
-                >
-                  <span className='text-base font-medium tracking-[0.4px] text-black'>
-                    提现
-                  </span>
-                </button>
+                <Button size='sm' onClick={handleWithdrawClick}>
+                  提现
+                </Button>
               )
             )}
           </div>
