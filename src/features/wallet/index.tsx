@@ -265,9 +265,14 @@ export default function WalletPage() {
               <div className='space-y-1 text-sm'>
                 <p>你有 {pendingCount} 笔待确认的提现款项</p>
               </div>
-              <Button size='sm' onClick={handleWithdrawClick}>
-                提现
-              </Button>
+              <button
+                onClick={handleWithdrawClick}
+                className='flex items-center justify-center gap-1 rounded-lg border border-[#4e02e4] bg-white px-7 py-4 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-80'
+              >
+                <span className='text-base font-medium tracking-[0.4px] text-black'>
+                  提现
+                </span>
+              </button>
             </div>
           </div>
         )}
@@ -296,13 +301,23 @@ export default function WalletPage() {
 
             {!isLoading && (
               !isWeChatBound ? (
-                <Button size='sm' onClick={handleBindClick}>
-                  绑定
-                </Button>
+                <button
+                  onClick={handleBindClick}
+                  className='flex items-center justify-center gap-1 rounded-lg border border-[#4e02e4] bg-white px-7 py-4 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-80'
+                >
+                  <span className='text-base font-medium tracking-[0.4px] text-black'>
+                    绑定
+                  </span>
+                </button>
               ) : Number(availableBalance) > 10000 ? null : (
-                <Button size='sm' onClick={handleWithdrawClick}>
-                  提现
-                </Button>
+                <button
+                  onClick={handleWithdrawClick}
+                  className='flex items-center justify-center gap-1 rounded-lg border border-[#4e02e4] bg-white px-7 py-4 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-80'
+                >
+                  <span className='text-base font-medium tracking-[0.4px] text-black'>
+                    提现
+                  </span>
+                </button>
               )
             )}
           </div>
