@@ -164,7 +164,9 @@ export default function WalletPage() {
       limit: 50,
       disbursement_status: 0,
     }),
-    staleTime: 30 * 1000,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
   })
   const pendingCount = pendingDisbursements?.data?.length ?? 0
 
