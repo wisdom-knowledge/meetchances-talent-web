@@ -200,7 +200,7 @@ export default function ProjectDetailPage() {
               disabled={projectLoading || !allBound || submitting}
               className='h-11 rounded-lg px-7 text-base font-medium disabled:bg-[#c9c9c9] disabled:text-white disabled:opacity-100 disabled:pointer-events-none'
             >
-              {submitting ? '提交中...' : '提交'}
+              {submitting ? '进入中...' : '进入项目'}
             </Button>
           </div>
         </div>
@@ -500,7 +500,7 @@ export default function ProjectDetailPage() {
                 onClick={confirmFeishuBind}
                 className='h-11 rounded-lg px-8 text-base font-medium'
               >
-                刷新绑定状态
+                我已成功绑定
                 </Button>
             </div>
           </DialogContent>
