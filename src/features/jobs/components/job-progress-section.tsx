@@ -9,7 +9,7 @@ interface JobProgressSectionProps {
   job?: ApiJob | null
 }
 
-type VisualStepStatus = 'completed' | 'inProgress' | 'notStarted'
+type VisualStepStatus = 'completed' | 'inProgress' | 'notStarted' | 'rejected'
 
 // 已完成状态的自定义图标：紫色实心圆 + 对勾
 function IconCircleCompleted({ className }: { className?: string }) {
@@ -94,6 +94,37 @@ function IconCircleNotStarted({ className }: { className?: string }) {
   )
 }
 
+// 拒绝状态的自定义图标：红色禁止标志 ⛔️
+function IconCircleRejected({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      width='16'
+      height='16'
+      viewBox='0 0 16 16'
+      fill='none'
+      className={className}
+    >
+      <g clipPath='url(#clip0_rejected)'>
+        <circle cx='8' cy='8' r='7.5' fill='#EF4444' stroke='#DC2626' strokeWidth='1' />
+        <rect
+          x='3'
+          y='7'
+          width='10'
+          height='2'
+          rx='1'
+          fill='white'
+        />
+      </g>
+      <defs>
+        <clipPath id='clip0_rejected'>
+          <rect width='16' height='16' fill='white' />
+        </clipPath>
+      </defs>
+    </svg>
+  )
+}
+
 function mapNodeStatusToVisual(status: JobApplyNodeStatus): VisualStepStatus {
   switch (status) {
     case JobApplyNodeStatus.Approved:
@@ -104,6 +135,8 @@ function mapNodeStatusToVisual(status: JobApplyNodeStatus): VisualStepStatus {
       return 'inProgress'
     case JobApplyNodeStatus.NotStarted:
       return 'notStarted'
+    case JobApplyNodeStatus.Rejected:
+      return 'rejected'
     default:
       return 'completed'
   }
@@ -209,7 +242,13 @@ export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps)
                 key={`${idx}-${node.node_name}`}
                 className={cn(
                   'flex items-center gap-3 border-l-[5px] pl-4 py-2',
-                  visual === 'completed' ? 'border-primary' : visual === 'inProgress' ? 'border-primary' : 'border-border'
+                  visual === 'completed'
+                    ? 'border-primary'
+                    : visual === 'inProgress'
+                      ? 'border-primary'
+                      : visual === 'rejected'
+                        ? 'border-red-500'
+                        : 'border-border'
                 )}
               >
                 {/* 文本 */}
@@ -217,7 +256,11 @@ export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps)
                   <div
                     className={cn(
                       'text-base font-semibold',
-                      visual === 'notStarted' ? 'text-muted-foreground' : 'text-foreground'
+                      visual === 'notStarted'
+                        ? 'text-muted-foreground'
+                        : visual === 'rejected'
+                          ? 'text-red-600'
+                          : 'text-foreground'
                     )}
                   >
                     {node.node_name}
@@ -230,6 +273,8 @@ export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps)
                     <IconCircleCompleted className='h-4 w-4' />
                   ) : visual === 'inProgress' ? (
                     <IconCircleInProgress className='h-4 w-4' />
+                  ) : visual === 'rejected' ? (
+                    <IconCircleRejected className='h-4 w-4' />
                   ) : (
                     <IconCircleNotStarted className='h-4 w-4' />
                   )}
