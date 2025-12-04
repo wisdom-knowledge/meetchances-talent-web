@@ -9,7 +9,7 @@ interface StepsProps {
   isMock?: boolean
 }
 
-type VisualStepStatus = 'completed' | 'inProgress' | 'notStarted'
+type VisualStepStatus = 'completed' | 'inProgress' | 'notStarted' | 'rejected'
 
 function mapNodeStatusToVisual(status: JobApplyNodeStatus): VisualStepStatus {
   switch (status) {
@@ -24,7 +24,10 @@ function mapNodeStatusToVisual(status: JobApplyNodeStatus): VisualStepStatus {
     // 未开始：0
     case JobApplyNodeStatus.NotStarted:
       return 'notStarted'
-    // 其他状态（如 40、50）暂按已完成处理，避免样式缺省
+    // 拒绝：40
+    case JobApplyNodeStatus.Rejected:
+      return 'rejected'
+    // 其他状态（如 50）暂按已完成处理，避免样式缺省
     default:
       return 'completed'
   }
@@ -53,9 +56,15 @@ function DesktopSteps({
             ? 'bg-[linear-gradient(90deg,var(--steps-completed-from)_0%,var(--steps-completed-to)_100%)]'
             : visual === 'inProgress'
             ? 'bg-[var(--steps-inprogress-bg)]'
+            : visual === 'rejected'
+            ? 'bg-red-500'
             : 'bg-muted'
         const labelClass =
-          visual === 'notStarted' ? 'text-muted-foreground' : 'text-foreground'
+          visual === 'notStarted' 
+            ? 'text-muted-foreground' 
+            : visual === 'rejected'
+            ? 'text-red-600'
+            : 'text-foreground'
         return (
           <div key={`${idx}-${node.node_name}`} className='flex-1'>
             <div className={cn('h-2 w-full rounded-full', barClass)} />
@@ -122,17 +131,23 @@ function MobileSteps({
             ? 'bg-[#4E02E4]'
             : visual === 'inProgress'
             ? 'bg-[#C994F7]'
+            : visual === 'rejected'
+            ? 'bg-red-500'
             : 'bg-[#A1A1A1]'
         
         // 胶囊样式
         const pillBgClass =
           visual === 'completed' || visual === 'inProgress'
             ? 'bg-[rgba(78,2,228,0.10)]'
+            : visual === 'rejected'
+            ? 'bg-red-50'
             : 'bg-[rgba(0,0,0,0.10)]'
         
         const pillTextClass =
           visual === 'completed' || visual === 'inProgress'
             ? 'text-[#4E02E4]'
+            : visual === 'rejected'
+            ? 'text-red-600'
             : 'text-[#000000]'
 
         // 连线颜色：根据下一个step的状态
@@ -145,6 +160,8 @@ function MobileSteps({
               ? 'bg-[rgba(78,2,228,0.10)]'
               : nextVisual === 'inProgress'
               ? 'bg-[#C994F7]'
+              : nextVisual === 'rejected'
+              ? 'bg-red-200'
               : 'bg-[#DEDEDE]'
         }
 
