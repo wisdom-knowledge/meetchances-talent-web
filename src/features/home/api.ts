@@ -172,3 +172,108 @@ interface ForHelpParams {
 export async function fetchForHelp(params: ForHelpParams): Promise<null> {
   return await api.post('/interview/page/demand', params)
 }
+
+// ===== 我的项目列表 =====
+export interface ProjectListItem {
+  id: number
+  title: string
+  created_at: number
+  updated_at: number
+}
+
+export interface MyProjectsParams {
+  skip?: number
+  limit?: number
+}
+
+export interface MyProjectsResultRaw {
+  data: ProjectListItem[]
+  total: number
+}
+
+// 使用真实接口：GET /talent/projects
+type BackendProjectItem = {
+  id: number
+  name?: string
+  alias?: string
+  created_at?: string | number
+  updated_at?: string | number
+}
+type BackendProjectsResponse = {
+  data?: BackendProjectItem[]
+  count?: number
+}
+
+export async function fetchMyProjects(
+  params: MyProjectsParams = { skip: 0, limit: 10 }
+): Promise<MyProjectsResultRaw> {
+  const { skip = 0, limit = 10 } = params
+
+  const res = (await api.get('/talent/projects', {
+    params: { skip, limit },
+  })) as unknown as BackendProjectsResponse
+
+  const items: BackendProjectItem[] = Array.isArray(res?.data) ? res.data : []
+  const total: number = typeof res?.count === 'number' ? res.count : 0
+
+  const toSeconds = (value: string | number | undefined): number => {
+    if (typeof value === 'number') {
+      // 兼容毫秒级：判断是否远大于秒级
+      return value > 1e12 ? Math.floor(value / 1000) : value
+    }
+    if (typeof value === 'string' && value) {
+      const t = Date.parse(value)
+      if (!Number.isNaN(t)) return Math.floor(t / 1000)
+    }
+    return Math.floor(Date.now() / 1000)
+  }
+
+  const list: ProjectListItem[] = items.map((p) => ({
+    id: p.id,
+    title: (p.alias?.trim() || p.name?.trim() || '').trim(),
+    created_at: toSeconds(p.created_at),
+    updated_at: toSeconds(p.updated_at),
+  }))
+
+  return { data: list, total }
+}
+
+type MyProjectsQueryOptions = Omit<
+  UseQueryOptions<MyProjectsResultRaw, Error, MyProjectsResultRaw, ['my-projects', MyProjectsParams]>,
+  'queryKey' | 'queryFn'
+>
+
+export function useMyProjectsQuery(
+  params: MyProjectsParams,
+  options?: MyProjectsQueryOptions
+) {
+  return useQuery<MyProjectsResultRaw, Error, MyProjectsResultRaw, ['my-projects', MyProjectsParams]>({
+    queryKey: ['my-projects', params],
+    queryFn: () => fetchMyProjects(params),
+    ...options,
+  })
+}
+
+// ===== 我的项目（无限加载） =====
+export type MyProjectsPage = MyProjectsResultRaw
+export type UseInfiniteMyProjectsResult = UseInfiniteQueryResult<InfiniteData<MyProjectsPage>, Error>
+
+export function useInfiniteMyProjectsQuery(
+  params: Omit<MyProjectsParams, 'skip'> = { limit: 10 },
+  options?: { enabled?: boolean }
+): UseInfiniteMyProjectsResult {
+  const { limit = 10 } = params
+  return useInfiniteQuery<MyProjectsPage, Error, InfiniteData<MyProjectsPage>, [string, { limit: number }], number>({
+    queryKey: ['my-projects-infinite', { limit }],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) => fetchMyProjects({ skip: pageParam * limit, limit }),
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const total = lastPage?.total ?? 0
+      const currentPage = typeof lastPageParam === 'number' ? lastPageParam : 0
+      const pageCount = total ? Math.max(1, Math.ceil(total / limit)) : undefined
+      const hasMore = typeof pageCount === 'number' ? currentPage + 1 < pageCount : (lastPage?.data?.length ?? 0) === limit
+      return hasMore ? currentPage + 1 : undefined
+    },
+    enabled: options?.enabled ?? true,
+  })
+}

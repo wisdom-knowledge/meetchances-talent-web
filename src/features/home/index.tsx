@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { IconX, IconHelp } from '@tabler/icons-react'
@@ -14,19 +14,22 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import noApplySvg from '@/assets/images/no-apply.svg'
-import noOfferSvg from '@/assets/images/no-offer.svg'
 import { salaryTypeUnitMapping } from '@/features/jobs/constants'
 import {
   useImportantTasksQuery,
   useMyApplicationsQuery,
   useInfiniteMyApplicationsQuery,
+  useMyProjectsQuery,
+  useInfiniteMyProjectsQuery,
   type ApiApplyListItem,
+  type ProjectListItem,
 } from './api'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 
 export default function HomeViewPage() {
   const env = useRuntimeEnv()
   const navigate = useNavigate()
+  const search = useSearch({ strict: false })
   const authUser = useAuthStore((s) => s.auth.user)
   const displayName = authUser?.full_name || authUser?.username || ''
   const { data: taskList = [], isLoading: loadingTasks } =
@@ -34,11 +37,16 @@ export default function HomeViewPage() {
   const [dismissed, setDismissed] = useState<Record<string, boolean>>({})
   const visibleTasks = taskList.filter((t) => !dismissed[t.id])
 
+  // 从 URL 参数读取当前 tab
+  const currentTab = (search as { tab?: string })?.tab === 'projects' ? 'projects' : 'applications'
+
   const [page, setPage] = useState(0)
   const pageSize = 10
   const isInfiniteMode = env === 'mobile' || env === 'wechat-miniprogram'
   const appsContainerRef = useRef<HTMLDivElement | null>(null)
   const appsSentinelRef = useRef<HTMLDivElement | null>(null)
+  const projectsContainerRef = useRef<HTMLDivElement | null>(null)
+  const projectsSentinelRef = useRef<HTMLDivElement | null>(null)
 
   const { data: appsData, isLoading: loadingAppsPaged } = useMyApplicationsQuery(
     { skip: page * pageSize, limit: pageSize },
@@ -67,7 +75,33 @@ export default function HomeViewPage() {
   const canPrev = page > 0
   const canNext = page + 1 < pageCount
 
-  // 移动端/小程序：监听“我的申请”列表底部以加载下一页
+  // 项目列表数据
+  const { data: projectsData, isLoading: loadingProjectsPaged } = useMyProjectsQuery(
+    { skip: page * pageSize, limit: pageSize },
+    { enabled: !isInfiniteMode }
+  )
+  const {
+    data: infiniteProjects,
+    fetchNextPage: fetchNextProjectPage,
+    hasNextPage: hasNextProjectPage,
+    isFetchingNextPage: isFetchingNextProjectPage,
+  } = useInfiniteMyProjectsQuery(
+    { limit: pageSize },
+    { enabled: isInfiniteMode }
+  )
+
+  const projects: ProjectListItem[] = useMemo(() => {
+    if (isInfiniteMode) {
+      const pages = infiniteProjects?.pages ?? []
+      return pages.flatMap((p) => (p.data ?? [])) as ProjectListItem[]
+    }
+    return ((projectsData?.data ?? []) as ProjectListItem[])
+  }, [isInfiniteMode, infiniteProjects, projectsData])
+
+  const projectsTotal = isInfiniteMode ? (infiniteProjects?.pages?.[0]?.total ?? 0) : (projectsData?.total ?? 0)
+  const projectsPageCount = Math.max(1, Math.ceil(projectsTotal / pageSize))
+
+  // 移动端/小程序：监听"我的申请"列表底部以加载下一页
   useEffect(() => {
     if (!isInfiniteMode) return
     const rootEl = appsContainerRef.current
@@ -86,9 +120,24 @@ export default function HomeViewPage() {
     return () => io.disconnect()
   }, [isInfiniteMode, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  // Offer 列表：暂未接入数据，先提供空状态逻辑与样式对齐
-  const loadingOffers = false
-  const offers: unknown[] = []
+  // 移动端/小程序：监听"项目"列表底部以加载下一页
+  useEffect(() => {
+    if (!isInfiniteMode) return
+    const rootEl = projectsContainerRef.current
+    const sentinel = projectsSentinelRef.current
+    if (!rootEl || !sentinel) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        const e = entries[0]
+        if (e.isIntersecting && hasNextProjectPage && !isFetchingNextProjectPage) {
+          fetchNextProjectPage()
+        }
+      },
+      { root: rootEl, rootMargin: '0px 0px 200px 0px', threshold: 0.1 }
+    )
+    io.observe(sentinel)
+    return () => io.disconnect()
+  }, [isInfiniteMode, hasNextProjectPage, isFetchingNextProjectPage, fetchNextProjectPage])
 
   const [helpOpen, setHelpOpen] = useState(false)
   const handleHelp = () => setHelpOpen(true)
@@ -159,11 +208,20 @@ export default function HomeViewPage() {
         )}
 
         {/* 标签 Tab：我的申请 */}
-        <Tabs defaultValue='applications'>
+        <Tabs 
+          value={currentTab}
+          onValueChange={(value) => {
+            const newSearch: Record<string, unknown> = {}
+            if (value === 'projects') {
+              newSearch.tab = 'projects'
+            }
+            navigate({ search: newSearch as never })
+          }}
+        >
           <div className='flex items-center justify-between'>
             <TabsList>
               <TabsTrigger value='applications'>我的申请</TabsTrigger>
-              <TabsTrigger value='offer'>Offer</TabsTrigger>
+              <TabsTrigger value='projects'>项目</TabsTrigger>
             </TabsList>
             <div
               className='text-muted-foreground flex cursor-pointer items-center gap-1'
@@ -431,27 +489,162 @@ export default function HomeViewPage() {
             )}
           </TabsContent>
 
-          <TabsContent value='offer'>
+          <TabsContent value='projects'>
+            {isInfiniteMode ? (
+              <div
+                ref={projectsContainerRef}
+                className={cn(
+                  'pr-1 overflow-y-auto',
+                  loadingTasks || visibleTasks.length > 0
+                    ? 'h-[calc(100vh-28rem)]'
+                    : 'h-[calc(100vh-17rem)]'
+                )}
+              >
+                <div className='space-y-3 px-1 py-2 no-scrollbar'>
+                  {projects.length === 0 && (
+                    <div className='flex min-h-[400px] items-center justify-center'>
+                      <div className='text-muted-foreground flex flex-col items-center text-sm'>
+                        <img src={noApplySvg} alt='no projects' className='mb-3 h-16 w-16 opacity-70' />
+                        <div className='mb-3'>暂无项目记录</div>
+                      </div>
+                    </div>
+                  )}
+                  {projects.map((project) => {
+                    const startedText = (() => {
+                      const created = project.created_at
+                      if (!created || created <= 0) return ''
+                      const ms = Date.now() - created * 1000
+                      if (ms < 0) return ''
+                      const days = Math.floor(ms / (24 * 60 * 60 * 1000))
+                      if (days <= 0) return '今天创建'
+                      return `${days}天前创建`
+                    })()
+                    return (
+                      <Card
+                        key={project.id}
+                        className='hover:bg-accent/40 cursor-pointer border transition-colors'
+                        onClick={() => {
+                          navigate({
+                            to: '/project-detail',
+                            search: {
+                              project_id: project.id,
+                            } as unknown as Record<string, unknown>,
+                          })
+                        }}
+                      >
+                        <div className='flex items-center justify-between gap-4 p-4'>
+                          <div className='min-w-0'>
+                            <div className='mb-1 flex items-center gap-2'>
+                              <div className='font-medium'>
+                                {project.title || '项目'}
+                              </div>
+                            </div>
+                          </div>
+                          <div className='flex shrink-0 items-center'>
+                            {startedText && (
+                              <div className='text-muted-foreground text-xs'>
+                                {startedText}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    )
+                  })}
+                </div>
+                <div ref={projectsSentinelRef} className='h-6' />
+                <div className='text-center text-xs text-muted-foreground pb-2'>
+                  {isFetchingNextProjectPage ? '加载中…' : hasNextProjectPage ? '向下滚动加载更多' : projects.length > 0 ? '没有更多了' : ''}
+                </div>
+              </div>
+            ) : (
             <ScrollArea 
               className={cn(
                 'pr-1',
                 loadingTasks || visibleTasks.length > 0
                   ? 'h-[calc(100vh-28rem)]'
-                  : 'h-[calc(100vh-20rem)]'
+                  : 'h-[calc(100vh-17rem)]'
               )}
             >
-              <div className='space-y-3'>
-                {loadingOffers && <Skeleton className='h-20 w-full rounded-md' />}
-                {!loadingOffers && offers.length === 0 && (
+              <div className='space-y-3 px-1 py-2 no-scrollbar'>
+                {loadingProjectsPaged && <Skeleton className='h-20 w-full rounded-md' />}
+                {!loadingProjectsPaged && projects.length === 0 && (
                   <div className='flex min-h-[400px] items-center justify-center'>
                     <div className='text-muted-foreground flex flex-col items-center text-sm'>
-                      <img src={noOfferSvg} alt='no offers' className='mb-3 h-16 w-16 opacity-70' />
-                      <div>暂无录用记录</div>
+                      <img src={noApplySvg} alt='no projects' className='mb-3 h-16 w-16 opacity-70' />
+                      <div className='mb-3'>暂无项目记录</div>
                     </div>
                   </div>
                 )}
+                {!loadingProjectsPaged &&
+                  projects.map((project) => {
+                    const startedText = (() => {
+                      const created = project.created_at
+                      if (!created || created <= 0) return ''
+                      const ms = Date.now() - created * 1000
+                      if (ms < 0) return ''
+                      const days = Math.floor(ms / (24 * 60 * 60 * 1000))
+                      if (days <= 0) return '今天创建'
+                      return `${days}天前创建`
+                    })()
+                    return (
+                      <Card
+                        key={project.id}
+                        className='hover:bg-accent/40 cursor-pointer border transition-colors'
+                        onClick={() => {
+                          navigate({
+                            to: '/project-detail',
+                            search: {
+                              project_id: project.id,
+                            } as unknown as Record<string, unknown>,
+                          })
+                        }}
+                      >
+                        <div className='flex items-center justify-between gap-4 p-4'>
+                          <div className='min-w-0'>
+                            <div className='mb-1 flex items-center gap-2'>
+                              <div className='font-medium'>
+                                {project.title || '项目'}
+                              </div>
+                            </div>
+                          </div>
+                          <div className='flex shrink-0 items-center'>
+                            {startedText && (
+                              <div className='text-muted-foreground text-xs'>
+                                {startedText}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    )
+                  })}
               </div>
             </ScrollArea>
+            )}
+            {!isInfiniteMode && (
+              <div className='flex items-center justify-end gap-2 pt-2'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  disabled={!canPrev}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                >
+                  上一页
+                </Button>
+                <div className='text-muted-foreground text-xs'>
+                  第 {page + 1} / {projectsPageCount} 页
+                </div>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  disabled={page + 1 >= projectsPageCount}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  下一页
+                </Button>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
