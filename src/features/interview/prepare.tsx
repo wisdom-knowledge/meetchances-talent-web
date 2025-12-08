@@ -663,15 +663,12 @@ export default function InterviewPreparePage({ jobId, inviteToken, isSkipConfirm
   const isWorkflowLoading = !jobApplyId || isProgressLoading
   if (isWorkflowLoading) {
     return (
-      <>
-        <Main fixed>
-          <div className='flex h-[calc(100vh-4rem)] items-center justify-center'>
-            <div className='rounded-lg border bg-background p-3 shadow flex items-center gap-2 text-sm text-muted-foreground'>
-              <IconLoader2 className='h-4 w-4 animate-spin text-primary' /> 正在加载流程…
-            </div>
-          </div>
-        </Main>
-      </>
+      <div className='fixed inset-0 z-50 flex items-center justify-center bg-background'>
+        <div className='flex flex-col items-center gap-2'>
+          <IconLoader2 className='h-8 w-8 animate-spin text-primary' />
+          <p className='text-sm text-muted-foreground'>正在加载流程…</p>
+        </div>
+      </div>
     )
   }
 
