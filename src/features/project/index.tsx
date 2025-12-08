@@ -12,15 +12,17 @@ import {
   IconLock,
   IconLoader2,
 } from '@tabler/icons-react'
+import { useAuthStore } from '@/stores/authStore'
 
 export default function ProjectPage() {
   // Mock data - 在实际应用中，这些数据应该来自 API
   const maxSubmissionCount = 3
   
   const [isViewMode, setIsViewMode] = useState(false)
+  const { user } = useAuthStore((state) => state.auth)
 
   const { data: submissionData, isLoading } = useQuery({
-    queryKey: ['projectSubmissionCount'],
+    queryKey: ['projectSubmissionCount', user?.id],
     queryFn: async () => {
       const response = await fetch(
         'https://sd4fgltu6omp034ocan70.apigateway-cn-beijing.volceapi.com/',
@@ -33,6 +35,7 @@ export default function ProjectPage() {
             query_count: true,
             table_id: 'tblqF0fbFQ2z8g8S',
             app_token: 'LkO2beBV1alDqvsaioWcvXfsnHb',
+            talent_id: user?.id,
           }),
         }
       )
@@ -41,6 +44,7 @@ export default function ProjectPage() {
       }
       return response.json()
     },
+    enabled: !!user?.id,
   })
 
   // 假设返回的数据结构中有 count 字段，如果未定义则默认为 0
