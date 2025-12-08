@@ -47,10 +47,8 @@ export default function ProjectPage() {
     enabled: !!user?.id,
   })
 
-  // 假设返回的数据结构中有 count 字段，如果未定义则默认为 0
-  // 根据用户提供的信息，尚不确定具体返回结构，这里暂时取 data.count
-  // 如果 API 返回直接是数字，可以根据实际情况调整
-  const submittedCount = submissionData?.count ?? 0
+  // 根据 API 返回结构获取提交次数
+  const submittedCount = submissionData?.data?.submit_count ?? 0
 
   const isLimitReached = submittedCount >= maxSubmissionCount
 
