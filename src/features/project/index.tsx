@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -9,14 +10,43 @@ import {
   IconCircleCheck,
   IconEye,
   IconLock,
+  IconLoader2,
 } from '@tabler/icons-react'
 
 export default function ProjectPage() {
   // Mock data - 在实际应用中，这些数据应该来自 API
   const maxSubmissionCount = 3
-  // 模拟已提交次数，默认设置为 3
-  const [submittedCount, _setSubmittedCount] = useState(3)
+  
   const [isViewMode, setIsViewMode] = useState(false)
+
+  const { data: submissionData, isLoading } = useQuery({
+    queryKey: ['projectSubmissionCount'],
+    queryFn: async () => {
+      const response = await fetch(
+        'https://sd4fgltu6omp034ocan70.apigateway-cn-beijing.volceapi.com/',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query_count: true,
+            table_id: 'tblqF0fbFQ2z8g8S',
+            app_token: 'LkO2beBV1alDqvsaioWcvXfsnHb',
+          }),
+        }
+      )
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      return response.json()
+    },
+  })
+
+  // 假设返回的数据结构中有 count 字段，如果未定义则默认为 0
+  // 根据用户提供的信息，尚不确定具体返回结构，这里暂时取 data.count
+  // 如果 API 返回直接是数字，可以根据实际情况调整
+  const submittedCount = submissionData?.count ?? 0
 
   const isLimitReached = submittedCount >= maxSubmissionCount
 
@@ -59,7 +89,11 @@ export default function ProjectPage() {
               </CardHeader>
               <CardContent>
                 <div className='text-2xl font-bold text-primary'>
-                  {submittedCount}
+                  {isLoading ? (
+                    <IconLoader2 className='h-6 w-6 animate-spin' />
+                  ) : (
+                    submittedCount
+                  )}
                 </div>
                 <p className='text-xs text-muted-foreground'>
                   当前已成功提交的项目
