@@ -128,7 +128,7 @@ export default function ProjectPage() {
           {/* Iframe 区域 */}
           <Card className='relative flex-1 w-full overflow-hidden border bg-background'>
             {isLimitReached && !isViewMode && (
-              <div className='absolute bottom-0 left-0 right-0 top-16 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm transition-all duration-300'>
+              <div className='absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm transition-all duration-300'>
                 <div className='mx-4 max-w-md rounded-xl border bg-card p-6 text-center shadow-lg'>
                   <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100'>
                     <IconAlertCircle className='h-6 w-6 text-red-600' />
