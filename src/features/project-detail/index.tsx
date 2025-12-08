@@ -175,6 +175,7 @@ export default function ProjectDetailPage() {
   const unit = projectData?.project?.unit
   const paymentTypeLabel = unit === 1 ? '按小时计费' : '按条计费'
   const paymentUnit = unit === 1 ? '小时' : '审核通过条目'
+  const hasWorkGuide = Boolean(projectData?.project?.work_guide)
 
   return (
     <>
@@ -335,7 +336,8 @@ export default function ProjectDetailPage() {
 
           {/* 右侧区域 - 工作指南和提交记录 */}
           <div className='flex flex-1 flex-col gap-6 min-w-0'>
-            {/* 工作指南 */}
+            {/* 工作指南（有链接时显示） */}
+            {hasWorkGuide && (
             <div className='flex flex-col gap-5'>
               <div className='flex items-center justify-between'>
                 <h2 className='text-base font-semibold tracking-[0.32px]'>工作指南</h2>
@@ -364,7 +366,7 @@ export default function ProjectDetailPage() {
                   </div>
                 )}
                 <iframe
-                  src={projectData?.project?.work_guide || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
+                  src={projectData?.project?.work_guide}
                   className='h-full w-full border-0'
                   title='工作指南'
                   onLoad={() => {
@@ -376,6 +378,7 @@ export default function ProjectDetailPage() {
                 />
               </div>
             </div>
+            )}
           </div>
         </div>
 
@@ -552,7 +555,7 @@ export default function ProjectDetailPage() {
       </Main>
 
       {/* 全屏工作指南 */}
-      {expandedGuide && (
+      {expandedGuide && hasWorkGuide && (
         <div 
           className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200'
           onClick={() => setExpandedGuide(false)}
@@ -575,7 +578,7 @@ export default function ProjectDetailPage() {
             
             {/* iframe 内容 */}
             <iframe
-              src={projectData?.project?.work_guide || 'https://meetchances.feishu.cn/wiki/YX8Lw0gCpicRaBkkOx7cyejdnXe'}
+              src={projectData?.project?.work_guide}
               className='h-full w-full rounded-lg border-0'
               title='工作指南（全屏）'
               loading='eager'
