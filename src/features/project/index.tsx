@@ -1,5 +1,4 @@
 import { useRouter } from '@tanstack/react-router'
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -14,14 +13,12 @@ import {
   IconLoader2,
   IconArrowLeft,
 } from '@tabler/icons-react'
-import { useAuthStore } from '@/stores/authStore'
 
 export default function ProjectPage() {
   const router = useRouter()
   // Mock data - 在实际应用中，这些数据应该来自 API
   const maxSubmissionCount = 3
   
-  const [isViewMode, setIsViewMode] = useState(false)
   const { user } = useAuthStore((state) => state.auth)
 
   const { data: submissionData, isLoading } = useQuery({
@@ -113,8 +110,8 @@ export default function ProjectPage() {
             </Card>
           </div>
 
-          {/* 警告横幅 - 当处于查看模式且达到上限时显示 */}
-          {isLimitReached && isViewMode && (
+          {/* 警告横幅 - 达到上限时显示 */}
+          {isLimitReached && (
             <div className='flex items-center justify-between gap-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200'>
               <div className='flex items-center gap-2'>
                 <IconAlertCircle className='h-4 w-4' />
@@ -122,21 +119,12 @@ export default function ProjectPage() {
                   您已经达到最大提交次数，再提交不会被计入结算
                 </span>
               </div>
-              <Button
-                variant='outline'
-                size='sm'
-                className='h-8 border-red-200 bg-white hover:bg-red-50 text-red-800 dark:border-red-800 dark:bg-transparent dark:hover:bg-red-900/30 dark:text-red-200'
-                onClick={() => setIsViewMode(false)}
-              >
-                <IconLock className='mr-2 h-3 w-3' />
-                恢复锁定
-              </Button>
             </div>
           )}
 
           {/* Iframe 区域 */}
           <Card className='relative flex-1 w-full overflow-hidden border bg-background'>
-            {isLimitReached && !isViewMode && (
+            {isLimitReached && (
               <div className='absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm transition-all duration-300'>
                 <div className='mx-4 max-w-md rounded-xl border bg-card p-6 text-center shadow-lg'>
                   <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100'>
@@ -150,13 +138,16 @@ export default function ProjectPage() {
                     次)，无法继续提交。
                   </p>
                   <div className='mt-6'>
-                    <Button onClick={() => setIsViewMode(true)}>
-                      <IconEye className='mr-2 h-4 w-4' />
-                      查看提交记录
+                    <Button asChild>
+                      <a
+                        href='https://meetchances.feishu.cn/app/GImGbPTUuaPvIWsc2INcdC9tnfb?pageId=pgef4SuEwj9rtRyZ'
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        <IconEye className='mr-2 h-4 w-4' />
+                        查看提交记录
+                      </a>
                     </Button>
-                    <p className='mt-2 text-xs text-muted-foreground'>
-                      点击解除遮罩以查看已提交的内容
-                    </p>
                   </div>
                 </div>
               </div>
