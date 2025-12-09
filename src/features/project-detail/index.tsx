@@ -173,8 +173,8 @@ export default function ProjectDetailPage() {
 
   // 报酬类型文案（基于 unit：1->小时；其他->按条）
   const unit = projectData?.project?.unit
-  const paymentTypeLabel = unit === 1 ? '按小时计费' : '按条计费'
-  const paymentUnit = unit === 1 ? '小时' : '审核通过条目'
+  const paymentTypeLabel = unit === 0 ? '按小时计费' : '按条计费'
+  const paymentUnit = unit === 0 ? '小时' : '审核通过条目'
   const hasWorkGuide = Boolean(projectData?.project?.work_guide)
 
   return (
