@@ -117,17 +117,17 @@ export default function ProjectPage() {
 
           {/* 警告横幅 - 当处于查看模式且达到上限时显示 */}
           {isLimitReached && isViewMode && (
-            <div className='flex items-center justify-between gap-4 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/20 dark:text-yellow-200'>
+            <div className='flex items-center justify-between gap-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200'>
               <div className='flex items-center gap-2'>
                 <IconAlertCircle className='h-4 w-4' />
                 <span>
-                  当前处于查看模式。您已达到提交上限，请勿再次提交。
+                  您已经达到最大提交次数，再提交不会被计入结算
                 </span>
               </div>
               <Button
                 variant='outline'
                 size='sm'
-                className='h-8 border-yellow-200 bg-white hover:bg-yellow-50 text-yellow-800 dark:border-yellow-800 dark:bg-transparent dark:hover:bg-yellow-900/30 dark:text-yellow-200'
+                className='h-8 border-red-200 bg-white hover:bg-red-50 text-red-800 dark:border-red-800 dark:bg-transparent dark:hover:bg-red-900/30 dark:text-red-200'
                 onClick={() => setIsViewMode(false)}
               >
                 <IconLock className='mr-2 h-3 w-3' />
