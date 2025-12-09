@@ -1,3 +1,4 @@
+import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/header'
@@ -11,10 +12,12 @@ import {
   IconEye,
   IconLock,
   IconLoader2,
+  IconArrowLeft,
 } from '@tabler/icons-react'
 import { useAuthStore } from '@/stores/authStore'
 
 export default function ProjectPage() {
+  const router = useRouter()
   // Mock data - 在实际应用中，这些数据应该来自 API
   const maxSubmissionCount = 3
   
@@ -54,7 +57,15 @@ export default function ProjectPage() {
 
   return (
     <>
-      <Header fixed>
+      <Header fixed showSidebarTrigger={false}>
+        <Button
+          variant='outline'
+          onClick={() => router.history.back()}
+          className='gap-2'
+        >
+          <IconArrowLeft className='h-4 w-4' />
+          返回
+        </Button>
         <div className='ml-auto flex items-center space-x-4'>
           <ProfileDropdown />
         </div>
