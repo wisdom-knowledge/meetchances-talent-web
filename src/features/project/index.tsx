@@ -13,6 +13,7 @@ import {
   IconLoader2,
   IconArrowLeft,
 } from '@tabler/icons-react'
+import { useAuthStore } from '@/stores/authStore'
 
 export default function ProjectPage() {
   const router = useRouter()
