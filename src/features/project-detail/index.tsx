@@ -167,8 +167,8 @@ export default function ProjectDetailPage() {
       toast.error('暂无问卷地址，请稍后重试')
       return
     }
-    // 跳转到问卷地址（同窗口）
-    window.location.href = url
+    // 跳转到项目页面
+    navigate({ to: '/project' })
   }
 
   // 报酬类型文案（基于 unit：1->小时；其他->按条）
