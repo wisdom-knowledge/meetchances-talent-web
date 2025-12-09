@@ -58,24 +58,22 @@ export default function ProjectPage() {
   return (
     <>
       <Header fixed showSidebarTrigger={false}>
-        <Button
-          variant='outline'
-          onClick={() => router.history.back()}
-          className='gap-2'
-        >
-          <IconArrowLeft className='h-4 w-4' />
-          返回
-        </Button>
-        <div className='ml-auto flex items-center space-x-4'>
-          <ProfileDropdown />
+        <div className='flex w-full items-center justify-between md:mx-16'>
+          <Button
+            variant='outline'
+            onClick={() => router.history.back()}
+            className='gap-2'
+          >
+            <IconArrowLeft className='h-4 w-4' />
+            返回
+          </Button>
+          <div className='flex items-center space-x-4'>
+            <ProfileDropdown />
+          </div>
         </div>
       </Header>
 
       <Main fixed className='md:mx-16'>
-        <div className='mb-2 flex items-center justify-between space-y-2'>
-          <h1 className='text-2xl font-bold tracking-tight'>项目提交</h1>
-        </div>
-
         <div className='flex flex-1 flex-col gap-4 overflow-hidden'>
           {/* 统计信息区域 */}
           <div className='grid gap-4 md:grid-cols-2'>
