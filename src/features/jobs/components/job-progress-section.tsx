@@ -267,6 +267,30 @@ export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps)
                   </div>
                 </div>
 
+                {/* 状态文案 */}
+                <div className='shrink-0'>
+                  <span
+                    className={cn(
+                      'text-xs font-medium',
+                      visual === 'notStarted'
+                        ? 'text-muted-foreground'
+                        : visual === 'rejected'
+                          ? 'text-red-600'
+                          : visual === 'inProgress'
+                            ? 'text-primary'
+                            : 'text-primary'
+                    )}
+                  >
+                    {visual === 'completed'
+                      ? '已通过'
+                      : visual === 'inProgress'
+                        ? '审核中'
+                        : visual === 'rejected'
+                          ? '未通过'
+                          : '未开始'}
+                  </span>
+                </div>
+
                 {/* 右侧图标 */}
                 <div className='shrink-0'>
                   {visual === 'completed' ? (
