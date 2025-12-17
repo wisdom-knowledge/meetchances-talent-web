@@ -289,7 +289,7 @@ export default function HomeViewPage() {
                 return `${y}/${m}/${da}`
               }
               return (
-                <Card key={proj.id} className='border p-4 shadow-sm'>
+                <Card key={proj.id} className='border px-8 pr-9 py-4 shadow-sm'>
                   <div className='flex flex-col gap-13 md:flex-row md:items-center md:justify-between md:gap-4'>
                     <div className='min-w-0'>
                       <div className='mb-2 flex flex-wrap items-center gap-2'>
@@ -381,32 +381,36 @@ export default function HomeViewPage() {
                         <div className='text-foreground text-lg font-medium'>
                           {fmt(proj.end_time) ?? '—'}
                         </div>
-                        <div className='text-muted-foreground text-xs flex items-center justify-center gap-1'>
-                          <span>项目预计结束时间</span>
-                          <Tooltip open={endTimeTooltipOpen} onOpenChange={setEndTimeTooltipOpen}>
-                            <TooltipTrigger asChild>
-                              <button
-                                type='button'
-                                className='inline-flex items-center text-muted-foreground/80'
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  setEndTimeTooltipOpen((v) => !v)
-                                }}
-                              >
-                                <IconInfoCircle className='h-3.5 w-3.5' />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent 
-                              side='top' 
-                              align='center'
-                              collisionPadding={12}
-                              className='bg-foreground text-background max-w-[calc(100vw-2rem)] whitespace-normal break-words' 
-                              arrowClassName='bg-foreground fill-foreground'
-                            >
-                              项目结束时间为一个预估的时间，具体截止时间可能受项目方需求变更、数据收集上限等因素的影响而变化
-                            </TooltipContent>
-                          </Tooltip>
+                        <div className='text-muted-foreground text-xs flex items-center justify-center'>
+                          <span className='relative inline-flex items-center'>
+                            <span>项目预计结束时间</span>
+                            <span className='absolute left-full ml-1'>
+                              <Tooltip open={endTimeTooltipOpen} onOpenChange={setEndTimeTooltipOpen}>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    type='button'
+                                    className='inline-flex items-center text-muted-foreground/80'
+                                    onClick={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      setEndTimeTooltipOpen((v) => !v)
+                                    }}
+                                  >
+                                    <IconInfoCircle className='h-3.5 w-3.5' />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent 
+                                  side='top' 
+                                  align='center'
+                                  collisionPadding={12}
+                                  className='bg-foreground text-background max-w-[calc(100vw-2rem)] whitespace-normal break-words' 
+                                  arrowClassName='bg-foreground fill-foreground'
+                                >
+                                  项目结束时间为一个预估的时间，具体截止时间可能受项目方需求变更、数据收集上限等因素的影响而变化
+                                </TooltipContent>
+                              </Tooltip>
+                            </span>
+                          </span>
                         </div>
                       </div>
                     </div>
