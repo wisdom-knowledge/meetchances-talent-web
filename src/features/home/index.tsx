@@ -279,7 +279,7 @@ export default function HomeViewPage() {
             <Skeleton className='h-[88px] w-full rounded-md' />
           ) : topProjects.length > 0 ? (
             topProjects.slice(0, 1).map((proj: TopProjectItem) => {
-              const minutes = typeof proj.estimated_duration === 'number' ? Math.round(proj.estimated_duration * 60) : undefined
+              const minutes = typeof proj.estimated_duration === 'number' ? Math.round(proj.estimated_duration) : undefined
               const fmt = (ts?: number) => {
                 if (!ts) return undefined
                 const d = new Date(ts * 1000)
@@ -318,7 +318,7 @@ export default function HomeViewPage() {
                                 className='bg-foreground text-background'
                                 arrowClassName='bg-foreground fill-foreground'
                               >
-                                这是一个置顶项目
+                                当置顶项目标签出现时，意味着此项目是一个加急项目，您作为平台信任的专家被项目选中。在一段时间内，其余项目将暂时无法作业，只能在此项目作业。一般置顶项目将会有更高的报酬了！
                               </TooltipContent>
                             </Tooltip>
                           </div>

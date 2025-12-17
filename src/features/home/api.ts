@@ -303,7 +303,7 @@ export function useInfiniteMyProjectsQuery(
 export interface TopProjectItem extends ProjectListItem {
   introduction?: string
   is_pinned?: boolean
-  estimated_duration?: number // 小时
+  estimated_duration?: number // 分钟
   start_time?: number // 秒时间戳
   end_time?: number // 秒时间戳
   price_per_unit?: number
