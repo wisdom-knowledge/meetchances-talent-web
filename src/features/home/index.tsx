@@ -176,6 +176,8 @@ export default function HomeViewPage() {
   const pinnedCount = Math.min(topProjects.length, 1)
   const importantTasksCount =
     loadingTasks || loadingTop ? '…' : visibleTasks.length + pinnedCount
+  const shouldShowImportantTasks =
+    loadingTasks || loadingTop || visibleTasks.length > 0 || pinnedCount > 0
 
   return (
     <>
@@ -195,12 +197,12 @@ export default function HomeViewPage() {
         <Separator className='my-4 lg:my-6' />
 
         {/* 重要任务 */}
-        {(loadingTasks || visibleTasks.length > 0) && (
+        {shouldShowImportantTasks && (
           <div className='mb-6'>
             <div className='text-foreground mb-3 text-[15px] font-medium'>
               重要任务（{importantTasksCount}）
             </div>
-            {loadingTasks ? (
+            {loadingTasks || loadingTop ? (
               <Skeleton className='h-[104px] w-[300px] rounded-md' />
             ) : (
               <div className='space-y-3'>
@@ -777,7 +779,10 @@ export default function HomeViewPage() {
                     </div>
                   )}
                   {projects.map((project) => {
-                    const disabled = hasTopProject && topProjectId !== undefined && project.id !== topProjectId
+                    const canSelectPinned =
+                      project.is_pinned === true ||
+                      (topProjectId !== undefined && project.id === topProjectId)
+                    const disabled = hasTopProject && !canSelectPinned
                     const startedText = (() => {
                       const created = project.created_at
                       if (!created || created <= 0) return ''
@@ -812,6 +817,11 @@ export default function HomeViewPage() {
                                 </Badge>
                               )}
                             </div>
+                            {project.desc && (
+                              <div className='text-muted-foreground text-xs line-clamp-1'>
+                                {project.desc}
+                              </div>
+                            )}
                           </div>
                           <div className='flex shrink-0 items-center'>
                             {startedText && (
@@ -844,7 +854,10 @@ export default function HomeViewPage() {
                 )}
                 {!loadingProjectsPaged &&
                   projects.map((project) => {
-                    const disabled = hasTopProject && topProjectId !== undefined && project.id !== topProjectId
+                    const canSelectPinned =
+                      project.is_pinned === true ||
+                      (topProjectId !== undefined && project.id === topProjectId)
+                    const disabled = hasTopProject && !canSelectPinned
                     const startedText = (() => {
                       const created = project.created_at
                       if (!created || created <= 0) return ''
@@ -879,6 +892,11 @@ export default function HomeViewPage() {
                                 </Badge>
                               )}
                             </div>
+                            {project.desc && (
+                              <div className='text-muted-foreground text-xs line-clamp-1'>
+                                {project.desc}
+                              </div>
+                            )}
                           </div>
                           <div className='flex shrink-0 items-center'>
                             {startedText && (

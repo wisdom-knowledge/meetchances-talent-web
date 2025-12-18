@@ -185,6 +185,7 @@ export async function fetchForHelp(params: ForHelpParams): Promise<null> {
 export interface ProjectListItem {
   id: number
   title: string
+  desc?: string
   created_at: number
   updated_at: number
   status?: number
@@ -207,6 +208,8 @@ type BackendProjectItem = {
   id: number
   name?: string
   alias?: string
+  introduction?: string
+  description?: string
   status?: number
   is_pinned?: boolean
   created_at?: string | number
@@ -244,6 +247,7 @@ export async function fetchMyProjects(
   const list: ProjectListItem[] = items.map((p) => ({
     id: p.id,
     title: (p.alias?.trim() || p.name?.trim() || '').trim(),
+    desc: (p.introduction?.trim() || p.description?.trim() || '').trim() || undefined,
     created_at: toSeconds(p.created_at),
     updated_at: toSeconds(p.updated_at),
     status: p.status,
