@@ -167,8 +167,8 @@ export default function ProjectDetailPage() {
       toast.error('暂无问卷地址，请稍后重试')
       return
     }
-    // 跳转到问卷地址（同窗口）
-    window.location.href = url
+    // 打开问卷地址（新窗口/新标签页）
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   // 报酬类型文案（基于 unit：1->小时；其他->按条）
@@ -176,6 +176,7 @@ export default function ProjectDetailPage() {
   const paymentTypeLabel = unit === 0 ? '按小时计费' : '按条计费'
   const paymentUnit = unit === 0 ? '小时' : '审核通过条目'
   const hasWorkGuide = Boolean(projectData?.project?.work_guide)
+  const isProjectEnded = projectData?.project?.status === 1
 
   return (
     <>
@@ -197,11 +198,12 @@ export default function ProjectDetailPage() {
               寻求支持
             </button>
             <Button
+              type='button'
               onClick={handleSubmit}
-              disabled={projectLoading || !allBound || submitting}
+              disabled={projectLoading || !allBound || submitting || isProjectEnded}
               className='h-11 rounded-lg px-7 text-base font-medium disabled:bg-[#c9c9c9] disabled:text-white disabled:opacity-100 disabled:pointer-events-none'
             >
-              {submitting ? '进入中...' : '进入项目'}
+              {submitting ? '进入中...' : isProjectEnded ? '项目已结束' : '进入项目'}
             </Button>
           </div>
         </div>
