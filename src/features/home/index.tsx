@@ -24,6 +24,7 @@ import {
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import noApplySvg from '@/assets/images/no-apply.svg'
 import emptyTopPng from '@/assets/images/empty-top.png'
+import preNoticePng from '@/assets/images/pre-notice.png'
 import { salaryTypeUnitMapping } from '@/features/jobs/constants'
 import {
   useImportantTasksQuery,
@@ -223,9 +224,14 @@ export default function HomeViewPage() {
                           <IconX className='h-4 w-4' />
                         </button>
                       )}
-                      <div className='flex items-center justify-between gap-4'>
-                        <div className='min-w-0 text-[13px] md:text-sm text-[#37227A]'>
-                          在使用平台前，请查看我们的一面千识用户手册！
+                      <div className='flex items-center justify-between gap-1'>
+                        <div className='min-w-0 flex items-center text-[13px] text-[#37227A] md:text-sm'>
+                          <img
+                            src={preNoticePng}
+                            alt=''
+                            className='h-4 w-4 shrink-0'
+                          />
+                          <span>在使用平台前，请查看我们的一面千识用户手册！</span>
                         </div>
                         <Button
                           size='sm'
