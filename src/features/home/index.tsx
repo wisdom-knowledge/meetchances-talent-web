@@ -24,6 +24,7 @@ import {
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import noApplySvg from '@/assets/images/no-apply.svg'
 import emptyTopPng from '@/assets/images/empty-top.png'
+import preNoticePng from '@/assets/images/pre-notice.png'
 import { salaryTypeUnitMapping } from '@/features/jobs/constants'
 import {
   useImportantTasksQuery,
@@ -176,6 +177,15 @@ export default function HomeViewPage() {
   const pinnedCount = Math.min(topProjects.length, 1)
   const importantTasksCount =
     loadingTasks || loadingTop ? '…' : visibleTasks.length + pinnedCount
+  const shouldShowImportantTasks =
+    loadingTasks || loadingTop || visibleTasks.length > 0 || pinnedCount > 0
+  const openProjectDetail = (projectId: number) => {
+    const base = import.meta.env.BASE_URL || '/'
+    const path = `${base.replace(/\/$/, '')}/project-detail`
+    const url = new URL(path, window.location.origin)
+    url.searchParams.set('project_id', String(projectId))
+    window.open(url.toString(), '_blank', 'noopener,noreferrer')
+  }
 
   return (
     <>
@@ -195,12 +205,12 @@ export default function HomeViewPage() {
         <Separator className='my-4 lg:my-6' />
 
         {/* 重要任务 */}
-        {(loadingTasks || visibleTasks.length > 0) && (
+        {shouldShowImportantTasks && (
           <div className='mb-6'>
             <div className='text-foreground mb-3 text-[15px] font-medium'>
               重要任务（{importantTasksCount}）
             </div>
-            {loadingTasks ? (
+            {loadingTasks || loadingTop ? (
               <Skeleton className='h-[104px] w-[300px] rounded-md' />
             ) : (
               <div className='space-y-3'>
@@ -221,9 +231,14 @@ export default function HomeViewPage() {
                           <IconX className='h-4 w-4' />
                         </button>
                       )}
-                      <div className='flex items-center justify-between gap-4'>
-                        <div className='min-w-0 text-[13px] md:text-sm text-[#37227A]'>
-                          在使用平台前，请查看我们的一面千识用户手册！
+                      <div className='flex items-center justify-between gap-1'>
+                        <div className='min-w-0 flex items-center text-[13px] text-[#37227A] md:text-sm'>
+                          <img
+                            src={preNoticePng}
+                            alt=''
+                            className='h-4 w-4 shrink-0'
+                          />
+                          <span>在使用平台前，请查看我们的一面千识用户手册！</span>
                         </div>
                         <Button
                           size='sm'
@@ -335,12 +350,7 @@ export default function HomeViewPage() {
                       <div className='mt-5'>
                         <Button
                           variant='default'
-                          onClick={() =>
-                            navigate({
-                              to: '/project-detail',
-                              search: { project_id: proj.id } as unknown as Record<string, unknown>,
-                            })
-                          }
+                          onClick={() => openProjectDetail(proj.id)}
                         >
                           开始项目
                         </Button>
@@ -777,7 +787,10 @@ export default function HomeViewPage() {
                     </div>
                   )}
                   {projects.map((project) => {
-                    const disabled = hasTopProject && topProjectId !== undefined && project.id !== topProjectId
+                    const canSelectPinned =
+                      project.is_pinned === true ||
+                      (topProjectId !== undefined && project.id === topProjectId)
+                    const disabled = hasTopProject && !canSelectPinned
                     const startedText = (() => {
                       const created = project.created_at
                       if (!created || created <= 0) return ''
@@ -791,14 +804,7 @@ export default function HomeViewPage() {
                       <Card
                         key={project.id}
                         className={cn('border transition-colors', disabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-accent/40 cursor-pointer')}
-                        onClick={disabled ? undefined : () => {
-                          navigate({
-                            to: '/project-detail',
-                            search: {
-                              project_id: project.id,
-                            } as unknown as Record<string, unknown>,
-                          })
-                        }}
+                        onClick={disabled ? undefined : () => openProjectDetail(project.id)}
                       >
                         <div className='flex items-center justify-between gap-4 p-4'>
                           <div className='min-w-0'>
@@ -812,6 +818,11 @@ export default function HomeViewPage() {
                                 </Badge>
                               )}
                             </div>
+                            {project.desc && (
+                              <div className='text-muted-foreground text-xs line-clamp-1'>
+                                {project.desc}
+                              </div>
+                            )}
                           </div>
                           <div className='flex shrink-0 items-center'>
                             {startedText && (
@@ -844,7 +855,10 @@ export default function HomeViewPage() {
                 )}
                 {!loadingProjectsPaged &&
                   projects.map((project) => {
-                    const disabled = hasTopProject && topProjectId !== undefined && project.id !== topProjectId
+                    const canSelectPinned =
+                      project.is_pinned === true ||
+                      (topProjectId !== undefined && project.id === topProjectId)
+                    const disabled = hasTopProject && !canSelectPinned
                     const startedText = (() => {
                       const created = project.created_at
                       if (!created || created <= 0) return ''
@@ -858,14 +872,7 @@ export default function HomeViewPage() {
                       <Card
                         key={project.id}
                         className={cn('border transition-colors', disabled ? 'opacity-60 cursor-not-allowed' : 'hover:bg-accent/40 cursor-pointer')}
-                        onClick={disabled ? undefined : () => {
-                          navigate({
-                            to: '/project-detail',
-                            search: {
-                              project_id: project.id,
-                            } as unknown as Record<string, unknown>,
-                          })
-                        }}
+                        onClick={disabled ? undefined : () => openProjectDetail(project.id)}
                       >
                         <div className='flex items-center justify-between gap-4 p-4'>
                           <div className='min-w-0'>
@@ -879,6 +886,11 @@ export default function HomeViewPage() {
                                 </Badge>
                               )}
                             </div>
+                            {project.desc && (
+                              <div className='text-muted-foreground text-xs line-clamp-1'>
+                                {project.desc}
+                              </div>
+                            )}
                           </div>
                           <div className='flex shrink-0 items-center'>
                             {startedText && (
