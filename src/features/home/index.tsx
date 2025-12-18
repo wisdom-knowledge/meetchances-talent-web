@@ -179,13 +179,6 @@ export default function HomeViewPage() {
     loadingTasks || loadingTop ? '…' : visibleTasks.length + pinnedCount
   const shouldShowImportantTasks =
     loadingTasks || loadingTop || visibleTasks.length > 0 || pinnedCount > 0
-  const openProjectDetail = (projectId: number) => {
-    const base = import.meta.env.BASE_URL || '/'
-    const path = `${base.replace(/\/$/, '')}/project-detail`
-    const url = new URL(path, window.location.origin)
-    url.searchParams.set('project_id', String(projectId))
-    window.open(url.toString(), '_blank', 'noopener,noreferrer')
-  }
 
   return (
     <>
@@ -350,7 +343,12 @@ export default function HomeViewPage() {
                       <div className='mt-5'>
                         <Button
                           variant='default'
-                          onClick={() => openProjectDetail(proj.id)}
+                          onClick={() =>
+                            navigate({
+                              to: '/project-detail',
+                              search: { project_id: proj.id } as unknown as Record<string, unknown>,
+                            })
+                          }
                         >
                           开始项目
                         </Button>
@@ -804,7 +802,14 @@ export default function HomeViewPage() {
                       <Card
                         key={project.id}
                         className={cn('border transition-colors', disabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-accent/40 cursor-pointer')}
-                        onClick={disabled ? undefined : () => openProjectDetail(project.id)}
+                        onClick={disabled ? undefined : () => {
+                          navigate({
+                            to: '/project-detail',
+                            search: {
+                              project_id: project.id,
+                            } as unknown as Record<string, unknown>,
+                          })
+                        }}
                       >
                         <div className='flex items-center justify-between gap-4 p-4'>
                           <div className='min-w-0'>
@@ -872,7 +877,14 @@ export default function HomeViewPage() {
                       <Card
                         key={project.id}
                         className={cn('border transition-colors', disabled ? 'opacity-60 cursor-not-allowed' : 'hover:bg-accent/40 cursor-pointer')}
-                        onClick={disabled ? undefined : () => openProjectDetail(project.id)}
+                        onClick={disabled ? undefined : () => {
+                          navigate({
+                            to: '/project-detail',
+                            search: {
+                              project_id: project.id,
+                            } as unknown as Record<string, unknown>,
+                          })
+                        }}
                       >
                         <div className='flex items-center justify-between gap-4 p-4'>
                           <div className='min-w-0'>
