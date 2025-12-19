@@ -228,22 +228,16 @@ export default function ProjectDetailPage() {
             <IconArrowLeft className='h-4 w-4' />
             返回
           </button>
-          <div className='flex items-center gap-5'>
-            <button
-              onClick={() => setHelpOpen(true)}
-              className='rounded-lg border border-black/10 px-2 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50'
-            >
-              寻求支持
-            </button>
+          {!isProjectEnded && (
             <Button
               type='button'
               onClick={handleSubmit}
-              disabled={projectLoading || !allBound || submitting || isProjectEnded}
+              disabled={projectLoading || !allBound || submitting}
               className='h-11 rounded-lg px-7 text-base font-medium disabled:bg-[#c9c9c9] disabled:text-white disabled:opacity-100 disabled:pointer-events-none'
             >
-              {submitting ? '进入中...' : isProjectEnded ? '已结束' : '进入项目'}
+              {submitting ? '进入中...' : '进入项目'}
             </Button>
-          </div>
+          )}
         </div>
 
         <div className='flex flex-col gap-9 lg:flex-row flex-1'>
@@ -513,10 +507,27 @@ export default function ProjectDetailPage() {
             {/* 工作指南（有链接时显示） */}
             {isProjectEnded ? (
               <div className='flex h-[600px] w-full min-h-0 flex-col mt-1 gap-6 flex-1'>
-                <div className='flex items-center justify-between'>
-                  <h2 className='text-base font-semibold tracking-[0.32px]'>工作指南</h2>
-                  {/* 结束态不提供展开 */}
-                  <div className='h-6 w-6' />
+                <div className='flex flex-col gap-8'>
+                  <div className='flex justify-end'>
+                    <Button
+                      type='button'
+                      disabled
+                      className='h-11 rounded-lg px-7 text-base font-medium disabled:bg-[#c9c9c9] disabled:text-white disabled:opacity-100 disabled:pointer-events-none'
+                    >
+                      已结束
+                    </Button>
+                  </div>
+
+                  <div className='flex items-center justify-between'>
+                    <h2 className='text-base font-semibold tracking-[0.32px]'>工作指南</h2>
+                    <button
+                      type='button'
+                      onClick={() => setHelpOpen(true)}
+                      className='rounded-lg border border-black/10 px-2 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50'
+                    >
+                      寻求支持
+                    </button>
+                  </div>
                 </div>
                 <Card className='flex w-full flex-1 min-h-0 items-center justify-center rounded-xl border border-primary/20'>
                   <div className='flex max-w-[560px] flex-col items-center px-6 text-center'>
@@ -543,25 +554,36 @@ export default function ProjectDetailPage() {
                   <h2 className='text-base font-semibold tracking-[0.32px]'>
                     工作指南
                   </h2>
-                  <button
-                    onClick={() => setExpandedGuide(!expandedGuide)}
-                    className='flex h-6 w-6 items-center justify-center text-black/70 transition-colors hover:text-black'
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
+                  <div className='flex items-center gap-5'>
+                    <button
+                      onClick={() => setExpandedGuide(!expandedGuide)}
+                      className='flex h-6 w-6 items-center justify-center text-black/70 transition-colors hover:text-black'
+                      aria-label='展开工作指南'
                     >
-                      <path d="M19.3845 4C19.696 4 19.9535 4.23151 19.9943 4.53188L19.9999 4.61538V7.89744C19.9999 8.2373 19.7244 8.51282 19.3845 8.51282C19.073 8.51282 18.8155 8.28131 18.7747 7.98094L18.7691 7.89744V5.23077H16.1024C15.7909 5.23077 15.5334 4.99926 15.4927 4.69889L15.4871 4.61538C15.4871 4.30384 15.7186 4.04637 16.0189 4.00562L16.1024 4H19.3845Z" fill="currentColor"/>
-                      <path d="M18.9495 4.18024C19.1898 3.93992 19.5795 3.93992 19.8198 4.18024C20.0383 4.39872 20.0581 4.7406 19.8794 4.98151L19.8198 5.05053L14.8967 9.9736C14.6564 10.2139 14.2668 10.2139 14.0264 9.9736C13.808 9.75513 13.7881 9.41325 13.9668 9.17234L14.0264 9.10332L18.9495 4.18024Z" fill="currentColor"/>
-                      <path d="M4.61538 15.4883C4.92693 15.4883 5.1844 15.7198 5.22515 16.0202L5.23077 16.1037V18.7703H7.89744C8.20898 18.7703 8.46645 19.0018 8.5072 19.3022L8.51282 19.3857C8.51282 19.6973 8.28131 19.9547 7.98094 19.9955L7.89744 20.0011H4.61538C4.30384 20.0011 4.04637 19.7696 4.00562 19.4692L4 19.3857V16.1037C4 15.7638 4.27552 15.4883 4.61538 15.4883Z" fill="currentColor"/>
-                      <path d="M9.10332 14.0279C9.34364 13.7876 9.73328 13.7876 9.9736 14.0279C10.1921 14.2464 10.2119 14.5883 10.0332 14.8292L9.9736 14.8982L5.05053 19.8213C4.8102 20.0616 4.42056 20.0616 4.18024 19.8213C3.96177 19.6028 3.94191 19.2609 4.12066 19.02L4.18024 18.951L9.10332 14.0279Z" fill="currentColor"/>
-                      <path d="M11.1795 4.82031C11.5194 4.82031 11.7949 5.09583 11.7949 5.4357C11.7949 5.74724 11.5634 6.00472 11.263 6.04546L11.1795 6.05108H7.07697C6.54559 6.05108 6.1091 6.45436 6.05662 6.9718L6.05133 7.07672V11.1793C6.05133 11.5192 5.77581 11.7947 5.43594 11.7947C5.1244 11.7947 4.86692 11.5632 4.82617 11.2628L4.82056 11.1793V7.07672C4.82056 5.87636 5.75701 4.89544 6.93948 4.82443L7.07697 4.82031H11.1795Z" fill="currentColor"/>
-                      <path d="M18.564 12.207C18.8756 12.207 19.133 12.4385 19.1738 12.7389L19.1794 12.8224V16.925C19.1794 18.1253 18.2429 19.1063 17.0605 19.1773L16.923 19.1814H11.9999C11.66 19.1814 11.3845 18.9059 11.3845 18.566C11.3845 18.2545 11.616 17.997 11.9164 17.9562L11.9999 17.9506H16.923C17.4544 17.9506 17.8908 17.5473 17.9433 17.0299L17.9486 16.925V12.8224C17.9486 12.4825 18.2241 12.207 18.564 12.207Z" fill="currentColor"/>
-                    </svg>
-                  </button>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path d="M19.3845 4C19.696 4 19.9535 4.23151 19.9943 4.53188L19.9999 4.61538V7.89744C19.9999 8.2373 19.7244 8.51282 19.3845 8.51282C19.073 8.51282 18.8155 8.28131 18.7747 7.98094L18.7691 7.89744V5.23077H16.1024C15.7909 5.23077 15.5334 4.99926 15.4927 4.69889L15.4871 4.61538C15.4871 4.30384 15.7186 4.04637 16.0189 4.00562L16.1024 4H19.3845Z" fill="currentColor"/>
+                        <path d="M18.9495 4.18024C19.1898 3.93992 19.5795 3.93992 19.8198 4.18024C20.0383 4.39872 20.0581 4.7406 19.8794 4.98151L19.8198 5.05053L14.8967 9.9736C14.6564 10.2139 14.2668 10.2139 14.0264 9.9736C13.808 9.75513 13.7881 9.41325 13.9668 9.17234L14.0264 9.10332L18.9495 4.18024Z" fill="currentColor"/>
+                        <path d="M4.61538 15.4883C4.92693 15.4883 5.1844 15.7198 5.22515 16.0202L5.23077 16.1037V18.7703H7.89744C8.20898 18.7703 8.46645 19.0018 8.5072 19.3022L8.51282 19.3857C8.51282 19.6973 8.28131 19.9547 7.98094 19.9955L7.89744 20.0011H4.61538C4.30384 20.0011 4.04637 19.7696 4.00562 19.4692L4 19.3857V16.1037C4 15.7638 4.27552 15.4883 4.61538 15.4883Z" fill="currentColor"/>
+                        <path d="M9.10332 14.0279C9.34364 13.7876 9.73328 13.7876 9.9736 14.0279C10.1921 14.2464 10.2119 14.5883 10.0332 14.8292L9.9736 14.8982L5.05053 19.8213C4.8102 20.0616 4.42056 20.0616 4.18024 19.8213C3.96177 19.6028 3.94191 19.2609 4.12066 19.02L4.18024 18.951L9.10332 14.0279Z" fill="currentColor"/>
+                        <path d="M11.1795 4.82031C11.5194 4.82031 11.7949 5.09583 11.7949 5.4357C11.7949 5.74724 11.5634 6.00472 11.263 6.04546L11.1795 6.05108H7.07697C6.54559 6.05108 6.1091 6.45436 6.05662 6.9718L6.05133 7.07672V11.1793C6.05133 11.5192 5.77581 11.7947 5.43594 11.7947C5.1244 11.7947 4.86692 11.5632 4.82617 11.2628L4.82056 11.1793V7.07672C4.82056 5.87636 5.75701 4.89544 6.93948 4.82443L7.07697 4.82031H11.1795Z" fill="currentColor"/>
+                        <path d="M18.564 12.207C18.8756 12.207 19.133 12.4385 19.1738 12.7389L19.1794 12.8224V16.925C19.1794 18.1253 18.2429 19.1063 17.0605 19.1773L16.923 19.1814H11.9999C11.66 19.1814 11.3845 18.9059 11.3845 18.566C11.3845 18.2545 11.616 17.997 11.9164 17.9562L11.9999 17.9506H16.923C17.4544 17.9506 17.8908 17.5473 17.9433 17.0299L17.9486 16.925V12.8224C17.9486 12.4825 18.2241 12.207 18.564 12.207Z" fill="currentColor"/>
+                      </svg>
+                    </button>
+
+                    <button
+                      type='button'
+                      onClick={() => setHelpOpen(true)}
+                      className='rounded-lg border border-black/10 px-2 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50'
+                    >
+                      寻求支持
+                    </button>
+                  </div>
                 </div>
 
                 <div className='relative flex-1 min-h-0 overflow-hidden rounded-xl border border-primary/20'>
