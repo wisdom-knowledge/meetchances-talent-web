@@ -220,7 +220,7 @@ export default function ProjectDetailPage() {
     <>
       <Main className='py-8 pb-32 md:pb-8 md:mx-16 lg:px-8 flex flex-col'>
         {/* 顶部导航栏 */}
-        <div className='mb-8 flex items-center justify-between'>
+        <div className='mb-8 flex items-start justify-between'>
           <button
             onClick={handleBack}
             className='flex items-center gap-1 rounded-lg border border-black/10 px-2 py-2 text-sm font-medium transition-colors hover:bg-gray-50'
@@ -506,7 +506,7 @@ export default function ProjectDetailPage() {
           <div className='flex flex-1 flex-col gap-6 min-w-0 min-h-0'>
             {/* 工作指南（有链接时显示） */}
             {isProjectEnded ? (
-              <div className='flex h-[600px] w-full min-h-0 flex-col mt-1 gap-6 flex-1'>
+              <div className='flex w-full flex-1 min-h-0 flex-col mt-1 gap-6'>
                 <div className='flex flex-col gap-8'>
                   <div className='flex justify-end'>
                     <Button
@@ -549,7 +549,7 @@ export default function ProjectDetailPage() {
                 {jobProjectRelationshipCard}
               </div>
             ) : hasWorkGuide ? (
-              <div className='flex h-[600px] flex-col gap-5 min-h-0'>
+              <div className='flex flex-1 flex-col gap-5 min-h-0'>
                 <div className='flex items-center justify-between'>
                   <h2 className='text-base font-semibold tracking-[0.32px]'>
                     工作指南
