@@ -43,21 +43,21 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import searchPng from '@/assets/images/search.png'
 
-function formatPublishTime(createdAt?: string): string {
-  if (!createdAt) return ''
-  const created = new Date(createdAt).getTime()
-  if (Number.isNaN(created)) return ''
-  const diffMs = Date.now() - created
-  if (diffMs < 0) return '刚刚发布'
-  const hourMs = 1000 * 60 * 60
-  const dayMs = hourMs * 24
-  if (diffMs < dayMs) {
-    const hours = Math.floor(diffMs / hourMs)
-    return `${Math.max(hours, 1)}小时前发布`
-  }
-  const days = Math.floor(diffMs / dayMs)
-  return `${Math.max(days, 1)}天前发布`
-}
+// function formatPublishTime(createdAt?: string): string {
+//   if (!createdAt) return ''
+//   const created = new Date(createdAt).getTime()
+//   if (Number.isNaN(created)) return ''
+//   const diffMs = Date.now() - created
+//   if (diffMs < 0) return '刚刚发布'
+//   const hourMs = 1000 * 60 * 60
+//   const dayMs = hourMs * 24
+//   if (diffMs < dayMs) {
+//     const hours = Math.floor(diffMs / hourMs)
+//     return `${Math.max(hours, 1)}小时前发布`
+//   }
+//   const days = Math.floor(diffMs / dayMs)
+//   return `${Math.max(days, 1)}天前发布`
+// }
 
 export default function JobsListPage() {
   const env = useRuntimeEnv()
@@ -428,9 +428,9 @@ export default function JobsListPage() {
                                 <h3 className='font-medium inline-flex items-center gap-2'>
                                   {job.title}
                                 </h3>
-                                <p className='text-muted-foreground text-xs'>
+                                {/* <p className='text-muted-foreground text-xs'>
                                   {formatPublishTime(job.created_at)}
-                                </p>
+                                </p> */}
                               </div>
                               <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
                                 {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
@@ -545,9 +545,9 @@ export default function JobsListPage() {
                                 <h3 className='font-medium inline-flex items-center gap-2'>
                                   {job.title}
                                 </h3>
-                                <p className='text-muted-foreground text-xs'>
+                                {/* <p className='text-muted-foreground text-xs'>
                                   {formatPublishTime(job.created_at)}
-                                </p>
+                                </p> */}
                               </div>
                               <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
                                 {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
