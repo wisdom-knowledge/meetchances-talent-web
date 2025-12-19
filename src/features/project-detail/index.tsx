@@ -4,10 +4,7 @@ import { cn } from '@/lib/utils'
 
 import {
   IconArrowLeft,
-  IconCoin,
-  IconFileDescription,
   IconInfoCircle,
-  IconStar,
   IconBulb,
 } from '@tabler/icons-react'
 import { toast } from 'sonner'
@@ -28,6 +25,9 @@ import titleIcon from './images/title.png'
 import feishuIcon from './images/feishu.png'
 import dataIcon from './images/data.png'
 import payIcon from './images/pay.png'
+import starIcon from '@/assets/images/star.svg'
+import totalGetIcon from '@/assets/images/total-get.svg'
+import rateIcon from '@/assets/images/rate.svg'
 import finishProjectPng from '@/assets/images/finish-project.png'
 import { Main } from '@/components/layout/main'
 
@@ -196,7 +196,25 @@ export default function ProjectDetailPage() {
   const finalPassRate = projectStats?.finalPassRate ?? 0
   const maxScoreCount = Math.max(0, ...scoreDistribution.map((r) => r.count))
   const avgScorePillClass =
-    myAvgScore >= 2.5 ? 'bg-[rgb(101,65,190)]' : 'bg-[rgb(196,57,54)]'
+    myAvgScore >= 2.5 ? 'bg-[#4E02E480] text-white' : 'bg-[#FFDEDD] text-[#F4490B]'
+
+  const jobProjectRelationshipCard = (
+    <Card className='w-full shrink-0 rounded-xl border border-primary/10 bg-[rgb(245,244,253)] p-6'>
+      <div className='grid grid-cols-[24px_1fr] gap-x-3 gap-y-3'>
+        <div className='mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10'>
+          <IconBulb className='h-4 w-4 text-primary' />
+        </div>
+
+        <div className='text-base font-semibold text-black'>理解岗位与项目的关系</div>
+
+        <ul className='col-span-2 list-inside list-disc space-y-2 text-sm leading-6 text-[#8569CB]'>
+          <li>岗位申请通过是您进入项目的前置条件，通过后才能接收相关项目的邀请</li>
+          <li>项目是平台基于您的岗位派发的具体任务，其中试标项目可能对应很多个不同的正式项目</li>
+          <li>试标项目每个专家仅有一次参与机会，但不合格不会影响您参与其他非此试标所关联项目的资格。</li>
+        </ul>
+      </div>
+    </Card>
+  )
 
   return (
     <>
@@ -241,14 +259,24 @@ export default function ProjectDetailPage() {
             
             {/* 项目统计 */}
             <div className='space-y-4'>
-              <div className='flex items-end gap-2'>
-                <IconStar className='h-6 w-6 self-end text-primary' />
+              <div className='flex items-end gap-3 ml-[-4px]'>
+                <img
+                  src={starIcon}
+                  alt=''
+                  className='h-[23px] w-[24px] self-end mb-0.5'
+                  draggable={false}
+                />
                 {/* 文案与分数块做底部对齐 */}
                 <div className='flex items-end gap-2'>
                   <span className='text-base font-semibold text-black'>
                     项目综合评分：
                   </span>
-                  <div className={cn('px-4 text-[32px] font-semibold text-white', avgScorePillClass)}>
+                  <div
+                    className={cn(
+                      'inline-flex h-[38px] items-center rounded-[4px] px-4 text-[20px] font-medium',
+                      avgScorePillClass
+                    )}
+                  >
                     {myAvgScore.toFixed(1)}
                   </div>
                 </div>
@@ -298,7 +326,7 @@ export default function ProjectDetailPage() {
                           'h-full rounded-full',
                           row.isPositive
                             ? 'bg-[rgb(170,161,242)]'
-                            : 'bg-[rgb(241,118,120)]'
+                            : 'bg-[#FFDEDD]'
                         )}
                         style={{
                           width:
@@ -317,9 +345,9 @@ export default function ProjectDetailPage() {
 
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Card className='rounded-xl border border-black/10 p-4'>
+                  <Card className='rounded-xl border border-black/10 py-3 px-5 shadow-[0px_0px_4px_0px_#0000001A]'>
                     <div className='flex items-center gap-3'>
-                      <IconCoin className='h-6 w-6 text-primary' />
+                      <img src={totalGetIcon} alt='' className='h-8 w-8' draggable={false} />
                       <div className='text-xl text-black'>
                         {earnedAmount.toLocaleString('zh-CN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                       </div>
@@ -331,9 +359,9 @@ export default function ProjectDetailPage() {
                 </div>
 
                 <div className='space-y-2'>
-                  <Card className='rounded-xl border border-black/10 p-4'>
+                  <Card className='rounded-xl border border-black/10 py-3 px-5 shadow-[0px_0px_4px_0px_#0000001A]'>
                     <div className='flex items-center gap-3'>
-                      <IconFileDescription className='h-6 w-6 text-primary' />
+                      <img src={rateIcon} alt='' className='h-8 w-8' draggable={false} />
                       <div className='text-xl text-black'>
                         {(finalPassRate * 100).toFixed(1)}%
                       </div>
@@ -484,7 +512,7 @@ export default function ProjectDetailPage() {
           <div className='flex flex-1 flex-col gap-6 min-w-0 min-h-0'>
             {/* 工作指南（有链接时显示） */}
             {isProjectEnded ? (
-              <div className='flex h-[600px] w-full min-h-0 flex-col gap-6 flex-1'>
+              <div className='flex h-[600px] w-full min-h-0 flex-col mt-1 gap-6 flex-1'>
                 <div className='flex items-center justify-between'>
                   <h2 className='text-base font-semibold tracking-[0.32px]'>工作指南</h2>
                   {/* 结束态不提供展开 */}
@@ -507,23 +535,7 @@ export default function ProjectDetailPage() {
                   </div>
                 </Card>
 
-                <Card className='w-full shrink-0 rounded-xl border border-primary/10 bg-[rgb(245,244,253)] p-6'>
-                  <div className='grid grid-cols-[24px_1fr] gap-x-3 gap-y-3'>
-                    <div className='mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10'>
-                      <IconBulb className='h-4 w-4 text-primary' />
-                    </div>
-
-                    <div className='text-base font-semibold text-black'>
-                      理解岗位与项目的关系
-                    </div>
-
-                    <ul className='col-span-2 list-inside list-disc space-y-2 text-sm leading-6 text-[#8569CB]'>
-                      <li>岗位申请通过是您进入项目的前置条件，通过后才能接收相关项目的邀请</li>
-                      <li>项目是平台基于您的岗位派发的具体任务，其中试标项目可能对应很多个不同的正式项目</li>
-                      <li>试标项目每个专家仅有一次参与机会，但不合格不会影响您参与其他非此试标所关联项目的资格。</li>
-                    </ul>
-                  </div>
-                </Card>
+                {jobProjectRelationshipCard}
               </div>
             ) : hasWorkGuide ? (
               <div className='flex h-[600px] flex-col gap-5 min-h-0'>
@@ -573,8 +585,12 @@ export default function ProjectDetailPage() {
                     loading='eager'
                   />
                 </div>
+
+                {jobProjectRelationshipCard}
               </div>
-            ) : null}
+            ) : (
+              jobProjectRelationshipCard
+            )}
           </div>
         </div>
 

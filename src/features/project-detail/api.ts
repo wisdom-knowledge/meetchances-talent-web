@@ -79,7 +79,8 @@ export async function getProjectDetail(projectId: number): Promise<TalentProject
 export async function getProjectStats(_projectId: number): Promise<ProjectStats> {
   // TODO: 等后端提供统计接口后替换为真实请求
   return {
-    myAvgScore: 2.6,
+    // mock：制造一次低于 2.5 的情况，便于前端验证“警戒线”样式
+    myAvgScore: 2.4,
     projectAvgScore: 2.4,
     scoreDistribution: [
       { label: '5.0', count: 0, isPositive: true },
@@ -87,8 +88,8 @@ export async function getProjectStats(_projectId: number): Promise<ProjectStats>
       { label: '3.0', count: 3, isPositive: true },
       // 2.5 警戒线
       { label: '2.5', count: 0, isPositive: false },
-      { label: '2.0', count: 0, isPositive: false },
-      { label: '1.0', count: 0, isPositive: false },
+      { label: '2.0', count: 5, isPositive: false },
+      { label: '1.0', count: 1, isPositive: false },
     ],
     earnedAmount: 1230.5,
     finalPassRate: 0.4,
