@@ -54,10 +54,8 @@ import JobDetailDrawer from '@/features/jobs/components/job-detail-drawer'
 export interface JobsListContentProps {
   /**
    * 是否仅展示“可推荐岗位”（具备内推简历的岗位）
-   * - 1: 是
-   * - 0/undefined: 否
    */
-  isNt?: 0 | 1
+  referralOnly?: boolean
   /**
    * 是否把当前选择的 job_id 同步到 URL（/jobs 需要；/referral 关闭，避免 validateSearch 拦截）
    */
@@ -89,7 +87,7 @@ export interface JobsListContentProps {
 }
 
 export default function JobsListContent({
-  isNt,
+  referralOnly,
   enableUrlSync = true,
   heightMode = 'viewport',
   showTitleArea = true,
@@ -155,9 +153,9 @@ export default function JobsListContent({
       sort_by: sortBy,
       sort_order: sortOrder,
       title: debouncedKeyword || undefined,
-      isNt,
+      referral_only: referralOnly,
     }),
-    [sortBy, sortOrder, debouncedKeyword, page, isNt]
+    [sortBy, sortOrder, debouncedKeyword, page, referralOnly]
   )
 
   // 数据源：根据模式切换
@@ -169,7 +167,7 @@ export default function JobsListContent({
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteJobsQuery(
-    { limit: pageSize, sort_by: sortBy, sort_order: sortOrder, title: debouncedKeyword || undefined, isNt },
+    { limit: pageSize, sort_by: sortBy, sort_order: sortOrder, title: debouncedKeyword || undefined, referral_only: referralOnly },
     { enabled: isInfiniteMode }
   )
 

@@ -8,11 +8,9 @@ export interface JobsListParams {
   sort_order?: JobsSortOrder
   title?: string
   /**
-   * 是否仅返回“具备内推简历”的岗位（后端筛选）
-   * - 1: 是
-   * - 0/undefined: 否
+   * 是否仅返回“可内推岗位”（具备内推简历的岗位，后端筛选）
    */
-  isNt?: 0 | 1
+  referral_only?: boolean
 }
 
 export enum JobsSortBy {
@@ -98,7 +96,7 @@ async function fetchJobs(
     sort_by = JobsSortBy.PublishTime,
     sort_order = JobsSortOrder.Desc,
     title,
-    isNt,
+    referral_only,
   } = params
   const raw = await api.get(`/jobs/`, {
     params: {
@@ -107,7 +105,7 @@ async function fetchJobs(
       sort_by,
       sort_order,
       ...(title ? { title } : {}),
-      ...(typeof isNt === 'number' ? { isNt } : {}),
+      ...(typeof referral_only === 'boolean' ? { referral_only } : {}),
     },
   })
   // API may return array或 {items,total}; 这里做兼容
@@ -164,10 +162,10 @@ export function useInfiniteJobsQuery(
   },
   options?: { enabled?: boolean }
 ): UseInfiniteJobsResult {
-  const { limit = 20, sort_by = JobsSortBy.PublishTime, sort_order = JobsSortOrder.Desc, title, isNt } = params
+  const { limit = 20, sort_by = JobsSortBy.PublishTime, sort_order = JobsSortOrder.Desc, title, referral_only } = params
 
   return useInfiniteQuery<JobsPage, Error, InfiniteData<JobsPage>, [string, Omit<JobsListParams, 'skip'>], number>({
-    queryKey: ['jobs-infinite', { limit, sort_by, sort_order, title, isNt }],
+    queryKey: ['jobs-infinite', { limit, sort_by, sort_order, title, referral_only }],
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
       fetchJobs({
@@ -176,7 +174,7 @@ export function useInfiniteJobsQuery(
         sort_by,
         sort_order,
         title,
-        isNt,
+        referral_only,
       }),
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       const total = lastPage.total

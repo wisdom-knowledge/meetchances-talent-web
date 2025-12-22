@@ -11,7 +11,7 @@ export default function ReferrableJobsTab({ isActive }: ReferrableJobsTabProps) 
 
   return (
     <JobsListContent
-      isNt={1}
+      referralOnly
       enableUrlSync={false}
       heightMode='fill'
       showSortControls={false}
