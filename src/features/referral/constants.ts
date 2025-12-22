@@ -5,6 +5,8 @@ export type PageSize = (typeof PAGE_SIZE_OPTIONS)[number]
  * 内推页面的 Tab 枚举
  */
 export enum ReferralTab {
+  /** 可推荐岗位（具备内推简历的岗位） */
+  REFERRABLE_JOBS = 'referrable-jobs',
   /** 内推列表 */
   LIST = 'list',
   /** 收款记录 */
@@ -23,5 +25,5 @@ export const REFERRAL_TAB_VALUES = Object.values(ReferralTab) as string[]
 /**
  * 默认 Tab
  */
-export const DEFAULT_REFERRAL_TAB = ReferralTab.LIST
+export const DEFAULT_REFERRAL_TAB = ReferralTab.REFERRABLE_JOBS
 
