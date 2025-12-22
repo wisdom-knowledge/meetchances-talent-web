@@ -35,21 +35,21 @@ import giftSvg from '@/features/jobs/images/gift.svg'
 import arrowSvg from '@/features/jobs/images/arrow.svg'
 import JobDetailDrawer from '@/features/jobs/components/job-detail-drawer'
 
-function formatPublishTime(createdAt?: string): string {
-  if (!createdAt) return ''
-  const created = new Date(createdAt).getTime()
-  if (Number.isNaN(created)) return ''
-  const diffMs = Date.now() - created
-  if (diffMs < 0) return '刚刚发布'
-  const hourMs = 1000 * 60 * 60
-  const dayMs = hourMs * 24
-  if (diffMs < dayMs) {
-    const hours = Math.floor(diffMs / hourMs)
-    return `${Math.max(hours, 1)}小时前发布`
-  }
-  const days = Math.floor(diffMs / dayMs)
-  return `${Math.max(days, 1)}天前发布`
-}
+// function formatPublishTime(createdAt?: string): string {
+//   if (!createdAt) return ''
+//   const created = new Date(createdAt).getTime()
+//   if (Number.isNaN(created)) return ''
+//   const diffMs = Date.now() - created
+//   if (diffMs < 0) return '刚刚发布'
+//   const hourMs = 1000 * 60 * 60
+//   const dayMs = hourMs * 24
+//   if (diffMs < dayMs) {
+//     const hours = Math.floor(diffMs / hourMs)
+//     return `${Math.max(hours, 1)}小时前发布`
+//   }
+//   const days = Math.floor(diffMs / dayMs)
+//   return `${Math.max(days, 1)}天前发布`
+// }
 
 export interface JobsListContentProps {
   /**
@@ -476,7 +476,7 @@ export default function JobsListContent({
                               <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4'>
                                 <div>
                                   <h3 className='font-medium inline-flex items-center gap-2'>{job.title}</h3>
-                                  <p className='text-muted-foreground text-xs'>{formatPublishTime(job.created_at)}</p>
+                                  {/* <p className='text-muted-foreground text-xs'>{formatPublishTime(job.created_at)}</p> */}
                                 </div>
                                 <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
                                   {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
@@ -591,7 +591,7 @@ export default function JobsListContent({
                               <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4'>
                                 <div>
                                   <h3 className='font-medium inline-flex items-center gap-2'>{job.title}</h3>
-                                  <p className='text-muted-foreground text-xs'>{formatPublishTime(job.created_at)}</p>
+                                  {/* <p className='text-muted-foreground text-xs'>{formatPublishTime(job.created_at)}</p> */}
                                 </div>
                                 <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
                                   {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
