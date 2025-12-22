@@ -42,6 +42,11 @@ export const sidebarData: SidebarData = {
           title: '内推',
           url: '/referral',
           icon: HeliIcon,
+          customBadge: {
+            text: '有奖',
+            className:
+              'text-white font-semibold bg-[linear-gradient(180deg,_#27CDF1_0%,_#00FCDE_100%)]',
+          },
         },
         {
           title: '钱包',
