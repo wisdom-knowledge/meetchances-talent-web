@@ -36,30 +36,24 @@ export interface TalentProjectDetail {
   personal_info?: BackendPersonalInfo
 }
 
-// ===== 项目统计（综合评分模块）=====
-export interface ProjectScoreDistributionItem {
+// ===== 项目综合评分（真实接口）=====
+export interface ProjectScoreStats {
   /**
-   * 分数标签（例如：'5.0'、'4.0'、'3.0'、'2.5'）
-   * 注：2.5 为警戒线，虽然实际分数为整数，但仍需展示该行
+   * 得分分布：数组 5 个元素分别对应 1/2/3/4/5 分的数量
    */
-  label: string
-  /** 当前分数段数量 */
-  count: number
-  /** 是否为 >=3 的正向区间，用于区分进度条颜色 */
-  isPositive: boolean
-}
-
-export interface ProjectStats {
-  /** 我的平均分 */
-  myAvgScore: number
-  /** 项目整体平均分 */
-  projectAvgScore: number
-  /** 分数分布（5.0 -> 1.0，包含 2.5 警戒线） */
-  scoreDistribution: ProjectScoreDistributionItem[]
-  /** 此项目至今已赚 */
-  earnedAmount: number
-  /** 终审通过率（0~1） */
-  finalPassRate: number
+  score_distribution: number[]
+  /**
+   * 已批准金额总数（用于“此项目至今已赚”）
+   */
+  approved_amount: number
+  /**
+   * 项目综合评分
+   */
+  average_score: number
+  /**
+   * 累计任务数（当前页面不展示）
+   */
+  total_tasks: number
 }
 
 // 飞书授权 URL
@@ -75,25 +69,10 @@ export async function getProjectDetail(projectId: number): Promise<TalentProject
   return res as unknown as TalentProjectDetail
 }
 
-// 获取项目统计（接口未对接前的 mock）
-export async function getProjectStats(_projectId: number): Promise<ProjectStats> {
-  // TODO: 等后端提供统计接口后替换为真实请求
-  return {
-    // mock：制造一次低于 2.5 的情况，便于前端验证“警戒线”样式
-    myAvgScore: 2.4,
-    projectAvgScore: 2.4,
-    scoreDistribution: [
-      { label: '5.0', count: 0, isPositive: true },
-      { label: '4.0', count: 0, isPositive: true },
-      { label: '3.0', count: 3, isPositive: true },
-      // 2.5 警戒线
-      { label: '2.5', count: 0, isPositive: false },
-      { label: '2.0', count: 5, isPositive: false },
-      { label: '1.0', count: 1, isPositive: false },
-    ],
-    earnedAmount: 1230.5,
-    finalPassRate: 0.4,
-  }
+// 获取项目综合评分（真实接口）
+export async function getProjectStats(projectId: number): Promise<ProjectScoreStats> {
+  const res = await api.get(`/talent/projects/${projectId}/score-stats`)
+  return res as unknown as ProjectScoreStats
 }
 
 // 更新协议状态

@@ -27,9 +27,14 @@ import dataIcon from './images/data.png'
 import payIcon from './images/pay.png'
 import starIcon from '@/assets/images/star.svg'
 import totalGetIcon from '@/assets/images/total-get.svg'
-import rateIcon from '@/assets/images/rate.svg'
 import finishProjectPng from '@/assets/images/finish-project.png'
 import { Main } from '@/components/layout/main'
+
+interface ScoreRow {
+  label: string
+  count: number
+  isPositive: boolean
+}
 
 export default function ProjectDetailPage() {
   const navigate = useNavigate()
@@ -189,14 +194,39 @@ export default function ProjectDetailPage() {
   const paymentUnit = unit === 0 ? '小时' : '审核通过条目'
   const hasWorkGuide = Boolean(projectData?.project?.work_guide)
   const isProjectEnded = projectData?.project?.status === 1
-  const { data: projectStats } = useProjectStats(projectId, Boolean(projectId))
-  const myAvgScore = projectStats?.myAvgScore ?? 0
-  const scoreDistribution = projectStats?.scoreDistribution ?? []
-  const earnedAmount = projectStats?.earnedAmount ?? 0
-  const finalPassRate = projectStats?.finalPassRate ?? 0
-  const maxScoreCount = Math.max(0, ...scoreDistribution.map((r) => r.count))
+  const { data: projectStats, isLoading: projectStatsLoading } = useProjectStats(projectId, Boolean(projectId))
+
+  // average_score => 项目综合评分
+  const averageScore = projectStats?.average_score ?? 0
+  // approved_amount => 此项目至今已赚
+  const earnedAmount = projectStats?.approved_amount ?? 0
+
+  // score_distribution：数组 5 个元素分别对应 1/2/3/4/5 分的数量
+  // 2.5 分警戒线：count 先固定为 0，后续等接口对接后再调整
+  const scoreDistribution = useMemo<ScoreRow[]>(() => {
+    const arr = Array.isArray(projectStats?.score_distribution)
+      ? projectStats!.score_distribution
+      : []
+    const c1 = typeof arr[0] === 'number' ? arr[0] : 0
+    const c2 = typeof arr[1] === 'number' ? arr[1] : 0
+    const c3 = typeof arr[2] === 'number' ? arr[2] : 0
+    const c4 = typeof arr[3] === 'number' ? arr[3] : 0
+    const c5 = typeof arr[4] === 'number' ? arr[4] : 0
+
+    return [
+      { label: '5.0', count: c5, isPositive: true },
+      { label: '4.0', count: c4, isPositive: true },
+      { label: '3.0', count: c3, isPositive: true },
+      // 2.5 警戒线（先固定 0）
+      { label: '2.5', count: 0, isPositive: false },
+      { label: '2.0', count: c2, isPositive: false },
+      { label: '1.0', count: c1, isPositive: false },
+    ]
+  }, [projectStats])
+
+  const maxScoreCount = Math.max(0, ...scoreDistribution.map((r: ScoreRow) => r.count))
   const avgScorePillClass =
-    myAvgScore >= 2.5 ? 'bg-[#4E02E480] text-white' : 'bg-[#FFDEDD] text-[#F4490B]'
+    averageScore >= 2.5 ? 'bg-[#4E02E480] text-white' : 'bg-[#FFDEDD] text-[#F4490B]'
 
   const jobProjectRelationshipCard = (
     <Card className='w-full shrink-0 rounded-xl border border-primary/10 bg-[rgb(245,244,253)] p-6'>
@@ -271,7 +301,7 @@ export default function ProjectDetailPage() {
                       avgScorePillClass
                     )}
                   >
-                    {myAvgScore.toFixed(1)}
+                    {projectStatsLoading ? '—' : averageScore.toFixed(1)}
                   </div>
                 </div>
               </div>
@@ -343,7 +373,12 @@ export default function ProjectDetailPage() {
                     <div className='flex items-center gap-3'>
                       <img src={totalGetIcon} alt='' className='h-8 w-8' draggable={false} />
                       <div className='text-xl text-black'>
-                        {earnedAmount.toLocaleString('zh-CN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                        {projectStatsLoading
+                          ? '—'
+                          : earnedAmount.toLocaleString('zh-CN', {
+                              minimumFractionDigits: 1,
+                              maximumFractionDigits: 1,
+                            })}
                       </div>
                     </div>
                   </Card>
@@ -351,37 +386,8 @@ export default function ProjectDetailPage() {
                     此项目至今已赚
                   </div>
                 </div>
-
-                <div className='space-y-2'>
-                  <Card className='rounded-xl border border-black/10 py-3 px-5 shadow-[0px_0px_4px_0px_#0000001A]'>
-                    <div className='flex items-center gap-3'>
-                      <img src={rateIcon} alt='' className='h-8 w-8' draggable={false} />
-                      <div className='text-xl text-black'>
-                        {(finalPassRate * 100).toFixed(1)}%
-                      </div>
-                    </div>
-                  </Card>
-                  <div className='flex items-center justify-center gap-1 text-xs text-black/50'>
-                    <span>此项目终审通过率</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type='button'
-                          className='inline-flex items-center text-black/30'
-                          aria-label='终审通过率说明'
-                        >
-                          <IconInfoCircle className='h-3.5 w-3.5' />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent
-                        className='bg-foreground text-background'
-                        arrowClassName='bg-foreground fill-foreground'
-                      >
-                        这是终审通过率
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>
+                {/* 占位：保持布局宽度与之前一致（终审通过率已隐藏） */}
+                <div aria-hidden='true' />
               </div>
             </div>
 
