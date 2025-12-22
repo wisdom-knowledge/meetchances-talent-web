@@ -14,11 +14,10 @@ export default function ReferrableJobsTab({ isActive }: ReferrableJobsTabProps) 
       referralOnly
       enableUrlSync={false}
       heightMode='fill'
+      showTitleArea={false}
       showSortControls={false}
       defaultSortBy={JobsSortBy.ReferralBonus}
       defaultSortOrder={JobsSortOrder.Desc}
-      title='职位列表'
-      description='可推荐岗位（具备内推简历）'
     />
   )
 }
