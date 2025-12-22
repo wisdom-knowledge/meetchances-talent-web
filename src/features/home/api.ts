@@ -88,6 +88,7 @@ export function useImportantTasksQuery(
 export interface MyApplicationsParams {
   skip?: number
   limit?: number
+  online_status?: number
 }
 
 export interface MyApplicationsResultRaw {
@@ -98,9 +99,9 @@ export interface MyApplicationsResultRaw {
 export async function fetchMyApplications(
   params: MyApplicationsParams = { skip: 0, limit: 10 }
 ): Promise<MyApplicationsResultRaw> {
-  const { skip = 0, limit = 10 } = params
+  const { skip = 0, limit = 10, online_status } = params
   const raw = await api.get('/talent/job_apply_list', {
-    params: { skip, limit },
+    params: { skip, limit, online_status },
   })
   type Container = { data?: unknown; count?: unknown }
   const top = raw as Container
@@ -147,11 +148,18 @@ export function useInfiniteMyApplicationsQuery(
   params: Omit<MyApplicationsParams, 'skip'> = { limit: 10 },
   options?: { enabled?: boolean }
 ): UseInfiniteMyApplicationsResult {
-  const { limit = 10 } = params
-  return useInfiniteQuery<MyApplicationsPage, Error, InfiniteData<MyApplicationsPage>, [string, { limit: number }], number>({
-    queryKey: ['my-applications-infinite', { limit }],
+  const { limit = 10, online_status } = params
+  return useInfiniteQuery<
+    MyApplicationsPage,
+    Error,
+    InfiniteData<MyApplicationsPage>,
+    [string, { limit: number; online_status?: number }],
+    number
+  >({
+    queryKey: ['my-applications-infinite', { limit, online_status }],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => fetchMyApplications({ skip: pageParam * limit, limit }),
+    queryFn: ({ pageParam }) =>
+      fetchMyApplications({ skip: pageParam * limit, limit, online_status }),
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       const total = lastPage?.total ?? 0
       const currentPage = typeof lastPageParam === 'number' ? lastPageParam : 0
@@ -177,13 +185,17 @@ export async function fetchForHelp(params: ForHelpParams): Promise<null> {
 export interface ProjectListItem {
   id: number
   title: string
+  desc?: string
   created_at: number
   updated_at: number
+  status?: number
+  is_pinned?: boolean
 }
 
 export interface MyProjectsParams {
   skip?: number
   limit?: number
+  status?: number
 }
 
 export interface MyProjectsResultRaw {
@@ -196,6 +208,10 @@ type BackendProjectItem = {
   id: number
   name?: string
   alias?: string
+  introduction?: string
+  description?: string
+  status?: number
+  is_pinned?: boolean
   created_at?: string | number
   updated_at?: string | number
 }
@@ -207,10 +223,10 @@ type BackendProjectsResponse = {
 export async function fetchMyProjects(
   params: MyProjectsParams = { skip: 0, limit: 10 }
 ): Promise<MyProjectsResultRaw> {
-  const { skip = 0, limit = 10 } = params
+  const { skip = 0, limit = 10, status } = params
 
   const res = (await api.get('/talent/projects', {
-    params: { skip, limit },
+    params: { skip, limit, status },
   })) as unknown as BackendProjectsResponse
 
   const items: BackendProjectItem[] = Array.isArray(res?.data) ? res.data : []
@@ -231,8 +247,11 @@ export async function fetchMyProjects(
   const list: ProjectListItem[] = items.map((p) => ({
     id: p.id,
     title: (p.alias?.trim() || p.name?.trim() || '').trim(),
+    desc: (p.introduction?.trim() || p.description?.trim() || '').trim() || undefined,
     created_at: toSeconds(p.created_at),
     updated_at: toSeconds(p.updated_at),
+    status: p.status,
+    is_pinned: p.is_pinned,
   }))
 
   return { data: list, total }
@@ -262,11 +281,17 @@ export function useInfiniteMyProjectsQuery(
   params: Omit<MyProjectsParams, 'skip'> = { limit: 10 },
   options?: { enabled?: boolean }
 ): UseInfiniteMyProjectsResult {
-  const { limit = 10 } = params
-  return useInfiniteQuery<MyProjectsPage, Error, InfiniteData<MyProjectsPage>, [string, { limit: number }], number>({
-    queryKey: ['my-projects-infinite', { limit }],
+  const { limit = 10, status } = params
+  return useInfiniteQuery<
+    MyProjectsPage,
+    Error,
+    InfiniteData<MyProjectsPage>,
+    [string, { limit: number; status?: number }],
+    number
+  >({
+    queryKey: ['my-projects-infinite', { limit, status }],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => fetchMyProjects({ skip: pageParam * limit, limit }),
+    queryFn: ({ pageParam }) => fetchMyProjects({ skip: pageParam * limit, limit, status }),
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       const total = lastPage?.total ?? 0
       const currentPage = typeof lastPageParam === 'number' ? lastPageParam : 0
@@ -275,5 +300,86 @@ export function useInfiniteMyProjectsQuery(
       return hasMore ? currentPage + 1 : undefined
     },
     enabled: options?.enabled ?? true,
+  })
+}
+
+// ===== 置顶项目（单条，数组形式返回，最多 1 条） =====
+export interface TopProjectItem extends ProjectListItem {
+  introduction?: string
+  is_pinned?: boolean
+  estimated_duration?: number // 分钟
+  start_time?: number // 秒时间戳
+  end_time?: number // 秒时间戳
+  price_per_unit?: number
+  unit?: number
+}
+
+type BackendTopProjectItem = BackendProjectItem & {
+  introduction?: string
+  is_pinned?: boolean
+  estimated_duration?: number
+  start_time?: string | number
+  end_time?: string | number
+  price_per_unit?: number
+  unit?: number
+}
+
+export async function fetchTopProjects(): Promise<TopProjectItem[]> {
+  // 兼容不同返回结构：可能是 { data: [...] } 或 { data: { data: [...], count } }
+  try {
+    const raw = (await api.get('/talent/projects/pinned/top')) as unknown as {
+      data?: unknown
+      status_code?: number
+      status_msg?: string
+    }
+
+    const maybeNested = raw?.data as { data?: unknown } | unknown[] | undefined
+    const arr = Array.isArray(maybeNested)
+      ? (maybeNested as BackendTopProjectItem[])
+      : (Array.isArray((maybeNested as { data?: unknown })?.data)
+          ? ((maybeNested as { data?: unknown })?.data as BackendTopProjectItem[])
+          : Array.isArray((raw as unknown as { data?: BackendTopProjectItem[] })?.data)
+            ? ((raw as unknown as { data?: BackendTopProjectItem[] })?.data as BackendTopProjectItem[])
+            : [])
+
+    const items: BackendTopProjectItem[] = Array.isArray(arr) ? arr : []
+    if (!items.length) return []
+
+    const toSeconds = (value: string | number | undefined): number | undefined => {
+      if (value === undefined) return undefined
+      if (typeof value === 'number') {
+        return value > 1e12 ? Math.floor(value / 1000) : value
+      }
+      if (typeof value === 'string' && value) {
+        const t = Date.parse(value)
+        if (!Number.isNaN(t)) return Math.floor(t / 1000)
+      }
+      return undefined
+    }
+
+    return items.map((p) => ({
+      id: p.id,
+      title: (p.alias?.trim() || p.name?.trim() || '').trim(),
+      created_at: toSeconds(p.start_time) ?? toSeconds(p.created_at) ?? Math.floor(Date.now() / 1000),
+      updated_at: toSeconds(p.updated_at) ?? Math.floor(Date.now() / 1000),
+      introduction: p.introduction,
+      is_pinned: p.is_pinned ?? false,
+      estimated_duration: p.estimated_duration,
+      start_time: toSeconds(p.start_time),
+      end_time: toSeconds(p.end_time),
+      price_per_unit: p.price_per_unit,
+      unit: p.unit,
+    }))
+  } catch {
+    // 请求失败时返回空数组
+    return []
+  }
+}
+
+export function useTopProjectsQuery(options?: UseQueryOptions<TopProjectItem[]>) {
+  return useQuery({
+    queryKey: ['top-projects'],
+    queryFn: fetchTopProjects,
+    ...options,
   })
 }
