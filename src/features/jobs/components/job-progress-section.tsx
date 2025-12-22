@@ -9,7 +9,7 @@ interface JobProgressSectionProps {
   job?: ApiJob | null
 }
 
-type VisualStepStatus = 'completed' | 'inProgress' | 'notStarted' | 'rejected'
+type VisualStepStatus = 'completed' | 'inProgress' | 'reviewing' | 'notStarted' | 'rejected'
 
 // 已完成状态的自定义图标：紫色实心圆 + 对勾
 function IconCircleCompleted({ className }: { className?: string }) {
@@ -130,9 +130,10 @@ function mapNodeStatusToVisual(status: JobApplyNodeStatus): VisualStepStatus {
     case JobApplyNodeStatus.Approved:
       return 'completed'
     case JobApplyNodeStatus.InProgress:
+      return 'inProgress' // 进行中
     case JobApplyNodeStatus.CompletedPendingReview:
     case JobApplyNodeStatus.AnnotateCompleted:
-      return 'inProgress'
+      return 'reviewing' // 审核中
     case JobApplyNodeStatus.NotStarted:
       return 'notStarted'
     case JobApplyNodeStatus.Rejected:
@@ -246,9 +247,11 @@ export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps)
                     ? 'border-primary'
                     : visual === 'inProgress'
                       ? 'border-primary'
-                      : visual === 'rejected'
-                        ? 'border-red-500'
-                        : 'border-border'
+                      : visual === 'reviewing'
+                        ? 'border-primary'
+                        : visual === 'rejected'
+                          ? 'border-red-500'
+                          : 'border-border'
                 )}
               >
                 {/* 文本 */}
@@ -276,7 +279,7 @@ export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps)
                         ? 'text-muted-foreground'
                         : visual === 'rejected'
                           ? 'text-red-600'
-                          : visual === 'inProgress'
+                          : visual === 'inProgress' || visual === 'reviewing'
                             ? 'text-primary'
                             : 'text-primary'
                     )}
@@ -284,10 +287,12 @@ export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps)
                     {visual === 'completed'
                       ? '已通过'
                       : visual === 'inProgress'
-                        ? '审核中'
-                        : visual === 'rejected'
-                          ? '未通过'
-                          : '未开始'}
+                        ? '进行中'
+                        : visual === 'reviewing'
+                          ? '审核中'
+                          : visual === 'rejected'
+                            ? '未通过'
+                            : '未开始'}
                   </span>
                 </div>
 
@@ -295,7 +300,7 @@ export function JobProgressSection({ jobApplyId, job }: JobProgressSectionProps)
                 <div className='shrink-0'>
                   {visual === 'completed' ? (
                     <IconCircleCompleted className='h-4 w-4' />
-                  ) : visual === 'inProgress' ? (
+                  ) : visual === 'inProgress' || visual === 'reviewing' ? (
                     <IconCircleInProgress className='h-4 w-4' />
                   ) : visual === 'rejected' ? (
                     <IconCircleRejected className='h-4 w-4' />
