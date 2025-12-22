@@ -36,6 +36,26 @@ export interface TalentProjectDetail {
   personal_info?: BackendPersonalInfo
 }
 
+// ===== 项目综合评分（真实接口）=====
+export interface ProjectScoreStats {
+  /**
+   * 得分分布：数组 5 个元素分别对应 1/2/3/4/5 分的数量
+   */
+  score_distribution: number[]
+  /**
+   * 已批准金额总数（用于“此项目至今已赚”）
+   */
+  approved_amount: number
+  /**
+   * 项目综合评分
+   */
+  average_score: number
+  /**
+   * 累计任务数（当前页面不展示）
+   */
+  total_tasks: number
+}
+
 // 飞书授权 URL
 export interface TalentAuthURL {
   auth_url: string
@@ -47,6 +67,12 @@ export interface TalentAuthURL {
 export async function getProjectDetail(projectId: number): Promise<TalentProjectDetail> {
   const res = await api.get(`/talent/projects/${projectId}`)
   return res as unknown as TalentProjectDetail
+}
+
+// 获取项目综合评分（真实接口）
+export async function getProjectStats(projectId: number): Promise<ProjectScoreStats> {
+  const res = await api.get(`/talent/projects/${projectId}/score-stats`)
+  return res as unknown as ProjectScoreStats
 }
 
 // 更新协议状态
@@ -67,6 +93,14 @@ export function useProjectDetail(projectId: number, enabled = true) {
   return useQuery({
     queryKey: ['project-detail', projectId],
     queryFn: () => getProjectDetail(projectId),
+    enabled,
+  })
+}
+
+export function useProjectStats(projectId: number, enabled = true) {
+  return useQuery({
+    queryKey: ['project-stats', projectId],
+    queryFn: () => getProjectStats(projectId),
     enabled,
   })
 }
