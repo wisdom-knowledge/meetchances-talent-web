@@ -10,6 +10,7 @@ import { fetchTalentMe } from '@/lib/api'
 import { getWalletDetails, type WalletDetailsResponse } from '@/features/wallet/api'
 import RecommendMeTab from '@/features/referral/components/recommend-me-tab'
 import ReferralListTab from '@/features/referral/components/referral-list-tab'
+import ReferrableJobsTab from '@/features/referral/components/referrable-jobs-tab'
 import ShareBubble from '@/features/referral/components/share-bubble'
 import PosterGenerator from '@/features/referral/components/poster-generator'
 import ReferralFlowSection from '@/features/referral/components/referral-flow-section'
@@ -91,7 +92,7 @@ export default function ReferralPage() {
         </div>
       </Header>
 
-      <Main fixed className='overflow-y-auto py-0 pb-24 md:mx-16 md:pb-0'>
+      <Main fixed className='py-0 md:mx-16'>
         {/* 标题和描述在一行 */}
         <div className='md:flex md:items-end md:gap-4'>
           <h1 className='text-xl font-bold tracking-tight md:text-2xl'>内推</h1>
@@ -120,9 +121,10 @@ export default function ReferralPage() {
         )}
 
         {/* Tab 切换 */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
-          <TabsList className='grid w-full max-w-md grid-cols-2'>
-            <TabsTrigger value={ReferralTab.LIST}>内推列表</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className='flex flex-1 min-h-0 flex-col'>
+          <TabsList className='grid w-full max-w-lg grid-cols-3 shrink-0'>
+            <TabsTrigger value={ReferralTab.REFERRABLE_JOBS}>可推荐岗位</TabsTrigger>
+            <TabsTrigger value={ReferralTab.LIST}>我推荐的</TabsTrigger>
             <TabsTrigger value={ReferralTab.RECOMMEND_ME}>推荐我</TabsTrigger>
           </TabsList>
 
@@ -131,11 +133,15 @@ export default function ReferralPage() {
             <ReferralFlowSection />
           )}
 
-          <TabsContent value={ReferralTab.LIST} className='space-y-4'>
+          <TabsContent value={ReferralTab.REFERRABLE_JOBS} className='mt-4 flex-1 min-h-0 overflow-hidden'>
+            <ReferrableJobsTab isActive={activeTab === ReferralTab.REFERRABLE_JOBS} />
+          </TabsContent>
+
+          <TabsContent value={ReferralTab.LIST} className='mt-4 flex-1 min-h-0 overflow-auto pb-24 md:pb-0'>
             <ReferralListTab isActive={activeTab === ReferralTab.LIST} />
           </TabsContent>
 
-          <TabsContent value={ReferralTab.RECOMMEND_ME} className='space-y-4'>
+          <TabsContent value={ReferralTab.RECOMMEND_ME} className='mt-4 flex-1 min-h-0 overflow-auto pb-24 md:pb-0'>
             <RecommendMeTab 
               isActive={activeTab === ReferralTab.RECOMMEND_ME} 
               initialInviteCode={invitedCodeFromUrl}

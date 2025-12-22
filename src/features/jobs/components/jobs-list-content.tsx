@@ -1,0 +1,686 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useNavigate, useRouterState } from '@tanstack/react-router'
+import { IconClockHour4, IconCurrencyYen, IconSearch } from '@tabler/icons-react'
+import { toast } from 'sonner'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useWeChatShare } from '@/hooks/use-wechat-share'
+import { fetchTalentMe } from '@/lib/api'
+import { userEvent } from '@/lib/apm'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/authStore'
+import { mapCurrentNodeStatusToPill } from '@/utils/apply-pill'
+
+import moneySvg from '@/assets/images/money.svg'
+import searchPng from '@/assets/images/search.png'
+import {
+  JobApplyStatus,
+  JobsSortBy,
+  JobsSortOrder,
+  type ApiJob,
+  useInfiniteJobsQuery,
+  useJobApplyStatus,
+  useJobDetailQuery,
+  useJobsQuery,
+} from '@/features/jobs/api'
+import { jobTypeMapping, salaryTypeUnitMapping } from '@/features/jobs/constants'
+import { useRuntimeEnv } from '@/hooks/use-runtime-env'
+import giftSvg from '@/features/jobs/images/gift.svg'
+import arrowSvg from '@/features/jobs/images/arrow.svg'
+import JobDetailDrawer from '@/features/jobs/components/job-detail-drawer'
+
+// function formatPublishTime(createdAt?: string): string {
+//   if (!createdAt) return ''
+//   const created = new Date(createdAt).getTime()
+//   if (Number.isNaN(created)) return ''
+//   const diffMs = Date.now() - created
+//   if (diffMs < 0) return '刚刚发布'
+//   const hourMs = 1000 * 60 * 60
+//   const dayMs = hourMs * 24
+//   if (diffMs < dayMs) {
+//     const hours = Math.floor(diffMs / hourMs)
+//     return `${Math.max(hours, 1)}小时前发布`
+//   }
+//   const days = Math.floor(diffMs / dayMs)
+//   return `${Math.max(days, 1)}天前发布`
+// }
+
+export interface JobsListContentProps {
+  /**
+   * 是否仅展示“可推荐岗位”（具备内推简历的岗位）
+   */
+  referralOnly?: boolean
+  /**
+   * 是否把当前选择的 job_id 同步到 URL（/jobs 需要；/referral 关闭，避免 validateSearch 拦截）
+   */
+  enableUrlSync?: boolean
+  /**
+   * 高度模式
+   * - viewport: 使用视口 calc 高度（适合 /jobs 独立页面）
+   * - fill: 填充父容器剩余高度（适合 /referral 作为 Tab 内容嵌入）
+   */
+  heightMode?: 'viewport' | 'fill'
+  /**
+   * 是否显示「职位列表」标题与副标题
+   */
+  showTitleArea?: boolean
+  title?: string
+  description?: string
+  /**
+   * 是否展示排序按钮/Tab（/referral 需要隐藏；/jobs 保持显示）
+   */
+  showSortControls?: boolean
+  /**
+   * 默认排序字段
+   */
+  defaultSortBy?: JobsSortBy
+  /**
+   * 默认排序方向
+   */
+  defaultSortOrder?: JobsSortOrder
+}
+
+export default function JobsListContent({
+  referralOnly,
+  enableUrlSync = true,
+  heightMode = 'viewport',
+  showTitleArea = true,
+  title = '职位列表',
+  description = '寻找与你匹配的工作机会',
+  showSortControls = true,
+  defaultSortBy = JobsSortBy.PublishTime,
+  defaultSortOrder = JobsSortOrder.Desc,
+}: JobsListContentProps) {
+  const isFillMode = heightMode === 'fill'
+  const env = useRuntimeEnv()
+  const navigate = useNavigate()
+  const { location } = useRouterState()
+  const { auth } = useAuthStore()
+
+  // 获取当前用户信息（包含 referral_code）
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: fetchTalentMe,
+    staleTime: 5 * 60 * 1000,
+    enabled: Boolean(auth.user),
+  })
+
+  const jobIdFromUrl = useMemo(() => {
+    if (!enableUrlSync) return null
+    const search = location.search as Record<string, unknown>
+    const v = search?.job_id
+    if (typeof v === 'string') {
+      const n = Number(v)
+      return Number.isNaN(n) ? v : n
+    }
+    if (typeof v === 'number') return v
+    return null
+  }, [enableUrlSync, location.search])
+
+  const [selectedJob, setSelectedJob] = useState<ApiJob | null>(null)
+  const [selectedJobId, setSelectedJobId] = useState<string | number | null>(jobIdFromUrl)
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(Boolean(jobIdFromUrl))
+
+  const [sortBy, setSortBy] = useState<JobsSortBy>(defaultSortBy)
+  const [sortOrder, setSortOrder] = useState<JobsSortOrder>(defaultSortOrder)
+  const [keyword, setKeyword] = useState<string>('')
+  const [debouncedKeyword, setDebouncedKeyword] = useState<string>('')
+  const [page, setPage] = useState<number>(0)
+  const pageSize = 20
+  const isInfiniteMode = env === 'mobile' || env === 'wechat-miniprogram'
+
+  // 300ms 防抖
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300)
+    return () => clearTimeout(t)
+  }, [keyword])
+
+  // 搜索与排序变更时回到第一页（桌面分页模式）
+  useEffect(() => {
+    if (!isInfiniteMode) setPage(0)
+  }, [debouncedKeyword, sortBy, sortOrder, isInfiniteMode])
+
+  const queryParams = useMemo(
+    () => ({
+      skip: page * pageSize,
+      limit: pageSize,
+      sort_by: sortBy,
+      sort_order: sortOrder,
+      title: debouncedKeyword || undefined,
+      referral_only: referralOnly,
+    }),
+    [sortBy, sortOrder, debouncedKeyword, page, referralOnly]
+  )
+
+  // 数据源：根据模式切换
+  const { data: jobsData, isLoading: isLoadingPaged } = useJobsQuery(queryParams, { enabled: !isInfiniteMode })
+  const {
+    data: infiniteData,
+    isLoading: isLoadingInfinite,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteJobsQuery(
+    { limit: pageSize, sort_by: sortBy, sort_order: sortOrder, title: debouncedKeyword || undefined, referral_only: referralOnly },
+    { enabled: isInfiniteMode }
+  )
+
+  const jobs: ApiJob[] = useMemo(() => {
+    if (isInfiniteMode) {
+      const pages: Array<{ data: ApiJob[]; total?: number }> = infiniteData?.pages ?? []
+      const all = pages.flatMap((p: { data: ApiJob[] }) => p.data || [])
+      return all
+    }
+    return jobsData?.data ?? []
+  }, [isInfiniteMode, infiniteData, jobsData])
+
+  const total = isInfiniteMode ? (infiniteData?.pages?.[0]?.total ?? 0) : (jobsData?.total ?? 0)
+  const pageCount = Math.max(1, Math.ceil((total || 0) / pageSize))
+  const canPrev = page > 0
+  const canNext = total ? page + 1 < pageCount : jobs.length === pageSize
+
+  // 串行：在拿到 jobs 后再请求申请状态
+  const jobIds = useMemo(() => jobs.map((j) => j.id), [jobs])
+  const { data: applyStatusMap } = useJobApplyStatus(jobIds, Boolean(jobIds.length))
+
+  // 当只拿到列表的精简数据时，点击后再拉详情
+  const effectiveSelectedId = selectedJobId ?? selectedJob?.id ?? null
+  const { data: detailData } = useJobDetailQuery(effectiveSelectedId, isDrawerOpen)
+  const selectedJobData = detailData ?? selectedJob
+
+  // 使用微信分享Hook
+  useWeChatShare({
+    shareTitle: selectedJobData ? `【招聘】${selectedJobData.title}` : '',
+    shareDesc: selectedJobData
+      ? `Meehchances/一面千识 | ${jobTypeMapping[selectedJobData.job_type as keyof typeof jobTypeMapping] || '工作'}丨${selectedJobData.salary_max && selectedJobData.salary_max > 0 ? `${selectedJobData.salary_min}-${selectedJobData.salary_max}` : selectedJobData.salary_min}/${salaryTypeUnitMapping[selectedJobData.salary_type as keyof typeof salaryTypeUnitMapping] || 'Meehchances/一面千识'}`
+      : '',
+    shareImgUrl: 'https://dnu-cdn.xpertiise.com/common/42eabd48-d3c6-492e-b0f0-49b7dfe4419f.png',
+    enabled: !!selectedJobData,
+  })
+
+  const handleSelectJob = (job: ApiJob) => {
+    setSelectedJob(job)
+    setSelectedJobId(job.id)
+    setIsDrawerOpen(true)
+    userEvent('position_item_clicked', '点击岗位列表项', { job_id: job.id })
+    if (!enableUrlSync) return
+    navigate({
+      to: location.pathname,
+      search: (prev) => ({ ...(prev as Record<string, unknown>), job_id: job.id }),
+    })
+  }
+
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false)
+    setSelectedJob(null)
+    setSelectedJobId(null)
+    if (!enableUrlSync) return
+    // 从 URL 移除 job_id
+    navigate({
+      to: location.pathname,
+      search: (prev) => {
+        const { job_id: _omit, ...rest } = (prev || {}) as Record<string, unknown>
+        return rest
+      },
+    })
+  }
+
+  // 处理内推标签点击
+  const handleReferralClick = async (job: ApiJob, e: React.MouseEvent) => {
+    e.stopPropagation() // 阻止冒泡，避免触发职位选择
+
+    // 检查登录状态
+    if (!auth.user) {
+      const loginUrl = import.meta.env.VITE_AUTH_LOGIN_URL
+      if (loginUrl) window.location.href = loginUrl
+      return
+    }
+
+    // 从用户信息中获取邀请码
+    const referralCode = currentUser?.referral_code
+    if (!referralCode) {
+      toast.error('邀请码尚未加载，请稍后重试')
+      return
+    }
+
+    // 拼接完整的邀请链接
+    const origin = window.location.origin
+    const inviteUrl = `${origin}/referral?invitedCode=${referralCode}`
+    const copyText = `立即点击链接参与内推，一键绑定邀请关系，绑定成功后参与首页岗位申请。${inviteUrl}`
+
+    try {
+      await navigator.clipboard.writeText(copyText)
+      toast.success('邀请链接已复制到剪贴板')
+      userEvent('referral_code_copied', '复制邀请链接', { job_id: job.id })
+    } catch (_error) {
+      toast.error('复制失败，请稍后重试')
+    }
+  }
+
+  // 当 URL 中存在 job_id 时，进入页面后自动展开并同步本地状态
+  useEffect(() => {
+    if (!enableUrlSync) return
+    if (jobIdFromUrl) {
+      setIsDrawerOpen(true)
+      setSelectedJobId(jobIdFromUrl)
+    } else {
+      setIsDrawerOpen(false)
+      setSelectedJobId(null)
+      setSelectedJob(null)
+    }
+  }, [enableUrlSync, jobIdFromUrl])
+
+  // 当列表加载后，如果 URL 有 job_id 但本地还没选中具体 Job，则尝试从列表中填充
+  useEffect(() => {
+    if (!enableUrlSync) return
+    if (jobIdFromUrl && !selectedJob) {
+      const found = jobs.find((j) => String(j.id) === String(jobIdFromUrl))
+      if (found) setSelectedJob(found)
+    }
+  }, [enableUrlSync, jobIdFromUrl, jobs, selectedJob])
+
+  const isPublishActive = sortBy === JobsSortBy.PublishTime
+  const isSalaryActive = sortBy === JobsSortBy.SalaryMax
+
+  // 移动端/小程序：滚动加载（IntersectionObserver 观察列表尾部）
+  const listContainerRef = useRef<HTMLDivElement | null>(null)
+  const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!isInfiniteMode) return
+    const sentinel = loadMoreSentinelRef.current
+    const rootEl = listContainerRef.current
+    if (!sentinel || !rootEl) return
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0]
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      {
+        root: rootEl,
+        rootMargin: '0px 0px 200px 0px',
+        threshold: 0.1,
+      }
+    )
+    io.observe(sentinel)
+    return () => io.disconnect()
+  }, [isInfiniteMode, fetchNextPage, hasNextPage, isFetchingNextPage])
+
+  return (
+    <div className={cn('mx-auto w-full h-full', isFillMode && 'flex min-h-0 flex-col')}>
+      {showTitleArea ? (
+        <div className='flex items-start justify-between gap-3'>
+          <div className='flex items-end'>
+            <h1 className='text-xl font-bold tracking-tight md:text-2xl mr-3'>{title}</h1>
+            <p className='text-muted-foreground text-sm sm:text-base relative'>{description}</p>
+          </div>
+        </div>
+      ) : null}
+
+      <div className={cn('w-full flex items-center gap-2 md:mb-[12px] mb-[8px]', showTitleArea ? 'md:mt-[12px] mt-[8px]' : '')}>
+        <div className='relative flex-1'>
+          <Input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder='搜索职位' className='rounded-full pr-16 placeholder:text-sm' />
+          {keyword ? (
+            <button
+              type='button'
+              onClick={() => setKeyword('')}
+              aria-label='清空搜索'
+              className='absolute right-9 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full text-muted-foreground hover:bg-accent flex items-center justify-center'
+            >
+              <span className='text-lg leading-none'>&times;</span>
+            </button>
+          ) : null}
+          <IconSearch aria-hidden='true' className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+        </div>
+
+        {showSortControls ? (
+          <div className='hidden items-center gap-2 sm:flex'>
+            <button
+              type='button'
+              onClick={() => {
+                setSortBy(JobsSortBy.PublishTime)
+                setSortOrder(JobsSortOrder.Desc)
+              }}
+              className={cn(
+                'inline-flex h-8 sm:h-9 items-center gap-1 sm:gap-1.5 rounded-full border px-3 sm:px-4 text-xs sm:text-sm transition-colors',
+                isPublishActive ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-foreground border-border hover:bg-accent'
+              )}
+            >
+              <IconClockHour4 className='h-4 w-4' /> 最新发布
+            </button>
+            <button
+              type='button'
+              onClick={() => {
+                setSortBy(JobsSortBy.SalaryMax)
+                setSortOrder(JobsSortOrder.Desc)
+              }}
+              className={cn(
+                'inline-flex h-8 sm:h-9 items-center gap-1 sm:gap-1.5 rounded-full border px-3 sm:px-4 text-xs sm:text-sm transition-colors',
+                isSalaryActive ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-foreground border-border hover:bg-accent'
+              )}
+            >
+              <IconCurrencyYen className='h-4 w-4' /> 最高薪资
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      {/* 移动端 Tabs：仅小屏显示 */}
+      <div className={cn('sm:hidden mt-2 mb-[8px]', !showSortControls && 'hidden')}>
+        <Tabs
+          value={isPublishActive ? 'publish' : 'salary'}
+          onValueChange={(v) => {
+            if (v === 'publish') {
+              setSortBy(JobsSortBy.PublishTime)
+              setSortOrder(JobsSortOrder.Desc)
+            } else {
+              setSortBy(JobsSortBy.SalaryMax)
+              setSortOrder(JobsSortOrder.Desc)
+            }
+          }}
+          className='w-full'
+        >
+          <TabsList className='grid w-full grid-cols-2'>
+            <TabsTrigger value='publish' className='text-xs h-8'>
+              <IconClockHour4 className='h-4 w-4' />
+              最新发布
+            </TabsTrigger>
+            <TabsTrigger value='salary' className='text-xs h-8'>
+              <IconCurrencyYen className='h-4 w-4' />
+              最高薪资
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      <div
+        className={cn(
+          'relative flex flex-col gap-6 lg:flex-row',
+          isFillMode ? 'flex-1 min-h-0' : '-mb-8 md:h-[calc(100vh-10rem)] h-[calc(100vh-12rem)]'
+        )}
+      >
+        {/* 左侧：职位列表 */}
+        <div className='flex-1 flex flex-col min-h-0'>
+          {isInfiniteMode ? (
+            <div
+              ref={listContainerRef}
+              className={cn(
+                'flex-1 min-h-0 pr-1 overflow-auto',
+                isFillMode ? 'h-full' : 'md:h-[calc(100vh-10rem)] h-[calc(100vh-12rem)]'
+              )}
+            >
+              <ul className='space-y-2 pb-4'>
+                {(isLoadingInfinite && jobs.length === 0)
+                  ? Array.from({ length: 8 }).map((_, index: number) => (
+                      <li key={`skeleton-${index}`}>
+                        <div className='w-full rounded-md border p-4'>
+                          <div className='flex items-center justify-between gap-4'>
+                            <div className='min-w-0'>
+                              <Skeleton className='mb-2 h-5 w-40' />
+                              <Skeleton className='h-3 w-24' />
+                            </div>
+                            <div className='flex items-center gap-2'>
+                              <Skeleton className='h-6 w-16' />
+                              <Skeleton className='h-6 w-28' />
+                              <Skeleton className='h-6 w-12' />
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))
+                  : jobs.length === 0 ? (
+                      <li>
+                        <div className='w-full py-16 text-center'>
+                          <div className='mx-auto mb-4 h-16 w-16 opacity-80'>
+                            <img src={searchPng} alt='' className='h-16 w-16 mx-auto' aria-hidden='true' />
+                          </div>
+                          <h3 className='text-base font-semibold'>未找到相关职位</h3>
+                          <p className='text-muted-foreground text-sm mt-1'>试试调整关键词{keyword ? '，或清空搜索' : ''}</p>
+                          {keyword ? (
+                            <div className='mt-4'>
+                              <Button size='sm' variant='secondary' onClick={() => setKeyword('')}>
+                                清空搜索
+                              </Button>
+                            </div>
+                          ) : null}
+                        </div>
+                      </li>
+                    ) : (
+                      [...jobs].map((job: ApiJob) => {
+                        const isActive = String(selectedJobId ?? selectedJob?.id ?? '') === String(job.id)
+                        return (
+                          <li key={job.id}>
+                            <div
+                              role='button'
+                              tabIndex={0}
+                              onClick={() => handleSelectJob(job)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') handleSelectJob(job)
+                              }}
+                              className={
+                                'group hover:bg-accent w-full cursor-pointer rounded-md border p-4 text-left transition-colors ' +
+                                (isActive ? 'border-primary ring-primary/30' : 'border-border')
+                              }
+                            >
+                              <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4'>
+                                <div>
+                                  <h3 className='font-medium inline-flex items-center gap-2'>{job.title}</h3>
+                                  {/* <p className='text-muted-foreground text-xs'>{formatPublishTime(job.created_at)}</p> */}
+                                </div>
+                                <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
+                                  {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
+                                    <Badge
+                                      variant='outline'
+                                      className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
+                                      style={{
+                                        borderRadius: '16px',
+                                        background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)',
+                                      }}
+                                      onClick={(e) => handleReferralClick(job, e)}
+                                    >
+                                      <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
+                                      内推奖 ¥{job.referral_bonus}
+                                    </Badge>
+                                  )}
+
+                                  {(() => {
+                                    const statusItem = applyStatusMap?.[String(job.id)]
+                                    if (!statusItem || statusItem.job_apply_status !== JobApplyStatus.Applied) return null
+                                    const pill = mapCurrentNodeStatusToPill(statusItem.current_node_status, statusItem.progress, statusItem.total_step)
+                                    return (
+                                      <span className={'inline-flex w-28 items-center justify-center py-1 gap-2 rounded-full leading-[1.6] tracking-[0.35px] text-xs ' + pill.classes}>
+                                        {pill.text}
+                                      </span>
+                                    )
+                                  })()}
+
+                                  <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal shrink-0'>
+                                    <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
+                                    {job.salary_max && job.salary_max > 0
+                                      ? `¥${job.salary_min ?? 0} - ¥${job.salary_max} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
+                                      : `¥${job.salary_min ?? 0} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`}
+                                  </Badge>
+                                  <Badge className='inline-flex items-center justify-center px-2 py-1 font-normal tracking-[0.25px] text-[#4E02E4] bg-[#4E02E40D] rounded shrink-0'>
+                                    {jobTypeMapping[job.job_type as keyof typeof jobTypeMapping] || ''}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </li>
+                        )
+                      })
+                    )}
+              </ul>
+              {/* Sentinel & footer states */}
+              <div ref={loadMoreSentinelRef} className='h-6' />
+              <div className='pb-4 text-center text-xs text-muted-foreground mb-24'>
+                {isFetchingNextPage ? '加载中…' : hasNextPage ? '向下滚动加载更多' : jobs.length > 0 ? '没有更多了' : ''}
+              </div>
+            </div>
+          ) : (
+            <ScrollArea
+              className={cn(
+                'flex-1 min-h-0 pr-1',
+                isFillMode ? 'h-full' : 'md:h-[calc(100vh-10rem)] h-[calc(100vh-12rem)]'
+              )}
+            >
+              <ul className='space-y-2 pb-4'>
+                {isLoadingPaged
+                  ? Array.from({ length: 8 }).map((_, index: number) => (
+                      <li key={`skeleton-${index}`}>
+                        <div className='w-full rounded-md border p-4'>
+                          <div className='flex items-center justify-between gap-4'>
+                            <div className='min-w-0'>
+                              <Skeleton className='mb-2 h-5 w-40' />
+                              <Skeleton className='h-3 w-24' />
+                            </div>
+                            <div className='flex items-center gap-2'>
+                              <Skeleton className='h-6 w-16' />
+                              <Skeleton className='h-6 w-28' />
+                              <Skeleton className='h-6 w-12' />
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))
+                  : jobs.length === 0 ? (
+                      <li>
+                        <div className='w-full py-16 text-center'>
+                          <div className='mx-auto mb-4 h-16 w-16 opacity-80'>
+                            <img src={searchPng} alt='' className='h-16 w-16 mx-auto' aria-hidden='true' />
+                          </div>
+                          <h3 className='text-base font-semibold'>未找到相关职位</h3>
+                          <p className='text-muted-foreground text-sm mt-1'>试试调整关键词{keyword ? '，或清空搜索' : ''}</p>
+                          {keyword ? (
+                            <div className='mt-4'>
+                              <Button size='sm' variant='secondary' onClick={() => setKeyword('')}>
+                                清空搜索
+                              </Button>
+                            </div>
+                          ) : null}
+                        </div>
+                      </li>
+                    ) : (
+                      [...jobs].map((job: ApiJob) => {
+                        const isActive = String(selectedJobId ?? selectedJob?.id ?? '') === String(job.id)
+                        return (
+                          <li key={job.id}>
+                            <div
+                              role='button'
+                              tabIndex={0}
+                              onClick={() => handleSelectJob(job)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') handleSelectJob(job)
+                              }}
+                              className={
+                                'group hover:bg-accent w-full cursor-pointer rounded-md border p-4 text-left transition-colors ' +
+                                (isActive ? 'border-primary ring-primary/30' : 'border-border')
+                              }
+                            >
+                              <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4'>
+                                <div>
+                                  <h3 className='font-medium inline-flex items-center gap-2'>{job.title}</h3>
+                                  {/* <p className='text-muted-foreground text-xs'>{formatPublishTime(job.created_at)}</p> */}
+                                </div>
+                                <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
+                                  {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
+                                    <>
+                                      <span className='hidden sm:flex items-center gap-1 text-xs text-black/20 opacity-0 group-hover:opacity-100 transition-opacity shrink-0'>
+                                        <img src={arrowSvg} alt='' className='h-6 w-6' aria-hidden='true' />
+                                        点击tag复制邀请链接 发给朋友
+                                      </span>
+                                      <Badge
+                                        variant='outline'
+                                        className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
+                                        style={{
+                                          borderRadius: '16px',
+                                          background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)',
+                                        }}
+                                        onClick={(e) => handleReferralClick(job, e)}
+                                      >
+                                        <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
+                                        内推奖 ¥{job.referral_bonus}
+                                      </Badge>
+                                    </>
+                                  )}
+
+                                  {(() => {
+                                    const statusItem = applyStatusMap?.[String(job.id)]
+                                    if (!statusItem || statusItem.job_apply_status !== JobApplyStatus.Applied) return null
+                                    const pill = mapCurrentNodeStatusToPill(statusItem.current_node_status, statusItem.progress, statusItem.total_step)
+                                    return (
+                                      <span className={'inline-flex w-28 items-center justify-center py-1 gap-2 rounded-full leading-[1.6] tracking-[0.35px] text-xs ' + pill.classes}>
+                                        {pill.text}
+                                      </span>
+                                    )
+                                  })()}
+
+                                  <Badge variant='outline' className='rounded-full py-1.5 px-4 gap-1.5 text-primary font-normal shrink-0'>
+                                    <img src={moneySvg} alt='' className='h-4 w-4' aria-hidden='true' />
+                                    {job.salary_max && job.salary_max > 0
+                                      ? `¥${job.salary_min ?? 0} - ¥${job.salary_max} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`
+                                      : `¥${job.salary_min ?? 0} / ${salaryTypeUnitMapping[job.salary_type as keyof typeof salaryTypeUnitMapping] || '小时'}`}
+                                  </Badge>
+                                  <Badge className='inline-flex items-center justify-center px-2 py-1 font-normal tracking-[0.25px] text-[#4E02E4] bg-[#4E02E40D] rounded shrink-0'>
+                                    {jobTypeMapping[job.job_type as keyof typeof jobTypeMapping] || ''}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </li>
+                        )
+                      })
+                    )}
+              </ul>
+            </ScrollArea>
+          )}
+
+          {/* 分页控制：固定在列表下方可见（仅桌面显示） */}
+          {!isInfiniteMode && (
+            <div className={cn('flex items-center justify-end gap-2 pt-2')}>
+              <button
+                type='button'
+                className={cn('inline-flex h-8 items-center rounded-md border px-3 text-xs', !canPrev && 'opacity-50 cursor-not-allowed')}
+                disabled={!canPrev}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+              >
+                上一页
+              </button>
+              <div className='text-muted-foreground text-xs'>
+                第 {page + 1} / {pageCount} 页
+              </div>
+              <button
+                type='button'
+                className={cn('inline-flex h-8 items-center rounded-md border px-3 text-xs', !canNext && 'opacity-50 cursor-not-allowed')}
+                disabled={!canNext}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                下一页
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 职位详情：Drawer 展示 */}
+        <JobDetailDrawer
+          open={isDrawerOpen}
+          job={selectedJobData ?? null}
+          onOpenChange={(open) => (open ? setIsDrawerOpen(true) : handleCloseDrawer())}
+          onBack={handleCloseDrawer}
+          jobApplyId={selectedJobId ? applyStatusMap?.[String(selectedJobId)]?.job_apply_id : null}
+        />
+      </div>
+    </div>
+  )
+}
+
+
