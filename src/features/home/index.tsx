@@ -24,7 +24,7 @@ import {
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import noApplySvg from '@/assets/images/no-apply.svg'
 import emptyTopPng from '@/assets/images/empty-top.png'
-import preNoticePng from '@/assets/images/pre-notice.png'
+import taskSvg from '@/assets/images/task.svg'
 import { salaryTypeUnitMapping } from '@/features/jobs/constants'
 import {
   useImportantTasksQuery,
@@ -227,9 +227,9 @@ export default function HomeViewPage() {
                       <div className='flex items-center justify-between gap-1'>
                         <div className='min-w-0 flex items-center text-[13px] text-[#37227A] md:text-sm'>
                           <img
-                            src={preNoticePng}
+                            src={taskSvg}
                             alt=''
-                            className='h-4 w-4 shrink-0'
+                            className='h-4 w-4 shrink-0 mr-2'
                           />
                           <span>在使用平台前，请查看我们的一面千识用户手册！</span>
                         </div>
@@ -427,10 +427,10 @@ export default function HomeViewPage() {
               )
             })
           ) : (
-            <Card className='border p-4 shadow-sm'>
-              <div className='flex min-h-16 items-center justify-between gap-6'>
-                <div className='flex items-center gap-6'>
-                  <div className='h-16 shrink-0'>
+            <Card className='border pt-4 px-4 pb-0 sm:pt-4 sm:px-4 sm:pb-0 shadow-sm'>
+              <div className='flex min-h-16 items-stretch justify-between gap-6'>
+                <div className='flex items-end gap-6 self-stretch'>
+                  <div className='flex shrink-0 items-end'>
                     <img
                       src={emptyTopPng}
                       alt='empty top'
@@ -439,14 +439,14 @@ export default function HomeViewPage() {
                   </div>
                 </div>
 
-                <div className='flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                <div className='flex flex-1 flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between'>
                   <div className='text-xs text-black'>
                     您暂时没有可工作项目，快去申请岗位以加入新的项目吧！
                   </div>
                   <Button
                     variant='default'
                     onClick={() => navigate({ to: '/jobs' })}
-                    className='rounded-[8px] w-full max-w-[140px] sm:w-auto sm:max-w-none sm:shrink-0'
+                    className='rounded-[8px] self-end w-[140px] sm:self-auto sm:w-auto sm:shrink-0'
                   >
                     查看新机会
                   </Button>
