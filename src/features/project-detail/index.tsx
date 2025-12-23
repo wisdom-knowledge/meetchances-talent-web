@@ -1,10 +1,16 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
+import { cn } from '@/lib/utils'
 
-import { IconArrowLeft } from '@tabler/icons-react'
+import {
+  IconArrowLeft,
+  IconInfoCircle,
+  IconBulb,
+} from '@tabler/icons-react'
 import { toast } from 'sonner'
-import { Main } from '@/components/layout/main'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   Dialog,
   DialogContent,
@@ -14,11 +20,22 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
-import { useProjectDetail, useTalentAuthURL, bindDataAgreement } from './api'
+import { bindDataAgreement, useProjectDetail, useProjectStats, useTalentAuthURL } from './api'
 import titleIcon from './images/title.png'
 import feishuIcon from './images/feishu.png'
 import dataIcon from './images/data.png'
 import payIcon from './images/pay.png'
+import starIcon from '@/assets/images/star.svg'
+import totalGetIcon from '@/assets/images/total-get.svg'
+import rateIcon from '@/assets/images/rate.svg'
+import finishProjectPng from '@/assets/images/finish-project.png'
+import { Main } from '@/components/layout/main'
+
+interface ScoreRow {
+  label: string
+  count: number
+  isPositive: boolean
+}
 
 export default function ProjectDetailPage() {
   const navigate = useNavigate()
@@ -36,6 +53,7 @@ export default function ProjectDetailPage() {
   const [expandedGuide, setExpandedGuide] = useState(false)
   const [guideLoading, setGuideLoading] = useState(true)
   const [shouldPreload, setShouldPreload] = useState(false)
+  const [scoreLineTipOpen, setScoreLineTipOpen] = useState(false)
 
   // 数据获取
   const { data: projectData, isLoading: projectLoading, refetch: refetchProjectDetail } = useProjectDetail(projectId)
@@ -177,12 +195,65 @@ export default function ProjectDetailPage() {
   const paymentUnit = unit === 0 ? '小时' : '审核通过条目'
   const hasWorkGuide = Boolean(projectData?.project?.work_guide)
   const isProjectEnded = projectData?.project?.status === 1
+  const { data: projectStats, isLoading: projectStatsLoading } = useProjectStats(projectId, Boolean(projectId))
+
+  // average_score => 项目综合评分
+  const averageScore = projectStats?.average_score ?? 0
+  // approved_amount => 此项目至今已赚
+  const earnedAmount = projectStats?.approved_amount ?? 0
+  const firstReviewPassRate = projectStats?.first_review_pass_rate ?? 0
+
+  // score_distribution：数组 6 个元素分别对应 1/2/2.5/3/4/5 分的数量
+  const scoreDistribution = useMemo<ScoreRow[]>(() => {
+    const arr = Array.isArray(projectStats?.score_distribution)
+      ? projectStats!.score_distribution
+      : []
+    const c1 = typeof arr[0] === 'number' ? arr[0] : 0
+    const c2 = typeof arr[1] === 'number' ? arr[1] : 0
+    const c25 = typeof arr[2] === 'number' ? arr[2] : 0
+    const c3 = typeof arr[3] === 'number' ? arr[3] : 0
+    const c4 = typeof arr[4] === 'number' ? arr[4] : 0
+    const c5 = typeof arr[5] === 'number' ? arr[5] : 0
+
+    return [
+      { label: '5.0', count: c5, isPositive: true },
+      { label: '4.0', count: c4, isPositive: true },
+      { label: '3.0', count: c3, isPositive: true },
+      // 2.5 警戒线
+      { label: '2.5', count: c25, isPositive: false },
+      { label: '2.0', count: c2, isPositive: false },
+      { label: '1.0', count: c1, isPositive: false },
+    ]
+  }, [projectStats])
+
+  // 进度条最大值：score_distribution 的数量之和
+  const totalScoreCount = scoreDistribution.reduce((sum: number, r: ScoreRow) => sum + r.count, 0)
+  const avgScorePillClass =
+    averageScore >= 2.5 ? 'bg-[#4E02E480] text-white' : 'bg-[#FFDEDD] text-[#F4490B]'
+
+  const jobProjectRelationshipCard = (
+    <Card className='w-full shrink-0 rounded-xl border border-primary/10 bg-[rgb(245,244,253)] p-6'>
+      <div className='grid grid-cols-[24px_1fr] gap-x-3 gap-y-3'>
+        <div className='mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10'>
+          <IconBulb className='h-4 w-4 text-primary' />
+        </div>
+
+        <div className='text-base font-semibold text-black'>理解岗位与项目的关系</div>
+
+        <ul className='col-span-2 list-inside list-disc space-y-2 text-sm leading-6 text-[#8569CB]'>
+          <li>岗位申请通过是您进入项目的前置条件，通过后才能接收相关项目的邀请</li>
+          <li>项目是平台基于您的岗位派发的具体任务，其中试标项目可能对应很多个不同的正式项目</li>
+          <li>试标项目每个专家仅有一次参与机会，但不合格不会影响您参与其他非此试标所关联项目的资格。</li>
+        </ul>
+      </div>
+    </Card>
+  )
 
   return (
     <>
-      <Main className='min-h-screen py-8 pb-32 md:pb-8 md:mx-16 lg:px-8'>
+      <Main className='py-8 pb-32 md:pb-8 md:mx-16 lg:px-8 flex flex-col'>
         {/* 顶部导航栏 */}
-        <div className='mb-8 flex items-center justify-between'>
+        <div className='mb-8 flex items-start justify-between'>
           <button
             onClick={handleBack}
             className='flex items-center gap-1 rounded-lg border border-black/10 px-2 py-2 text-sm font-medium transition-colors hover:bg-gray-50'
@@ -190,25 +261,19 @@ export default function ProjectDetailPage() {
             <IconArrowLeft className='h-4 w-4' />
             返回
           </button>
-          <div className='flex items-center gap-5'>
-            <button
-              onClick={() => setHelpOpen(true)}
-              className='rounded-lg border border-black/10 px-2 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50'
-            >
-              寻求支持
-            </button>
+          {!isProjectEnded && (
             <Button
               type='button'
               onClick={handleSubmit}
-              disabled={projectLoading || !allBound || submitting || isProjectEnded}
+              disabled={projectLoading || !allBound || submitting}
               className='h-11 rounded-lg px-7 text-base font-medium disabled:bg-[#c9c9c9] disabled:text-white disabled:opacity-100 disabled:pointer-events-none'
             >
-              {submitting ? '进入中...' : isProjectEnded ? '项目已结束' : '进入项目'}
+              {submitting ? '进入中...' : '进入项目'}
             </Button>
-          </div>
+          )}
         </div>
 
-        <div className='flex flex-col gap-9 lg:flex-row'>
+        <div className='flex flex-col gap-9 lg:flex-row flex-1'>
           {/* 左侧区域 */}
           <div className='flex flex-col gap-9 lg:w-[340px] lg:shrink-0'>
             {/* 页面标题 */}
@@ -218,9 +283,130 @@ export default function ProjectDetailPage() {
                 {projectLoading ? '加载中...' : (projectData?.project?.alias || projectData?.project?.name || 'Coding Rubric')}
               </h1>
             </div>
+            
+            {/* 项目统计 */}
+            <div className='space-y-4'>
+              <div className='flex items-end gap-3 ml-[-4px]'>
+                <img
+                  src={starIcon}
+                  alt=''
+                  className='h-[23px] w-[24px] self-end mb-0.5'
+                  draggable={false}
+                />
+                {/* 文案与分数块做底部对齐 */}
+                <div className='flex items-end gap-2'>
+                  <span className='text-base font-semibold text-black'>
+                    项目综合评分：
+                  </span>
+                  <div
+                    className={cn(
+                      'inline-flex h-[38px] items-center rounded-[4px] px-4 text-[20px] font-medium',
+                      avgScorePillClass
+                    )}
+                  >
+                    {projectStatsLoading ? '—' : averageScore.toFixed(1)}
+                  </div>
+                </div>
+              </div>
 
+              <div className='space-y-2'>
+                {scoreDistribution.map((row) => (
+                  <div key={row.label} className='grid grid-cols-[44px_1fr_20px] items-center gap-3'>
+                    <div className='flex items-center gap-1 text-sm text-primary'>
+                      <span>{row.label}</span>
+                      {row.label === '2.5' && (
+                        <Tooltip open={scoreLineTipOpen} onOpenChange={setScoreLineTipOpen}>
+                          <TooltipTrigger asChild>
+                            <button
+                              type='button'
+                              className='inline-flex items-center text-primary/60'
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                setScoreLineTipOpen((v) => !v)
+                              }}
+                              aria-label='2.5 分警戒线说明'
+                            >
+                              <IconInfoCircle className='h-4 w-4' />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            className='bg-foreground text-background max-w-[320px]'
+                            arrowClassName='bg-foreground fill-foreground'
+                          >
+                            <span>详情见：</span>
+                            <a
+                              href='https://meetchances.feishu.cn/wiki/TlFVw1iSuisHKakApQacUbSQnBf'
+                              target='_blank'
+                              rel='noopener noreferrer'
+                              className='ml-1 text-background underline underline-offset-2'
+                            >
+                              飞书文档
+                            </a>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                    <div className='h-3 w-full rounded-full border border-black/10 bg-white'>
+                      <div
+                        className={cn(
+                          'h-full rounded-full',
+                          row.isPositive
+                            ? 'bg-[rgb(170,161,242)]'
+                            : 'bg-[#FFDEDD]'
+                        )}
+                        style={{
+                          width:
+                            totalScoreCount > 0
+                              ? `${Math.min(100, Math.round((row.count / totalScoreCount) * 100))}%`
+                              : '0%',
+                        }}
+                      />
+                    </div>
+                    <div className='text-right text-sm text-black/40'>
+                      {row.count}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className='grid grid-cols-2 gap-4'>
+                <div className='space-y-2'>
+                  <Card className='rounded-xl border border-black/10 py-3 px-5 shadow-[0px_0px_4px_0px_#0000001A]'>
+                    <div className='flex items-center gap-3'>
+                      <img src={totalGetIcon} alt='' className='h-8 w-8' draggable={false} />
+                      <div className='text-xl text-black'>
+                        {projectStatsLoading
+                          ? '—'
+                          : earnedAmount.toLocaleString('zh-CN', {
+                              minimumFractionDigits: 1,
+                              maximumFractionDigits: 1,
+                            })}
+                      </div>
+                    </div>
+                  </Card>
+                  <div className='text-center text-xs text-black/50'>
+                    此项目至今已赚
+                  </div>
+                </div>
+                <div className='space-y-2'>
+                  <Card className='rounded-xl border border-black/10 py-3 px-5 shadow-[0px_0px_4px_0px_#0000001A]'>
+                    <div className='flex items-center gap-3'>
+                      <img src={rateIcon} alt='' className='h-8 w-8' draggable={false} />
+                      <div className='text-xl text-black'>
+                        {projectStatsLoading
+                          ? '—'
+                          : `${(Math.max(0, Math.min(1, firstReviewPassRate)) * 100).toFixed(1)}%`}
+                      </div>
+                    </div>
+                  </Card>
+                  <div className='text-center text-xs text-black/50'>初审通过率</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 任务报酬 */}
             <div className='flex flex-col gap-6'>
-              {/* 任务报酬 */}
               <div className='px-4 pb-4'>
                 <h2 className='mb-5 text-base font-semibold'>任务报酬</h2>
                 <div className='space-y-3'>
@@ -337,49 +523,115 @@ export default function ProjectDetailPage() {
           </div>
 
           {/* 右侧区域 - 工作指南和提交记录 */}
-          <div className='flex flex-1 flex-col gap-6 min-w-0'>
+          <div className='flex flex-1 flex-col gap-6 min-w-0 min-h-0'>
             {/* 工作指南（有链接时显示） */}
-            {hasWorkGuide && (
-            <div className='flex flex-col gap-5'>
-              <div className='flex items-center justify-between'>
-                <h2 className='text-base font-semibold tracking-[0.32px]'>工作指南</h2>
-                <button
-                  onClick={() => setExpandedGuide(!expandedGuide)}
-                  className='flex h-6 w-6 items-center justify-center text-black/70 transition-colors hover:text-black'
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M19.3845 4C19.696 4 19.9535 4.23151 19.9943 4.53188L19.9999 4.61538V7.89744C19.9999 8.2373 19.7244 8.51282 19.3845 8.51282C19.073 8.51282 18.8155 8.28131 18.7747 7.98094L18.7691 7.89744V5.23077H16.1024C15.7909 5.23077 15.5334 4.99926 15.4927 4.69889L15.4871 4.61538C15.4871 4.30384 15.7186 4.04637 16.0189 4.00562L16.1024 4H19.3845Z" fill="currentColor"/>
-                    <path d="M18.9495 4.18024C19.1898 3.93992 19.5795 3.93992 19.8198 4.18024C20.0383 4.39872 20.0581 4.7406 19.8794 4.98151L19.8198 5.05053L14.8967 9.9736C14.6564 10.2139 14.2668 10.2139 14.0264 9.9736C13.808 9.75513 13.7881 9.41325 13.9668 9.17234L14.0264 9.10332L18.9495 4.18024Z" fill="currentColor"/>
-                    <path d="M4.61538 15.4883C4.92693 15.4883 5.1844 15.7198 5.22515 16.0202L5.23077 16.1037V18.7703H7.89744C8.20898 18.7703 8.46645 19.0018 8.5072 19.3022L8.51282 19.3857C8.51282 19.6973 8.28131 19.9547 7.98094 19.9955L7.89744 20.0011H4.61538C4.30384 20.0011 4.04637 19.7696 4.00562 19.4692L4 19.3857V16.1037C4 15.7638 4.27552 15.4883 4.61538 15.4883Z" fill="currentColor"/>
-                    <path d="M9.10332 14.0279C9.34364 13.7876 9.73328 13.7876 9.9736 14.0279C10.1921 14.2464 10.2119 14.5883 10.0332 14.8292L9.9736 14.8982L5.05053 19.8213C4.8102 20.0616 4.42056 20.0616 4.18024 19.8213C3.96177 19.6028 3.94191 19.2609 4.12066 19.02L4.18024 18.951L9.10332 14.0279Z" fill="currentColor"/>
-                    <path d="M11.1795 4.82031C11.5194 4.82031 11.7949 5.09583 11.7949 5.4357C11.7949 5.74724 11.5634 6.00472 11.263 6.04546L11.1795 6.05108H7.07697C6.54559 6.05108 6.1091 6.45436 6.05662 6.9718L6.05133 7.07672V11.1793C6.05133 11.5192 5.77581 11.7947 5.43594 11.7947C5.1244 11.7947 4.86692 11.5632 4.82617 11.2628L4.82056 11.1793V7.07672C4.82056 5.87636 5.75701 4.89544 6.93948 4.82443L7.07697 4.82031H11.1795Z" fill="currentColor"/>
-                    <path d="M18.564 12.207C18.8756 12.207 19.133 12.4385 19.1738 12.7389L19.1794 12.8224V16.925C19.1794 18.1253 18.2429 19.1063 17.0605 19.1773L16.923 19.1814H11.9999C11.66 19.1814 11.3845 18.9059 11.3845 18.566C11.3845 18.2545 11.616 17.997 11.9164 17.9562L11.9999 17.9506H16.923C17.4544 17.9506 17.8908 17.5473 17.9433 17.0299L17.9486 16.925V12.8224C17.9486 12.4825 18.2241 12.207 18.564 12.207Z" fill="currentColor"/>
-                  </svg>
-                </button>
-              </div>
-              
-              <div className='relative h-[600px] overflow-hidden rounded-xl border border-primary/20'>
-                {guideLoading && (
-                  <div className='absolute inset-0 z-10 flex items-center justify-center bg-white'>
-                    <div className='flex flex-col items-center gap-3'>
-                      <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent'></div>
-                      <p className='text-sm text-black/60'>加载中...</p>
+            {isProjectEnded ? (
+              <div className='flex w-full flex-1 min-h-0 flex-col mt-1 gap-6'>
+                <div className='flex flex-col gap-8'>
+                  <div className='flex justify-end'>
+                    <Button
+                      type='button'
+                      disabled
+                      className='h-11 rounded-lg px-7 text-base font-medium disabled:bg-[#c9c9c9] disabled:text-white disabled:opacity-100 disabled:pointer-events-none'
+                    >
+                      已结束
+                    </Button>
+                  </div>
+
+                  <div className='flex items-center justify-between'>
+                    <h2 className='text-base font-semibold tracking-[0.32px]'>工作指南</h2>
+                    <button
+                      type='button'
+                      onClick={() => setHelpOpen(true)}
+                      className='rounded-lg border border-black/10 px-2 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50'
+                    >
+                      寻求支持
+                    </button>
+                  </div>
+                </div>
+                <Card className='flex w-full flex-1 min-h-0 items-center justify-center rounded-xl border border-primary/20'>
+                  <div className='flex max-w-[560px] flex-col items-center px-6 text-center'>
+                    <img
+                      src={finishProjectPng}
+                      alt='项目已结束'
+                      className='h-36 w-auto select-none'
+                      draggable={false}
+                    />
+                    <div className='mt-4 text-lg font-semibold tracking-[0.32px]'>
+                      项目已结束
+                    </div>
+                    <div className='mt-2 text-sm leading-6 text-black/60'>
+                      该项目目前已结束因此无权限查看标注指南，请等待你的岗位资质匹配到新的项目，或前往职位列表去申请新的岗位！
                     </div>
                   </div>
-                )}
-                <iframe
-                  src={projectData?.project?.work_guide}
-                  className='h-full w-full border-0'
-                  title='工作指南'
-                  onLoad={() => {
-                    if (isMountedRef.current) {
-                      setGuideLoading(false)
-                    }
-                  }}
-                  loading='eager'
-                />
+                </Card>
+
+                {jobProjectRelationshipCard}
               </div>
-            </div>
+            ) : hasWorkGuide ? (
+              <div className='flex flex-1 flex-col gap-5 min-h-0'>
+                <div className='flex items-center justify-between'>
+                  <h2 className='text-base font-semibold tracking-[0.32px]'>
+                    工作指南
+                  </h2>
+                  <div className='flex items-center gap-5'>
+                    <button
+                      onClick={() => setExpandedGuide(!expandedGuide)}
+                      className='flex h-6 w-6 items-center justify-center text-black/70 transition-colors hover:text-black'
+                      aria-label='展开工作指南'
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path d="M19.3845 4C19.696 4 19.9535 4.23151 19.9943 4.53188L19.9999 4.61538V7.89744C19.9999 8.2373 19.7244 8.51282 19.3845 8.51282C19.073 8.51282 18.8155 8.28131 18.7747 7.98094L18.7691 7.89744V5.23077H16.1024C15.7909 5.23077 15.5334 4.99926 15.4927 4.69889L15.4871 4.61538C15.4871 4.30384 15.7186 4.04637 16.0189 4.00562L16.1024 4H19.3845Z" fill="currentColor"/>
+                        <path d="M18.9495 4.18024C19.1898 3.93992 19.5795 3.93992 19.8198 4.18024C20.0383 4.39872 20.0581 4.7406 19.8794 4.98151L19.8198 5.05053L14.8967 9.9736C14.6564 10.2139 14.2668 10.2139 14.0264 9.9736C13.808 9.75513 13.7881 9.41325 13.9668 9.17234L14.0264 9.10332L18.9495 4.18024Z" fill="currentColor"/>
+                        <path d="M4.61538 15.4883C4.92693 15.4883 5.1844 15.7198 5.22515 16.0202L5.23077 16.1037V18.7703H7.89744C8.20898 18.7703 8.46645 19.0018 8.5072 19.3022L8.51282 19.3857C8.51282 19.6973 8.28131 19.9547 7.98094 19.9955L7.89744 20.0011H4.61538C4.30384 20.0011 4.04637 19.7696 4.00562 19.4692L4 19.3857V16.1037C4 15.7638 4.27552 15.4883 4.61538 15.4883Z" fill="currentColor"/>
+                        <path d="M9.10332 14.0279C9.34364 13.7876 9.73328 13.7876 9.9736 14.0279C10.1921 14.2464 10.2119 14.5883 10.0332 14.8292L9.9736 14.8982L5.05053 19.8213C4.8102 20.0616 4.42056 20.0616 4.18024 19.8213C3.96177 19.6028 3.94191 19.2609 4.12066 19.02L4.18024 18.951L9.10332 14.0279Z" fill="currentColor"/>
+                        <path d="M11.1795 4.82031C11.5194 4.82031 11.7949 5.09583 11.7949 5.4357C11.7949 5.74724 11.5634 6.00472 11.263 6.04546L11.1795 6.05108H7.07697C6.54559 6.05108 6.1091 6.45436 6.05662 6.9718L6.05133 7.07672V11.1793C6.05133 11.5192 5.77581 11.7947 5.43594 11.7947C5.1244 11.7947 4.86692 11.5632 4.82617 11.2628L4.82056 11.1793V7.07672C4.82056 5.87636 5.75701 4.89544 6.93948 4.82443L7.07697 4.82031H11.1795Z" fill="currentColor"/>
+                        <path d="M18.564 12.207C18.8756 12.207 19.133 12.4385 19.1738 12.7389L19.1794 12.8224V16.925C19.1794 18.1253 18.2429 19.1063 17.0605 19.1773L16.923 19.1814H11.9999C11.66 19.1814 11.3845 18.9059 11.3845 18.566C11.3845 18.2545 11.616 17.997 11.9164 17.9562L11.9999 17.9506H16.923C17.4544 17.9506 17.8908 17.5473 17.9433 17.0299L17.9486 16.925V12.8224C17.9486 12.4825 18.2241 12.207 18.564 12.207Z" fill="currentColor"/>
+                      </svg>
+                    </button>
+
+                    <button
+                      type='button'
+                      onClick={() => setHelpOpen(true)}
+                      className='rounded-lg border border-black/10 px-2 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50'
+                    >
+                      寻求支持
+                    </button>
+                  </div>
+                </div>
+
+                <div className='relative flex-1 min-h-0 overflow-hidden rounded-xl border border-primary/20'>
+                  {guideLoading && (
+                    <div className='absolute inset-0 z-10 flex items-center justify-center bg-white'>
+                      <div className='flex flex-col items-center gap-3'>
+                        <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent'></div>
+                        <p className='text-sm text-black/60'>加载中...</p>
+                      </div>
+                    </div>
+                  )}
+                  <iframe
+                    src={projectData?.project?.work_guide}
+                    className='h-full w-full border-0'
+                    title='工作指南'
+                    onLoad={() => {
+                      if (isMountedRef.current) {
+                        setGuideLoading(false)
+                      }
+                    }}
+                    loading='eager'
+                  />
+                </div>
+
+                {jobProjectRelationshipCard}
+              </div>
+            ) : (
+              jobProjectRelationshipCard
             )}
           </div>
         </div>
@@ -545,7 +797,7 @@ export default function ProjectDetailPage() {
         <SupportDialog open={helpOpen} onOpenChange={setHelpOpen} />
         
         {/* 隐藏的预加载 iframe - 延迟1秒后加载 */}
-        {shouldPreload && projectData?.project?.work_guide && (
+        {shouldPreload && !isProjectEnded && projectData?.project?.work_guide && (
           <iframe
             src={projectData.project.work_guide}
             className='hidden'
@@ -557,7 +809,7 @@ export default function ProjectDetailPage() {
       </Main>
 
       {/* 全屏工作指南 */}
-      {expandedGuide && hasWorkGuide && (
+      {expandedGuide && hasWorkGuide && !isProjectEnded && (
         <div 
           className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200'
           onClick={() => setExpandedGuide(false)}
