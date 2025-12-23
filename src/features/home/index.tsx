@@ -439,7 +439,7 @@ export default function HomeViewPage() {
                   </div>
                 </div>
 
-                <div className='flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                <div className='flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4'>
                   <div className='text-[13px] text-[#37227A] md:text-sm'>
                     您暂时没有可工作项目，快去申请岗位以加入新的项目吧！
                   </div>
