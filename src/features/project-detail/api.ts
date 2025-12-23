@@ -39,7 +39,7 @@ export interface TalentProjectDetail {
 // ===== 项目综合评分（真实接口）=====
 export interface ProjectScoreStats {
   /**
-   * 得分分布：数组 5 个元素分别对应 1/2/3/4/5 分的数量
+   * 得分分布：数组 6 个元素分别对应 1/2/2.5/3/4/5 分的数量
    */
   score_distribution: number[]
   /**

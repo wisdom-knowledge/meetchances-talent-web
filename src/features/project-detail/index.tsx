@@ -201,30 +201,31 @@ export default function ProjectDetailPage() {
   // approved_amount => 此项目至今已赚
   const earnedAmount = projectStats?.approved_amount ?? 0
 
-  // score_distribution：数组 5 个元素分别对应 1/2/3/4/5 分的数量
-  // 2.5 分警戒线：count 先固定为 0，后续等接口对接后再调整
+  // score_distribution：数组 6 个元素分别对应 1/2/2.5/3/4/5 分的数量
   const scoreDistribution = useMemo<ScoreRow[]>(() => {
     const arr = Array.isArray(projectStats?.score_distribution)
       ? projectStats!.score_distribution
       : []
     const c1 = typeof arr[0] === 'number' ? arr[0] : 0
     const c2 = typeof arr[1] === 'number' ? arr[1] : 0
-    const c3 = typeof arr[2] === 'number' ? arr[2] : 0
-    const c4 = typeof arr[3] === 'number' ? arr[3] : 0
-    const c5 = typeof arr[4] === 'number' ? arr[4] : 0
+    const c25 = typeof arr[2] === 'number' ? arr[2] : 0
+    const c3 = typeof arr[3] === 'number' ? arr[3] : 0
+    const c4 = typeof arr[4] === 'number' ? arr[4] : 0
+    const c5 = typeof arr[5] === 'number' ? arr[5] : 0
 
     return [
       { label: '5.0', count: c5, isPositive: true },
       { label: '4.0', count: c4, isPositive: true },
       { label: '3.0', count: c3, isPositive: true },
-      // 2.5 警戒线（先固定 0）
-      { label: '2.5', count: 0, isPositive: false },
+      // 2.5 警戒线
+      { label: '2.5', count: c25, isPositive: false },
       { label: '2.0', count: c2, isPositive: false },
       { label: '1.0', count: c1, isPositive: false },
     ]
   }, [projectStats])
 
-  const maxScoreCount = Math.max(0, ...scoreDistribution.map((r: ScoreRow) => r.count))
+  // 进度条最大值：score_distribution 的数量之和
+  const totalScoreCount = scoreDistribution.reduce((sum: number, r: ScoreRow) => sum + r.count, 0)
   const avgScorePillClass =
     averageScore >= 2.5 ? 'bg-[#4E02E480] text-white' : 'bg-[#FFDEDD] text-[#F4490B]'
 
@@ -354,8 +355,8 @@ export default function ProjectDetailPage() {
                         )}
                         style={{
                           width:
-                            maxScoreCount > 0
-                              ? `${Math.min(100, Math.round((row.count / maxScoreCount) * 100))}%`
+                            totalScoreCount > 0
+                              ? `${Math.min(100, Math.round((row.count / totalScoreCount) * 100))}%`
                               : '0%',
                         }}
                       />
