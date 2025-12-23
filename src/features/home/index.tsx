@@ -224,19 +224,19 @@ export default function HomeViewPage() {
                           <IconX className='h-4 w-4' />
                         </button>
                       )}
-                      <div className='flex items-center justify-between gap-1'>
-                        <div className='min-w-0 flex items-center text-[13px] text-[#37227A] md:text-sm'>
+                      <div className='flex items-start justify-between gap-2 sm:items-center'>
+                        <div className='min-w-0 flex items-start text-xs leading-[1.4] text-[#37227A] md:text-sm md:leading-normal sm:items-center'>
                           <img
                             src={taskSvg}
                             alt=''
-                            className='h-4 w-4 shrink-0 mr-2'
+                            className='mr-2 mt-[2px] h-4 w-4 shrink-0 sm:mt-0'
                           />
                           <span>在使用平台前，请查看我们的一面千识用户手册！</span>
                         </div>
                         <Button
                           size='sm'
                           onClick={task.handleClick}
-                          className='bg-[#6F3CEE] text-white hover:bg-[#5F33CC]'
+                          className='bg-[#6F3CEE] text-white hover:bg-[#5F33CC] self-start sm:self-auto'
                         >
                           {task.actionText ?? '去查看'}
                         </Button>
@@ -299,7 +299,7 @@ export default function HomeViewPage() {
               return (
                 <Card key={proj.id} className='border px-8 pr-9 py-4 shadow-sm'>
                   <div className='flex flex-col gap-13 md:flex-row md:items-center md:justify-between md:gap-4'>
-                    <div className='min-w-0'>
+                    <div className='min-w-0 flex-1'>
                       <div className='mb-2 flex flex-wrap items-center gap-2'>
                         <span className='text-xs text-muted-foreground'>出题类项目</span>
                         {proj.is_pinned === true && (
@@ -336,7 +336,7 @@ export default function HomeViewPage() {
                         {proj.title || '项目'}
                       </div>
                       {proj.introduction && (
-                        <div className='text-muted-foreground mt-1 text-sm line-clamp-1'>
+                        <div className='text-muted-foreground mt-1 text-sm whitespace-normal break-words overflow-hidden line-clamp-2'>
                           {proj.introduction}
                         </div>
                       )}
@@ -355,7 +355,7 @@ export default function HomeViewPage() {
                       </div>
                     </div>
 
-                    <div className='grid grid-cols-2 gap-4 lg:grid-cols-4 md:gap-6'>
+                    <div className='grid grid-cols-2 gap-4 lg:grid-cols-4 md:gap-6 md:shrink-0'>
                       <div className='relative text-center'>
                         <Badge className='bg-white text-gray-500 border shadow-sm absolute -top-6 left-1/2 -translate-x-1/2'>
                           {(() => {
@@ -434,13 +434,13 @@ export default function HomeViewPage() {
                     <img
                       src={emptyTopPng}
                       alt='empty top'
-                      className='h-24 w-auto object-contain mt-[-14px]'
+                      className='h-32 w-auto object-contain mt-[-22px] sm:h-24 sm:mt-[-14px]'
                     />
                   </div>
                 </div>
 
-                <div className='flex flex-1 flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between'>
-                  <div className='text-xs text-black'>
+                <div className='flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                  <div className='text-[13px] text-[#37227A] md:text-sm'>
                     您暂时没有可工作项目，快去申请岗位以加入新的项目吧！
                   </div>
                   <Button
