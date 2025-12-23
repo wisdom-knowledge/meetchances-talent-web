@@ -27,6 +27,7 @@ import dataIcon from './images/data.png'
 import payIcon from './images/pay.png'
 import starIcon from '@/assets/images/star.svg'
 import totalGetIcon from '@/assets/images/total-get.svg'
+import rateIcon from '@/assets/images/rate.svg'
 import finishProjectPng from '@/assets/images/finish-project.png'
 import { Main } from '@/components/layout/main'
 
@@ -200,6 +201,7 @@ export default function ProjectDetailPage() {
   const averageScore = projectStats?.average_score ?? 0
   // approved_amount => 此项目至今已赚
   const earnedAmount = projectStats?.approved_amount ?? 0
+  const firstReviewPassRate = projectStats?.first_review_pass_rate ?? 0
 
   // score_distribution：数组 6 个元素分别对应 1/2/2.5/3/4/5 分的数量
   const scoreDistribution = useMemo<ScoreRow[]>(() => {
@@ -387,8 +389,19 @@ export default function ProjectDetailPage() {
                     此项目至今已赚
                   </div>
                 </div>
-                {/* 占位：保持布局宽度与之前一致（终审通过率已隐藏） */}
-                <div aria-hidden='true' />
+                <div className='space-y-2'>
+                  <Card className='rounded-xl border border-black/10 py-3 px-5 shadow-[0px_0px_4px_0px_#0000001A]'>
+                    <div className='flex items-center gap-3'>
+                      <img src={rateIcon} alt='' className='h-8 w-8' draggable={false} />
+                      <div className='text-xl text-black'>
+                        {projectStatsLoading
+                          ? '—'
+                          : `${(Math.max(0, Math.min(1, firstReviewPassRate)) * 100).toFixed(1)}%`}
+                      </div>
+                    </div>
+                  </Card>
+                  <div className='text-center text-xs text-black/50'>初审通过率</div>
+                </div>
               </div>
             </div>
 

@@ -54,6 +54,11 @@ export interface ProjectScoreStats {
    * 累计任务数（当前页面不展示）
    */
   total_tasks: number
+  /**
+   * 初审通过率（0~1）
+   * 示例：0.36 => 36%
+   */
+  first_review_pass_rate: number
 }
 
 // 飞书授权 URL
