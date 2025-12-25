@@ -18,10 +18,18 @@ export const formatDate = (value?: string) => {
   return `${year}/${month}/${day}`
 }
 
-export const formatHours = (hours?: number) => {
-  if (hours === undefined || hours === null) return '-'
-  if (hours <= 0) return '-'
-  const fixed = Number.isInteger(hours) ? String(hours) : hours.toFixed(2)
+export const formatHours = (hours?: number | string | null) => {
+  // 兼容后端返回字符串场景，统一转为 number
+  const numeric =
+    typeof hours === 'string'
+      ? Number(hours.trim())
+      : hours
+
+  if (numeric === undefined || numeric === null) return '-'
+  if (typeof numeric !== 'number' || Number.isNaN(numeric)) return '-'
+  if (numeric <= 0) return '-'
+
+  const fixed = Number.isInteger(numeric) ? String(numeric) : numeric.toFixed(2)
   return `${fixed.replace(/\.00$/, '')}小时`
 }
 
