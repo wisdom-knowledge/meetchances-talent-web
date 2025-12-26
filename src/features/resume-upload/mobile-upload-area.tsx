@@ -31,16 +31,9 @@ export function MobileUploadArea({
     const file = files[0]
     if (!file) return
 
-    // 验证文件类型
-    const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
-    const isWord =
-      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      file.type === 'application/msword' ||
-      file.name.toLowerCase().endsWith('.docx') ||
-      file.name.toLowerCase().endsWith('.doc')
-
-    if (!isPDF && !isWord) {
-      toast.error('仅支持上传 PDF 或 Word 格式的简历文件')
+    // 验证文件类型，只允许PDF
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error('仅支持上传PDF格式的简历文件')
       return
     }
 
@@ -100,7 +93,7 @@ export function MobileUploadArea({
           ref={fileInputRef}
           type='file'
           className='hidden'
-          accept='.pdf,.doc,.docx'
+          accept='.pdf'
           onChange={handleFileSelect}
           disabled={uploadingResume}
           aria-label='选择简历文件'
@@ -142,7 +135,7 @@ export function MobileUploadArea({
         ref={fileInputRef}
         type='file'
         className='hidden'
-        accept='.pdf,.doc,.docx'
+        accept='.pdf'
         onChange={handleFileSelect}
         disabled={uploadingResume}
         aria-label='选择简历文件'

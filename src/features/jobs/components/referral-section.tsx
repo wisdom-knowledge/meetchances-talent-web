@@ -157,38 +157,61 @@ function DesktopReferralSection({ jobId, referralBonus, campaign, campaigns, pro
             <span className='bg-gradient-to-r from-[#4E02E4] to-[#8B5CF6] bg-clip-text text-base font-bold text-transparent'>
               限时内推活动
             </span>
+            <div className='ml-auto bg-white border border-[rgba(201,148,247,0.2)] rounded-2xl px-3 py-1'>
+              <span className='bg-gradient-to-r from-[#4E02E4] to-[#C994F7] bg-clip-text text-xs font-medium text-transparent tracking-[0.3px]'>
+                活动可以同时参加哦!
+              </span>
+            </div>
           </div>
 
           {/* 活动说明 - 根据 campaigns 数组循环渲染 */}
           {displayCampaigns.length > 0 ? (
-            <div className='mb-4 space-y-3'>
+            <div className='mb-4 space-y-1.5'>
               {displayCampaigns.map((campaignItem, index) => (
-                <div key={campaignItem.id || index} className='rounded-lg bg-white/60 p-3 text-sm leading-relaxed text-gray-700 backdrop-blur-sm'>
-                  <CampaignDescription campaign={campaignItem} project={project} fallbackBonus={referralBonus} />
-                  {index === displayCampaigns.length - 1 && (
-                    <a
-                      href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='ml-1 font-medium text-[#4E02E4] underline decoration-dotted underline-offset-2 transition-colors hover:text-[#3D01B3]'
-                    >
-                      查看详细规则 →
-                    </a>
-                  )}
+                <div key={campaignItem.id || index} className='flex gap-2 rounded-lg bg-white/60 p-3 text-sm leading-relaxed text-gray-700 backdrop-blur-sm'>
+                  <div 
+                    className='shrink-0 rounded-full bg-[#4E02E4] mt-1.5' 
+                    style={{ 
+                      width: '6px', 
+                      height: '6px'
+                    }} 
+                  />
+                  <div className='flex-1'>
+                    <CampaignDescription campaign={campaignItem} project={project} fallbackBonus={referralBonus} />
+                    {index === displayCampaigns.length - 1 && (
+                      <a
+                        href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='ml-1 font-medium text-[#4E02E4] underline decoration-dotted underline-offset-2 transition-colors hover:text-[#3D01B3]'
+                      >
+                        查看详细规则 →
+                      </a>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className='mb-4 rounded-lg bg-white/60 p-3 text-sm leading-relaxed text-gray-700 backdrop-blur-sm'>
-              <CampaignDescription campaign={campaign} project={project} fallbackBonus={referralBonus} />
-              <a
-                href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
-                target='_blank'
-                rel='noopener noreferrer'
-                className='ml-1 font-medium text-[#4E02E4] underline decoration-dotted underline-offset-2 transition-colors hover:text-[#3D01B3]'
-              >
-                查看详细规则 →
-              </a>
+            <div className='mb-4 flex gap-2 rounded-lg bg-white/60 p-3 text-sm leading-relaxed text-gray-700 backdrop-blur-sm'>
+              <div 
+                className='shrink-0 rounded-full bg-[#4E02E4] mt-1.5' 
+                style={{ 
+                  width: '6px', 
+                  height: '6px'
+                }} 
+              />
+              <div className='flex-1'>
+                <CampaignDescription campaign={campaign} project={project} fallbackBonus={referralBonus} />
+                <a
+                  href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='ml-1 font-medium text-[#4E02E4] underline decoration-dotted underline-offset-2 transition-colors hover:text-[#3D01B3]'
+                >
+                  查看详细规则 →
+                </a>
+              </div>
             </div>
           )}
 
@@ -278,38 +301,61 @@ function MobileReferralSection({ jobId, referralBonus, campaign, campaigns, proj
             <span className='bg-gradient-to-r from-[#4E02E4] to-[#8B5CF6] bg-clip-text text-sm font-bold text-transparent'>
               限时内推活动
             </span>
+            <div className='ml-auto bg-white border border-[rgba(201,148,247,0.2)] rounded-2xl px-3 py-1'>
+              <span className='bg-gradient-to-r from-[#4E02E4] to-[#C994F7] bg-clip-text text-xs font-medium text-transparent tracking-[0.3px]'>
+                活动可以同时参加哦!
+              </span>
+            </div>
           </div>
 
           {/* 活动说明 - 根据 campaigns 数组循环渲染 */}
           {displayCampaigns.length > 0 ? (
             <div className='mb-3 space-y-2.5'>
               {displayCampaigns.map((campaignItem, index) => (
-                <div key={campaignItem.id || index} className='rounded-lg bg-white/60 p-2.5 text-xs leading-relaxed text-gray-700 backdrop-blur-sm'>
-                  <CampaignDescription campaign={campaignItem} project={project} fallbackBonus={referralBonus} />
-                  {index === displayCampaigns.length - 1 && (
-                    <a
-                      href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='ml-1 font-medium text-[#4E02E4] underline decoration-dotted underline-offset-2'
-                    >
-                      查看规则 →
-                    </a>
-                  )}
+                <div key={campaignItem.id || index} className='flex gap-2 rounded-lg bg-white/60 p-2.5 text-xs leading-relaxed text-gray-700 backdrop-blur-sm'>
+                  <div 
+                    className='shrink-0 rounded-full bg-[#4E02E4] mt-1' 
+                    style={{ 
+                      width: '6px', 
+                      height: '6px'
+                    }} 
+                  />
+                  <div className='flex-1'>
+                    <CampaignDescription campaign={campaignItem} project={project} fallbackBonus={referralBonus} />
+                    {index === displayCampaigns.length - 1 && (
+                      <a
+                        href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='ml-1 font-medium text-[#4E02E4] underline decoration-dotted underline-offset-2'
+                      >
+                        查看规则 →
+                      </a>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className='mb-3 rounded-lg bg-white/60 p-2.5 text-xs leading-relaxed text-gray-700 backdrop-blur-sm'>
-              <CampaignDescription campaign={campaign} project={project} fallbackBonus={referralBonus} />
-              <a
-                href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
-                target='_blank'
-                rel='noopener noreferrer'
-                className='ml-1 font-medium text-[#4E02E4] underline decoration-dotted underline-offset-2'
-              >
-                查看规则 →
-              </a>
+            <div className='mb-3 flex gap-2 rounded-lg bg-white/60 p-2.5 text-xs leading-relaxed text-gray-700 backdrop-blur-sm'>
+              <div 
+                className='shrink-0 rounded-full bg-[#4E02E4] mt-1' 
+                style={{ 
+                  width: '6px', 
+                  height: '6px'
+                }} 
+              />
+              <div className='flex-1'>
+                <CampaignDescription campaign={campaign} project={project} fallbackBonus={referralBonus} />
+                <a
+                  href='https://meetchances.feishu.cn/wiki/UBhPw7ypki1rj3kglZwcLLUPnDb'
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='ml-1 font-medium text-[#4E02E4] underline decoration-dotted underline-offset-2'
+                >
+                  查看规则 →
+                </a>
+              </div>
             </div>
           )}
 
