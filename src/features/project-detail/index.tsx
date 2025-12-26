@@ -345,14 +345,18 @@ export default function ProjectDetailPage() {
                 <div className='flex items-center gap-4'>
                   <h2 className='text-base font-semibold tracking-[0.32px]'>工作指南</h2>
                   {projectData?.project?.trial_group_url && (
-                    <a
-                      href={projectData.project.trial_group_url}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='text-sm font-medium text-primary underline decoration-solid transition-colors hover:text-primary/80'
-                    >
-                      试标群链接
-                    </a>
+                    <span className='text-sm font-medium text-black/70'>
+                      工作指南 （在开始前，请先通过
+                      <a
+                        href={projectData.project.trial_group_url}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='text-primary underline decoration-solid transition-colors hover:text-primary/80'
+                      >
+                        试标群链接
+                      </a>
+                      进群后才能获得工作指南和工作台权限！）
+                    </span>
                   )}
                 </div>
                 <button
