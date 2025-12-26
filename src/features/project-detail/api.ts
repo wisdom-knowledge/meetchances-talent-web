@@ -15,6 +15,7 @@ export interface BackendProject {
   settlement_condition?: string
   questionnaire_url?: string
   work_guide?: string
+  trial_group_url?: string
   require_payment_binding?: boolean
   require_data_agreement?: boolean
   require_feishu_binding?: boolean

@@ -342,7 +342,19 @@ export default function ProjectDetailPage() {
             {hasWorkGuide && (
             <div className='flex flex-col gap-5'>
               <div className='flex items-center justify-between'>
-                <h2 className='text-base font-semibold tracking-[0.32px]'>工作指南</h2>
+                <div className='flex items-center gap-4'>
+                  <h2 className='text-base font-semibold tracking-[0.32px]'>工作指南</h2>
+                  {projectData?.project?.trial_group_url && (
+                    <a
+                      href={projectData.project.trial_group_url}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='text-sm font-medium text-primary underline decoration-solid transition-colors hover:text-primary/80'
+                    >
+                      试标群链接
+                    </a>
+                  )}
+                </div>
                 <button
                   onClick={() => setExpandedGuide(!expandedGuide)}
                   className='flex h-6 w-6 items-center justify-center text-black/70 transition-colors hover:text-black'
