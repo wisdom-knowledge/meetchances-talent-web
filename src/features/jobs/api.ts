@@ -52,6 +52,20 @@ export type ApiJob = {
     created_at: string
     updated_at: string
   }
+  campaigns?: Array<{
+    name: string
+    project_id?: number
+    status: 'ACTIVE' | 'ENDED'
+    type: 'referral_reward' | 'full_order_reward'
+    start_date?: string
+    end_date?: string
+    condition_type: 'pass_questions' | 'complete_working_hours'
+    quantity?: number
+    reward?: string
+    id: number
+    created_at: string
+    updated_at: string
+  }>
   project?: {
     id?: number
     alias?: string

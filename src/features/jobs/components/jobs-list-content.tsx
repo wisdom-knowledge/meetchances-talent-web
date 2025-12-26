@@ -29,6 +29,26 @@ import {
   useJobDetailQuery,
   useJobsQuery,
 } from '@/features/jobs/api'
+
+// 获取内推奖金额数组
+function getReferralBonusAmounts(job: ApiJob): string[] | null {
+  // 如果 campaigns 存在且长度大于1，返回多个奖励金额
+  if (job.campaigns && Array.isArray(job.campaigns) && job.campaigns.length > 1) {
+    const rewards = job.campaigns
+      .map((campaign) => campaign.reward)
+      .filter((reward): reward is string => Boolean(reward))
+    if (rewards.length > 0) {
+      return rewards
+    }
+  }
+  
+  // 否则使用原有的 referral_bonus
+  if (typeof job.referral_bonus === 'number' && job.referral_bonus > 0) {
+    return [String(job.referral_bonus)]
+  }
+  
+  return null
+}
 import { jobTypeMapping, salaryTypeUnitMapping } from '@/features/jobs/constants'
 import { useRuntimeEnv } from '@/hooks/use-runtime-env'
 import giftSvg from '@/features/jobs/images/gift.svg'
@@ -477,20 +497,33 @@ export default function JobsListContent({
                                   {/* <p className='text-muted-foreground text-xs'>{formatPublishTime(job.created_at)}</p> */}
                                 </div>
                                 <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
-                                  {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
-                                    <Badge
-                                      variant='outline'
-                                      className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
-                                      style={{
-                                        borderRadius: '16px',
-                                        background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)',
-                                      }}
-                                      onClick={(e) => handleReferralClick(job, e)}
-                                    >
-                                      <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
-                                      内推奖 ¥{job.referral_bonus}
-                                    </Badge>
-                                  )}
+                                  {(() => {
+                                    const referralAmounts = getReferralBonusAmounts(job)
+                                    return referralAmounts && referralAmounts.length > 0 ? (
+                                      <div
+                                        className='inline-flex items-center gap-2 px-3 py-1 rounded-2xl cursor-pointer hover:opacity-90 transition-opacity shrink-0'
+                                        style={{
+                                          background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)',
+                                        }}
+                                        onClick={(e) => handleReferralClick(job, e)}
+                                      >
+                                        <img src={giftSvg} alt='' className='h-4 w-4 shrink-0' aria-hidden='true' />
+                                        <span className='text-sm font-medium text-white whitespace-nowrap'>内推奖</span>
+                                        <div className='flex items-center gap-1'>
+                                          {referralAmounts.map((amount, index) => (
+                                            <div
+                                              key={index}
+                                              className='bg-white rounded-2xl px-2 py-0 flex items-center justify-center'
+                                            >
+                                              <span className='text-xs font-medium text-[#4e02e4] whitespace-nowrap'>
+                                                ¥{amount}
+                                              </span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ) : null
+                                  })()}
 
                                   {(() => {
                                     const statusItem = applyStatusMap?.[String(job.id)]
@@ -592,26 +625,39 @@ export default function JobsListContent({
                                   {/* <p className='text-muted-foreground text-xs'>{formatPublishTime(job.created_at)}</p> */}
                                 </div>
                                 <div className='mt-2 sm:mt-0 flex flex-wrap items-center gap-2 sm:justify-end'>
-                                  {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
-                                    <>
-                                      <span className='hidden sm:flex items-center gap-1 text-xs text-black/20 opacity-0 group-hover:opacity-100 transition-opacity shrink-0'>
-                                        <img src={arrowSvg} alt='' className='h-6 w-6' aria-hidden='true' />
-                                        点击tag复制邀请链接 发给朋友
-                                      </span>
-                                      <Badge
-                                        variant='outline'
-                                        className='py-1.5 px-3 gap-1.5 text-white border-0 font-normal cursor-pointer hover:opacity-90 transition-opacity shrink-0'
-                                        style={{
-                                          borderRadius: '16px',
-                                          background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)',
-                                        }}
-                                        onClick={(e) => handleReferralClick(job, e)}
-                                      >
-                                        <img src={giftSvg} alt='' className='h-4 w-4' aria-hidden='true' />
-                                        内推奖 ¥{job.referral_bonus}
-                                      </Badge>
-                                    </>
-                                  )}
+                                  {(() => {
+                                    const referralAmounts = getReferralBonusAmounts(job)
+                                    return referralAmounts && referralAmounts.length > 0 ? (
+                                      <>
+                                        <span className='hidden sm:flex items-center gap-1 text-xs text-black/20 opacity-0 group-hover:opacity-100 transition-opacity shrink-0'>
+                                          <img src={arrowSvg} alt='' className='h-6 w-6' aria-hidden='true' />
+                                          点击tag复制邀请链接 发给朋友
+                                        </span>
+                                        <div
+                                          className='inline-flex items-center gap-2 px-3 py-1 rounded-2xl cursor-pointer hover:opacity-90 transition-opacity shrink-0'
+                                          style={{
+                                            background: 'linear-gradient(90deg, #27CDF1 0%, #C994F7 100%)',
+                                          }}
+                                          onClick={(e) => handleReferralClick(job, e)}
+                                        >
+                                          <img src={giftSvg} alt='' className='h-4 w-4 shrink-0' aria-hidden='true' />
+                                          <span className='text-sm font-medium text-white whitespace-nowrap'>内推奖</span>
+                                          <div className='flex items-center gap-1'>
+                                            {referralAmounts.map((amount, index) => (
+                                              <div
+                                                key={index}
+                                                className='bg-white rounded-2xl px-2 py-0 flex items-center justify-center'
+                                              >
+                                                <span className='text-xs font-medium text-[#4e02e4] whitespace-nowrap'>
+                                                  ¥{amount}
+                                                </span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </>
+                                    ) : null
+                                  })()}
 
                                   {(() => {
                                     const statusItem = applyStatusMap?.[String(job.id)]

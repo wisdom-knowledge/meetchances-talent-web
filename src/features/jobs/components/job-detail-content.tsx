@@ -231,11 +231,12 @@ export default function JobDetailContent({
             </div>
           )}
         </div>
-        {typeof job.referral_bonus === 'number' && job.referral_bonus > 0 && (
+        {((typeof job.referral_bonus === 'number' && job.referral_bonus > 0) || ((typeof job.referral_bonus !== 'number' || job.referral_bonus !== 0) && ((job.campaigns && job.campaigns.length > 0) || job.campaign))) && (
           <ReferralSection 
             jobId={job.id} 
-            referralBonus={job.referral_bonus}
+            referralBonus={job.referral_bonus || 0}
             campaign={job.campaign}
+            campaigns={job.campaigns}
             project={job.project}
           />
         )}
