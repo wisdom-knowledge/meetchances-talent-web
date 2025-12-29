@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/dialog'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { bindDataAgreement, useProjectDetail, useProjectStats, useTalentAuthURL } from './api'
-import logger from '@/utils/logger'
 import titleIcon from './images/title.png'
 import feishuIcon from './images/feishu.png'
 import dataIcon from './images/data.png'
@@ -93,13 +92,9 @@ export default function ProjectDetailPage() {
 
   // localStorage 工具函数：保存试标群链接
   const saveTrialGroupLink = (projectId: number, link: string) => {
-    try {
       const links = getTrialGroupLinks()
       links[projectId.toString()] = link
       localStorage.setItem('trial_group_links', JSON.stringify(links))
-    } catch (error) {
-      logger.error('保存试标群链接失败:', error)
-    }
   }
 
   // 检查是否第一次进入项目（检查 localStorage）
