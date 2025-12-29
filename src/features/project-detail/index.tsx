@@ -97,14 +97,16 @@ export default function ProjectDetailPage() {
     localStorage.setItem('trial_group_links', JSON.stringify(links))
   }
 
-  // 检查是否第一次进入项目（检查 localStorage）
+  // 检查是否需要弹出引导弹窗（第一次访问或 URL 变化）
   useEffect(() => {
     if (!projectData?.project?.trial_group_url) return
     
     const links = getTrialGroupLinks()
-    const isFirstVisit = !links[projectId.toString()]
+    const cachedLink = links[projectId.toString()]
+    const currentLink = projectData.project.trial_group_url
     
-    if (isFirstVisit) {
+    // 如果缓存中没有，或者缓存的链接与当前接口返回的链接不同，则弹出弹窗
+    if (!cachedLink || cachedLink !== currentLink) {
       setTrialGroupDialogOpen(true)
     }
   }, [projectData?.project?.trial_group_url, projectId])
