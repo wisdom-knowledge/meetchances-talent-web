@@ -92,9 +92,9 @@ export default function ProjectDetailPage() {
 
   // localStorage 工具函数：保存试标群链接
   const saveTrialGroupLink = (projectId: number, link: string) => {
-      const links = getTrialGroupLinks()
-      links[projectId.toString()] = link
-      localStorage.setItem('trial_group_links', JSON.stringify(links))
+    const links = getTrialGroupLinks()
+    links[projectId.toString()] = link
+    localStorage.setItem('trial_group_links', JSON.stringify(links))
   }
 
   // 检查是否第一次进入项目（检查 localStorage）
