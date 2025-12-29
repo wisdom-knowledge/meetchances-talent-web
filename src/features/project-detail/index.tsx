@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { useProjectDetail, useTalentAuthURL, bindDataAgreement } from './api'
+import logger from '@/utils/logger'
 import titleIcon from './images/title.png'
 import feishuIcon from './images/feishu.png'
 import dataIcon from './images/data.png'
@@ -27,11 +28,14 @@ export default function ProjectDetailPage() {
   
   // 用于检查组件是否已挂载的 ref
   const isMountedRef = useRef(true)
+  // 用于跟踪上一次的试标群链接 URL
+  const prevTrialGroupUrlRef = useRef<string | undefined>(undefined)
   
   // 状态管理
   const [helpOpen, setHelpOpen] = useState(false)
   const [feishuDialogOpen, setFeishuDialogOpen] = useState(false)
   const [agreementDialogOpen, setAgreementDialogOpen] = useState(false)
+  const [trialGroupDialogOpen, setTrialGroupDialogOpen] = useState(false)
   const [submitting] = useState(false)
   const [expandedGuide, setExpandedGuide] = useState(false)
   const [guideLoading, setGuideLoading] = useState(true)
@@ -177,6 +181,70 @@ export default function ProjectDetailPage() {
   const paymentUnit = unit === 0 ? '小时' : '审核通过条目'
   const hasWorkGuide = Boolean(projectData?.project?.work_guide)
   const isProjectEnded = projectData?.project?.status === 1
+  const trialGroupUrl = projectData?.project?.trial_group_url
+
+  // localStorage key 常量
+  const TRIAL_GROUP_STORAGE_KEY = 'trial_group_urls'
+
+  // 获取试标群链接缓存对象
+  const getTrialGroupUrls = (): Record<string, string> => {
+    try {
+      const stored = localStorage.getItem(TRIAL_GROUP_STORAGE_KEY)
+      return stored ? JSON.parse(stored) : {}
+    } catch {
+      return {}
+    }
+  }
+
+  // 保存试标群链接到缓存
+  const saveTrialGroupUrl = (projectId: number, url: string) => {
+    try {
+      const urls = getTrialGroupUrls()
+      urls[String(projectId)] = url
+      localStorage.setItem(TRIAL_GROUP_STORAGE_KEY, JSON.stringify(urls))
+    } catch (error) {
+      logger.error('保存试标群链接失败:', error)
+    }
+  }
+
+  // 检查是否需要显示试标群引导弹窗
+  useEffect(() => {
+    // 如果还在加载中或没有试标群链接，不处理
+    if (projectLoading || !trialGroupUrl) {
+      return
+    }
+
+    const urls = getTrialGroupUrls()
+    const cachedUrl = urls[String(projectId)]
+
+    // 检查 URL 是否发生了变化
+    const urlChanged = prevTrialGroupUrlRef.current !== undefined && prevTrialGroupUrlRef.current !== trialGroupUrl
+    
+    // 如果localStorage中没有当前项目id，或者接口返回的试标群链接与缓存中的不一样，则弹窗
+    // 或者如果 URL 发生了变化，也需要弹窗
+    if (!cachedUrl || cachedUrl !== trialGroupUrl || urlChanged) {
+      setTrialGroupDialogOpen(true)
+    }
+    
+    // 更新上一次的 URL
+    prevTrialGroupUrlRef.current = trialGroupUrl
+  }, [projectLoading, trialGroupUrl, projectId])
+
+  // 处理试标群弹窗确认或关闭
+  const handleTrialGroupDialogClose = (shouldSave: boolean) => {
+    if (shouldSave && trialGroupUrl) {
+      saveTrialGroupUrl(projectId, trialGroupUrl)
+    }
+    setTrialGroupDialogOpen(false)
+  }
+
+  // 跳转到试标群链接
+  const handleJoinTrialGroup = () => {
+    if (trialGroupUrl) {
+      window.open(trialGroupUrl, '_blank', 'noopener,noreferrer')
+      handleTrialGroupDialogClose(true)
+    }
+  }
 
   return (
     <>
@@ -559,6 +627,29 @@ export default function ProjectDetailPage() {
 
         {/* 寻求支持弹窗 */}
         <SupportDialog open={helpOpen} onOpenChange={setHelpOpen} />
+
+        {/* 试标群引导弹窗 */}
+        <Dialog open={trialGroupDialogOpen} onOpenChange={(open) => !open && handleTrialGroupDialogClose(true)}>
+          <DialogContent className='sm:max-w-md' onInteractOutside={(e) => e.preventDefault()}>
+            <DialogHeader>
+              <DialogTitle>加入试标群</DialogTitle>
+              <DialogDescription>
+                在开始前，请先通过试标群链接进群后才能获得工作指南和工作台权限！
+              </DialogDescription>
+            </DialogHeader>
+            <div className='flex flex-col gap-3'>
+              <Button
+                onClick={handleJoinTrialGroup}
+                className='w-full'
+              >
+                确认加入
+              </Button>
+              <p className='text-center text-sm text-muted-foreground'>
+                如果已加入试标群，可直接关闭
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
         
         {/* 隐藏的预加载 iframe - 延迟1秒后加载 */}
         {shouldPreload && projectData?.project?.work_guide && (
