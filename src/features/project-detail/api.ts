@@ -23,6 +23,7 @@ export interface BackendProject {
   created_at?: string
   updated_at?: string
   project_personnel_count?: number
+  trial_group_url?: string
 }
 
 export interface BackendPersonalInfo {

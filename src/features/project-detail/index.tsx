@@ -54,6 +54,7 @@ export default function ProjectDetailPage() {
   const [guideLoading, setGuideLoading] = useState(true)
   const [shouldPreload, setShouldPreload] = useState(false)
   const [scoreLineTipOpen, setScoreLineTipOpen] = useState(false)
+  const [trialGroupDialogOpen, setTrialGroupDialogOpen] = useState(false)
 
   // 数据获取
   const { data: projectData, isLoading: projectLoading, refetch: refetchProjectDetail } = useProjectDetail(projectId)
@@ -78,6 +79,35 @@ export default function ProjectDetailPage() {
     const okPayment = requirePayment ? isPaymentBound : true
     return okFeishu && okAgreement && okPayment
   }, [requireFeishu, requireAgreement, requirePayment, isFeishuBound, isAgreementBound, isPaymentBound])
+
+  // localStorage 工具函数：获取试标群链接存储数据
+  const getTrialGroupLinks = (): Record<string, string> => {
+    try {
+      const stored = localStorage.getItem('trial_group_links')
+      return stored ? JSON.parse(stored) : {}
+    } catch {
+      return {}
+    }
+  }
+
+  // localStorage 工具函数：保存试标群链接
+  const saveTrialGroupLink = (projectId: number, link: string) => {
+    const links = getTrialGroupLinks()
+    links[projectId.toString()] = link
+    localStorage.setItem('trial_group_links', JSON.stringify(links))
+  }
+
+  // 检查是否第一次进入项目（检查 localStorage）
+  useEffect(() => {
+    if (!projectData?.project?.trial_group_url) return
+    
+    const links = getTrialGroupLinks()
+    const isFirstVisit = !links[projectId.toString()]
+    
+    if (isFirstVisit) {
+      setTrialGroupDialogOpen(true)
+    }
+  }, [projectData?.project?.trial_group_url, projectId])
 
   // 组件卸载时清理
   useEffect(() => {
@@ -172,6 +202,31 @@ export default function ProjectDetailPage() {
     // 在钱包页面会自动弹起绑定弹窗（需要在 wallet 页面添加相关逻辑）
     // 可以通过 URL 参数传递信息，让钱包页面自动打开绑定弹窗
   }
+
+  // 试标群弹窗：确认加入
+  const handleTrialGroupConfirm = () => {
+    const link = projectData?.project?.trial_group_url
+    if (link) {
+      saveTrialGroupLink(projectId, link)
+      // 新开窗口打开试标群链接
+      window.open(link, '_blank', 'noopener,noreferrer')
+    }
+    setTrialGroupDialogOpen(false)
+  }
+
+  // 试标群弹窗：关闭
+  const handleTrialGroupClose = () => {
+    const link = projectData?.project?.trial_group_url
+    if (link) {
+      saveTrialGroupLink(projectId, link)
+    }
+    setTrialGroupDialogOpen(false)
+  }
+
+  // 获取当前项目的试标群链接
+  const trialGroupLink = projectData?.project?.trial_group_url
+  const trialGroupLinks = getTrialGroupLinks()
+  const currentTrialGroupLink = trialGroupLink || trialGroupLinks[projectId.toString()]
 
   // 提交项目
   const handleSubmit = async () => {
@@ -570,11 +625,31 @@ export default function ProjectDetailPage() {
               </div>
             ) : hasWorkGuide ? (
               <div className='flex flex-1 flex-col gap-5 min-h-0'>
-                <div className='flex items-center justify-between'>
-                  <h2 className='text-base font-semibold tracking-[0.32px]'>
-                    工作指南
-                  </h2>
-                  <div className='flex items-center gap-5'>
+                <div className='flex items-center justify-between gap-4'>
+                  <div className='flex-1 min-w-0 flex items-center gap-3 flex-wrap'>
+                    <h2 className='text-base font-semibold tracking-[0.32px] shrink-0'>
+                      工作指南
+                    </h2>
+                    {currentTrialGroupLink && (
+                      <p className='text-sm text-black/70'>
+                        在开始前，请先通过
+                        <a
+                          href={currentTrialGroupLink}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          className='text-primary underline hover:text-primary/80 transition-colors mx-1'
+                          onClick={(e) => {
+                            e.preventDefault()
+                            window.open(currentTrialGroupLink, '_blank', 'noopener,noreferrer')
+                          }}
+                        >
+                          试标群链接
+                        </a>
+                        进群后才能获得工作指南和工作台权限！
+                      </p>
+                    )}
+                  </div>
+                  <div className='flex items-center gap-5 shrink-0'>
                     <button
                       onClick={() => setExpandedGuide(!expandedGuide)}
                       className='flex h-6 w-6 items-center justify-center text-black/70 transition-colors hover:text-black'
@@ -790,6 +865,48 @@ export default function ProjectDetailPage() {
                 </Button>
               </DialogFooter>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* 试标群引导弹窗 */}
+        <Dialog 
+          open={trialGroupDialogOpen} 
+          onOpenChange={(open) => {
+            // 只允许通过按钮或 ESC 键关闭，不允许点击遮罩关闭
+            if (!open) {
+              handleTrialGroupClose()
+            }
+          }}
+        >
+          <DialogContent 
+            className='sm:max-w-md'
+            onInteractOutside={(e) => {
+              // 阻止点击遮罩关闭弹窗
+              e.preventDefault()
+            }}
+            onEscapeKeyDown={() => {
+              // 允许 ESC 键关闭
+              handleTrialGroupClose()
+            }}
+          >
+            <DialogHeader className='text-center'>
+              <DialogTitle className='text-center'>加入试标群</DialogTitle>
+              <DialogDescription className='text-center space-y-3 pt-2'>
+                <p className='text-base font-medium text-black leading-6'>
+                  在开始前，请先通过试标群链接进群后才能获得工作指南和工作台权限！
+                </p>
+                <p className='text-xs text-black/50 leading-5'>
+                  如果已经加入试标群，请直接关闭弹窗。
+                </p>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className='justify-center'>
+              {trialGroupLink && (
+                <Button onClick={handleTrialGroupConfirm} className='w-full'>
+                  前往加入试标群
+                </Button>
+              )}
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
