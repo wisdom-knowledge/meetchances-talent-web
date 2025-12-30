@@ -68,6 +68,19 @@ export interface TalentAuthURL {
   expires_in: number
 }
 
+// 飞书应用鉴权信息（用于 Web Components）
+export interface FeishuAppAuth {
+  app_id: string
+  signature?: string // 签名（使用签名验证时需要）
+  timestamp?: number // 时间戳（毫秒，使用签名验证时需要）
+  noncestr?: string // 随机字符串（使用签名验证时需要）
+  url?: string // 参与签名加密计算的url（使用签名验证时需要）
+  doc_token?: string // 文档 token
+  ticket?: string // 票据（使用 app_access_token 时需要）
+  app_access_token?: string // 应用访问令牌（使用 app_access_token 时需要）
+  expires_in: number // 过期时间（秒）
+}
+
 // ===== API =====
 // 获取项目详情（直接返回后端原始结构）
 export async function getProjectDetail(projectId: number): Promise<TalentProjectDetail> {
@@ -124,6 +137,32 @@ export function useTalentAuthURL(enabled = true) {
     queryFn: fetchTalentAuthURL,
     enabled,
     refetchOnWindowFocus: false,
+  })
+}
+
+// 获取飞书应用鉴权信息（用于 Web Components）
+export async function fetchFeishuAppAuth(docToken?: string, url?: string): Promise<FeishuAppAuth> {
+  const params: Record<string, string> = {}
+  if (docToken) {
+    params.doc_token = docToken
+  }
+  if (url) {
+    params.url = url
+  }
+  const res = await api.get('/talent/feishu/app-auth', { params: Object.keys(params).length > 0 ? params : undefined })
+  return res as unknown as FeishuAppAuth
+}
+
+export function useFeishuAppAuth(enabled = true, docToken?: string, url?: string) {
+  return useQuery({
+    queryKey: ['feishu-app-auth', docToken, url],
+    queryFn: () => fetchFeishuAppAuth(docToken, url),
+    enabled,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false, // 组件重新挂载时不自动重新请求，避免重复请求
+    refetchOnReconnect: false, // 网络重连时不自动重新请求
+    // 不设置 staleTime，确保每次都需要实时获取签名
+    staleTime: 0,
   })
 }
 

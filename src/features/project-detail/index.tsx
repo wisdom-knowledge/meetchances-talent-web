@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { bindDataAgreement, useProjectDetail, useProjectStats, useTalentAuthURL } from './api'
+import { FeishuDocViewer } from './components/feishu-doc-viewer'
 import titleIcon from './images/title.png'
 import feishuIcon from './images/feishu.png'
 import dataIcon from './images/data.png'
@@ -50,9 +51,6 @@ export default function ProjectDetailPage() {
   const [feishuDialogOpen, setFeishuDialogOpen] = useState(false)
   const [agreementDialogOpen, setAgreementDialogOpen] = useState(false)
   const [submitting] = useState(false)
-  const [expandedGuide, setExpandedGuide] = useState(false)
-  const [guideLoading, setGuideLoading] = useState(true)
-  const [shouldPreload, setShouldPreload] = useState(false)
   const [scoreLineTipOpen, setScoreLineTipOpen] = useState(false)
   const [trialGroupDialogOpen, setTrialGroupDialogOpen] = useState(false)
 
@@ -120,47 +118,6 @@ export default function ProjectDetailPage() {
     }
   }, [])
 
-  // 延迟触发预加载，避免影响初始加载性能
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isMountedRef.current) {
-        setShouldPreload(true)
-      }
-    }, 1000)
-    
-    return () => clearTimeout(timer)
-  }, [])
-
-  // 超时自动隐藏加载状态（避免 iframe onLoad 事件不触发）
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isMountedRef.current) {
-        setGuideLoading(false)
-      }
-    }, 1500) // 1.5秒后自动隐藏加载提示
-    
-    return () => clearTimeout(timer)
-  }, [])
-
-  // 监听 ESC 键关闭全屏工作指南 & 阻止页面滚动
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && expandedGuide) {
-        setExpandedGuide(false)
-      }
-    }
-    
-    if (expandedGuide) {
-      // 阻止页面滚动
-      document.body.style.overflow = 'hidden'
-      window.addEventListener('keydown', handleEscape)
-    }
-    
-    return () => {
-      document.body.style.overflow = ''
-      window.removeEventListener('keydown', handleEscape)
-    }
-  }, [expandedGuide])
 
   // 返回上一页
   const handleBack = () => {
@@ -653,27 +610,6 @@ export default function ProjectDetailPage() {
                   </div>
                   <div className='flex items-center gap-5 shrink-0'>
                     <button
-                      onClick={() => setExpandedGuide(!expandedGuide)}
-                      className='flex h-6 w-6 items-center justify-center text-black/70 transition-colors hover:text-black'
-                      aria-label='展开工作指南'
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path d="M19.3845 4C19.696 4 19.9535 4.23151 19.9943 4.53188L19.9999 4.61538V7.89744C19.9999 8.2373 19.7244 8.51282 19.3845 8.51282C19.073 8.51282 18.8155 8.28131 18.7747 7.98094L18.7691 7.89744V5.23077H16.1024C15.7909 5.23077 15.5334 4.99926 15.4927 4.69889L15.4871 4.61538C15.4871 4.30384 15.7186 4.04637 16.0189 4.00562L16.1024 4H19.3845Z" fill="currentColor"/>
-                        <path d="M18.9495 4.18024C19.1898 3.93992 19.5795 3.93992 19.8198 4.18024C20.0383 4.39872 20.0581 4.7406 19.8794 4.98151L19.8198 5.05053L14.8967 9.9736C14.6564 10.2139 14.2668 10.2139 14.0264 9.9736C13.808 9.75513 13.7881 9.41325 13.9668 9.17234L14.0264 9.10332L18.9495 4.18024Z" fill="currentColor"/>
-                        <path d="M4.61538 15.4883C4.92693 15.4883 5.1844 15.7198 5.22515 16.0202L5.23077 16.1037V18.7703H7.89744C8.20898 18.7703 8.46645 19.0018 8.5072 19.3022L8.51282 19.3857C8.51282 19.6973 8.28131 19.9547 7.98094 19.9955L7.89744 20.0011H4.61538C4.30384 20.0011 4.04637 19.7696 4.00562 19.4692L4 19.3857V16.1037C4 15.7638 4.27552 15.4883 4.61538 15.4883Z" fill="currentColor"/>
-                        <path d="M9.10332 14.0279C9.34364 13.7876 9.73328 13.7876 9.9736 14.0279C10.1921 14.2464 10.2119 14.5883 10.0332 14.8292L9.9736 14.8982L5.05053 19.8213C4.8102 20.0616 4.42056 20.0616 4.18024 19.8213C3.96177 19.6028 3.94191 19.2609 4.12066 19.02L4.18024 18.951L9.10332 14.0279Z" fill="currentColor"/>
-                        <path d="M11.1795 4.82031C11.5194 4.82031 11.7949 5.09583 11.7949 5.4357C11.7949 5.74724 11.5634 6.00472 11.263 6.04546L11.1795 6.05108H7.07697C6.54559 6.05108 6.1091 6.45436 6.05662 6.9718L6.05133 7.07672V11.1793C6.05133 11.5192 5.77581 11.7947 5.43594 11.7947C5.1244 11.7947 4.86692 11.5632 4.82617 11.2628L4.82056 11.1793V7.07672C4.82056 5.87636 5.75701 4.89544 6.93948 4.82443L7.07697 4.82031H11.1795Z" fill="currentColor"/>
-                        <path d="M18.564 12.207C18.8756 12.207 19.133 12.4385 19.1738 12.7389L19.1794 12.8224V16.925C19.1794 18.1253 18.2429 19.1063 17.0605 19.1773L16.923 19.1814H11.9999C11.66 19.1814 11.3845 18.9059 11.3845 18.566C11.3845 18.2545 11.616 17.997 11.9164 17.9562L11.9999 17.9506H16.923C17.4544 17.9506 17.8908 17.5473 17.9433 17.0299L17.9486 16.925V12.8224C17.9486 12.4825 18.2241 12.207 18.564 12.207Z" fill="currentColor"/>
-                      </svg>
-                    </button>
-
-                    <button
                       type='button'
                       onClick={() => setHelpOpen(true)}
                       className='rounded-lg border border-black/10 px-2 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50'
@@ -684,25 +620,12 @@ export default function ProjectDetailPage() {
                 </div>
 
                 <div className='relative flex-1 min-h-0 overflow-hidden rounded-xl border border-primary/20'>
-                  {guideLoading && (
-                    <div className='absolute inset-0 z-10 flex items-center justify-center bg-white'>
-                      <div className='flex flex-col items-center gap-3'>
-                        <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent'></div>
-                        <p className='text-sm text-black/60'>加载中...</p>
-                      </div>
-                    </div>
-                  )}
-                  <iframe
-                    src={projectData?.project?.work_guide}
-                    className='h-full w-full border-0'
-                    title='工作指南'
-                    onLoad={() => {
-                      if (isMountedRef.current) {
-                        setGuideLoading(false)
-                      }
-                    }}
-                    loading='eager'
-                  />
+                  {projectData?.project?.work_guide ? (
+                    <FeishuDocViewer
+                      docUrl={projectData.project.work_guide}
+                      className='h-full w-full'
+                    />
+                  ) : null}
                 </div>
 
                 {jobProjectRelationshipCard}
@@ -914,51 +837,7 @@ export default function ProjectDetailPage() {
 
         {/* 寻求支持弹窗 */}
         <SupportDialog open={helpOpen} onOpenChange={setHelpOpen} />
-        
-        {/* 隐藏的预加载 iframe - 延迟1秒后加载 */}
-        {shouldPreload && !isProjectEnded && projectData?.project?.work_guide && (
-          <iframe
-            src={projectData.project.work_guide}
-            className='hidden'
-            title='工作指南预加载'
-            loading='eager'
-            aria-hidden='true'
-          />
-        )}
       </Main>
-
-      {/* 全屏工作指南 */}
-      {expandedGuide && hasWorkGuide && !isProjectEnded && (
-        <div 
-          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200'
-          onClick={() => setExpandedGuide(false)}
-        >
-          <div 
-            className='relative h-full w-full max-h-[calc(100vh-2rem)] max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200'
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 关闭按钮 */}
-            <button
-              onClick={() => setExpandedGuide(false)}
-              className='absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-black/70 shadow-md transition-all hover:bg-white hover:text-black hover:shadow-lg'
-              aria-label='关闭'
-            >
-              <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-                <line x1='18' y1='6' x2='6' y2='18'></line>
-                <line x1='6' y1='6' x2='18' y2='18'></line>
-              </svg>
-            </button>
-            
-            {/* iframe 内容 */}
-            <iframe
-              src={projectData?.project?.work_guide}
-              className='h-full w-full rounded-lg border-0'
-              title='工作指南（全屏）'
-              loading='eager'
-            />
-          </div>
-        </div>
-      )}
     </>
   )
 }
