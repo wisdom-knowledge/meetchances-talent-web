@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useFeishuAppAuth } from '../api'
 
 // 云文档组件的错误码（根据飞书官方文档）
@@ -262,6 +263,7 @@ function waitForLarkSDK(maxAttempts = 100, interval = 200): Promise<boolean> {
 }
 
 export function FeishuDocViewer({ docUrl, className, onLoad }: FeishuDocViewerProps) {
+  const queryClient = useQueryClient()
   const containerRef = useRef<HTMLDivElement | null>(null) // 组件挂载点
   const componentInstanceRef = useRef<FeishuComponentInstance | null>(null) // 组件实例
   const usedSignatureRef = useRef<string | null>(null) // 已使用过的签名，避免重复使用
@@ -303,7 +305,7 @@ export function FeishuDocViewer({ docUrl, className, onLoad }: FeishuDocViewerPr
   }, [])
 
   // 从 API 获取飞书应用鉴权信息（实时获取，不缓存）
-  // 只有当 docToken 存在时才发起请求
+  // 每次进入页面都重新请求，确保获取的 signature 唯一
   const {
     data: authData,
     isLoading: authLoading,
@@ -393,9 +395,9 @@ export function FeishuDocViewer({ docUrl, className, onLoad }: FeishuDocViewerPr
     
     // 严格检查：如果正在创建，直接返回
     if (isCreatingRef.current) {
-      return
-    }
-    
+        return
+      }
+      
     // 严格检查：如果已经成功创建过相同的组件（相同的 docToken + signature），直接返回
     if (createdKeyRef.current === componentKey && componentInstanceRef.current) {
       // 如果组件已存在，确保状态正确
@@ -413,9 +415,9 @@ export function FeishuDocViewer({ docUrl, className, onLoad }: FeishuDocViewerPr
           componentInstanceRef.current.destroy()
         } catch {
           // 忽略销毁错误
+          }
+          componentInstanceRef.current = null
         }
-        componentInstanceRef.current = null
-      }
       
       // 清除相关记录
       usedSignatureRef.current = null
@@ -451,7 +453,7 @@ export function FeishuDocViewer({ docUrl, className, onLoad }: FeishuDocViewerPr
     // 设置创建标志，防止并发创建
     isCreatingRef.current = true
     setIsComponentReady(false) // 重置组件准备状态，显示 loading
-    
+
     try {
       // 创建组件实例
       // 注意：需要给文档设置一个固定高度，否则会全量加载文档，有性能问题
@@ -795,6 +797,9 @@ export function FeishuDocViewer({ docUrl, className, onLoad }: FeishuDocViewerPr
       // 清除文档加载开始时间和显示状态
       docLoadStartTimeRef.current = null
       setShowGettingDoc(false)
+      
+      // 清除鉴权请求缓存，确保下次进入页面时重新请求
+      queryClient.removeQueries({ queryKey: ['feishu-app-auth'] })
       
       if (componentInstanceRef.current) {
         try {

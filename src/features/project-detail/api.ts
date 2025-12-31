@@ -159,10 +159,10 @@ export function useFeishuAppAuth(enabled = true, docToken?: string, url?: string
     queryFn: () => fetchFeishuAppAuth(docToken, url),
     enabled,
     refetchOnWindowFocus: false,
-    refetchOnMount: false, // 组件重新挂载时不自动重新请求，避免重复请求
-    refetchOnReconnect: false, // 网络重连时不自动重新请求
-    // 不设置 staleTime，确保每次都需要实时获取签名
-    staleTime: 0,
+    refetchOnMount: true, // 每次进入页面都重新请求
+    refetchOnReconnect: false,
+    staleTime: 0, // 不使用缓存，每次都获取新的签名
+    gcTime: 0, // 不使用缓存，离开页面后立即清除
   })
 }
 
