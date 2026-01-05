@@ -128,20 +128,24 @@ export default function ReferralPage() {
             <TabsTrigger value={ReferralTab.RECOMMEND_ME}>推荐我</TabsTrigger>
           </TabsList>
 
-          {/* 推荐流程 - 仅在内推列表 Tab 显示 */}
-          {activeTab === ReferralTab.LIST && (
-            <ReferralFlowSection />
-          )}
-
-          <TabsContent value={ReferralTab.REFERRABLE_JOBS} className='mt-4 flex-1 min-h-0 overflow-hidden'>
+          <TabsContent value={ReferralTab.REFERRABLE_JOBS} className='flex-1 min-h-0 overflow-hidden'>
             <ReferrableJobsTab isActive={activeTab === ReferralTab.REFERRABLE_JOBS} />
           </TabsContent>
 
-          <TabsContent value={ReferralTab.LIST} className='mt-4 flex-1 min-h-0 overflow-auto pb-24 md:pb-0'>
-            <ReferralListTab isActive={activeTab === ReferralTab.LIST} />
+          <TabsContent value={ReferralTab.LIST} className='flex-1 min-h-0 overflow-hidden'>
+            <div className='flex flex-col h-full overflow-y-auto pb-24 md:pb-0' style={{ WebkitOverflowScrolling: 'touch' }}>
+              {/* 推荐流程 - 仅在内推列表 Tab 显示 */}
+              <div className='shrink-0 mb-4 overflow-x-auto'>
+                <ReferralFlowSection />
+              </div>
+              {/* 列表内容 */}
+              <div className='shrink-0'>
+                <ReferralListTab isActive={activeTab === ReferralTab.LIST} />
+              </div>
+            </div>
           </TabsContent>
 
-          <TabsContent value={ReferralTab.RECOMMEND_ME} className='mt-4 flex-1 min-h-0 overflow-auto pb-24 md:pb-0'>
+          <TabsContent value={ReferralTab.RECOMMEND_ME} className='flex-1 min-h-0 overflow-auto pb-24 md:pb-0'>
             <RecommendMeTab 
               isActive={activeTab === ReferralTab.RECOMMEND_ME} 
               initialInviteCode={invitedCodeFromUrl}
