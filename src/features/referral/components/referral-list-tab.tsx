@@ -90,7 +90,7 @@ export default function ReferralListTab({ isActive }: Props) {
                   <TableCell>{item.referred_name}</TableCell>
                   <TableCell>{renderReferralStatusBadge(item.status)}</TableCell>
                   <TableCell>{item.referred_phone}</TableCell>
-                  <TableCell className='max-w-[300px]'>
+                  <TableCell className='max-w-[300px] whitespace-pre-line'>
                     {item.completed_activities || '-'}
                   </TableCell>
                   <TableCell className='font-semibold text-emerald-600'>
