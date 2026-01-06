@@ -29,16 +29,15 @@ const FLOW_STEPS = [
 
 export default function ReferralFlowSection({ className }: ReferralFlowSectionProps) {
   return (
-    <div className={cn('w-full', className)}>
-      <div className='relative flex flex-col gap-4 md:flex-row md:gap-8'>
+    <div className={cn('w-full overflow-x-auto md:overflow-x-visible', className)}>
+      <div className='relative flex flex-row items-stretch gap-4 md:gap-8 min-w-max md:min-w-0'>
         {FLOW_STEPS.map((step) => {
           return (
-            <div key={step.id} className='relative flex-1'>
+            <div key={step.id} className='relative flex-shrink-0 w-[calc(100vw-2rem)] md:flex-1 md:w-auto flex flex-col'>
               {/* 背景卡片 */}
-              <div className='relative h-full p-2 md:p-6'>
-                <div className='flex h-full flex-col'>
-                  {/* 标题区域 */}
-                  <div className='mb-4 flex items-start gap-2'>
+              <div className='relative p-2 md:px-6 md:pt-6 flex-1 flex flex-col'>
+                {/* 标题区域 */}
+                <div className='mb-3 flex items-start gap-2 flex-shrink-0'>
                     {/* 圆形标识 */}
                     <div className='h-2 w-2 flex-shrink-0 mt-1.5 rounded-full bg-[#4E02E4]' />
 
@@ -59,31 +58,9 @@ export default function ReferralFlowSection({ className }: ReferralFlowSectionPr
                       ) : null}
                     </h3>
                   </div>
-
-                  {/* 步骤3特殊布局：图片和文案左右排列 */}
-                  {step.id === 3 ? (
-                    <div className='flex flex-1 items-end gap-4 md:mt-[25px]'>
-                      {/* 左侧图片 */}
-                      <div className='flex-1'>
-                        <div 
-                          className='relative w-full'
-                          style={{ 
-                            maxWidth: '100%',
-                            aspectRatio: step.imageAspect.toString()
-                          }}
-                        >
-                          <img 
-                            src={step.image} 
-                            alt={`步骤${step.id}示意图`}
-                            className='h-auto w-full object-contain'
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
                     <>
                       {/* 插图区域 */}
-                      <div className='mb-4 flex flex-1 items-center justify-center md:mt-[25px]'>
+                      <div className='flex-1 flex items-center mt-4'>
                         <div 
                           className='relative w-full'
                           style={{ 
@@ -98,46 +75,7 @@ export default function ReferralFlowSection({ className }: ReferralFlowSectionPr
                           />
                         </div>
                       </div>
-
-                      {/* 说明文字 */}
-                      <div>
-                        {step.id === 1 ? (
-                          <div className='flex gap-4'>
-                            {(step as { description?: string }).description && (
-                              <p 
-                                className='flex-1 text-sm leading-[150%] tracking-[0.28px] text-[rgba(0,0,0,0.70)]'
-                                style={{ fontFamily: 'PingFang SC' }}
-                              >
-                                {(step as { description: string }).description}
-                              </p>
-                            )}
-                            {((step as unknown) as { subDescription?: string }).subDescription && (
-                              <p 
-                                className='flex-1 text-sm leading-[150%] tracking-[0.28px] text-[rgba(0,0,0,0.70)]'
-                                style={{ fontFamily: 'PingFang SC' }}
-                              >
-                                {((step as unknown) as { subDescription: string }).subDescription}
-                              </p>
-                            )}
-                          </div>
-                        ) : (
-                          <div className='space-y-1'>
-                            {(step as { description?: string }).description && (
-                              <p className='text-sm leading-[150%] text-gray-700'>
-                                {(step as { description: string }).description}
-                              </p>
-                            )}
-                            {((step as unknown) as { subDescription?: string }).subDescription && (
-                              <p className='text-sm leading-[150%] text-gray-600'>
-                                {((step as unknown) as { subDescription: string }).subDescription}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
                     </>
-                  )}
-                </div>
               </div>
             </div>
           )
