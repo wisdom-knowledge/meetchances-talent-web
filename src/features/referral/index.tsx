@@ -14,6 +14,7 @@ import ReferrableJobsTab from '@/features/referral/components/referrable-jobs-ta
 import ShareBubble from '@/features/referral/components/share-bubble'
 import PosterGenerator from '@/features/referral/components/poster-generator'
 import ReferralFlowSection from '@/features/referral/components/referral-flow-section'
+import CanReferralSection from '@/features/referral/components/can-referral-section'
 import { ReferralTab, DEFAULT_REFERRAL_TAB } from '@/features/referral/constants'
 import { toast } from 'sonner'
 
@@ -129,7 +130,16 @@ export default function ReferralPage() {
           </TabsList>
 
           <TabsContent value={ReferralTab.REFERRABLE_JOBS} className='flex-1 min-h-0 overflow-hidden'>
-            <ReferrableJobsTab isActive={activeTab === ReferralTab.REFERRABLE_JOBS} />
+            <div className='flex flex-col h-full overflow-y-auto pb-24 md:pb-0' style={{ WebkitOverflowScrolling: 'touch' }}>
+              {/* 可推荐流程说明 */}
+              <div className='shrink-0 mb-4 overflow-x-auto'>
+                <CanReferralSection />
+              </div>
+              {/* 岗位列表 */}
+              <div className='flex-1 min-h-0'>
+                <ReferrableJobsTab isActive={activeTab === ReferralTab.REFERRABLE_JOBS} />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value={ReferralTab.LIST} className='flex-1 min-h-0 overflow-hidden'>
