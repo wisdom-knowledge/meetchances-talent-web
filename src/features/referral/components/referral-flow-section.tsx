@@ -49,7 +49,7 @@ export default function ReferralFlowSection({ className }: ReferralFlowSectionPr
                         </>
                       ) : step.id === 2 ? (
                         <>
-                          如果专家完成被绑定项目的<span className='text-[#4E02E4]'>多个任务，推荐人可以获得</span>多份奖励
+                          如果专家完成被绑定项目的多个任务，推荐人可以获得<span className='text-[#4E02E4]'>多份奖励</span>
                         </>
                       ) : step.id === 3 ? (
                         <>
