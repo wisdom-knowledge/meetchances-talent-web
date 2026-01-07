@@ -16,6 +16,11 @@ const TARGETED_API_KEYWORDS = [
   'job_apply_progress',
 ] as const
 
+const FOCUS_REDIRECT_API_PATHS = [
+  '/talent/validate-referral-code',
+  '/talent/referral-list'
+]
+
 // localStorage 键名：用于存储最近一次 "/talent/me" 的用户信息
 const LOCAL_STORAGE_USER_KEY = 'talent_current_user'
 
@@ -75,10 +80,15 @@ const INVITE_REDIRECT_URL = import.meta.env.VITE_INVITE_REDIRECT_URL
 type WxWithMiniProgram = { miniProgram?: { redirectTo?: (opts: { url: string, data?: Record<string, string> }) => void } }
 
 // 统一处理未登录/登录失效后的跳转逻辑
-function handleUnauthorizedRedirect(): void {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function handleUnauthorizedRedirect(config: any): void {
   if (typeof window === 'undefined') return
-  const isSpecialPage = noTalentMeRoutes.includes(window.location.pathname)
-  if (isSpecialPage) return
+  // FOCUS_REDIRECT_API_PATHS 强制触发重定向，忽略 noTalentMeRoutes 白名单
+  if (!FOCUS_REDIRECT_API_PATHS.some((path) => config.url?.includes(path))) {
+    const isSpecialPage = noTalentMeRoutes.includes(window.location.pathname)
+    if (isSpecialPage) return
+  }
+
 
   try {
     const env = detectRuntimeEnvSync()
@@ -153,7 +163,7 @@ api.interceptors.response.use(
     const dataUnknown = config?.data
     // 明确处理未登录/登录失效
     if (status === 401) {
-      handleUnauthorizedRedirect()
+      handleUnauthorizedRedirect(config)
       return Promise.reject({ status_code: 401, status_msg: 'Unauthorized' })
     }
     // 若没有通用外层，直接返回原始数据

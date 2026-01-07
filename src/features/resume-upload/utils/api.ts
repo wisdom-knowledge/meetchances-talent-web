@@ -2,6 +2,7 @@ import { api } from '@/lib/api'
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query'
 import { BackendStatus } from '@/features/resume-upload/types'
 import type { StructInfo } from '@/features/resume-upload/types/struct-info'
+import { reportApiBusinessError } from '@/lib/apm'
 
 export interface UploadBackendSubset {
   source: number
@@ -112,11 +113,36 @@ export async function uploadTalentResume(
     const payload = (res as { data?: unknown })?.data ?? res
     const detail = (payload as { resume_detail?: BackendItem })?.resume_detail
     if (!detail) {
-      return { success: false, data: [], statusMsg: (res as { status_msg?: string })?.status_msg }
+      const statusMsg = (res as { status_msg?: string })?.status_msg ?? 'Missing resume_detail in response'
+      // 上报简历解析错误：响应中缺少 resume_detail
+      reportApiBusinessError({
+        path: '/talent/upload_resume',
+        method: 'POST',
+        status_code: 0, // 业务逻辑错误，无 HTTP 状态码
+        status_msg: statusMsg,
+        payload: undefined,
+        query: undefined,
+      })
+      return { success: false, data: [], statusMsg }
     }
     return { success: true, data: mapBackendItems([detail]), statusMsg: (res as { status_msg?: string })?.status_msg }
   } catch (e) {
-    return { success: false, data: [], statusMsg: (e as { status_msg?: string })?.status_msg, }
+    // 提取错误信息
+    const errorObj = e as { status_code?: number; status_msg?: string; message?: string }
+    const statusCode = errorObj?.status_code ?? 0
+    const statusMsg = errorObj?.status_msg ?? errorObj?.message ?? 'Unknown error'
+
+    // 上报简历解析错误到 APM
+    reportApiBusinessError({
+      path: '/talent/upload_resume',
+      method: 'POST',
+      status_code: statusCode,
+      status_msg: statusMsg,
+      payload: undefined, // FormData 无法序列化，不传递
+      query: undefined,
+    })
+
+    return { success: false, data: [], statusMsg }
   }
 }
 

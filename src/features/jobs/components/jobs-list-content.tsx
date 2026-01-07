@@ -205,9 +205,12 @@ export default function JobsListContent({
   const canPrev = page > 0
   const canNext = total ? page + 1 < pageCount : jobs.length === pageSize
 
-  // 串行：在拿到 jobs 后再请求申请状态
+  // 串行：在拿到 jobs 后再请求申请状态（仅登录用户）
   const jobIds = useMemo(() => jobs.map((j) => j.id), [jobs])
-  const { data: applyStatusMap } = useJobApplyStatus(jobIds, Boolean(jobIds.length))
+  const { data: applyStatusMap } = useJobApplyStatus(
+    jobIds,
+    Boolean(jobIds.length) && Boolean(auth.user)
+  )
 
   // 当只拿到列表的精简数据时，点击后再拉详情
   const effectiveSelectedId = selectedJobId ?? selectedJob?.id ?? null
