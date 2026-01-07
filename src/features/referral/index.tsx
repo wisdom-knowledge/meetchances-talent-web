@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { useSearch } from '@tanstack/react-router'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { fetchTalentMe } from '@/lib/api'
-import { getWalletDetails, type WalletDetailsResponse } from '@/features/wallet/api'
 import RecommendMeTab from '@/features/referral/components/recommend-me-tab'
 import ReferralListTab from '@/features/referral/components/referral-list-tab'
 import ReferrableJobsTab from '@/features/referral/components/referrable-jobs-tab'
-import ShareBubble from '@/features/referral/components/share-bubble'
-import PosterGenerator from '@/features/referral/components/poster-generator'
 import ReferralFlowSection from '@/features/referral/components/referral-flow-section'
 import CanReferralSection from '@/features/referral/components/can-referral-section'
 import { ReferralTab, DEFAULT_REFERRAL_TAB } from '@/features/referral/constants'
-import { toast } from 'sonner'
 
 export default function ReferralPage() {
   // 读取 URL 参数
@@ -26,7 +20,6 @@ export default function ReferralPage() {
   // 如果 URL 中有 invitedCode，自动切换到推荐我 tab
   const initialTab = invitedCodeFromUrl ? ReferralTab.RECOMMEND_ME : DEFAULT_REFERRAL_TAB
   const [activeTab, setActiveTab] = useState<string>(initialTab)
-  const [shouldGeneratePoster, setShouldGeneratePoster] = useState(false)
 
   // 当 URL 参数变化时，自动切换 tab
   useEffect(() => {
@@ -34,56 +27,6 @@ export default function ReferralPage() {
       setActiveTab(ReferralTab.RECOMMEND_ME)
     }
   }, [invitedCodeFromUrl])
-
-  // 获取当前用户信息
-  const { data: currentUser } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: fetchTalentMe,
-    staleTime: 5 * 60 * 1000,
-  })
-
-  // 获取钱包数据，用于判断任务收入
-  const { data: walletDetails } = useQuery<WalletDetailsResponse>({
-    queryKey: ['wallet-details'],
-    queryFn: async () => getWalletDetails(),
-    staleTime: 30 * 1000,
-  })
-
-  // 从钱包数据中获取任务收入
-  const totalIncome = walletDetails?.wallet.refer_income ?? 0
-
-  const handleGeneratePoster = () => {
-    // 防止重复触发
-    if (shouldGeneratePoster) {
-      return
-    }
-    // 检查是否有邀请码
-    if (!currentUser?.referral_code) {
-      toast.error('邀请码尚未加载，请稍后重试')
-      return
-    }
-    setShouldGeneratePoster(true)
-  }
-
-  const handlePosterGenerated = (dataUrl: string) => {
-    // 立即设置状态，防止重复生成
-    setShouldGeneratePoster(false)
-    
-    // 下载图片
-    const link = document.createElement('a')
-    link.download = `内推海报_${currentUser?.full_name || currentUser?.referral_code || 'poster'}.jpg`
-    link.href = dataUrl
-    link.style.display = 'none'
-    document.body.appendChild(link)
-    link.click()
-    
-    // 延迟清理，确保下载已触发
-    setTimeout(() => {
-      document.body.removeChild(link)
-    }, 100)
-    
-    toast.success('海报已生成并下载！')
-  }
 
   return (
     <>
@@ -110,16 +53,6 @@ export default function ReferralPage() {
           </p>
         </div>
         <Separator className='my-4 lg:my-6' />
-
-        {/* 分享区域 - 移动端显示在 Tab 上方，桌面端固定在右侧 */}
-        {Number(totalIncome) > 0 && (
-          <ShareBubble
-            totalIncome={Number(totalIncome)}
-            onGeneratePoster={handleGeneratePoster}
-            className='mb-6 md:mb-0'
-            mobileInline
-          />
-        )}
 
         {/* Tab 切换 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className='flex flex-1 min-h-0 flex-col'>
@@ -162,18 +95,6 @@ export default function ReferralPage() {
             />
           </TabsContent>
         </Tabs>
-
-      {/* 海报生成器（隐藏的canvas） */}
-      {shouldGeneratePoster && currentUser?.referral_code && (
-        <PosterGenerator
-          data={{
-            totalIncome,
-            inviteCode: currentUser.referral_code,
-            userName: currentUser.full_name,
-          }}
-          onGenerated={handlePosterGenerated}
-        />
-      )}
       </Main>
     </>
   )

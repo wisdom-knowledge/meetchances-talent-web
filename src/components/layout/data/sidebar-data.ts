@@ -59,4 +59,4 @@ export const sidebarData: SidebarData = {
 }
 
 // 调用talentme接口失败后无需跳转的特殊处理页面
-export const noTalentMeRoutes = ['/job-detail', '/jobs']
+export const noTalentMeRoutes = ['/job-detail', '/jobs', '/referral']
