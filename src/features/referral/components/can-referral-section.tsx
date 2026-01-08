@@ -1,4 +1,10 @@
+import { IconChevronDown } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import step1Img from '@/features/referral/images/step1-1.png'
 import step2Img from '@/features/referral/images/step1-2.png'
 import step3Img from '@/features/referral/images/step1-3.png'
@@ -34,11 +40,29 @@ const FLOW_STEPS = [
 
 export default function ReferralFlowSection({ className }: ReferralFlowSectionProps) {
   return (
-    <div className={cn('w-full overflow-x-auto md:overflow-x-visible', className)}>
-      <div className='relative flex flex-row gap-4 md:gap-8 min-w-max md:min-w-0'>
-        {FLOW_STEPS.map((step) => {
-          return (
-            <div key={step.id} className='relative flex-shrink-0 w-[calc(100vw-2rem)] md:flex-1 md:w-auto'>
+    <div className={cn('w-full', className)}>
+      <Collapsible defaultOpen={false} className='group'>
+        {/* 切换按钮 */}
+        <CollapsibleTrigger asChild>
+          <button
+            type='button'
+            className='flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white p-4 text-left transition-colors hover:bg-gray-50'
+          >
+            <span className='text-base font-semibold text-gray-900'>
+              <span className='group-data-[state=open]:inline hidden'>点击收起内推流程说明</span>
+              <span className='group-data-[state=closed]:inline hidden'>点击展开内推流程说明</span>
+            </span>
+            <IconChevronDown className='h-5 w-5 text-gray-500 transition-transform duration-200 group-data-[state=open]:rotate-180' />
+          </button>
+        </CollapsibleTrigger>
+
+        {/* 可展开/收起的内容区域 */}
+        <CollapsibleContent className='CollapsibleContent'>
+          <div className='mt-4 overflow-x-auto md:overflow-x-visible'>
+            <div className='relative flex flex-row gap-4 md:gap-8 min-w-max md:min-w-0'>
+              {FLOW_STEPS.map((step) => {
+              return (
+                <div key={step.id} className='relative flex-shrink-0 w-[calc(100vw-2rem)] md:flex-1 md:w-auto'>
               {/* 背景卡片 */}
               <div className='relative h-full p-2 md:p-6'>
                 <div className='flex h-full flex-col'>
@@ -159,10 +183,13 @@ export default function ReferralFlowSection({ className }: ReferralFlowSectionPr
                   )}
                 </div>
               </div>
+                </div>
+              )
+            })}
             </div>
-          )
-        })}
-      </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   )
 }

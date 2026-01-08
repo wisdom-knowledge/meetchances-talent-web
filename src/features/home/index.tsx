@@ -470,8 +470,12 @@ export default function HomeViewPage() {
         >
           <div className='flex items-center justify-between'>
             <TabsList>
-              <TabsTrigger value='applications'>我的申请</TabsTrigger>
-              <TabsTrigger value='projects'>项目</TabsTrigger>
+              <TabsTrigger value='applications'>
+                我的申请 ({isInfiniteMode ? (infiniteApps === undefined ? '…' : total) : (loadingAppsPaged ? '…' : total)})
+              </TabsTrigger>
+              <TabsTrigger value='projects'>
+                项目 ({isInfiniteMode ? (infiniteProjects === undefined ? '…' : projectsTotal) : (loadingProjectsPaged ? '…' : projectsTotal)})
+              </TabsTrigger>
             </TabsList>
             <div className='flex items-center gap-3'>
               {currentTab === 'applications' ? (
