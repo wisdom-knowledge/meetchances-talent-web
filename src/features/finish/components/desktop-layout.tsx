@@ -67,7 +67,7 @@ export default function DesktopLayout({
   const showDetailQuestions = rating > 0 && rating <= 4
 
   return (
-    <section className='w-[460px] space-y-6'>
+    <section className='w-[540px] space-y-6'>
       {/* Logo - 动态尺寸 */}
       <div className='flex justify-center mb-8'>
         <img
@@ -102,12 +102,12 @@ export default function DesktopLayout({
 
           {/* 细分评分（低分时显示） */}
           {showDetailQuestions && (
-            <div className='mt-6 space-y-6'>
+            <div className='mt-4 space-y-4'>
               {detailQuestions.map((question) => {
                 const score = scores[question.id as keyof typeof scores]
                 return (
                   <div key={question.id}>
-                    <div className='mb-3 text-center text-base font-normal text-black/70 leading-[150%] tracking-[0.32px]'>
+                    <div className='mb-2 text-center text-base font-normal text-black/70 leading-[150%] tracking-[0.32px]'>
                       {question.label}
                     </div>
                     <div className='flex justify-center'>
@@ -129,7 +129,7 @@ export default function DesktopLayout({
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder='请填写您的反馈（可选）'
-                  className='min-h-[151px]'
+                  className='min-h-[80px]'
                 />
               </div>
             </div>
