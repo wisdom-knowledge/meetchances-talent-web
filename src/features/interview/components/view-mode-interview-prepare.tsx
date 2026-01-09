@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { ConnectionQualityBarsStandalone } from '@/components/interview/connection-quality-bars'
 import { LocalCameraPreview } from '@/features/interview/components/local-camera-preview'
 import { MobileDeviceStatusList } from '@/features/interview/components/mobile-device-status-list'
+import { userEvent } from '@/lib/apm'
 import type { ApiJob } from '@/features/jobs/api'
 
 // 准备步骤枚举
@@ -102,6 +103,7 @@ function _createPrepareFlowActions(args: {
   setAudioConfirmed: (b: boolean) => void
   setMicRecorded: (b: boolean) => void
   onStartNewInterviewClick: () => void
+  jobApplyId?: string | number | null
 }) {
   const {
     onCameraConfirmed,
@@ -112,6 +114,7 @@ function _createPrepareFlowActions(args: {
     setAudioConfirmed,
     setMicRecorded,
     onStartNewInterviewClick,
+    jobApplyId,
   } = args
 
   const handleCameraConfirm = () => {
@@ -134,6 +137,11 @@ function _createPrepareFlowActions(args: {
   }
 
   const handleFinalConfirm = () => {
+    try {
+      userEvent('confirm_av_clear', '准备进入面试间', { job_apply_id: jobApplyId })
+    } catch (error: unknown) {
+      void error
+    }
     onStartNewInterviewClick()
   }
 
@@ -237,6 +245,7 @@ function DesktopViewModeInterviewPrepare({
   currentSpkDeviceId,
   currentMicDeviceId,
   interviewNodeId,
+  jobApplyId,
   onStartNewInterviewClick,
   onCameraStatusChange,
   onCamChange,
@@ -270,6 +279,7 @@ function DesktopViewModeInterviewPrepare({
     setAudioConfirmed,
     setMicRecorded,
     onStartNewInterviewClick,
+    jobApplyId,
   })
 
   const buttonConfig = buildButtonConfig({
@@ -407,6 +417,7 @@ function MobileViewModeInterviewPrepare({
   currentSpkDeviceId,
   currentMicDeviceId,
   interviewNodeId,
+  jobApplyId,
   onStartNewInterviewClick,
   onCameraStatusChange,
   onCameraDeviceResolved,
@@ -436,6 +447,7 @@ function MobileViewModeInterviewPrepare({
     setAudioConfirmed,
     setMicRecorded,
     onStartNewInterviewClick,
+    jobApplyId,
   })
 
   const buttonConfig = buildButtonConfig({

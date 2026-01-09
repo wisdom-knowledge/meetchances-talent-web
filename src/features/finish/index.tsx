@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { SupportDialog } from '@/features/interview/components/support-dialog'
 import { FeedbackParams, fetchFeedback } from './api'
-import { reportFinishFeedbackLowScore } from '@/lib/apm'
+import { reportFinishFeedbackLowScore, userEvent } from '@/lib/apm'
 import { useJobDetailQuery } from '@/features/jobs/api'
 import { IconLoader2 } from '@tabler/icons-react'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -104,6 +104,17 @@ export default function FinishPage() {
     if (!interviewId || rating <= 0 || submitting) return
     // 低分时强制要求细分评分全部选择
     if (rating <= 4 && (flowScore <= 0 || expressionScore <= 0 || relevanceScore <= 0)) return
+
+    // 通用面试反馈埋点（无论评分多少都上报，与进入面试埋点形成漏斗）
+    try {
+      const sp = new URLSearchParams(window.location.search)
+      const jobApplyId = sp.get('job_apply_id') ?? undefined
+      userEvent('interview_feedback', '用户提交面试反馈', {
+        job_apply_id: jobApplyId,
+        total_score: rating,
+      })
+    } catch (_e) { /* ignore */ }
+
     // 当评分 <= 4 星时，额外上报自定义 APM 事件（不影响原有接口上报）
     if (rating <= 4) {
       try {
