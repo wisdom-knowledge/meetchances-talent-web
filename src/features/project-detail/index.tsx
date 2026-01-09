@@ -245,6 +245,101 @@ export default function ProjectDetailPage() {
   const avgScorePillClass =
     averageScore >= 2.5 ? 'bg-[#4E02E480] text-white' : 'bg-[#FFDEDD] text-[#F4490B]'
 
+  // 绑定状态卡片区域
+  const bindingCardsSection = (requireFeishu || requireAgreement || requirePayment) && (
+    <div className='flex flex-col gap-4'>
+      <h2 className='text-base font-semibold tracking-[0.32px]'>请先完成流程</h2>
+      <div className='flex flex-wrap gap-4'>
+        {/* 飞书绑定 */}
+        {requireFeishu && (
+          <button
+            onClick={handleFeishuBind}
+            className='flex flex-1 min-w-[200px] items-center justify-center rounded-xl border border-primary/20 p-4 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
+          >
+            <div className='flex flex-1 items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <img src={feishuIcon} alt='飞书' className='h-6 w-6' />
+                <span className='text-sm font-semibold'>飞书绑定</span>
+              </div>
+              {isFeishuBound ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <g clipPath="url(#clip0_8048_4957)">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M0 8C0 5.87827 0.842855 3.84344 2.34315 2.34315C3.84344 0.842855 5.87827 0 8 0C10.1217 0 12.1566 0.842855 13.6569 2.34315C15.1571 3.84344 16 5.87827 16 8C16 10.1217 15.1571 12.1566 13.6569 13.6569C12.1566 15.1571 10.1217 16 8 16C5.87827 16 3.84344 15.1571 2.34315 13.6569C0.842855 12.1566 0 10.1217 0 8ZM7.54347 11.424L12.1493 5.66613L11.3173 5.00053L7.38987 9.90827L4.608 7.5904L3.92533 8.4096L7.54347 11.424Z" fill="#4E02E4"/>
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_8048_4957">
+                      <rect width="16" height="16" fill="white"/>
+                    </clipPath>
+                  </defs>
+                </svg>
+              ) : (
+                <span className='text-xs font-medium text-primary underline decoration-solid'>待绑定</span>
+              )}
+            </div>
+          </button>
+        )}
+
+        {/* 数据与工作协议 */}
+        {requireAgreement && (
+          <button
+            onClick={handleAgreementBind}
+            className='flex flex-1 min-w-[200px] items-center justify-center rounded-xl border border-primary/20 p-4 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
+          >
+            <div className='flex flex-1 items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <img src={dataIcon} alt='数据协议' className='h-6 w-6' />
+                <span className='text-sm font-semibold'>数据与工作协议</span>
+              </div>
+              {isAgreementBound ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <g clipPath="url(#clip0_8048_4958)">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M0 8C0 5.87827 0.842855 3.84344 2.34315 2.34315C3.84344 0.842855 5.87827 0 8 0C10.1217 0 12.1566 0.842855 13.6569 2.34315C15.1571 3.84344 16 5.87827 16 8C16 10.1217 15.1571 12.1566 13.6569 13.6569C12.1566 15.1571 10.1217 16 8 16C5.87827 16 3.84344 15.1571 2.34315 13.6569C0.842855 12.1566 0 10.1217 0 8ZM7.54347 11.424L12.1493 5.66613L11.3173 5.00053L7.38987 9.90827L4.608 7.5904L3.92533 8.4096L7.54347 11.424Z" fill="#4E02E4"/>
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_8048_4958">
+                      <rect width="16" height="16" fill="white"/>
+                    </clipPath>
+                  </defs>
+                </svg>
+              ) : (
+                <span className='text-xs font-medium text-primary underline decoration-solid'>待确认</span>
+              )}
+            </div>
+          </button>
+        )}
+
+        {/* 支付绑定 */}
+        {requirePayment && (
+          <button
+            onClick={handlePaymentBind}
+            className='flex flex-1 min-w-[200px] items-center justify-center rounded-xl border border-primary/20 p-4 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
+          >
+            <div className='flex flex-1 items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <img src={payIcon} alt='支付绑定' className='h-6 w-6' />
+                <span className='text-sm font-semibold'>支付绑定</span>
+              </div>
+              {isPaymentBound ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <g clipPath="url(#clip0_8048_4959)">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M0 8C0 5.87827 0.842855 3.84344 2.34315 2.34315C3.84344 0.842855 5.87827 0 8 0C10.1217 0 12.1566 0.842855 13.6569 2.34315C15.1571 3.84344 16 5.87827 16 8C16 10.1217 15.1571 12.1566 13.6569 13.6569C12.1566 15.1571 10.1217 16 8 16C5.87827 16 3.84344 15.1571 2.34315 13.6569C0.842855 12.1566 0 10.1217 0 8ZM7.54347 11.424L12.1493 5.66613L11.3173 5.00053L7.38987 9.90827L4.608 7.5904L3.92533 8.4096L7.54347 11.424Z" fill="#4E02E4"/>
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_8048_4959">
+                      <rect width="16" height="16" fill="white"/>
+                    </clipPath>
+                  </defs>
+                </svg>
+              ) : (
+                <span className='text-xs font-medium text-primary underline decoration-solid'>待绑定</span>
+              )}
+            </div>
+          </button>
+        )}
+      </div>
+    </div>
+  )
+
   const jobProjectRelationshipCard = (
     <Card className='w-full shrink-0 rounded-xl border border-primary/10 bg-[rgb(245,244,253)] p-6'>
       <div className='grid grid-cols-[24px_1fr] gap-x-3 gap-y-3'>
@@ -276,14 +371,25 @@ export default function ProjectDetailPage() {
             返回
           </button>
           {!isProjectEnded && (
-            <Button
-              type='button'
-              onClick={handleSubmit}
-              disabled={projectLoading || !allBound || submitting}
-              className='h-11 rounded-lg px-7 text-base font-medium disabled:bg-[#c9c9c9] disabled:text-white disabled:opacity-100 disabled:pointer-events-none'
-            >
-              {submitting ? '进入中...' : '进入项目'}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={!allBound ? 'cursor-not-allowed' : ''}>
+                  <Button
+                    type='button'
+                    onClick={handleSubmit}
+                    disabled={projectLoading || !allBound || submitting}
+                    className='h-11 rounded-lg px-7 text-base font-medium disabled:bg-[#c9c9c9] disabled:text-white disabled:opacity-100 disabled:pointer-events-none'
+                  >
+                    {submitting ? '进入中...' : '进入项目'}
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!allBound && (
+                <TooltipContent>
+                  请先完成下面流程
+                </TooltipContent>
+              )}
+            </Tooltip>
           )}
         </div>
 
@@ -444,95 +550,10 @@ export default function ProjectDetailPage() {
                   </div>
                 </div>
               </div>
-
-              {/* 绑定状态卡片 */}
-              {/* 飞书绑定 */}
-              {requireFeishu && (
-              <button
-                onClick={handleFeishuBind}
-                className='flex w-full items-center justify-center rounded-xl border border-primary/20 p-6 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
-              >
-                <div className='flex flex-1 items-center justify-between'>
-                  <div className='flex items-center gap-4'>
-                    <img src={feishuIcon} alt='飞书' className='h-8 w-8' />
-                    <span className='text-base font-semibold'>飞书绑定</span>
-                  </div>
-                  {isFeishuBound ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <g clipPath="url(#clip0_8048_4957)">
-                        <path fillRule="evenodd" clipRule="evenodd" d="M0 8C0 5.87827 0.842855 3.84344 2.34315 2.34315C3.84344 0.842855 5.87827 0 8 0C10.1217 0 12.1566 0.842855 13.6569 2.34315C15.1571 3.84344 16 5.87827 16 8C16 10.1217 15.1571 12.1566 13.6569 13.6569C12.1566 15.1571 10.1217 16 8 16C5.87827 16 3.84344 15.1571 2.34315 13.6569C0.842855 12.1566 0 10.1217 0 8ZM7.54347 11.424L12.1493 5.66613L11.3173 5.00053L7.38987 9.90827L4.608 7.5904L3.92533 8.4096L7.54347 11.424Z" fill="#4E02E4"/>
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_8048_4957">
-                          <rect width="16" height="16" fill="white"/>
-                        </clipPath>
-                      </defs>
-                    </svg>
-                  ) : (
-                    <span className='text-sm font-medium text-primary underline decoration-solid'>待绑定</span>
-                  )}
-                </div>
-              </button>
-              )}
-
-              {/* 数据与工作协议 */}
-              {requireAgreement && (
-              <button
-                onClick={handleAgreementBind}
-                className='flex w-full items-center justify-center rounded-xl border border-primary/20 p-6 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
-              >
-                <div className='flex flex-1 items-center justify-between'>
-                  <div className='flex items-center gap-4'>
-                    <img src={dataIcon} alt='数据协议' className='h-8 w-8' />
-                    <span className='text-base font-semibold'>数据与工作协议</span>
-                  </div>
-                  {isAgreementBound ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <g clipPath="url(#clip0_8048_4958)">
-                        <path fillRule="evenodd" clipRule="evenodd" d="M0 8C0 5.87827 0.842855 3.84344 2.34315 2.34315C3.84344 0.842855 5.87827 0 8 0C10.1217 0 12.1566 0.842855 13.6569 2.34315C15.1571 3.84344 16 5.87827 16 8C16 10.1217 15.1571 12.1566 13.6569 13.6569C12.1566 15.1571 10.1217 16 8 16C5.87827 16 3.84344 15.1571 2.34315 13.6569C0.842855 12.1566 0 10.1217 0 8ZM7.54347 11.424L12.1493 5.66613L11.3173 5.00053L7.38987 9.90827L4.608 7.5904L3.92533 8.4096L7.54347 11.424Z" fill="#4E02E4"/>
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_8048_4958">
-                          <rect width="16" height="16" fill="white"/>
-                        </clipPath>
-                      </defs>
-                    </svg>
-                  ) : (
-                    <span className='text-sm font-medium text-primary underline decoration-solid'>待确认</span>
-                  )}
-                </div>
-              </button>
-              )}
-
-              {/* 支付绑定 */}
-              {requirePayment && (
-              <button
-                onClick={handlePaymentBind}
-                className='flex w-full items-center justify-center rounded-xl border border-primary/20 p-6 transition-all duration-200 cursor-pointer hover:border-primary hover:bg-[linear-gradient(90deg,rgba(78,2,228,0.05)_0%,rgba(78,2,228,0.05)_100%)] hover:shadow-sm hover:scale-[1.01]'
-              >
-                <div className='flex flex-1 items-center justify-between'>
-                  <div className='flex items-center gap-4'>
-                    <img src={payIcon} alt='支付绑定' className='h-8 w-8' />
-                    <span className='text-base font-semibold'>支付绑定</span>
-                  </div>
-                  {isPaymentBound ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <g clipPath="url(#clip0_8048_4959)">
-                        <path fillRule="evenodd" clipRule="evenodd" d="M0 8C0 5.87827 0.842855 3.84344 2.34315 2.34315C3.84344 0.842855 5.87827 0 8 0C10.1217 0 12.1566 0.842855 13.6569 2.34315C15.1571 3.84344 16 5.87827 16 8C16 10.1217 15.1571 12.1566 13.6569 13.6569C12.1566 15.1571 10.1217 16 8 16C5.87827 16 3.84344 15.1571 2.34315 13.6569C0.842855 12.1566 0 10.1217 0 8ZM7.54347 11.424L12.1493 5.66613L11.3173 5.00053L7.38987 9.90827L4.608 7.5904L3.92533 8.4096L7.54347 11.424Z" fill="#4E02E4"/>
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_8048_4959">
-                          <rect width="16" height="16" fill="white"/>
-                        </clipPath>
-                      </defs>
-                    </svg>
-                  ) : (
-                    <span className='text-sm font-medium text-primary underline decoration-solid'>待绑定</span>
-                  )}
-                </div>
-              </button>
-              )}
             </div>
+
+            {/* 理解岗位与项目的关系 */}
+            {jobProjectRelationshipCard}
 
           </div>
 
@@ -563,6 +584,8 @@ export default function ProjectDetailPage() {
                     </button>
                   </div>
                 </div>
+                {bindingCardsSection}
+
                 <Card className='flex w-full flex-1 min-h-0 items-center justify-center rounded-xl border border-primary/20'>
                   <div className='flex max-w-[560px] flex-col items-center px-6 text-center'>
                     <img
@@ -579,11 +602,11 @@ export default function ProjectDetailPage() {
                     </div>
                   </div>
                 </Card>
-
-                {jobProjectRelationshipCard}
               </div>
             ) : hasWorkGuide ? (
               <div className='flex flex-1 flex-col gap-5 min-h-0'>
+                {bindingCardsSection}
+
                 <div className='flex items-center justify-between gap-4'>
                   <div className='flex-1 min-w-0 flex items-center gap-3 flex-wrap'>
                     <h2 className='text-base font-semibold tracking-[0.32px] shrink-0'>
@@ -627,11 +650,9 @@ export default function ProjectDetailPage() {
                     />
                   ) : null}
                 </div>
-
-                {jobProjectRelationshipCard}
               </div>
             ) : (
-              jobProjectRelationshipCard
+              bindingCardsSection
             )}
           </div>
         </div>
